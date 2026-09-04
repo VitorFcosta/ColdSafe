@@ -32,6 +32,7 @@ def settings():
 def client():
     mqtt_client = Mock()
     mqtt_client.subscribe.return_value = (0, 1)
+    mqtt_client.ack.return_value = 0
     return mqtt_client
 
 
@@ -87,6 +88,7 @@ def test_default_client_uses_callback_api_v2(factory, settings, handler):
         CallbackAPIVersion.VERSION2,
         client_id=settings.client_id,
         protocol=MQTTv311,
+        manual_ack=True,
     )
 
 
@@ -154,12 +156,15 @@ def test_valid_message_reaches_handler_as_validated_model(
     message = SimpleNamespace(
         topic="coldsafe/v1/telemetry",
         payload=VALID_PAYLOAD,
+        mid=41,
+        qos=1,
     )
 
     client.on_message(client, None, message)
 
     telemetry = handler.call_args.args[0]
     assert telemetry == TelemetryPayload.model_validate_json(VALID_PAYLOAD)
+    client.ack.assert_called_once_with(message.mid, message.qos)
 
 
 def test_invalid_message_is_rejected_without_logging_payload(
@@ -172,21 +177,30 @@ def test_invalid_message_is_rejected_without_logging_payload(
     message = SimpleNamespace(
         topic="coldsafe/v1/telemetry",
         payload=invalid_payload,
+        mid=42,
+        qos=1,
     )
 
     client.on_message(client, None, message)
 
     handler.assert_not_called()
+    client.ack.assert_called_once_with(message.mid, message.qos)
     assert "Rejected invalid MQTT telemetry" in caplog.text
     assert invalid_payload.decode() not in caplog.text
 
 
 def test_message_from_unexpected_topic_is_ignored(subscriber, client, handler):
-    message = SimpleNamespace(topic="unexpected/topic", payload=VALID_PAYLOAD)
+    message = SimpleNamespace(
+        topic="unexpected/topic",
+        payload=VALID_PAYLOAD,
+        mid=43,
+        qos=1,
+    )
 
     client.on_message(client, None, message)
 
     handler.assert_not_called()
+    client.ack.assert_called_once_with(message.mid, message.qos)
 
 
 def test_handler_failure_is_contained_by_callback(
@@ -199,11 +213,29 @@ def test_handler_failure_is_contained_by_callback(
     message = SimpleNamespace(
         topic="coldsafe/v1/telemetry",
         payload=VALID_PAYLOAD,
+        mid=44,
+        qos=1,
     )
 
     client.on_message(client, None, message)
 
     assert "MQTT telemetry handler failed" in caplog.text
+    client.ack.assert_not_called()
+
+
+def test_acknowledgement_failure_is_reported(subscriber, client, handler, caplog):
+    client.ack.return_value = 1
+    message = SimpleNamespace(
+        topic="coldsafe/v1/telemetry",
+        payload=VALID_PAYLOAD,
+        mid=45,
+        qos=1,
+    )
+
+    client.on_message(client, None, message)
+
+    handler.assert_called_once()
+    assert "MQTT acknowledgement failed" in caplog.text
 
 
 def test_stop_disconnects_before_stopping_loop_and_is_idempotent(
