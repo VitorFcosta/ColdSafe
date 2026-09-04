@@ -59,6 +59,7 @@ class MqttSubscriber:
             mqtt.CallbackAPIVersion.VERSION2,
             client_id=settings.client_id,
             protocol=mqtt.MQTTv311,
+            manual_ack=True,
         )
         self._started = False
         self._client.on_connect = self._on_connect
@@ -116,12 +117,14 @@ class MqttSubscriber:
         del client, userdata
         if message.topic != self._settings.topic:
             LOGGER.warning("Ignored MQTT message from unexpected topic")
+            self._acknowledge(message)
             return
 
         try:
             telemetry = parse_telemetry_payload(message.payload)
         except (ValidationError, TelemetryPayloadTooLargeError):
             LOGGER.warning("Rejected invalid MQTT telemetry")
+            self._acknowledge(message)
             return
 
         try:
@@ -131,3 +134,11 @@ class MqttSubscriber:
                 "MQTT telemetry handler failed: error_type=%s",
                 type(error).__name__,
             )
+            return
+
+        self._acknowledge(message)
+
+    def _acknowledge(self, message: Any) -> None:
+        result = self._client.ack(message.mid, message.qos)
+        if result != mqtt.MQTT_ERR_SUCCESS:
+            LOGGER.error("MQTT acknowledgement failed: code=%s", result)
