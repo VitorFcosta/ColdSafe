@@ -137,6 +137,15 @@ def test_failed_connection_does_not_subscribe(subscriber, client, caplog):
     assert "MQTT connection rejected" in caplog.text
 
 
+def test_subscription_request_failure_is_reported(subscriber, client, caplog):
+    client.subscribe.return_value = (1, 1)
+    success = SimpleNamespace(is_failure=False)
+
+    client.on_connect(client, None, {}, success, None)
+
+    assert "MQTT subscription request failed" in caplog.text
+
+
 def test_valid_message_reaches_handler_as_validated_model(
     subscriber,
     client,
