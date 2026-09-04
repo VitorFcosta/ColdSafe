@@ -10,6 +10,7 @@ lazy-object-proxy==1.12.0
 openapi-schema-validator==0.9.0
 openapi-spec-validator==0.9.0
 packaging==26.3
+paho-mqtt==2.1.0
 pathable==0.6.0
 pluggy==1.6.0
 pydantic==2.13.5

@@ -1,7 +1,9 @@
 from types import SimpleNamespace
-from unittest.mock import Mock, call
+from unittest.mock import Mock, call, patch
 
 import pytest
+from paho.mqtt.client import MQTTv311
+from paho.mqtt.enums import CallbackAPIVersion
 
 from backend.app.domain.telemetry import TelemetryPayload
 from backend.app.mqtt.subscriber import MqttSubscriber, MqttSubscriberSettings
@@ -75,6 +77,17 @@ def test_settings_reject_invalid_connection_values(change):
 
 def test_settings_do_not_expose_password_in_representation(settings):
     assert settings.password not in repr(settings)
+
+
+@patch("backend.app.mqtt.subscriber.mqtt.Client")
+def test_default_client_uses_callback_api_v2(factory, settings, handler):
+    MqttSubscriber(settings=settings, handler=handler)
+
+    factory.assert_called_once_with(
+        CallbackAPIVersion.VERSION2,
+        client_id=settings.client_id,
+        protocol=MQTTv311,
+    )
 
 
 def test_start_configures_credentials_connection_and_network_loop(
