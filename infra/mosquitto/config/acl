@@ -1,0 +1,6 @@
+user coldsafe-device
+topic write coldsafe/v1/telemetry
+
+user coldsafe-backend
+topic read coldsafe/v1/telemetry
+topic read $SYS/#

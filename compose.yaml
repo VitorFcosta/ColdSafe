@@ -1,0 +1,66 @@
+name: coldsafe
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1883:1883"
+    environment:
+      MQTT_BACKEND_USERNAME: coldsafe-backend
+      MQTT_BACKEND_PASSWORD: "${MQTT_BACKEND_PASSWORD:?Preencha MQTT_BACKEND_PASSWORD no arquivo .env}"
+    volumes:
+      - "./infra/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"
+      - "./infra/mosquitto/config/acl:/mosquitto/config/acl:ro"
+      - "./infra/mosquitto/config/passwords:/mosquitto/config/passwords:ro"
+      - "mosquitto-data:/mosquitto/data"
+    networks:
+      - coldsafe-internal
+      - coldsafe-edge
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mosquitto_sub -h 127.0.0.1 -p 1883
+          -u "$${MQTT_BACKEND_USERNAME}" -P "$${MQTT_BACKEND_PASSWORD}"
+          -t '$$SYS/broker/version' -C 1 -W 5 >/dev/null
+      interval: 10s
+      timeout: 6s
+      retries: 5
+      start_period: 5s
+
+  influxdb:
+    image: influxdb:2.7.12-alpine
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: "${DOCKER_INFLUXDB_INIT_MODE:-setup}"
+      DOCKER_INFLUXDB_INIT_USERNAME: "${DOCKER_INFLUXDB_INIT_USERNAME:?Preencha DOCKER_INFLUXDB_INIT_USERNAME no arquivo .env}"
+      DOCKER_INFLUXDB_INIT_PASSWORD: "${DOCKER_INFLUXDB_INIT_PASSWORD:?Preencha DOCKER_INFLUXDB_INIT_PASSWORD no arquivo .env}"
+      DOCKER_INFLUXDB_INIT_ORG: "${DOCKER_INFLUXDB_INIT_ORG:-coldsafe}"
+      DOCKER_INFLUXDB_INIT_BUCKET: "${DOCKER_INFLUXDB_INIT_BUCKET:-telemetry}"
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN:?Preencha DOCKER_INFLUXDB_INIT_ADMIN_TOKEN no arquivo .env}"
+    volumes:
+      - "influxdb-data:/var/lib/influxdb2"
+      - "influxdb-config:/etc/influxdb2"
+    networks:
+      - coldsafe-internal
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "influx", "ping", "--host", "http://127.0.0.1:8086"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+networks:
+  coldsafe-internal:
+    internal: true
+  coldsafe-edge:
+
+volumes:
+  mosquitto-data:
+  influxdb-data:
+  influxdb-config:
