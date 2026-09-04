@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.py[cod]
+.DS_Store
+
+# Arquivos locais com segredos nunca entram no Git.
+.env
+.env.*
+!.env.example
+firmware/include/secrets.h
+infra/mosquitto/config/passwords

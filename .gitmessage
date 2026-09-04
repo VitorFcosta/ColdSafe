@@ -1,0 +1,18 @@
+# Formato: <tipo>(<escopo>): <descrição>
+# Exemplo: feat(contracts): define contrato inicial de telemetria
+#
+# Tipos permitidos:
+# feat, fix, refactor, docs, test, chore, perf, ci, revert
+#
+# Escopos sugeridos:
+# repo, contracts, backend, frontend, firmware, infra, docs, deps, qa, security
+#
+# Regras para a primeira linha:
+# - descreva uma única mudança lógica;
+# - use verbo no presente: adiciona, corrige, define, remove;
+# - comece a descrição com letra minúscula;
+# - não termine com ponto;
+# - mantenha no máximo 72 caracteres;
+#
+# Corpo opcional: explique por que a mudança foi necessária.
+# Rodapé opcional: referência de tarefa ou BREAKING CHANGE.
