@@ -43,6 +43,40 @@ def subscriber(settings, client, handler):
     return MqttSubscriber(settings=settings, handler=handler, client=client)
 
 
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"host": ""},
+        {"port": 0},
+        {"port": 65_536},
+        {"topic": ""},
+        {"qos": 0},
+        {"client_id": ""},
+        {"username": ""},
+        {"password": ""},
+        {"keepalive_seconds": 0},
+    ],
+)
+def test_settings_reject_invalid_connection_values(change):
+    values = {
+        "host": "mosquitto",
+        "port": 1883,
+        "topic": "coldsafe/v1/telemetry",
+        "qos": 1,
+        "client_id": "coldsafe-backend",
+        "username": "coldsafe-backend",
+        "password": "placeholder",
+        "keepalive_seconds": 60,
+    }
+
+    with pytest.raises(ValueError):
+        MqttSubscriberSettings(**(values | change))
+
+
+def test_settings_do_not_expose_password_in_representation(settings):
+    assert settings.password not in repr(settings)
+
+
 def test_start_configures_credentials_connection_and_network_loop(
     subscriber,
     settings,
