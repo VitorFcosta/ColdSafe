@@ -1,0 +1,370 @@
+openapi: 3.1.0
+info:
+  title: ColdSafe Monitoring API
+  version: 1.0.0
+  description: >-
+    API do protótipo acadêmico ColdSafe. Os valores e limites são demonstrativos;
+    este sistema não é certificado para uso médico, sanitário ou regulatório.
+servers:
+  - url: http://localhost:8000
+    description: Ambiente local
+tags:
+  - name: Monitoring
+    description: Diagnóstico atual e histórico de telemetria.
+  - name: Health
+    description: Estado do processo e de suas dependências obrigatórias.
+paths:
+  /api/v1/monitoring/summary:
+    get:
+      tags: [Monitoring]
+      operationId: getMonitoringSummary
+      summary: Consultar o diagnóstico atual
+      responses:
+        "200":
+          description: Diagnóstico atual ou estado válido sem dados.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringSummaryResponse"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/readings:
+    get:
+      tags: [Monitoring]
+      operationId: listReadings
+      summary: Consultar o histórico de leituras
+      parameters:
+        - name: device_id
+          in: query
+          required: true
+          description: Identificador opaco do dispositivo.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+            pattern: "^[A-Za-z0-9._-]+$"
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [15m, 1h, 6h, 24h]
+            default: 1h
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 300
+      responses:
+        "200":
+          description: Histórico encontrado ou lista vazia.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadingHistoryResponse"
+        "404":
+          $ref: "#/components/responses/DeviceNotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /health/live:
+    get:
+      tags: [Health]
+      operationId: getLiveness
+      summary: Confirmar que o processo responde
+      responses:
+        "200":
+          description: Processo ativo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /health/ready:
+    get:
+      tags: [Health]
+      operationId: getReadiness
+      summary: Confirmar que a aplicação está pronta
+      responses:
+        "200":
+          description: Aplicação e dependências obrigatórias prontas.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+components:
+  responses:
+    ValidationError:
+      description: Um parâmetro não respeita o contrato.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            error:
+              code: VALIDATION_ERROR
+              message: Um ou mais parâmetros são inválidos.
+            meta:
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+    DeviceNotFound:
+      description: O dispositivo informado não existe.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            error:
+              code: DEVICE_NOT_FOUND
+              message: O dispositivo informado não foi encontrado.
+            meta:
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+    DependencyUnavailable:
+      description: Uma dependência obrigatória está indisponível.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            error:
+              code: DEPENDENCY_UNAVAILABLE
+              message: Não foi possível consultar as leituras agora.
+            meta:
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+    InternalError:
+      description: Ocorreu uma falha inesperada.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            error:
+              code: INTERNAL_ERROR
+              message: Ocorreu um erro interno.
+            meta:
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+  schemas:
+    ReadingStatus:
+      type: string
+      enum: [normal, attention, critical, no_data, stale]
+      description: Classificação da leitura; falhas de serviço pertencem à interface.
+    ErrorCode:
+      type: string
+      enum:
+        - VALIDATION_ERROR
+        - DEVICE_NOT_FOUND
+        - DEPENDENCY_UNAVAILABLE
+        - INTERNAL_ERROR
+    Environment:
+      type: object
+      additionalProperties: false
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    Device:
+      type: object
+      additionalProperties: false
+      required: [id]
+      properties:
+        id:
+          type: string
+    ReadingFields:
+      type: object
+      required: [temperature_c, humidity_percent, received_at]
+      properties:
+        temperature_c:
+          type: number
+        humidity_percent:
+          type: number
+          minimum: 0
+          maximum: 100
+        received_at:
+          type: string
+          format: date-time
+    Reading:
+      allOf:
+        - $ref: "#/components/schemas/ReadingFields"
+      unevaluatedProperties: false
+    Freshness:
+      type: object
+      additionalProperties: false
+      required: [is_stale, age_seconds]
+      properties:
+        is_stale:
+          type: boolean
+        age_seconds:
+          type: number
+          minimum: 0
+    Thresholds:
+      type: object
+      additionalProperties: false
+      required: [min_c, max_c, attention_margin_c]
+      properties:
+        min_c:
+          type: number
+          example: 2
+        max_c:
+          type: number
+          example: 8
+        attention_margin_c:
+          type: number
+          minimum: 0
+          example: 0.5
+    MonitoringSummaryData:
+      type: object
+      additionalProperties: false
+      required: [environment, device, reading, status, freshness, thresholds]
+      properties:
+        environment:
+          $ref: "#/components/schemas/Environment"
+        device:
+          $ref: "#/components/schemas/Device"
+        reading:
+          anyOf:
+            - $ref: "#/components/schemas/Reading"
+            - type: "null"
+        status:
+          $ref: "#/components/schemas/ReadingStatus"
+        freshness:
+          anyOf:
+            - $ref: "#/components/schemas/Freshness"
+            - type: "null"
+        thresholds:
+          $ref: "#/components/schemas/Thresholds"
+    SuccessMeta:
+      type: object
+      additionalProperties: false
+      required: [schema_version]
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+    MonitoringSummaryResponse:
+      type: object
+      additionalProperties: false
+      required: [success, data, meta]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/MonitoringSummaryData"
+        meta:
+          $ref: "#/components/schemas/SuccessMeta"
+    HistoricalReading:
+      allOf:
+        - $ref: "#/components/schemas/ReadingFields"
+        - type: object
+          required: [status]
+          properties:
+            status:
+              $ref: "#/components/schemas/ReadingStatus"
+      unevaluatedProperties: false
+    ReadingHistoryData:
+      type: object
+      additionalProperties: false
+      required: [readings]
+      properties:
+        readings:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoricalReading"
+    ReadingHistoryMeta:
+      type: object
+      additionalProperties: false
+      required: [schema_version, device_id, start, end, count, limit]
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+        device_id:
+          type: string
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        count:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+    ReadingHistoryResponse:
+      type: object
+      additionalProperties: false
+      required: [success, data, meta]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/ReadingHistoryData"
+        meta:
+          $ref: "#/components/schemas/ReadingHistoryMeta"
+    HealthData:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          const: ok
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required: [success, data, meta]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/HealthData"
+        meta:
+          $ref: "#/components/schemas/SuccessMeta"
+    ErrorDetail:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code:
+          $ref: "#/components/schemas/ErrorCode"
+        message:
+          type: string
+    ErrorMeta:
+      type: object
+      additionalProperties: false
+      required: [request_id]
+      properties:
+        request_id:
+          type: string
+          format: uuid
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [success, error, meta]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          $ref: "#/components/schemas/ErrorDetail"
+        meta:
+          $ref: "#/components/schemas/ErrorMeta"

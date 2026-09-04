@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "device_id": "esp32-lab-01",
+  "temperature_c": 5.4,
+  "humidity_percent": 62.1
+}

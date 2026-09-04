@@ -1,0 +1,87 @@
+[
+  {
+    "name": "empty-payload",
+    "payload": {}
+  },
+  {
+    "name": "missing-required-field",
+    "payload": {
+      "schema_version": 1,
+      "device_id": "esp32-lab-01",
+      "temperature_c": 5.4
+    }
+  },
+  {
+    "name": "unexpected-property",
+    "payload": {
+      "schema_version": 1,
+      "device_id": "esp32-lab-01",
+      "temperature_c": 5.4,
+      "humidity_percent": 62.1,
+      "received_at": "2026-09-03T12:00:00Z"
+    }
+  },
+  {
+    "name": "unsupported-schema-version",
+    "payload": {
+      "schema_version": 2,
+      "device_id": "esp32-lab-01",
+      "temperature_c": 5.4,
+      "humidity_percent": 62.1
+    }
+  },
+  {
+    "name": "invalid-device-id",
+    "payload": {
+      "schema_version": 1,
+      "device_id": "esp32 lab 01",
+      "temperature_c": 5.4,
+      "humidity_percent": 62.1
+    }
+  },
+  {
+    "name": "temperature-below-sensor-range",
+    "payload": {
+      "schema_version": 1,
+      "device_id": "esp32-lab-01",
+      "temperature_c": -40.1,
+      "humidity_percent": 62.1
+    }
+  },
+  {
+    "name": "temperature-above-sensor-range",
+    "payload": {
+      "schema_version": 1,
+      "device_id": "esp32-lab-01",
+      "temperature_c": 80.1,
+      "humidity_percent": 62.1
+    }
+  },
+  {
+    "name": "humidity-below-zero",
+    "payload": {
+      "schema_version": 1,
+      "device_id": "esp32-lab-01",
+      "temperature_c": 5.4,
+      "humidity_percent": -0.1
+    }
+  },
+  {
+    "name": "humidity-above-one-hundred",
+    "payload": {
+      "schema_version": 1,
+      "device_id": "esp32-lab-01",
+      "temperature_c": 5.4,
+      "humidity_percent": 100.1
+    }
+  },
+  {
+    "name": "temperature-as-text",
+    "payload": {
+      "schema_version": 1,
+      "device_id": "esp32-lab-01",
+      "temperature_c": "5.4",
+      "humidity_percent": 62.1
+    }
+  }
+]

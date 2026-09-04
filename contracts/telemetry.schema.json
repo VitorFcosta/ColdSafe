@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coldsafe.local/contracts/telemetry.schema.json",
+  "title": "ColdSafe telemetry payload",
+  "description": "Telemetria acadêmica publicada pelo ESP32 em coldsafe/v1/telemetry. O horário de recebimento é acrescentado pelo backend e não pertence a este payload.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "device_id",
+    "temperature_c",
+    "humidity_percent"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Versão do contrato MQTT."
+    },
+    "device_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "description": "Identificador opaco do dispositivo."
+    },
+    "temperature_c": {
+      "type": "number",
+      "minimum": -40,
+      "maximum": 80,
+      "description": "Temperatura em graus Celsius dentro da faixa física aceita pelo protótipo."
+    },
+    "humidity_percent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Umidade relativa em percentual."
+    }
+  }
+}
