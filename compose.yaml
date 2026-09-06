@@ -1,9 +1,37 @@
 name: coldsafe
 
 services:
+  mosquitto-init:
+    image: eclipse-mosquitto:2.0.22
+    restart: "no"
+    network_mode: none
+    environment:
+      MQTT_BACKEND_PASSWORD: "${MQTT_BACKEND_PASSWORD:?Preencha MQTT_BACKEND_PASSWORD no arquivo .env}"
+      MQTT_DEVICE_PASSWORD: "${MQTT_DEVICE_PASSWORD:?Preencha MQTT_DEVICE_PASSWORD no arquivo .env}"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        umask 077
+        rm -f /mosquitto/auth/passwords
+        mosquitto_passwd -b -c /mosquitto/auth/passwords coldsafe-backend "$${MQTT_BACKEND_PASSWORD}"
+        mosquitto_passwd -b /mosquitto/auth/passwords coldsafe-device "$${MQTT_DEVICE_PASSWORD}"
+        chmod 0444 /mosquitto/auth/passwords
+    volumes:
+      - "mosquitto-auth:/mosquitto/auth"
+    read_only: true
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=1m"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
   mosquitto:
     image: eclipse-mosquitto:2.0.22
     restart: unless-stopped
+    depends_on:
+      mosquitto-init:
+        condition: service_completed_successfully
     ports:
       - "127.0.0.1:1883:1883"
     environment:
@@ -12,7 +40,7 @@ services:
     volumes:
       - "./infra/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"
       - "./infra/mosquitto/config/acl:/mosquitto/config/acl:ro"
-      - "./infra/mosquitto/config/passwords:/mosquitto/config/passwords:ro"
+      - "mosquitto-auth:/mosquitto/auth:ro"
       - "mosquitto-data:/mosquitto/data"
     networks:
       - coldsafe-internal
@@ -55,12 +83,60 @@ services:
       retries: 10
       start_period: 20s
 
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_TOPIC: coldsafe/v1/telemetry
+      MQTT_QOS: 1
+      MQTT_CLIENT_ID: coldsafe-backend
+      MQTT_BACKEND_USERNAME: coldsafe-backend
+      MQTT_BACKEND_PASSWORD: "${MQTT_BACKEND_PASSWORD:?Preencha MQTT_BACKEND_PASSWORD no arquivo .env}"
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_ORG: "${DOCKER_INFLUXDB_INIT_ORG:-coldsafe}"
+      INFLUXDB_BUCKET: "${DOCKER_INFLUXDB_INIT_BUCKET:-telemetry}"
+      INFLUXDB_TOKEN: "${INFLUXDB_TOKEN:?Preencha INFLUXDB_TOKEN no arquivo .env}"
+    networks:
+      - coldsafe-internal
+      - coldsafe-edge
+    read_only: true
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=16m"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2)
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
 networks:
   coldsafe-internal:
     internal: true
   coldsafe-edge:
 
 volumes:
+  mosquitto-auth:
   mosquitto-data:
   influxdb-data:
   influxdb-config:

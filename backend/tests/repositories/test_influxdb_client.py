@@ -130,6 +130,30 @@ def test_resources_close_write_api_before_client():
     ]
 
 
+def test_resources_report_readiness_from_influxdb_ping():
+    client = Mock()
+    client.ping.return_value = True
+    resources = InfluxRepositoryResources(
+        repository=Mock(),
+        write_api=Mock(),
+        client=client,
+    )
+
+    assert resources.is_ready() is True
+
+
+def test_resources_report_not_ready_when_influxdb_ping_fails():
+    client = Mock()
+    client.ping.side_effect = OSError("connection refused")
+    resources = InfluxRepositoryResources(
+        repository=Mock(),
+        write_api=Mock(),
+        client=client,
+    )
+
+    assert resources.is_ready() is False
+
+
 def test_resources_close_client_even_when_write_api_close_fails():
     write_api = Mock()
     client = Mock()

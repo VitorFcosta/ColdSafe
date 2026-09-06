@@ -6,6 +6,7 @@ import pytest
 
 from backend.app.domain.reading_classification import ReadingStatus
 from backend.app.domain.telemetry import TelemetryPayload
+from backend.app.errors import DependencyUnavailableError
 from backend.app.repositories.influxdb import InfluxReadingRepository, StoredReading
 
 
@@ -250,3 +251,26 @@ def test_list_history_rejects_timestamp_without_timezone(repository):
             end=datetime(2026, 9, 5, 13, 0, tzinfo=UTC),
             limit=300,
         )
+
+
+def test_save_translates_influx_client_failure(repository, write_api):
+    write_api.write.side_effect = OSError("connection refused")
+
+    with pytest.raises(DependencyUnavailableError, match="write failed"):
+        repository.save(
+            payload=TelemetryPayload(
+                schema_version=1,
+                device_id="esp32-lab-01",
+                temperature_c=5.4,
+                humidity_percent=62.1,
+            ),
+            received_at=RECEIVED_AT,
+            status=ReadingStatus.NORMAL,
+        )
+
+
+def test_query_translates_influx_client_failure(repository, query_api):
+    query_api.query.side_effect = OSError("connection refused")
+
+    with pytest.raises(DependencyUnavailableError, match="query failed"):
+        repository.get_latest("esp32-lab-01")

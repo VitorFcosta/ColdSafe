@@ -4,8 +4,12 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Protocol
 
+from influxdb_client.client.exceptions import InfluxDBError
+from urllib3.exceptions import HTTPError
+
 from backend.app.domain.reading_classification import ReadingStatus
 from backend.app.domain.telemetry import TelemetryPayload
+from backend.app.errors import DependencyUnavailableError
 
 
 class WriteApi(Protocol):
@@ -35,8 +39,8 @@ class StoredReading:
 _BASE_QUERY = """
 from(bucket: _bucket)
     |> range(start: _start, stop: _end)
-    |> filter(fn: (row) => row._measurement == "environment_reading")
-    |> filter(fn: (row) => row.device_id == _device_id)
+    |> filter(fn: (r) => r._measurement == "environment_reading")
+    |> filter(fn: (r) => r.device_id == _device_id)
     |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
     |> group(columns: ["device_id"])
 """.strip()
@@ -44,8 +48,8 @@ from(bucket: _bucket)
 _LATEST_QUERY = """
 from(bucket: _bucket)
     |> range(start: 0)
-    |> filter(fn: (row) => row._measurement == "environment_reading")
-    |> filter(fn: (row) => row.device_id == _device_id)
+    |> filter(fn: (r) => r._measurement == "environment_reading")
+    |> filter(fn: (r) => r.device_id == _device_id)
     |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
     |> group(columns: ["device_id"])
     |> sort(columns: ["_time"], desc: true)
@@ -86,23 +90,26 @@ class InfluxReadingRepository:
         """Persist one reading already validated and classified by the backend."""
 
         normalized_received_at = _as_utc(received_at, name="received_at")
-        self._write_api.write(
-            bucket=self._bucket,
-            org=self._org,
-            record={
-                "measurement": "environment_reading",
-                "tags": {
-                    "device_id": payload.device_id,
-                    "status": status.value,
+        try:
+            self._write_api.write(
+                bucket=self._bucket,
+                org=self._org,
+                record={
+                    "measurement": "environment_reading",
+                    "tags": {
+                        "device_id": payload.device_id,
+                        "status": status.value,
+                    },
+                    "fields": {
+                        "schema_version": payload.schema_version,
+                        "temperature_c": payload.temperature_c,
+                        "humidity_percent": payload.humidity_percent,
+                    },
+                    "time": normalized_received_at,
                 },
-                "fields": {
-                    "schema_version": payload.schema_version,
-                    "temperature_c": payload.temperature_c,
-                    "humidity_percent": payload.humidity_percent,
-                },
-                "time": normalized_received_at,
-            },
-        )
+            )
+        except (InfluxDBError, HTTPError, OSError) as exc:
+            raise DependencyUnavailableError("InfluxDB write failed") from exc
 
     def get_latest(self, device_id: str) -> StoredReading | None:
         """Return the most recent reading for a device, if one exists."""
@@ -150,11 +157,14 @@ class InfluxReadingRepository:
         query: str,
         params: dict[str, Any],
     ) -> tuple[StoredReading, ...]:
-        tables = self._query_api.query(
-            query=query,
-            org=self._org,
-            params=params,
-        )
+        try:
+            tables = self._query_api.query(
+                query=query,
+                org=self._org,
+                params=params,
+            )
+        except (InfluxDBError, HTTPError, OSError) as exc:
+            raise DependencyUnavailableError("InfluxDB query failed") from exc
         return tuple(
             _stored_reading(record.values)
             for table in tables

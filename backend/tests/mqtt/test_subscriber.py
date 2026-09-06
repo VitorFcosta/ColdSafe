@@ -238,6 +238,12 @@ def test_acknowledgement_failure_is_reported(subscriber, client, handler, caplog
     assert "MQTT acknowledgement failed" in caplog.text
 
 
+def test_connection_state_comes_from_mqtt_client(subscriber, client):
+    client.is_connected.return_value = True
+
+    assert subscriber.is_connected() is True
+
+
 def test_stop_disconnects_before_stopping_loop_and_is_idempotent(
     subscriber,
     client,

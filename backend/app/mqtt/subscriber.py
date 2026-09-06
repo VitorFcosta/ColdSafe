@@ -93,6 +93,11 @@ class MqttSubscriber:
             self._client.loop_stop()
             self._started = False
 
+    def is_connected(self) -> bool:
+        """Report the broker connection used by application readiness."""
+
+        return bool(self._client.is_connected())
+
     def _on_connect(
         self,
         client: Any,

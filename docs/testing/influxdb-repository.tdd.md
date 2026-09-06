@@ -25,8 +25,9 @@ conhecer detalhes do InfluxDB.
 5. Hardening de segurança: um teste adicional provou que URLs com query string ou
    fragmento eram aceitas; a configuração passou a rejeitá-las para impedir que
    segredos apareçam na representação da URL.
-6. Regressão final: 129 testes passaram com 100% de cobertura de linhas e branches
-   em `backend/app`.
+6. Integração real: o primeiro teste revelou que o InfluxDB 2.7.12 rejeitava o nome
+   `row` no parâmetro das funções Flux; a troca mínima para `r` corrigiu as consultas.
+7. Regressão final: 136 testes passaram com 100% de cobertura em `backend/app`.
 
 ## Garantias automatizadas
 
@@ -42,6 +43,8 @@ conhecer detalhes do InfluxDB.
 | Histórico respeita intervalo, limite global e ordem cronológica | Unidade | PASS |
 | Limites fora de 1–1000 e intervalo temporal inválido são rejeitados | Unidade | PASS |
 | Fábrica força escrita síncrona e fecha os recursos mesmo após falha parcial | Unidade | PASS |
+| Escrita, leitura atual e histórico funcionam no InfluxDB 2.7.12 real | Integração | PASS |
+| MQTT QoS 1 percorre validação, classificação e persistência real | Integração | PASS |
 
 ## Decisões de persistência
 
@@ -58,9 +61,33 @@ Foi adicionada a dependência `influxdb-client==1.50.0` em `backend/requirements
 e no lock de desenvolvimento. A fábrica do cliente real usa escrita síncrona para
 que a confirmação manual do MQTT não ocorra antes da persistência.
 
-Esta suíte prova o comportamento do adaptador com clientes injetados. A prova contra
-o InfluxDB real, incluindo reinício, persistência do volume e falhas de rede, pertence
-à integração MQTT → InfluxDB → API.
+Nenhuma dependência adicional foi necessária para a integração: `pytest`,
+`paho-mqtt` e `influxdb-client` já faziam parte do lock.
+
+O arquivo `compose.integration.yaml` publica o InfluxDB apenas em
+`127.0.0.1:18086`, exclusivamente durante a verificação local. O Compose normal
+continua sem expor o banco.
+
+Para executar a prova com uma pilha descartável, defina credenciais locais no
+ambiente e use:
+
+```bash
+docker compose -p coldsafe-integration \
+  -f compose.yaml -f compose.integration.yaml up -d --wait
+
+INFLUXDB_TEST_URL=http://127.0.0.1:18086 \
+INFLUXDB_TEST_ORG="$DOCKER_INFLUXDB_INIT_ORG" \
+INFLUXDB_TEST_BUCKET="$DOCKER_INFLUXDB_INIT_BUCKET" \
+INFLUXDB_TEST_TOKEN="$DOCKER_INFLUXDB_INIT_ADMIN_TOKEN" \
+MQTT_TEST_HOST=127.0.0.1 \
+MQTT_TEST_PORT=1883 \
+MQTT_TEST_BACKEND_PASSWORD="$MQTT_BACKEND_PASSWORD" \
+MQTT_TEST_DEVICE_PASSWORD="$MQTT_DEVICE_PASSWORD" \
+.venv/bin/python -m pytest -m integration -q
+```
+
+A prova de reinício do volume e o fluxo completo incluindo a API permanecem para
+as tarefas de QA posteriores.
 
 ## Checkpoints Git
 

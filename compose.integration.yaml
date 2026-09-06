@@ -1,0 +1,7 @@
+services:
+  influxdb:
+    ports:
+      - "127.0.0.1:18086:8086"
+    networks:
+      - coldsafe-internal
+      - coldsafe-edge

@@ -5,7 +5,9 @@ from dataclasses import dataclass, field
 from urllib.parse import urlparse
 
 from influxdb_client import InfluxDBClient
+from influxdb_client.client.exceptions import InfluxDBError
 from influxdb_client.client.write_api import SYNCHRONOUS
+from urllib3.exceptions import HTTPError
 
 from backend.app.repositories.influxdb import InfluxReadingRepository
 
@@ -42,6 +44,14 @@ class InfluxRepositoryResources:
     repository: InfluxReadingRepository
     write_api: object = field(repr=False)
     client: object = field(repr=False)
+
+    def is_ready(self) -> bool:
+        """Return a safe readiness signal without exposing connection details."""
+
+        try:
+            return bool(self.client.ping())
+        except (InfluxDBError, HTTPError, OSError):
+            return False
 
     def close(self) -> None:
         """Close the write API before its owning client, even if flushing fails."""

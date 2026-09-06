@@ -14,7 +14,9 @@ Protótipo acadêmico para monitorar temperatura e umidade em um ambiente refrig
 
 ## Fase atual
 
-A primeira fatia define e testa os contratos MQTT e HTTP antes da implementação dos serviços.
+A infraestrutura local, o domínio, o assinante MQTT, o repositório InfluxDB e a API
+FastAPI estão implementados. O fluxo MQTT → classificação → InfluxDB → API está
+validado em containers reais; a próxima fatia é o firmware ESP32/Wokwi.
 
 ## Testes de contrato
 
@@ -24,6 +26,10 @@ python3.13 -m venv .venv
 .venv/bin/python -m pip install -r backend/requirements-dev.lock.txt
 .venv/bin/python -m pytest backend/tests
 ```
+
+Testes marcados como `integration` são ignorados quando as variáveis da
+infraestrutura descartável não estão definidas. O procedimento completo está em
+[`docs/testing/influxdb-repository.tdd.md`](docs/testing/influxdb-repository.tdd.md).
 
 ## Configuração local
 
