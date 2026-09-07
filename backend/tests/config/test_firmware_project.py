@@ -16,6 +16,8 @@ def test_platformio_target_and_sensor_library_are_pinned():
     assert "framework = arduino" in configuration
     assert "monitor_speed = 115200" in configuration
     assert "beegee-tokyo/DHT sensor library for ESPx@1.19" in configuration
+    assert "build_unflags = -std=gnu++11" in configuration
+    assert "build_flags = -std=gnu++17" in configuration
 
 
 def test_firmware_reads_dht22_and_writes_serial_measurements():
@@ -33,6 +35,24 @@ def test_firmware_reads_dht22_and_writes_serial_measurements():
 
     assert serial_start < boot_message < sensor_setup
     assert "delay(500);" in source[serial_start:boot_message]
+
+
+def test_firmware_probes_local_mqtt_broker_through_wokwi_gateway():
+    source = (FIRMWARE_ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
+
+    assert "#include <WiFi.h>" in source
+    assert '#include "secrets.h"' in source
+    assert "WiFi.mode(WIFI_STA);" in source
+    assert (
+        "WiFi.begin(coldsafe::secrets::WIFI_SSID, "
+        "coldsafe::secrets::WIFI_PASSWORD, 6);"
+    ) in source
+    assert "WiFi.status() != WL_CONNECTED" in source
+    assert "WiFiClient gateway_probe;" in source
+    assert "gateway_probe.connect(" in source
+    assert "coldsafe::secrets::MQTT_HOST" in source
+    assert "coldsafe::secrets::MQTT_PORT" in source
+    assert "gateway_probe.stop();" in source
 
 
 def test_wokwi_diagram_connects_dht22_to_esp32_gpio_15():
