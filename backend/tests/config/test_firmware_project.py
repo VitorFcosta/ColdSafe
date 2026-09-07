@@ -16,6 +16,7 @@ def test_platformio_target_and_sensor_library_are_pinned():
     assert "framework = arduino" in configuration
     assert "monitor_speed = 115200" in configuration
     assert "beegee-tokyo/DHT sensor library for ESPx@1.19" in configuration
+    assert "256dpi/MQTT@2.5.3" in configuration
     assert "build_unflags = -std=gnu++11" in configuration
     assert "build_flags = -std=gnu++17" in configuration
 
@@ -37,10 +38,11 @@ def test_firmware_reads_dht22_and_writes_serial_measurements():
     assert "delay(500);" in source[serial_start:boot_message]
 
 
-def test_firmware_probes_local_mqtt_broker_through_wokwi_gateway():
+def test_firmware_configures_mqtt_broker_through_wokwi_gateway():
     source = (FIRMWARE_ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
 
     assert "#include <WiFi.h>" in source
+    assert "#include <MQTT.h>" in source
     assert '#include "secrets.h"' in source
     assert "WiFi.mode(WIFI_STA);" in source
     assert (
@@ -48,11 +50,34 @@ def test_firmware_probes_local_mqtt_broker_through_wokwi_gateway():
         "coldsafe::secrets::WIFI_PASSWORD, 6);"
     ) in source
     assert "WiFi.status() != WL_CONNECTED" in source
-    assert "WiFiClient gateway_probe;" in source
-    assert "gateway_probe.connect(" in source
+    assert "WiFiClient network_client;" in source
+    assert "mqtt_client.begin(" in source
     assert "coldsafe::secrets::MQTT_HOST" in source
     assert "coldsafe::secrets::MQTT_PORT" in source
-    assert "gateway_probe.stop();" in source
+
+
+def test_firmware_publishes_versioned_telemetry_with_qos_one_and_reconnects():
+    source = (FIRMWARE_ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
+
+    assert "#include <MQTT.h>" in source
+    assert 'constexpr char mqtt_topic[]{"coldsafe/v1/telemetry"};' in source
+    assert "constexpr int mqtt_qos{1};" in source
+    assert "constexpr unsigned long publish_interval_ms{5000UL};" in source
+    assert "WiFiClient network_client;" in source
+    assert "MQTTClient mqtt_client" in source
+    assert "mqtt_client.begin(" in source
+    assert "coldsafe::secrets::MQTT_HOST" in source
+    assert "coldsafe::secrets::MQTT_PORT" in source
+    assert "mqtt_client.connect(" in source
+    assert "coldsafe::secrets::MQTT_USERNAME" in source
+    assert "coldsafe::secrets::MQTT_PASSWORD" in source
+    assert "mqtt_client.loop();" in source
+    assert '\\"schema_version\\":1' in source
+    assert '\\"device_id\\":\\"%s\\"' in source
+    assert '\\"temperature_c\\":%.1f' in source
+    assert '\\"humidity_percent\\":%.1f' in source
+    assert "mqtt_client.publish(mqtt_topic, payload, false, mqtt_qos)" in source
+    assert "delay(reading_interval_ms);" not in source
 
 
 def test_wokwi_diagram_connects_dht22_to_esp32_gpio_15():
