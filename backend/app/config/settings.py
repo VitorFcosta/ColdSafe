@@ -18,7 +18,17 @@ class RuntimeSettings(BaseSettings):
     mqtt_backend_username: str = Field(min_length=1)
     mqtt_backend_password: SecretStr = Field(min_length=1)
 
+    cors_origins: str = ""
+
     influxdb_url: str = Field(min_length=1)
     influxdb_org: str = Field(min_length=1)
     influxdb_bucket: str = Field(min_length=1)
     influxdb_token: SecretStr = Field(min_length=1)
+
+    @property
+    def allowed_cors_origins(self) -> tuple[str, ...]:
+        return tuple(
+            origin.strip().rstrip("/")
+            for origin in self.cors_origins.split(",")
+            if origin.strip()
+        )

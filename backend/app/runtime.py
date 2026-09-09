@@ -55,4 +55,5 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         repository=resources.repository,
         readiness_check=lambda: resources.is_ready() and subscriber.is_connected(),
         lifespan=lifespan,
+        cors_origins=settings.allowed_cors_origins,
     )

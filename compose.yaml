@@ -103,6 +103,7 @@ services:
       MQTT_CLIENT_ID: coldsafe-backend
       MQTT_BACKEND_USERNAME: coldsafe-backend
       MQTT_BACKEND_PASSWORD: "${MQTT_BACKEND_PASSWORD:?Preencha MQTT_BACKEND_PASSWORD no arquivo .env}"
+      CORS_ORIGINS: "${CORS_ORIGINS:-http://localhost:5173}"
       INFLUXDB_URL: http://influxdb:8086
       INFLUXDB_ORG: "${DOCKER_INFLUXDB_INIT_ORG:-coldsafe}"
       INFLUXDB_BUCKET: "${DOCKER_INFLUXDB_INIT_BUCKET:-telemetry}"

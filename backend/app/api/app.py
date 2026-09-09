@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.app.api.schemas import (
@@ -60,6 +61,7 @@ def create_app(
     readiness_check: Callable[[], bool],
     clock: Callable[[], datetime] = utc_now,
     lifespan: Callable[[FastAPI], AsyncContextManager[None]] | None = None,
+    cors_origins: tuple[str, ...] = (),
 ) -> FastAPI:
     app = FastAPI(
         title="ColdSafe Monitoring API",
@@ -70,6 +72,14 @@ def create_app(
         ),
         lifespan=lifespan,
     )
+    if cors_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(cors_origins),
+            allow_credentials=False,
+            allow_methods=["GET"],
+            allow_headers=["Accept"],
+        )
     monitoring = MonitoringService(repository=repository, clock=clock)
     error_responses = {
         404: {"model": ErrorResponse},

@@ -3,8 +3,9 @@
 Esta área receberá o dashboard Vue 3 com a direção **Caderno de bancada** e a
 composição **B — Gráfico ampliado**, aprovadas em 09/09/2026 na CS-26.
 
-Esta fase contém somente a fundação técnica e os tokens visuais. O dashboard com
-dados, gráfico e polling será implementado nas tarefas seguintes.
+Esta fase contém a fundação técnica, os tokens visuais, os testes do mapeamento
+dos estados da interface e o diagnóstico atual. O gráfico, os períodos e o
+polling serão implementados nas tarefas seguintes.
 
 A definição confirmada do produto, do público, do escopo e das restrições está
 em [`PRODUCT.md`](PRODUCT.md).
@@ -24,7 +25,7 @@ leitura conhecida, sem confirmar o estado atual.
 - Instalar dependências: `npm install`.
 - Iniciar o ambiente local: `npm run dev`.
 - Validar tipos e gerar a build: `npm run build`.
-- Executar os testes de tokens: `npm run test:unit:run`.
+- Executar os testes unitários do frontend: `npm run test:unit:run`.
 
 ### Compatibilidade de versões
 
