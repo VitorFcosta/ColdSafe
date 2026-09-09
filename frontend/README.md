@@ -3,7 +3,8 @@
 Esta área receberá o dashboard Vue 3 com a direção **Caderno de bancada** e a
 composição **B — Gráfico ampliado**, aprovadas em 09/09/2026 na CS-26.
 
-Não há código visual nesta fase.
+Esta fase contém somente a fundação técnica e os tokens visuais. O dashboard com
+dados, gráfico e polling será implementado nas tarefas seguintes.
 
 A definição confirmada do produto, do público, do escopo e das restrições está
 em [`PRODUCT.md`](PRODUCT.md).
@@ -17,7 +18,26 @@ amplo abaixo das métricas. No mobile, as informações são empilhadas. Falha d
 histórico preserva a leitura atual válida; leitura antiga aparece como última
 leitura conhecida, sem confirmar o estado atual.
 
-O próximo passo é a CS-27: criar Vue, Tailwind e os tokens próprios do ColdSafe.
-O conteúdo de `DESIGN.md` está preparado no registro da tarefa para criação local
-pelo autor do projeto. Contraste completo, teclado e responsividade serão
-validados na implementação; os mockups não substituem esses testes.
+## Como executar
+
+- Referência de runtime: Node.js `24.20.0`.
+- Instalar dependências: `npm install`.
+- Iniciar o ambiente local: `npm run dev`.
+- Validar tipos e gerar a build: `npm run build`.
+- Executar os testes de tokens: `npm run test:unit:run`.
+
+### Compatibilidade de versões
+
+O planejamento inicial fixava TypeScript `7.0.2`. Nesta fundação ele foi fixado
+em `6.0.3`: o `vue-tsc` `3.3.11` falha com o TypeScript 7 porque a versão 7 não
+exporta mais o caminho interno que o verificador Vue utiliza. Essa é a menor
+troca que preserva a verificação de tipos; a versão deve ser reavaliada quando
+o `vue-tsc` oferecer suporte explícito ao TypeScript 7.
+
+Os tokens vivem em `src/styles/tokens.css`. Eles definem papéis semânticos — por
+exemplo, tela, superfície, texto, foco e estados normal, atenção, crítico e
+desatualizado — em vez de amarrar cores a componentes específicos. Isso permite
+que desktop e mobile conservem os mesmos significados visuais.
+
+Contraste completo, teclado e responsividade serão validados na implementação;
+os mockups não substituem esses testes.

@@ -1,0 +1,38 @@
+:root {
+  /* Papel, não componente: os mesmos tokens sustentam desktop e mobile. */
+  --cs-color-canvas: #f6f3ea;
+  --cs-color-surface: #fffdf7;
+  --cs-color-surface-muted: #e8eef0;
+  --cs-color-ink: #15262c;
+  --cs-color-ink-muted: #52636a;
+  --cs-color-line: #b8c5c8;
+  --cs-color-accent: #1c6470;
+  --cs-color-status-normal: #166534;
+  --cs-color-status-attention: #9a4d00;
+  --cs-color-status-critical: #b42318;
+  --cs-color-status-stale: #536675;
+  --cs-focus-ring: #0d7180;
+
+  --cs-font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --cs-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --cs-radius-panel: 0.5rem;
+  --cs-shadow-panel: 0 0.5rem 1.5rem rgb(21 38 44 / 0.08);
+}
+
+@theme inline {
+  --color-canvas: var(--cs-color-canvas);
+  --color-surface: var(--cs-color-surface);
+  --color-surface-muted: var(--cs-color-surface-muted);
+  --color-ink: var(--cs-color-ink);
+  --color-ink-muted: var(--cs-color-ink-muted);
+  --color-line: var(--cs-color-line);
+  --color-accent: var(--cs-color-accent);
+  --color-status-normal: var(--cs-color-status-normal);
+  --color-status-attention: var(--cs-color-status-attention);
+  --color-status-critical: var(--cs-color-status-critical);
+  --color-status-stale: var(--cs-color-status-stale);
+  --font-sans: var(--cs-font-sans);
+  --font-mono: var(--cs-font-mono);
+  --radius-panel: var(--cs-radius-panel);
+  --shadow-panel: var(--cs-shadow-panel);
+}

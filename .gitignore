@@ -14,3 +14,9 @@ htmlcov/
 firmware/include/secrets.h
 infra/mosquitto/config/passwords
 .impeccable/
+.codebase-memory/
+
+# Artefatos locais do frontend
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/

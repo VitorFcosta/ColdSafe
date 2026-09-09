@@ -7,6 +7,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 COMPOSE_PATH = REPOSITORY_ROOT / "compose.yaml"
 INTEGRATION_COMPOSE_PATH = REPOSITORY_ROOT / "compose.integration.yaml"
 DOCKERIGNORE_PATH = REPOSITORY_ROOT / ".dockerignore"
+FRONTEND_DOCKERFILE_PATH = REPOSITORY_ROOT / "frontend" / "Dockerfile"
 MOSQUITTO_CONFIG_PATH = (
     REPOSITORY_ROOT / "infra" / "mosquitto" / "config" / "mosquitto.conf"
 )
@@ -31,6 +32,7 @@ def test_compose_contains_only_the_services_that_exist_today():
         "mosquitto",
         "influxdb",
         "backend",
+        "frontend",
     }
 
 
@@ -75,11 +77,12 @@ def test_mqtt_backend_role_name_is_not_overridable_without_changing_the_acl():
     assert mosquitto["environment"]["MQTT_BACKEND_USERNAME"] == "coldsafe-backend"
 
 
-def test_only_mqtt_and_api_are_published_and_only_on_loopback():
+def test_published_runtime_ports_are_loopback_only():
     services = load_compose()["services"]
 
     assert services["mosquitto"]["ports"] == ["127.0.0.1:1883:1883"]
     assert services["backend"]["ports"] == ["127.0.0.1:8000:8000"]
+    assert services["frontend"]["ports"] == ["127.0.0.1:5173:5173"]
     assert "ports" not in services["influxdb"]
 
 
@@ -125,6 +128,26 @@ def test_backend_waits_for_healthy_dependencies_and_uses_hardened_image():
     }
     assert backend["read_only"] is True
     assert backend["security_opt"] == ["no-new-privileges:true"]
+
+
+def test_frontend_uses_a_pinned_development_image_with_isolated_dependencies():
+    frontend = load_compose()["services"]["frontend"]
+
+    assert frontend["build"] == {"context": "./frontend", "dockerfile": "Dockerfile"}
+    assert frontend["depends_on"] == {
+        "backend": {"condition": "service_healthy"},
+    }
+    assert frontend["volumes"] == [
+        "./frontend:/app",
+        "frontend-node-modules:/app/node_modules",
+    ]
+    assert frontend["networks"] == ["coldsafe-frontend"]
+    assert frontend["security_opt"] == ["no-new-privileges:true"]
+    assert "healthcheck" in frontend
+
+    dockerfile = FRONTEND_DOCKERFILE_PATH.read_text(encoding="utf-8")
+    assert "FROM node:24.20.0-alpine3.24" in dockerfile
+    assert "USER node" in dockerfile
 
 
 def test_docker_build_context_excludes_local_secrets_and_environments():

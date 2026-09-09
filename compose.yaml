@@ -130,13 +130,46 @@ services:
       retries: 5
       start_period: 10s
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+      VITE_POLL_INTERVAL_MS: "5000"
+    volumes:
+      - "./frontend:/app"
+      - "frontend-node-modules:/app/node_modules"
+    networks:
+      - coldsafe-frontend
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 2 -O /dev/null http://127.0.0.1:5173/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
 networks:
   coldsafe-internal:
     internal: true
   coldsafe-edge:
+  coldsafe-frontend:
+    internal: true
 
 volumes:
   mosquitto-auth:
   mosquitto-data:
   influxdb-data:
   influxdb-config:
+  frontend-node-modules:

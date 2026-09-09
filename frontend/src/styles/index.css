@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-width: 20rem;
+    background: var(--cs-color-canvas);
+    color: var(--cs-color-ink);
+    font-family: var(--cs-font-sans);
+  }
+
+  :focus-visible {
+    outline: 0.1875rem solid var(--cs-focus-ring);
+    outline-offset: 0.1875rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+}
