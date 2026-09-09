@@ -13,3 +13,4 @@ htmlcov/
 !.env.example
 firmware/include/secrets.h
 infra/mosquitto/config/passwords
+.impeccable/
