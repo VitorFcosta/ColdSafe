@@ -1,9 +1,21 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
+import TemperatureHistoryChart from '../features/monitoring/TemperatureHistoryChart.vue'
+import {
+  fetchMonitoringHistory,
+  historyPeriods,
+  type HistoryPeriod,
+  type MonitoringHistory,
+} from '../features/monitoring/monitoring-history'
 import { useMonitoringSummary } from '../features/monitoring/use-monitoring-summary'
 
 const { loadSummary, monitoringState, summary } = useMonitoringSummary()
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const selectedPeriod = ref<HistoryPeriod>('1h')
+const history = ref<MonitoringHistory | null>(null)
+const historyPhase = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
+let latestHistoryRequest = 0
 
 const stateDetails = computed(() => {
   switch (monitoringState.value.kind) {
@@ -26,6 +38,38 @@ const formattedTemperature = computed(() => formatMeasurement(summary.value?.rea
 const formattedHumidity = computed(() => formatMeasurement(summary.value?.reading?.humidity_percent, '%'))
 const formattedFreshness = computed(() => formatFreshness(summary.value?.freshness?.age_seconds))
 const formattedReceivedAt = computed(() => formatDateTime(summary.value?.reading?.received_at))
+
+watch(
+  [() => summary.value?.device.id, selectedPeriod],
+  ([deviceId]) => {
+    if (deviceId !== undefined) {
+      void loadHistory(deviceId)
+    }
+  },
+)
+
+async function loadHistory(deviceId: string) {
+  const requestId = ++latestHistoryRequest
+  historyPhase.value = 'loading'
+
+  try {
+    const result = await fetchMonitoringHistory({
+      baseUrl: apiBaseUrl,
+      deviceId,
+      period: selectedPeriod.value,
+      fetcher: fetch,
+    })
+
+    if (requestId !== latestHistoryRequest) return
+
+    history.value = result
+    historyPhase.value = 'ready'
+  } catch {
+    if (requestId !== latestHistoryRequest) return
+
+    historyPhase.value = 'error'
+  }
+}
 
 function formatMeasurement(value: number | undefined, unit: string) {
   return value === undefined ? '—' : `${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} ${unit}`
@@ -137,6 +181,39 @@ function formatDateTime(value: string | undefined) {
             Fonte da telemetria do ambiente demonstrativo.
           </p>
         </article>
+      </section>
+
+      <section v-if="summary && stateDetails" aria-labelledby="temperature-history-title" class="mt-8 rounded-panel border border-line bg-surface p-6 shadow-panel">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p class="font-mono text-sm text-ink-muted">Histórico de temperatura</p>
+            <h2 id="temperature-history-title" class="mt-1 text-2xl font-semibold">Variação recente</h2>
+          </div>
+          <fieldset class="flex flex-wrap gap-2" aria-label="Período do histórico">
+            <legend class="sr-only">Escolha o período do histórico</legend>
+            <button
+              v-for="period in historyPeriods"
+              :key="period"
+              type="button"
+              :aria-pressed="selectedPeriod === period"
+              class="rounded-md border px-3 py-2 font-mono text-sm font-medium transition-colors"
+              :class="selectedPeriod === period ? 'border-accent bg-accent text-white' : 'border-line bg-surface text-ink hover:bg-surface-muted'"
+              @click="selectedPeriod = period"
+            >
+              {{ period }}
+            </button>
+          </fieldset>
+        </div>
+
+        <p v-if="historyPhase === 'loading'" class="mt-5 text-sm text-ink-muted" aria-live="polite">
+          Carregando histórico de temperatura…
+        </p>
+        <div v-else-if="historyPhase === 'ready' && history">
+          <TemperatureHistoryChart :readings="history.readings" :period="selectedPeriod" />
+        </div>
+        <p v-else-if="historyPhase === 'error'" class="mt-5 border-l-4 border-status-stale pl-4 text-sm leading-6 text-ink-muted" role="status">
+          O diagnóstico atual continua disponível, mas o histórico de temperatura não pôde ser carregado.
+        </p>
       </section>
 
       <p class="mt-8 border-l-4 border-accent pl-4 text-sm leading-6 text-ink-muted">
