@@ -10,7 +10,7 @@ import {
 } from '../features/monitoring/monitoring-history'
 import { useMonitoringSummary } from '../features/monitoring/use-monitoring-summary'
 
-const { loadSummary, monitoringState, summary } = useMonitoringSummary()
+const { loadSummary, monitoringState, refreshRevision, summary } = useMonitoringSummary()
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 const selectedPeriod = ref<HistoryPeriod>('1h')
 const history = ref<MonitoringHistory | null>(null)
@@ -40,7 +40,7 @@ const formattedFreshness = computed(() => formatFreshness(summary.value?.freshne
 const formattedReceivedAt = computed(() => formatDateTime(summary.value?.reading?.received_at))
 
 watch(
-  [() => summary.value?.device.id, selectedPeriod],
+  [() => summary.value?.device.id, selectedPeriod, refreshRevision],
   ([deviceId]) => {
     if (deviceId !== undefined) {
       void loadHistory(deviceId)
