@@ -14,9 +14,10 @@ Protótipo acadêmico para monitorar temperatura e umidade em um ambiente refrig
 
 ## Fase atual
 
-A infraestrutura local, o domínio, o assinante MQTT, o repositório InfluxDB e a API
-FastAPI estão implementados. O fluxo MQTT → classificação → InfluxDB → API está
-validado em containers reais; a próxima fatia é o firmware ESP32/Wokwi.
+A infraestrutura local, o firmware ESP32/Wokwi, o domínio, o assinante MQTT, o
+repositório InfluxDB e a API FastAPI estão implementados. O fluxo MQTT →
+classificação → InfluxDB → API está validado em containers reais; a próxima
+fatia é o frontend, começando pela aprovação da composição desktop e mobile.
 
 ## Testes de contrato
 

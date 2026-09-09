@@ -83,11 +83,13 @@ MQTT_TEST_HOST=127.0.0.1 \
 MQTT_TEST_PORT=1883 \
 MQTT_TEST_BACKEND_PASSWORD="$MQTT_BACKEND_PASSWORD" \
 MQTT_TEST_DEVICE_PASSWORD="$MQTT_DEVICE_PASSWORD" \
+API_TEST_URL=http://127.0.0.1:8000 \
 .venv/bin/python -m pytest -m integration -q
 ```
 
-A prova de reinício do volume e o fluxo completo incluindo a API permanecem para
-as tarefas de QA posteriores.
+O teste de pipeline publica uma leitura MQTT controlada e confirma que ela aparece
+no resumo atual e no histórico expostos pela API. A prova de reinício do volume
+permanece para uma tarefa de QA posterior.
 
 ## Checkpoints Git
 
