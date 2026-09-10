@@ -26,6 +26,12 @@ leitura conhecida, sem confirmar o estado atual.
 - Iniciar o ambiente local: `npm run dev`.
 - Validar tipos e gerar a build: `npm run build`.
 - Executar os testes unitários do frontend: `npm run test:unit:run`.
+- Instalar o Chromium usado pelos testes E2E: `npx playwright install chromium`.
+- Executar os seis cenários E2E do dashboard: `npm run test:e2e`.
+
+Os testes E2E sobem o Vite automaticamente e simulam somente a fronteira HTTP
+da API. Assim, os estados normal, atenção, crítico, leitura desatualizada, sem
+dados e erro de serviço são reproduzíveis sem depender do InfluxDB ou do MQTT.
 
 ### Compatibilidade de versões
 
