@@ -156,6 +156,15 @@ def test_frontend_uses_a_pinned_development_image_with_isolated_dependencies():
     assert "USER node" in dockerfile
 
 
+def test_frontend_network_allows_loopback_port_publication():
+    compose = load_compose()
+    frontend = compose["services"]["frontend"]
+
+    assert frontend["ports"] == ["127.0.0.1:5173:5173"]
+    assert frontend["networks"] == ["coldsafe-frontend"]
+    assert compose["networks"]["coldsafe-frontend"].get("internal", False) is False
+
+
 def test_docker_build_context_excludes_local_secrets_and_environments():
     patterns = set(DOCKERIGNORE_PATH.read_text(encoding="utf-8").splitlines())
 

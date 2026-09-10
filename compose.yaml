@@ -166,7 +166,7 @@ networks:
     internal: true
   coldsafe-edge:
   coldsafe-frontend:
-    internal: true
+    internal: false
 
 volumes:
   mosquitto-auth:
