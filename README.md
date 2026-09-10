@@ -18,11 +18,13 @@ A infraestrutura local, o firmware ESP32/Wokwi, o domínio, o assinante MQTT, o
 repositório InfluxDB e a API FastAPI estão implementados. O fluxo MQTT →
 classificação → InfluxDB → API está validado em containers reais.
 
-A composição desktop e mobile do frontend foi aprovada, e a fundação Vue,
-Tailwind, Docker e tokens visuais já está criada. O diagnóstico atual consome a
-API e apresenta carregamento, ausência de dados, estados operacionais e erro de
-serviço. A próxima fatia é implementar o gráfico e os períodos; polling e
-falhas parciais do histórico vêm depois.
+A composição desktop e mobile do frontend foi aprovada. O dashboard consome a
+API, apresenta diagnóstico atual, gráfico por período, polling, falhas parciais
+e todos os estados operacionais previstos. Responsividade, acessibilidade e os
+fluxos E2E também foram validados. O ensaio completo com Wokwi, reinício e
+persistência está registrado em
+[`docs/testing/demo-rehearsal.md`](docs/testing/demo-rehearsal.md). O marco
+pendente do MVP é concluir a revisão de segurança.
 
 ## Testes de contrato
 
