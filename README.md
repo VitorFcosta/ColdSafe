@@ -48,6 +48,24 @@ cp firmware/include/secrets.example.h firmware/include/secrets.h
 
 Preencha os arquivos copiados sem alterar os exemplos versionados. Leia as regras completas em [`docs/configuration.md`](docs/configuration.md).
 
+## Quick start
+
+O primeiro uso exige criar um token do InfluxDB exclusivo do backend; por isso,
+não use o token administrativo como atalho. Siga o procedimento completo e
+seguro em [`docs/runbook.md`](docs/runbook.md).
+
+Depois que o `.env`, o `firmware/include/secrets.h` e o token restrito estiverem
+configurados, o fluxo diário é:
+
+```bash
+docker compose config --quiet
+docker compose up -d --build
+docker compose ps
+```
+
+Abra [http://localhost:5173](http://localhost:5173). Para encerrar sem apagar o
+histórico persistido, execute `docker compose down`.
+
 ## Convenção de commits
 
 O ColdSafe usa Conventional Commits no formato `tipo(escopo): descrição`.

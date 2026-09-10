@@ -1,10 +1,14 @@
 # Infraestrutura local
 
-Esta primeira fatia executa somente os componentes que já existem: Mosquitto e
-InfluxDB. Frontend e backend serão adicionados ao Compose quando tiverem uma
-implementação real.
+O Docker Compose executa Mosquitto, InfluxDB, backend FastAPI e frontend Vue. O
+serviço efêmero `mosquitto-init` prepara as credenciais do broker antes do
+Mosquitto iniciar.
 
-## 1. Preparar variáveis locais
+O procedimento canônico para preparar outro computador, criar o token restrito
+do InfluxDB, subir os serviços, validar o sistema e diagnosticar falhas está em
+[`../docs/runbook.md`](../docs/runbook.md).
+
+## Preparar variáveis locais
 
 Na raiz do projeto:
 
@@ -13,47 +17,36 @@ cp .env.example .env
 ```
 
 Preencha os campos vazios com valores exclusivos para desenvolvimento. Use a
-mesma senha escolhida para `MQTT_DEVICE_PASSWORD` ao configurar o firmware.
+mesma senha escolhida para `MQTT_DEVICE_PASSWORD` ao configurar o firmware. O
+backend deve receber um `INFLUXDB_TOKEN` exclusivo, com leitura e escrita
+somente no bucket de telemetria; nunca reutilize o token administrativo.
 
-## 2. Criar o arquivo local de senhas MQTT
+## Credenciais MQTT
 
-Os comandos abaixo pedem as senhas de forma interativa, sem gravá-las no
-histórico do terminal:
+O `mosquitto-init` gera automaticamente o arquivo de senhas no volume nomeado
+`mosquitto-auth`, usando `MQTT_BACKEND_PASSWORD` e `MQTT_DEVICE_PASSWORD` do
+`.env`. Não crie um arquivo `passwords` manualmente.
 
-```bash
-docker run --rm -it \
-  -v "$PWD/infra/mosquitto/config:/mosquitto/config" \
-  eclipse-mosquitto:2.0.22 \
-  mosquitto_passwd -c /mosquitto/config/passwords coldsafe-device
-
-docker run --rm -it \
-  -v "$PWD/infra/mosquitto/config:/mosquitto/config" \
-  eclipse-mosquitto:2.0.22 \
-  mosquitto_passwd /mosquitto/config/passwords coldsafe-backend
-```
-
-As senhas precisam coincidir com `MQTT_DEVICE_PASSWORD` e
-`MQTT_BACKEND_PASSWORD`, respectivamente. O arquivo `passwords` é ignorado pelo
-Git e contém apenas hashes, mas ainda deve ser tratado como dado sensível.
-
-## 3. Subir e verificar
+## Subir e verificar
 
 ```bash
 docker compose config --quiet
-docker compose up -d
-docker compose ps
+docker compose up -d --build
+docker compose ps -a
 ```
 
 O Mosquitto fica disponível apenas em `127.0.0.1:1883`. No Wokwi, o endereço
 equivalente é `host.wokwi.internal`. O InfluxDB não publica a porta `8086` no
-host; futuramente o backend o acessará pela rede interna em
-`http://influxdb:8086`.
+host; o backend o acessa pela rede interna em `http://influxdb:8086`. A API e o
+frontend ficam disponíveis somente no host em `127.0.0.1:8000` e
+`127.0.0.1:5173`, respectivamente.
 
-O Mosquitto participa de duas redes: a interna, para conversar com o futuro
-backend, e a rede de borda, necessária para publicar a porta no host. O InfluxDB
-participa somente da rede interna.
+O Mosquitto participa de duas redes: a interna, para conversar com o backend, e
+a rede de borda, necessária para publicar a porta no host. O InfluxDB
+participa somente da rede interna. Consulte o runbook para os healthchecks e os
+testes HTTP esperados.
 
-## 4. Parar sem apagar o histórico
+## Parar sem apagar o histórico
 
 ```bash
 docker compose down
