@@ -11,6 +11,7 @@
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "test:e2e": "playwright test",
+    "test:coverage": "vitest run --coverage",
     "test:unit": "vitest",
     "test:unit:run": "vitest run",
     "typecheck": "vue-tsc --noEmit -p tsconfig.app.json"
@@ -26,7 +27,10 @@
     "@tailwindcss/vite": "4.3.3",
     "@types/node": "24.13.3",
     "@vitejs/plugin-vue": "6.0.8",
+    "@vitest/coverage-v8": "4.1.11",
     "@vue/compiler-sfc": "3.5.42",
+    "@vue/test-utils": "2.5.0",
+    "happy-dom": "20.14.3",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "vite": "8.2.2",
