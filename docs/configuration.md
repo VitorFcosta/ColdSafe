@@ -50,6 +50,37 @@ testes em conjunto.
 
 O SSID `Wokwi-GUEST`, o host `host.wokwi.internal` e o identificador `esp32-lab-01` são configurações demonstrativas, não credenciais.
 
+## Permissões do token InfluxDB
+
+`INFLUXDB_TOKEN` deve ser um token exclusivo do backend, com leitura e escrita
+somente no bucket `telemetry`. Não reutilize `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`:
+ele possui privilégios administrativos e deve ficar reservado à administração.
+
+Com a CLI do container autenticada para administração, consulte o ID do bucket
+usando `docker compose exec influxdb influx bucket list --name telemetry`.
+Crie uma autorização com `influx auth create`, organização `coldsafe`, descrição
+`coldsafe-backend-telemetry` e opções `--read-bucket` e `--write-bucket` apontando
+para esse ID. Não use `--all-access` ou `--operator` para o backend.
+
+Guarde o token retornado somente em `INFLUXDB_TOKEN` no `.env` local. Não copie o
+valor para documentação, commits, Notion ou mensagens. Depois execute
+`docker compose up -d --no-deps backend` para carregar a configuração alterada;
+editar o `.env` não atualiza automaticamente o ambiente do container existente.
+
+### Validação local da CS-36 — 10 de setembro de 2026
+
+- O backend carregou o novo token, diferente do token administrador.
+- A autorização contém somente leitura e escrita no bucket `telemetry`.
+- Gravação e consulta reais passaram usando o token do backend, com um registro
+  temporário em uma medição exclusiva de teste; o registro foi removido e sua
+  ausência foi confirmada após a validação.
+- A consulta à autorização administrativa com o token do backend retornou `401`.
+- `/health/ready`, `/api/v1/monitoring/summary` e
+  `/api/v1/readings?device_id=esp32-lab-01&period=24h&limit=1` retornaram `200`.
+
+Esta evidência valida a correção do token; a revisão completa da CS-36 permanece
+em andamento. A troca da credencial é uma operação local e não é versionada.
+
 ## Regras obrigatórias
 
 1. Nunca colocar valores reais em `.env.example` ou `secrets.example.h`.
