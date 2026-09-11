@@ -145,6 +145,6 @@ A implementação visual só começa depois de:
 
 Em 09/09/2026, a CS-26 aprovou a direção **Caderno de bancada**, a composição
 **B — Gráfico ampliado**, desktop, mobile e os estados da interface. A revisão
-visual foi concluída; a validação funcional de acessibilidade e responsividade
-permanece para a implementação. As evidências estão vinculadas no
+visual e a validação funcional de acessibilidade e responsividade foram
+concluídas. As evidências estão vinculadas no
 [`README.md`](README.md).

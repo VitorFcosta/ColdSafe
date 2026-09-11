@@ -84,12 +84,18 @@ MQTT_TEST_PORT=1883 \
 MQTT_TEST_BACKEND_PASSWORD="$MQTT_BACKEND_PASSWORD" \
 MQTT_TEST_DEVICE_PASSWORD="$MQTT_DEVICE_PASSWORD" \
 API_TEST_URL=http://127.0.0.1:8000 \
-.venv/bin/python -m pytest -m integration -q
+.venv/bin/python -m pytest -m integration -q --no-cov
 ```
+
+O `--no-cov` é intencional nesse comando isolado: medir somente os três testes
+de integração contra todos os módulos do backend produz uma cobertura parcial e
+um falso resultado negativo. A meta de 80% continua obrigatória e é verificada
+pela suíte completa com `.venv/bin/python -m pytest backend/tests`.
 
 O teste de pipeline publica uma leitura MQTT controlada e confirma que ela aparece
 no resumo atual e no histórico expostos pela API. A prova de reinício do volume
-permanece para uma tarefa de QA posterior.
+foi concluída no ensaio registrado em
+[`demo-rehearsal.md`](demo-rehearsal.md).
 
 ## Checkpoints Git
 

@@ -12,12 +12,15 @@ services:
     command:
       - |
         umask 077
-        rm -f /mosquitto/auth/passwords
-        mosquitto_passwd -b -c /mosquitto/auth/passwords coldsafe-backend "$${MQTT_BACKEND_PASSWORD}"
-        mosquitto_passwd -b /mosquitto/auth/passwords coldsafe-device "$${MQTT_DEVICE_PASSWORD}"
-        chmod 0444 /mosquitto/auth/passwords
+        rm -f /tmp/passwords
+        mosquitto_passwd -b -c /tmp/passwords coldsafe-backend "$${MQTT_BACKEND_PASSWORD}"
+        mosquitto_passwd -b /tmp/passwords coldsafe-device "$${MQTT_DEVICE_PASSWORD}"
+        install -m 0600 /tmp/passwords /mosquitto/auth/passwords
+        install -m 0600 /bootstrap/acl /mosquitto/auth/acl
+        chown 1883:1883 /mosquitto/auth/passwords /mosquitto/auth/acl
     volumes:
       - "mosquitto-auth:/mosquitto/auth"
+      - "./infra/mosquitto/config/acl:/bootstrap/acl:ro"
     read_only: true
     tmpfs:
       - "/tmp:rw,noexec,nosuid,size=1m"
@@ -25,9 +28,12 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
 
   mosquitto:
     image: eclipse-mosquitto:2.0.22
+    user: "1883:1883"
     restart: unless-stopped
     depends_on:
       mosquitto-init:
@@ -39,7 +45,6 @@ services:
       MQTT_BACKEND_PASSWORD: "${MQTT_BACKEND_PASSWORD:?Preencha MQTT_BACKEND_PASSWORD no arquivo .env}"
     volumes:
       - "./infra/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"
-      - "./infra/mosquitto/config/acl:/mosquitto/config/acl:ro"
       - "mosquitto-auth:/mosquitto/auth:ro"
       - "mosquitto-data:/mosquitto/data"
     networks:

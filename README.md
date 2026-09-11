@@ -23,8 +23,10 @@ API, apresenta diagnóstico atual, gráfico por período, polling, falhas parcia
 e todos os estados operacionais previstos. Responsividade, acessibilidade e os
 fluxos E2E também foram validados. O ensaio completo com Wokwi, reinício e
 persistência está registrado em
-[`docs/testing/demo-rehearsal.md`](docs/testing/demo-rehearsal.md). O marco
-pendente do MVP é concluir a revisão de segurança.
+[`docs/testing/demo-rehearsal.md`](docs/testing/demo-rehearsal.md). A revisão de
+segurança do MVP também foi concluída: dependências Python e JavaScript foram
+auditadas, o histórico Git foi verificado contra vazamentos e as permissões do
+Mosquitto foram endurecidas e validadas em uma composição limpa.
 
 ## Testes de contrato
 

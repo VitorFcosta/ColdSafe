@@ -1,11 +1,12 @@
 # Frontend
 
-Esta área receberá o dashboard Vue 3 com a direção **Caderno de bancada** e a
+Esta área contém o dashboard Vue 3 com a direção **Caderno de bancada** e a
 composição **B — Gráfico ampliado**, aprovadas em 09/09/2026 na CS-26.
 
-Esta fase contém a fundação técnica, os tokens visuais, os testes do mapeamento
-dos estados da interface e o diagnóstico atual. O gráfico, os períodos e o
-polling serão implementados nas tarefas seguintes.
+O dashboard implementa o diagnóstico atual, o gráfico de temperatura, os
+períodos de consulta, o polling e as falhas parciais. A fundação técnica, os
+tokens visuais e o mapeamento dos estados da interface possuem testes
+automatizados.
 
 A definição confirmada do produto, do público, do escopo e das restrições está
 em [`PRODUCT.md`](PRODUCT.md).
@@ -46,5 +47,5 @@ exemplo, tela, superfície, texto, foco e estados normal, atenção, crítico e
 desatualizado — em vez de amarrar cores a componentes específicos. Isso permite
 que desktop e mobile conservem os mesmos significados visuais.
 
-Contraste completo, teclado e responsividade serão validados na implementação;
-os mockups não substituem esses testes.
+Contraste, navegação por teclado e responsividade foram validados no dashboard
+implementado; os mockups foram usados apenas como direção visual.

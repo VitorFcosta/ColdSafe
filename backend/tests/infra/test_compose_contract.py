@@ -63,6 +63,38 @@ def test_mosquitto_password_file_is_generated_in_a_private_volume():
     assert not (MOSQUITTO_CONFIG_PATH.parent / "passwords").exists()
 
 
+def test_mosquitto_security_files_are_private_and_owned_by_the_runtime_user():
+    compose = load_compose()
+    initializer = compose["services"]["mosquitto-init"]
+    mosquitto = compose["services"]["mosquitto"]
+    initializer_command = "\n".join(initializer["command"])
+
+    assert initializer["cap_add"] == ["CHOWN"]
+    assert (
+        "install -m 0600 /tmp/passwords /mosquitto/auth/passwords"
+        in initializer_command
+    )
+    assert (
+        "install -m 0600 /bootstrap/acl /mosquitto/auth/acl"
+        in initializer_command
+    )
+    assert (
+        "chown 1883:1883 /mosquitto/auth/passwords /mosquitto/auth/acl"
+        in initializer_command
+    )
+    assert (
+        "./infra/mosquitto/config/acl:/bootstrap/acl:ro"
+        in initializer["volumes"]
+    )
+    assert mosquitto["user"] == "1883:1883"
+    assert "./infra/mosquitto/config/acl:/mosquitto/config/acl:ro" not in mosquitto[
+        "volumes"
+    ]
+
+    config = MOSQUITTO_CONFIG_PATH.read_text(encoding="utf-8")
+    assert "acl_file /mosquitto/auth/acl" in config
+
+
 def test_mosquitto_waits_for_password_initialization():
     mosquitto = load_compose()["services"]["mosquitto"]
 
@@ -181,11 +213,18 @@ def test_influxdb_uses_a_named_persistent_volume():
 
 
 def test_mosquitto_mounts_versioned_security_configuration_read_only():
-    volumes = load_compose()["services"]["mosquitto"]["volumes"]
+    services = load_compose()["services"]
+    initializer_volumes = services["mosquitto-init"]["volumes"]
+    mosquitto_volumes = services["mosquitto"]["volumes"]
 
-    assert "./infra/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro" in volumes
-    assert "./infra/mosquitto/config/acl:/mosquitto/config/acl:ro" in volumes
-    assert "mosquitto-auth:/mosquitto/auth:ro" in volumes
+    assert (
+        "./infra/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"
+        in mosquitto_volumes
+    )
+    assert (
+        "./infra/mosquitto/config/acl:/bootstrap/acl:ro" in initializer_volumes
+    )
+    assert "mosquitto-auth:/mosquitto/auth:ro" in mosquitto_volumes
 
 
 def test_mosquitto_rejects_anonymous_clients_and_uses_passwords_and_acl():
@@ -193,7 +232,7 @@ def test_mosquitto_rejects_anonymous_clients_and_uses_passwords_and_acl():
 
     assert "allow_anonymous false" in content
     assert "password_file /mosquitto/auth/passwords" in content
-    assert "acl_file /mosquitto/config/acl" in content
+    assert "acl_file /mosquitto/auth/acl" in content
 
 
 def test_mqtt_roles_have_least_privilege():

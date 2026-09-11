@@ -67,7 +67,7 @@ valor para documentação, commits, Notion ou mensagens. Depois execute
 `docker compose up -d --no-deps backend` para carregar a configuração alterada;
 editar o `.env` não atualiza automaticamente o ambiente do container existente.
 
-### Validação local da CS-36 — 10 de setembro de 2026
+### Revisão de segurança da CS-36 — 10 de setembro de 2026
 
 - O backend carregou o novo token, diferente do token administrador.
 - A autorização contém somente leitura e escrita no bucket `telemetry`.
@@ -77,9 +77,23 @@ editar o `.env` não atualiza automaticamente o ambiente do container existente.
 - A consulta à autorização administrativa com o token do backend retornou `401`.
 - `/health/ready`, `/api/v1/monitoring/summary` e
   `/api/v1/readings?device_id=esp32-lab-01&period=24h&limit=1` retornaram `200`.
+- Clientes MQTT anônimos foram recusados; o dispositivo pôde publicar somente em
+  `coldsafe/v1/telemetry`; o backend pôde ler telemetria e `$SYS/#`, mas não
+  publicar no tópico do dispositivo.
+- Os arquivos `passwords` e `acl` foram gerados no volume privado do Mosquitto
+  com owner `1883:1883` e modo `0600`. Uma composição criada com volumes novos
+  iniciou sem avisos de owner, grupo ou leitura global.
+- O Gitleaks `8.29.0` examinou os 32 commits do repositório com saída redigida e
+  não encontrou vazamentos.
+- O `pip-audit` `2.10.1` não encontrou vulnerabilidades conhecidas nos locks de
+  produção e desenvolvimento do backend.
+- `npm audit` e `npm audit --omit=dev` não encontraram vulnerabilidades conhecidas
+  no frontend.
 
-Esta evidência valida a correção do token; a revisão completa da CS-36 permanece
-em andamento. A troca da credencial é uma operação local e não é versionada.
+A CS-36 está concluída para o escopo acadêmico local. Os scanners representam a
+base de vulnerabilidades conhecida na data da execução e devem ser repetidos
+antes de futuras entregas. A troca das credenciais continua sendo uma operação
+local e não é versionada.
 
 ## Regras obrigatórias
 
@@ -87,7 +101,7 @@ em andamento. A troca da credencial é uma operação local e não é versionada
 2. Nunca remover `.env` ou `secrets.h` do `.gitignore`.
 3. Não registrar valores secretos em logs, mensagens de erro ou capturas de tela.
 4. Credenciais de demonstração não podem ser reutilizadas em ambiente real.
-5. Configuração ausente, vazia ou ainda contendo `REPLACE_WITH_...` deverá impedir readiness quando o backend for implementado.
+5. Configuração ausente, vazia ou ainda contendo `REPLACE_WITH_...` deve impedir readiness.
 6. Mensagens de erro podem indicar qual variável está ausente, mas nunca revelar seu valor.
 
 ## Instalar as dependências de teste
