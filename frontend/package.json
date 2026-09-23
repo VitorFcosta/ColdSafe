@@ -7,6 +7,7 @@
     "node": "24.20.0"
   },
   "scripts": {
+    "capture:demo": "node scripts/capture-demo.ts",
     "dev": "vite",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
@@ -17,7 +18,9 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
+    "@vueuse/core": "14.4.0",
     "chart.js": "4.5.1",
+    "motion-v": "2.4.2",
     "vue": "3.5.42",
     "vue-chartjs": "5.3.4",
     "vue-router": "5.3.0"

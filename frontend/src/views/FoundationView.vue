@@ -26,7 +26,7 @@ const stateDetails = computed(() => {
     case 'critical':
       return { label: 'Crítico', message: 'Temperatura fora da faixa demonstrativa.', tone: 'critical' }
     case 'stale':
-      return { label: 'Leitura desatualizada', message: 'A última telemetria ultrapassou 30 segundos.', tone: 'stale' }
+      return { label: 'Leitura desatualizada', message: 'Última leitura conhecida. A situação atual não está confirmada.', tone: 'stale' }
     case 'no_data':
       return { label: 'Sem dados', message: 'Ainda não há leitura válida para este ambiente.', tone: 'stale' }
     default:
@@ -96,129 +96,150 @@ function formatDateTime(value: string | undefined) {
 </script>
 
 <template>
-  <main class="min-h-screen bg-canvas px-5 py-8 text-ink sm:px-10 sm:py-12">
-    <section aria-labelledby="dashboard-title" class="mx-auto max-w-6xl">
-      <header class="border-b border-line pb-6">
-        <p class="font-mono text-sm tracking-wide text-ink-muted">ColdSafe / dashboard operacional</p>
-        <h1 id="dashboard-title" class="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-          Diagnóstico do ambiente
-        </h1>
-        <p class="mt-3 max-w-2xl leading-7 text-ink-muted">
-          Leitura atual do laboratório refrigerado para demonstração acadêmica.
-        </p>
-      </header>
+  <main class="dashboard min-h-screen bg-canvas text-ink">
+    <div class="dashboard-shell">
+      <nav aria-label="Navegação principal" class="dashboard-nav">
+        <a href="/" class="brand"><span aria-hidden="true">◉</span> ColdSafe</a>
+        <p class="eyebrow">Monitoramento / Laboratório</p>
+      </nav>
 
-      <section
-        v-if="monitoringState.kind === 'loading'"
-        aria-busy="true"
-        aria-label="Carregando diagnóstico atual"
-        class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-      >
-        <div v-for="index in 3" :key="index" class="h-40 animate-pulse rounded-panel border border-line bg-surface-muted" />
-      </section>
-
-      <section
-        v-else-if="monitoringState.kind === 'service_error'"
-        role="alert"
-        class="mt-8 rounded-panel border border-status-critical bg-surface p-6 shadow-panel"
-      >
-        <h2 class="text-xl font-semibold">Diagnóstico indisponível</h2>
-        <p class="mt-2 max-w-xl leading-7 text-ink-muted">
-          Não foi possível consultar a API agora. Nenhuma leitura anterior será exibida como se fosse atual.
-        </p>
-        <button
-          type="button"
-          class="mt-5 rounded-md bg-accent px-4 py-2 font-medium text-white"
-          @click="loadSummary"
-        >
-          Tentar novamente
-        </button>
-      </section>
-
-      <section v-else-if="summary && stateDetails" class="mt-8 grid gap-4 lg:grid-cols-3">
-        <article class="rounded-panel border border-line bg-surface p-6 shadow-panel lg:col-span-2">
-          <p class="font-mono text-sm text-ink-muted">{{ summary.environment.id }}</p>
-          <h2 class="mt-2 text-2xl font-semibold">{{ summary.environment.name }}</h2>
-          <div
-            class="mt-6 rounded-md border-l-4 bg-surface-muted px-5 py-4"
-            :class="{
-              'border-status-normal': stateDetails.tone === 'normal',
-              'border-status-attention': stateDetails.tone === 'attention',
-              'border-status-critical': stateDetails.tone === 'critical',
-              'border-status-stale': stateDetails.tone === 'stale',
-            }"
-          >
-            <p class="font-mono text-sm uppercase tracking-wider text-ink-muted">Situação atual</p>
-            <p class="mt-1 text-2xl font-semibold">{{ stateDetails.label }}</p>
-            <p class="mt-1 leading-6 text-ink-muted">{{ stateDetails.message }}</p>
-          </div>
-        </article>
-
-        <article class="rounded-panel border border-line bg-surface p-6 shadow-panel">
-          <p class="font-mono text-sm text-ink-muted">Atualidade da leitura</p>
-          <p class="mt-3 text-2xl font-semibold">{{ formattedFreshness }}</p>
-          <p class="mt-2 text-sm leading-6 text-ink-muted">Recebida em {{ formattedReceivedAt }}</p>
-        </article>
-
-        <article class="rounded-panel border border-line bg-surface p-6 shadow-panel">
-          <p class="font-mono text-sm text-ink-muted">Temperatura</p>
-          <p class="mt-3 text-4xl font-semibold">{{ formattedTemperature }}</p>
+      <section aria-labelledby="dashboard-title">
+        <header class="dashboard-heading">
+          <p class="eyebrow">Visão geral</p>
+          <h1 id="dashboard-title">Diagnóstico do ambiente</h1>
           <p class="mt-2 text-sm text-ink-muted">
-            Faixa demonstrativa: {{ summary.thresholds.min_c }}–{{ summary.thresholds.max_c }} °C
+            <template v-if="summary">{{ summary.environment.name }} <span aria-hidden="true"> / </span> {{ summary.device.id }}</template>
+            <template v-else>Monitoramento do laboratório refrigerado</template>
           </p>
-        </article>
+        </header>
 
-        <article class="rounded-panel border border-line bg-surface p-6 shadow-panel">
-          <p class="font-mono text-sm text-ink-muted">Umidade</p>
-          <p class="mt-3 text-4xl font-semibold">{{ formattedHumidity }}</p>
-          <p class="mt-2 text-sm text-ink-muted">Última leitura válida recebida pela API.</p>
-        </article>
+        <section
+          v-if="monitoringState.kind === 'loading'"
+          aria-busy="true"
+          aria-label="Carregando diagnóstico atual"
+          class="grid gap-6 sm:grid-cols-2"
+        >
+          <div v-for="index in 2" :key="index" class="h-40 rounded-panel border border-line bg-surface-muted" />
+          <p class="text-sm text-ink-muted">Carregando diagnóstico atual…</p>
+        </section>
 
-        <article class="rounded-panel border border-line bg-surface p-6 shadow-panel">
-          <p class="font-mono text-sm text-ink-muted">Dispositivo</p>
-          <p class="mt-3 text-xl font-semibold">{{ summary.device.id }}</p>
-          <p class="mt-2 text-sm leading-6 text-ink-muted">
-            Fonte da telemetria do ambiente demonstrativo.
+        <section v-else-if="monitoringState.kind === 'service_error'" role="alert" class="panel border-status-critical">
+          <h2 class="text-xl font-semibold">Diagnóstico indisponível</h2>
+          <p class="mt-2 max-w-xl leading-7 text-ink-muted">
+            Não foi possível consultar a API agora. Nenhuma leitura anterior será exibida como se fosse atual.
           </p>
-        </article>
-      </section>
+          <button type="button" class="mt-5 rounded-md bg-accent px-4 py-3 font-medium text-accent-ink hover:bg-accent-hover" @click="loadSummary">
+            Tentar novamente
+          </button>
+        </section>
 
-      <section v-if="summary && stateDetails" aria-labelledby="temperature-history-title" class="mt-8 rounded-panel border border-line bg-surface p-6 shadow-panel">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p class="font-mono text-sm text-ink-muted">Histórico de temperatura</p>
-            <h2 id="temperature-history-title" class="mt-1 text-2xl font-semibold">Variação recente</h2>
+        <template v-else-if="summary && stateDetails">
+          <section aria-label="Diagnóstico atual" class="status-grid">
+            <article class="status-panel" :data-tone="stateDetails.tone" aria-live="polite">
+              <h2 class="text-xl font-semibold">{{ stateDetails.label }}</h2>
+              <p class="mt-2 text-sm leading-6 text-ink-muted">{{ stateDetails.message }}</p>
+            </article>
+            <article class="panel">
+              <h2 class="text-sm font-medium text-ink-muted">Atualidade da leitura</h2>
+              <p class="mt-4 text-2xl font-medium">{{ formattedFreshness }}</p>
+              <p class="mt-4 text-sm leading-6 text-ink-muted">Recebida em {{ formattedReceivedAt }}</p>
+            </article>
+          </section>
+
+          <section aria-label="Medições do ambiente" class="metrics-grid">
+            <article class="panel">
+              <h2 class="text-sm font-medium text-ink-muted">Temperatura</h2>
+              <p class="metric-value temperature">{{ formattedTemperature }}</p>
+              <p class="mt-3 text-sm leading-6 text-ink-muted">
+                Faixa demonstrativa: {{ summary.thresholds.min_c }}–{{ summary.thresholds.max_c }} °C
+              </p>
+            </article>
+            <article class="panel">
+              <h2 class="text-sm font-medium text-ink-muted">Umidade</h2>
+              <p class="metric-value humidity">{{ formattedHumidity }}</p>
+              <p class="mt-3 text-sm leading-6 text-ink-muted">Última leitura válida recebida pela API.</p>
+            </article>
+          </section>
+        </template>
+
+        <section v-if="summary && stateDetails" aria-labelledby="temperature-history-title" class="panel history-panel">
+          <div class="flex flex-col flex-wrap gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p class="eyebrow">Histórico de temperatura</p>
+              <h2 id="temperature-history-title" class="mt-2 text-2xl font-semibold">Variação recente</h2>
+            </div>
+            <fieldset class="period-control" aria-label="Período do histórico">
+              <legend class="sr-only">Escolha o período do histórico</legend>
+              <button
+                v-for="period in historyPeriods"
+                :key="period"
+                type="button"
+                :aria-pressed="selectedPeriod === period"
+                @click="selectedPeriod = period"
+              >
+                {{ period }}
+              </button>
+            </fieldset>
           </div>
-          <fieldset class="flex flex-wrap gap-2" aria-label="Período do histórico">
-            <legend class="sr-only">Escolha o período do histórico</legend>
-            <button
-              v-for="period in historyPeriods"
-              :key="period"
-              type="button"
-              :aria-pressed="selectedPeriod === period"
-              class="rounded-md border px-3 py-2 font-mono text-sm font-medium transition-colors"
-              :class="selectedPeriod === period ? 'border-accent bg-accent text-white' : 'border-line bg-surface text-ink hover:bg-surface-muted'"
-              @click="selectedPeriod = period"
-            >
-              {{ period }}
-            </button>
-          </fieldset>
-        </div>
+          <p v-if="historyPhase === 'loading'" class="mt-5 text-sm text-ink-muted" aria-live="polite">
+            Carregando histórico de temperatura…
+          </p>
+          <TemperatureHistoryChart v-else-if="historyPhase === 'ready' && history" :readings="history.readings" :period="selectedPeriod" />
+          <p v-else-if="historyPhase === 'error'" class="mt-5 border-l-4 border-status-stale pl-4 text-sm leading-6 text-ink-muted" role="status">
+            O diagnóstico atual continua disponível, mas o histórico de temperatura não pôde ser carregado.
+          </p>
+        </section>
 
-        <p v-if="historyPhase === 'loading'" class="mt-5 text-sm text-ink-muted" aria-live="polite">
-          Carregando histórico de temperatura…
-        </p>
-        <div v-else-if="historyPhase === 'ready' && history">
-          <TemperatureHistoryChart :readings="history.readings" :period="selectedPeriod" />
-        </div>
-        <p v-else-if="historyPhase === 'error'" class="mt-5 border-l-4 border-status-stale pl-4 text-sm leading-6 text-ink-muted" role="status">
-          O diagnóstico atual continua disponível, mas o histórico de temperatura não pôde ser carregado.
-        </p>
+        <p class="mt-8 text-xs leading-6 text-ink-muted">Atualização a cada 5 segundos · Um ambiente, um dispositivo.</p>
       </section>
-
-      <p class="mt-8 border-l-4 border-accent pl-4 text-sm leading-6 text-ink-muted">
+      <footer class="mt-8 border-t border-line pt-6 text-xs leading-6 text-ink-muted">
         Protótipo acadêmico: não é equipamento médico, sanitário ou regulatório certificado.
-      </p>
-    </section>
+      </footer>
+    </div>
   </main>
 </template>
+
+<style scoped>
+.dashboard { padding: var(--cs-space-48); }
+.dashboard-shell { max-width: 1200px; margin-inline: auto; }
+.dashboard-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--cs-space-24); padding-bottom: var(--cs-space-32); border-bottom: 1px solid var(--cs-color-line); }
+.brand { display: inline-flex; align-items: center; gap: var(--cs-space-12); font-size: var(--cs-type-24); font-weight: 650; text-decoration: none; white-space: nowrap; }
+.eyebrow { color: var(--cs-color-ink-muted); font-size: var(--cs-type-12); line-height: 1.5; text-transform: uppercase; }
+.dashboard-heading { margin-block: var(--cs-space-32); }
+h1 { margin-top: var(--cs-space-8); font-size: var(--cs-type-32); font-weight: 600; line-height: 1.2; letter-spacing: -0.025em; }
+.panel { min-width: 0; padding: var(--cs-space-24); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-panel); background: var(--cs-color-surface); }
+.panel[role="alert"] { border-color: var(--cs-color-status-critical); }
+.status-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; gap: var(--cs-space-24); }
+.status-panel { min-width: 0; padding: var(--cs-space-24); border: 1px solid var(--status-color); border-radius: var(--cs-radius-panel); color: var(--status-color); background: var(--status-surface); }
+.status-panel[data-tone='normal'] { --status-color: var(--cs-color-status-normal); --status-surface: var(--cs-color-normal-surface); }
+.status-panel[data-tone='attention'] { --status-color: var(--cs-color-status-attention); --status-surface: var(--cs-color-attention-surface); }
+.status-panel[data-tone='critical'] { --status-color: var(--cs-color-status-critical); --status-surface: var(--cs-color-critical-surface); }
+.status-panel[data-tone='stale'] { --status-color: var(--cs-color-status-stale); --status-surface: var(--cs-color-stale-surface); }
+.metrics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--cs-space-24); margin-top: var(--cs-space-32); }
+.metric-value { margin-top: var(--cs-space-16); line-height: 1.1; letter-spacing: -0.035em; font-weight: 500; }
+.temperature { font-size: var(--cs-type-64); }
+.humidity { font-size: var(--cs-type-48); }
+.history-panel { margin-top: var(--cs-space-32); padding: var(--cs-space-32); }
+.period-control { display: flex; padding: var(--cs-space-4); border-radius: var(--cs-radius-4); background: var(--cs-color-surface-muted); }
+.period-control button { flex: 1; min-width: 64px; min-height: 44px; padding: var(--cs-space-8) var(--cs-space-16); border-radius: var(--cs-radius-4); font-size: var(--cs-type-14); transition: background-color var(--cs-motion-quick); cursor: pointer; }
+.period-control button:hover { background: var(--cs-color-line); }
+.period-control button[aria-pressed='true'] { background: var(--cs-color-accent); color: var(--cs-color-accent-ink); }
+@media (max-width: 767px) {
+  .dashboard { padding: var(--cs-space-24); }
+  .dashboard-nav { gap: var(--cs-space-12); padding-bottom: var(--cs-space-24); }
+  .dashboard-nav .eyebrow { max-width: 132px; text-align: right; font-size: 10px; }
+  .dashboard-heading { margin-block: var(--cs-space-24); }
+  h1 { font-size: var(--cs-type-24); }
+  .status-grid, .metrics-grid { grid-template-columns: minmax(0, 1fr); gap: var(--cs-space-16); }
+  .panel, .status-panel, .history-panel { padding: var(--cs-space-16); }
+  .metrics-grid, .history-panel { margin-top: var(--cs-space-16); }
+  .temperature { font-size: var(--cs-type-48); }
+  .humidity { font-size: var(--cs-type-48); }
+  .metric-value { margin-top: var(--cs-space-12); }
+  .period-control button { min-width: 0; }
+}
+@media (max-width: 374px) {
+  .dashboard { padding: var(--cs-space-16); }
+  .brand { font-size: var(--cs-type-20); }
+}
+</style>

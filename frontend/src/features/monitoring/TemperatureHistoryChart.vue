@@ -10,7 +10,7 @@ import {
   type ChartData,
   type ChartOptions,
 } from 'chart.js'
-import { computed } from 'vue'
+import { computed, onMounted, shallowRef, useTemplateRef } from 'vue'
 import { Line } from 'vue-chartjs'
 
 import type { HistoricalReading, HistoryPeriod } from './monitoring-history'
@@ -23,6 +23,18 @@ const props = defineProps<{
   period: HistoryPeriod
 }>()
 
+const chartElement = useTemplateRef<HTMLElement>('chartElement')
+const colors = shallowRef<{ accent?: string; muted?: string; line?: string }>({})
+
+onMounted(() => {
+  const style = getComputedStyle(chartElement.value!)
+  colors.value = {
+    accent: style.getPropertyValue('--cs-color-accent').trim(),
+    muted: style.getPropertyValue('--cs-color-ink-muted').trim(),
+    line: style.getPropertyValue('--cs-color-line').trim(),
+  }
+})
+
 const chartData = computed<ChartData<'line'>>(() => {
   const series = buildTemperatureChart(props.readings, props.period)
 
@@ -32,8 +44,8 @@ const chartData = computed<ChartData<'line'>>(() => {
       {
         label: 'Temperatura (°C)',
         data: [...series.temperatures],
-        borderColor: '#1c6470',
-        backgroundColor: '#1c6470',
+        borderColor: colors.value.accent,
+        backgroundColor: colors.value.accent,
         borderWidth: 2,
         pointRadius: 3,
         pointHoverRadius: 5,
@@ -43,7 +55,7 @@ const chartData = computed<ChartData<'line'>>(() => {
   }
 })
 
-const chartOptions: ChartOptions<'line'> = {
+const chartOptions = computed<ChartOptions<'line'>>(() => ({
   responsive: true,
   maintainAspectRatio: false,
   animation: false,
@@ -61,29 +73,32 @@ const chartOptions: ChartOptions<'line'> = {
     },
   },
   scales: {
-    x: { ticks: { color: '#52636a', maxRotation: 0 } },
+    x: { ticks: { color: colors.value.muted, maxRotation: 0 }, grid: { display: false } },
     y: {
-      title: { display: true, text: 'Temperatura (°C)', color: '#52636a' },
-      ticks: { color: '#52636a' },
+      grid: { color: colors.value.line },
+      title: { display: true, text: 'Temperatura (°C)', color: colors.value.muted },
+      ticks: { color: colors.value.muted },
     },
   },
-}
+}))
 
 const textualSummary = computed(() => describeTemperatureRange(props.readings, props.period))
 </script>
 
 <template>
-  <p id="temperature-history-summary" class="text-sm leading-6 text-ink-muted">
-    {{ textualSummary }} Horários exibidos em UTC.
-  </p>
+  <div ref="chartElement" class="mt-5 min-w-0">
+    <p id="temperature-history-summary" class="text-sm leading-6 text-ink-muted">
+      {{ textualSummary }} Horários exibidos em UTC.
+    </p>
 
-  <div
-    v-if="readings.length > 0"
-    role="img"
-    aria-label="Gráfico de linha da temperatura no período selecionado"
-    aria-describedby="temperature-history-summary"
-    class="mt-5 h-72"
-  >
-    <Line :data="chartData" :options="chartOptions" />
+    <div
+      v-if="readings.length > 0"
+      role="img"
+      aria-label="Gráfico de linha da temperatura no período selecionado"
+      aria-describedby="temperature-history-summary"
+      class="mt-5 h-72"
+    >
+      <Line :data="chartData" :options="chartOptions" />
+    </div>
   </div>
 </template>

@@ -45,7 +45,7 @@ com a leitura operacional.
 
 - Um ambiente: `Laboratório Refrigerado`.
 - Um dispositivo: `esp32-lab-01`.
-- Dashboard único, sem páginas futuras vazias.
+- Dashboard operacional em `/dashboard` e apresentação de portfólio em `/`.
 - Temperatura, umidade, horário da leitura, estado e freshness.
 - Histórico de temperatura nos períodos `15m`, `1h`, `6h` e `24h`.
 - Atualização por polling a cada 5 segundos.
@@ -132,10 +132,9 @@ resposta como se fosse uma leitura nova.
 - Detalhes técnicos dominarem a experiência do operador.
 - O protótipo parecer certificado ou oferecer orientação sanitária.
 
-## Gate antes da implementação visual
+## Histórico da direção visual
 
-Este documento não define paleta, tipografia, componentes ou composição final.
-A implementação visual só começa depois de:
+A primeira direção foi definida a partir destas etapas:
 
 1. explorar direções para a superfície operacional;
 2. escolher uma composição coerente com “caderno de laboratório encontra
@@ -148,3 +147,27 @@ Em 09/09/2026, a CS-26 aprovou a direção **Caderno de bancada**, a composiçã
 visual e a validação funcional de acessibilidade e responsividade foram
 concluídas. As evidências estão vinculadas no
 [`README.md`](README.md).
+
+## Redesign de portfólio — setembro de 2026
+
+Direção autorizada: **tecnologia de precisão**. Apresentação escura, com grafite
+e ciano; dashboard claro, com acento petróleo. Inter local e números tabulares.
+Os temas são fixos por rota, sem alternador.
+
+A apresentação atende visitantes do portfólio e avaliadores. Explica problema,
+arquitetura, demonstração gravada e limites acadêmicos. Não consulta a API.
+“Ver demonstração” abre a seção de mídia; “Ver código” abre o repositório.
+A demonstração usa capturas reais da interface com respostas HTTP simuladas,
+identificadas no vídeo e nas imagens. Não oferece sistema real público.
+
+Estado e atualidade permanecem próximos; temperatura dominante, umidade
+secundária e histórico amplo. Uma leitura antiga é explicitamente a última
+leitura conhecida, sem confirmar a situação atual. Contratos e polling de
+5 segundos permanecem iguais. Falha do histórico preserva o resumo válido.
+
+Motion for Vue executa entradas uma vez; com redução de movimento, o conteúdo
+aparece imediatamente. Medições não têm contadores animados. Vídeo com
+controles nativos, legendas descritivas e sem reprodução automática.
+
+Figma, mapa de componentes, dependências, mídia, testes e justificativas:
+[Relatório da entrega](../docs/testing/redesign-portfolio.md).

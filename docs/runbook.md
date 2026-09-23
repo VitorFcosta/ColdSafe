@@ -142,12 +142,12 @@ Teste liveness, readiness, API e frontend:
 curl -fsS http://127.0.0.1:8000/health/live
 curl -fsS http://127.0.0.1:8000/health/ready
 curl -fsS http://127.0.0.1:8000/api/v1/monitoring/summary
-curl -fsS -o /dev/null http://127.0.0.1:5173/
+curl -fsS -o /dev/null http://127.0.0.1:5173/dashboard
 ```
 
 Todos os comandos devem terminar com código `0`. Antes de chegar telemetria, o
 resumo pode representar ausência de leitura; isso não significa que a API está
-indisponível. Abra [http://localhost:5173](http://localhost:5173) no navegador
+indisponível. Abra [http://localhost:5173/dashboard](http://localhost:5173/dashboard) no navegador
 e confirme que o dashboard é carregado.
 
 Para validar o fluxo completo, execute a simulação seguindo

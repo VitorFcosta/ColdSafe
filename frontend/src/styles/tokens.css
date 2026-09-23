@@ -1,22 +1,75 @@
 :root {
-  /* Papel, não componente: os mesmos tokens sustentam desktop e mobile. */
-  --cs-color-canvas: #f6f3ea;
-  --cs-color-surface: #fffdf7;
-  --cs-color-surface-muted: #e8eef0;
-  --cs-color-ink: #15262c;
-  --cs-color-ink-muted: #52636a;
-  --cs-color-line: #b8c5c8;
-  --cs-color-accent: #1c6470;
-  --cs-color-status-normal: #166534;
-  --cs-color-status-attention: #9a4d00;
-  --cs-color-status-critical: #b42318;
+  /* Tokens por função, compartilhados entre interfaces e Figma. */
+  --cs-color-canvas: #f3f6f5;
+  --cs-color-surface: #ffffff;
+  --cs-color-surface-muted: #e9f0ee;
+  --cs-color-ink: #122e33;
+  --cs-color-ink-muted: #526c70;
+  --cs-color-line: #cbd8d6;
+  --cs-color-accent: #0c6d65;
+  --cs-color-accent-hover: #07564f;
+  --cs-color-accent-ink: #ffffff;
+  --cs-color-status-normal: #176740;
+  --cs-color-status-attention: #8b4c0c;
+  --cs-color-status-critical: #b02d24;
   --cs-color-status-stale: #536675;
-  --cs-focus-ring: #0d7180;
+  --cs-color-normal-surface: #e5f1e9;
+  --cs-color-attention-surface: #fff1dc;
+  --cs-color-critical-surface: #fcece8;
+  --cs-color-stale-surface: #e9eef2;
+  --cs-focus-ring: #086c68;
 
+  --cs-space-0: 0px;
+  --cs-space-4: 4px;
+  --cs-space-8: 8px;
+  --cs-space-12: 12px;
+  --cs-space-16: 16px;
+  --cs-space-24: 24px;
+  --cs-space-32: 32px;
+  --cs-space-48: 48px;
+  --cs-space-64: 64px;
+  --cs-space-96: 96px;
+  --cs-radius-4: 4px;
+  --cs-radius-8: 8px;
+  --cs-radius-16: 16px;
+  --cs-type-12: 0.75rem;
+  --cs-type-14: 0.875rem;
+  --cs-type-16: 1rem;
+  --cs-type-20: 1.25rem;
+  --cs-type-24: 1.5rem;
+  --cs-type-32: 2rem;
+  --cs-type-48: 3rem;
+  --cs-type-64: 4rem;
+  --cs-type-80: 5rem;
+  --cs-motion-quick: 160ms;
+  --cs-motion-standard: 240ms;
+  --cs-motion-entrance: 560ms;
   --cs-font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
   --cs-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --cs-radius-panel: 0.5rem;
-  --cs-shadow-panel: 0 0.5rem 1.5rem rgb(21 38 44 / 0.08);
+  --cs-radius-panel: var(--cs-radius-8);
+  --cs-shadow-panel: 0 2px 8px rgb(18 46 51 / 0.03);
+}
+
+.presentation-theme {
+  --cs-color-canvas: #081b20;
+  --cs-color-surface: #102a30;
+  --cs-color-surface-muted: #17373d;
+  --cs-color-ink: #edf6f3;
+  --cs-color-ink-muted: #a8bfbd;
+  --cs-color-line: #345057;
+  --cs-color-accent: #9bf1d9;
+  --cs-color-accent-hover: #b7f9e8;
+  --cs-color-accent-ink: #0b302e;
+  --cs-color-status-normal: #9de0b3;
+  --cs-color-status-attention: #f2c27f;
+  --cs-color-status-critical: #ffa69b;
+  --cs-color-status-stale: #bdcbd4;
+  --cs-color-normal-surface: #143d2d;
+  --cs-color-attention-surface: #45351b;
+  --cs-color-critical-surface: #462825;
+  --cs-color-stale-surface: #273a46;
+  --cs-focus-ring: #b7f9e8;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -31,6 +84,12 @@
   --color-status-attention: var(--cs-color-status-attention);
   --color-status-critical: var(--cs-color-status-critical);
   --color-status-stale: var(--cs-color-status-stale);
+  --color-accent-hover: var(--cs-color-accent-hover);
+  --color-accent-ink: var(--cs-color-accent-ink);
+  --color-normal-surface: var(--cs-color-normal-surface);
+  --color-attention-surface: var(--cs-color-attention-surface);
+  --color-critical-surface: var(--cs-color-critical-surface);
+  --color-stale-surface: var(--cs-color-stale-surface);
   --font-sans: var(--cs-font-sans);
   --font-mono: var(--cs-font-mono);
   --radius-panel: var(--cs-radius-panel);

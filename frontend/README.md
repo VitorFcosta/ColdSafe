@@ -1,24 +1,17 @@
-# Frontend
+# Frontend ColdSafe
 
-Esta área contém o dashboard Vue 3 com a direção **Caderno de bancada** e a
-composição **B — Gráfico ampliado**, aprovadas em 09/09/2026 na CS-26.
+Apresentação de portfólio em `/` e dashboard operacional em `/dashboard`,
+com a direção **tecnologia de precisão**. A apresentação funciona sem backend.
+O dashboard mantém os contratos HTTP, os períodos de histórico e o polling
+a cada 5 segundos.
 
-O dashboard implementa o diagnóstico atual, o gráfico de temperatura, os
-períodos de consulta, o polling e as falhas parciais. A fundação técnica, os
-tokens visuais e o mapeamento dos estados da interface possuem testes
-automatizados.
+- [Definição do produto](PRODUCT.md).
+- [Figma editável](https://www.figma.com/design/EIn6llJ5Fc3uIFlIDdokZu).
+- [Relatório: arquivos, decisões, mídia e validação](../docs/testing/redesign-portfolio.md).
 
-A definição confirmada do produto, do público, do escopo e das restrições está
-em [`PRODUCT.md`](PRODUCT.md).
-
-Desktop, mobile e os oito estados da interface foram aprovados. O registro das
-decisões e as imagens estão na [CS-26 no Notion](https://app.notion.com/3cfd67001da981108554cd452d3191b7).
-Os arquivos locais de trabalho do Impeccable ficam em `.impeccable/`, fora do Git.
-
-A composição mantém estado e atualidade juntos, temperatura dominante e histórico
-amplo abaixo das métricas. No mobile, as informações são empilhadas. Falha do
-histórico preserva a leitura atual válida; leitura antiga aparece como última
-leitura conhecida, sem confirmar o estado atual.
+A direção anterior, Caderno de bancada, foi aprovada na CS-26 em 09/09/2026.
+O redesign atual foi autorizado no plano de portfólio e mantém suas regras
+operacionais: atualidade explícita, estados com texto e falhas parciais.
 
 ## Como executar
 
@@ -28,7 +21,7 @@ leitura conhecida, sem confirmar o estado atual.
 - Validar tipos e gerar a build: `npm run build`.
 - Executar os testes unitários do frontend: `npm run test:unit:run`.
 - Instalar o Chromium usado pelos testes E2E: `npx playwright install chromium`.
-- Executar os seis cenários E2E do dashboard: `npm run test:e2e`.
+- Executar os cenários E2E das duas interfaces: `npm run test:e2e`.
 
 Os testes E2E sobem o Vite automaticamente e simulam somente a fronteira HTTP
 da API. Assim, os estados normal, atenção, crítico, leitura desatualizada, sem
@@ -49,3 +42,29 @@ que desktop e mobile conservem os mesmos significados visuais.
 
 Contraste, navegação por teclado e responsividade foram validados no dashboard
 implementado; os mockups foram usados apenas como direção visual.
+
+## Demonstração reproduzível
+
+Com Node 24.20.0, execute em dois terminais:
+
+```sh
+npm run dev -- --host 127.0.0.1 --port 4175
+```
+
+```sh
+npm run capture:demo
+```
+
+O script usa Playwright e os mesmos mocks HTTP dos E2E. Gera quatro PNGs,
+um WebM de cerca de 72 segundos e legendas VTT em `public/media/`.
+Não precisa de backend. A faixa “DEMONSTRAÇÃO SIMULADA” existe somente na
+captura. O vídeo também explica por texto cada cenário.
+
+## Motion e tipagem
+
+Foram adicionados `motion-v@2.4.2` e `@vueuse/core@14.4.0`, fixados no lock.
+O Motion fica no chunk da apresentação. `skipLibCheck` evita conflitos nas
+declarações de terceiros (tipos HTML/VueUse/React/Bluetooth); `strict` e
+a checagem dos arquivos da aplicação continuam ativos. Reavaliar essa opção
+quando as declarações dessas dependências forem compatíveis entre si.
+Inter é servido localmente, com licença OFL em `public/fonts/OFL.txt`.

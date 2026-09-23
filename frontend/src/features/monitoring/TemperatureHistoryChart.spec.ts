@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import TemperatureHistoryChart from './TemperatureHistoryChart.vue'
@@ -62,6 +62,27 @@ describe('TemperatureHistoryChart', () => {
 
     expect(formatTooltip({ parsed: { y: 5.2 } })).toBe('Temperatura: 5,2 °C')
     expect(formatTooltip({ parsed: { y: null } })).toBe('Temperatura indisponível')
+  })
+
+  it('usa os tokens herdados pelo gráfico e mantém animações desativadas', async () => {
+    const computedStyle = vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+      getPropertyValue: (name: string) => ({
+        '--cs-color-accent': 'rgb(12, 109, 101)',
+        '--cs-color-ink-muted': 'rgb(82, 108, 112)',
+        '--cs-color-line': 'rgb(203, 216, 214)',
+      } as Record<string, string>)[name],
+    } as CSSStyleDeclaration)
+    const wrapper = mount(TemperatureHistoryChart, { props: { period: '1h', readings } })
+    await flushPromises()
+    const chart = wrapper.getComponent({ name: 'Line' })
+    expect(computedStyle).toHaveBeenCalledWith(wrapper.element)
+    expect(chart.props('data').datasets[0].borderColor).toBe('rgb(12, 109, 101)')
+    expect(chart.props('options')).toMatchObject({
+      animation: false,
+      scales: { x: { ticks: { color: 'rgb(82, 108, 112)' } }, y: { grid: { color: 'rgb(203, 216, 214)' } } },
+    })
+    wrapper.unmount()
+    computedStyle.mockRestore()
   })
 
   it('não renderiza um gráfico vazio e explica a ausência de leituras', () => {

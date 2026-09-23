@@ -66,3 +66,11 @@ As dependências de teste já instaladas e suas transitivas estão fixadas em `b
 3. Regenerar o lock sem editar dependências transitivas manualmente.
 4. Executar build, testes e auditoria de segurança aplicáveis.
 5. Registrar no commit o motivo da atualização.
+
+## Frontend efetivamente instalado — redesign
+
+O manifesto e o lock prevalecem sobre o bootstrap planejado acima.
+TypeScript `6.0.3` (compatível com vue-tsc `3.3.11`), Playwright `1.63.0`,
+Vue Test Utils `2.5.0`, Motion for Vue `2.4.2` e VueUse Core `14.4.0`.
+As versões planejadas de Vue Testing Library e openapi-typescript não foram
+adicionadas nesta entrega. As demais versões estão em `frontend/package.json`.

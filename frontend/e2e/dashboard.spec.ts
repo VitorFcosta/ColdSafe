@@ -1,6 +1,6 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-type DashboardStatus = 'normal' | 'attention' | 'critical' | 'stale' | 'no_data'
+import { mockMonitoringApi, type DashboardStatus } from './monitoring-api'
 
 const statusCases: ReadonlyArray<
   Readonly<{
@@ -50,11 +50,11 @@ test.describe('dashboard operacional', () => {
         ageSeconds: scenario.ageSeconds,
       })
 
-      await page.goto('/')
+      await page.goto('/dashboard')
 
       await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente' })).toBeVisible()
       await expect(page.getByText(scenario.label, { exact: true })).toBeVisible()
-      await expect(page.getByText('Laboratório Refrigerado', { exact: true })).toBeVisible()
+      await expect(page.getByText('Laboratório Refrigerado / esp32-lab-01', { exact: true })).toBeVisible()
       await expect(page.getByText(scenario.freshnessLabel, { exact: true })).toBeVisible()
       await expect(
         page
@@ -76,7 +76,7 @@ test.describe('dashboard operacional', () => {
   test('exibe o fluxo sem dados sem inventar medições', async ({ page }) => {
     await mockMonitoringApi(page, { status: 'no_data' })
 
-    await page.goto('/')
+    await page.goto('/dashboard')
 
     await expect(page.getByText('Sem dados', { exact: true })).toBeVisible()
     await expect(page.getByText('Sem leitura recebida', { exact: true })).toBeVisible()
@@ -107,89 +107,70 @@ test.describe('dashboard operacional', () => {
       })
     })
 
-    await page.goto('/')
+    await page.goto('/dashboard')
 
     const alert = page.getByRole('alert')
     await expect(alert).toContainText('Diagnóstico indisponível')
     await expect(alert.getByRole('button', { name: 'Tentar novamente' })).toBeVisible()
     await expect(page.getByText('Laboratório Refrigerado', { exact: true })).toHaveCount(0)
+
+    await mockMonitoringApi(page, { status: 'normal' })
+    await alert.getByRole('button', { name: 'Tentar novamente' }).click()
+
+    await expect(page.getByText('Normal', { exact: true })).toBeVisible()
+    await expect(page.getByRole('alert')).toHaveCount(0)
   })
 })
 
-async function mockMonitoringApi(
-  page: Page,
-  scenario: Readonly<{
-    status: DashboardStatus
-    temperature?: number
-    ageSeconds?: number
-  }>,
-) {
+test('mostra carregamento até receber uma leitura válida', async ({ page }) => {
+  await mockMonitoringApi(page, { status: 'normal' })
+  let releaseSummary = () => {}
+  const summaryReady = new Promise<void>((resolve) => { releaseSummary = resolve })
   await page.route('**/api/v1/monitoring/summary', async (route) => {
-    const hasReading = scenario.status !== 'no_data'
-    const receivedAt = '2026-09-09T12:00:00Z'
-
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        success: true,
-        data: {
-          environment: { id: 'lab-refrigerado', name: 'Laboratório Refrigerado' },
-          device: { id: 'esp32-lab-01' },
-          reading: hasReading
-            ? {
-                temperature_c: scenario.temperature,
-                humidity_percent: 65,
-                received_at: receivedAt,
-              }
-            : null,
-          status: scenario.status,
-          freshness: hasReading
-            ? {
-                is_stale: scenario.status === 'stale',
-                age_seconds: scenario.ageSeconds,
-              }
-            : null,
-          thresholds: { min_c: 2, max_c: 8, attention_margin_c: 1 },
-        },
-      }),
-    })
+    await summaryReady
+    await route.fallback()
   })
 
-  await page.route('**/api/v1/readings?**', async (route) => {
-    const hasReading = scenario.status !== 'no_data'
-    const receivedAt = '2026-09-09T12:00:00Z'
-    const requestUrl = new URL(route.request().url())
+  await page.goto('/dashboard')
+  try {
+    await expect(page.getByLabel('Carregando diagnóstico atual')).toHaveAttribute('aria-busy', 'true')
+    await expect(page.getByText('Normal', { exact: true })).toHaveCount(0)
+  } finally {
+    releaseSummary()
+  }
+  await expect(page.getByText('Normal', { exact: true })).toBeVisible()
+})
 
-    expect(requestUrl.searchParams.get('device_id')).toBe('esp32-lab-01')
-    expect(requestUrl.searchParams.get('period')).toBe('1h')
-    expect(requestUrl.searchParams.get('limit')).toBe('300')
+test('troca o período do histórico sem perder a leitura atual', async ({ page }) => {
+  await mockMonitoringApi(page, { status: 'normal' })
+  await page.goto('/dashboard')
+  await expect(page.getByRole('button', { name: '1h', exact: true })).toHaveAttribute('aria-pressed', 'true')
 
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        success: true,
-        data: {
-          readings: hasReading
-            ? [
-                {
-                  temperature_c: scenario.temperature,
-                  humidity_percent: 65,
-                  received_at: receivedAt,
-                  status: scenario.status,
-                },
-              ]
-            : [],
-        },
-        meta: {
-          device_id: 'esp32-lab-01',
-          start: '2026-09-09T11:00:00Z',
-          end: '2026-09-09T12:00:00Z',
-          count: hasReading ? 1 : 0,
-          limit: 300,
-        },
-      }),
-    })
+  const historyRequest = page.waitForRequest((request) => {
+    const url = new URL(request.url())
+    return url.pathname === '/api/v1/readings' && url.searchParams.get('period') === '24h'
   })
-}
+  await page.getByRole('button', { name: '24h', exact: true }).click()
+  await historyRequest
+
+  await expect(page.getByRole('button', { name: '24h', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('button', { name: '1h', exact: true })).toHaveAttribute('aria-pressed', 'false')
+  await expect(page.getByText('Normal', { exact: true })).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Gráfico de linha da temperatura no período selecionado' })).toBeVisible()
+})
+
+test('preserva leitura válida quando apenas o histórico falha', async ({ page }) => {
+  await mockMonitoringApi(page, { status: 'normal' })
+  await page.route('**/api/v1/readings?**', (route) => route.fulfill({
+    status: 503,
+    contentType: 'application/json',
+    body: JSON.stringify({ success: false, error: { code: 'DEPENDENCY_UNAVAILABLE', message: 'Serviço indisponível.' } }),
+  }))
+
+  await page.goto('/dashboard')
+
+  await expect(page.getByText('Normal', { exact: true })).toBeVisible()
+  await expect(page.getByText('Agora mesmo', { exact: true })).toBeVisible()
+  await expect(page.getByRole('article').filter({ hasText: 'Temperatura' }).getByText('5 °C', { exact: true })).toBeVisible()
+  await expect(page.getByRole('status')).toContainText('histórico de temperatura não pôde ser carregado')
+})
