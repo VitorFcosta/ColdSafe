@@ -3,4 +3,5 @@ influxdb-client==1.50.0
 paho-mqtt==2.1.0
 pydantic==2.13.5
 pydantic-settings==2.15.0
+psycopg[binary]==3.3.6
 uvicorn==0.52.4

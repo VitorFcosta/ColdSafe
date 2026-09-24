@@ -34,6 +34,12 @@ No `.env`:
 - `DOCKER_INFLUXDB_INIT_USERNAME`
 - `DOCKER_INFLUXDB_INIT_PASSWORD`
 - `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`
+- `POSTGRES_PASSWORD`
+
+`POSTGRES_DB` e `POSTGRES_USER` têm valores locais padrão (`coldsafe`). O
+backend usa `POSTGRES_HOST=postgres` e a porta interna `5432`; no Compose,
+o PostgreSQL não expõe porta ao host. Use senhas distintas para PostgreSQL,
+MQTT e InfluxDB.
 
 No `firmware/include/secrets.h`:
 

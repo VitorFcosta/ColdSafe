@@ -20,6 +20,10 @@ influxdb-client==1.50.0
     # via -r backend/requirements.txt
 paho-mqtt==2.1.0
     # via -r backend/requirements.txt
+psycopg==3.3.6
+    # via -r backend/requirements.txt
+psycopg-binary==3.3.6
+    # via psycopg
 pydantic==2.13.5
     # via
     #   -r backend/requirements.txt

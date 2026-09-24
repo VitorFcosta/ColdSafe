@@ -24,13 +24,14 @@ def load_integration_compose():
     return yaml.safe_load(INTEGRATION_COMPOSE_PATH.read_text(encoding="utf-8"))
 
 
-def test_compose_contains_only_the_services_that_exist_today():
+def test_compose_contains_the_relational_database():
     compose = load_compose()
 
     assert set(compose["services"]) == {
         "mosquitto-init",
         "mosquitto",
         "influxdb",
+        "postgres",
         "backend",
         "frontend",
     }
@@ -42,9 +43,10 @@ def test_runtime_images_are_pinned_and_have_healthchecks():
     assert services["mosquitto-init"]["image"] == "eclipse-mosquitto:2.0.22"
     assert services["mosquitto"]["image"] == "eclipse-mosquitto:2.0.22"
     assert services["influxdb"]["image"] == "influxdb:2.7.12-alpine"
+    assert services["postgres"]["image"] == "postgres:17.11-alpine3.24"
     assert all(
         "healthcheck" in services[name]
-        for name in ("mosquitto", "influxdb", "backend")
+        for name in ("mosquitto", "influxdb", "postgres", "backend")
     )
 
 
@@ -125,13 +127,20 @@ def test_integration_override_publishes_influxdb_only_on_loopback():
     assert influxdb["networks"] == ["coldsafe-internal", "coldsafe-edge"]
 
 
+def test_integration_override_publishes_postgres_only_on_loopback():
+    postgres = load_integration_compose()["services"]["postgres"]
+
+    assert postgres["ports"] == ["127.0.0.1:15432:5432"]
+    assert postgres["networks"] == ["coldsafe-internal", "coldsafe-edge"]
+
+
 def test_services_share_an_internal_network():
     compose = load_compose()
 
     assert compose["networks"]["coldsafe-internal"]["internal"] is True
     assert all(
         "coldsafe-internal" in compose["services"][name]["networks"]
-        for name in ("mosquitto", "influxdb", "backend")
+        for name in ("mosquitto", "influxdb", "postgres", "backend")
     )
 
 
@@ -144,6 +153,7 @@ def test_only_mosquitto_uses_the_edge_network_needed_for_host_access():
         "coldsafe-edge",
     ]
     assert compose["services"]["influxdb"]["networks"] == ["coldsafe-internal"]
+    assert compose["services"]["postgres"]["networks"] == ["coldsafe-internal"]
     assert compose["services"]["backend"]["networks"] == [
         "coldsafe-internal",
         "coldsafe-edge",
@@ -157,6 +167,7 @@ def test_backend_waits_for_healthy_dependencies_and_uses_hardened_image():
     assert backend["depends_on"] == {
         "mosquitto": {"condition": "service_healthy"},
         "influxdb": {"condition": "service_healthy"},
+        "postgres": {"condition": "service_healthy"},
     }
     assert backend["read_only"] is True
     assert backend["security_opt"] == ["no-new-privileges:true"]
@@ -210,6 +221,16 @@ def test_influxdb_uses_a_named_persistent_volume():
     assert "influxdb-data:/var/lib/influxdb2" in compose["services"]["influxdb"][
         "volumes"
     ]
+
+
+def test_postgres_uses_a_private_persistent_volume():
+    compose = load_compose()
+    postgres = compose["services"]["postgres"]
+
+    assert "postgres-data:/var/lib/postgresql/data" in postgres["volumes"]
+    assert "postgres-data" in compose["volumes"]
+    assert "ports" not in postgres
+    assert postgres["environment"]["POSTGRES_PASSWORD"].startswith("${POSTGRES_PASSWORD:?")
 
 
 def test_mosquitto_mounts_versioned_security_configuration_read_only():

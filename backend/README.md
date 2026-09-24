@@ -1,7 +1,13 @@
 # Backend
 
 Esta área contém a ingestão MQTT, a classificação das leituras, a persistência no
-InfluxDB e a API FastAPI.
+InfluxDB, a estrutura relacional PostgreSQL e a API FastAPI.
+
+Na inicialização, `app/repositories/postgres.py` aplica em transação as migrações
+versionadas em `migrations/`. O PostgreSQL guarda usuários,
+sessões, ambientes, dispositivos, regras, alertas, comandos e auditoria;
+leituras antigas continuam no InfluxDB. O readiness exige conexão com os dois
+bancos e com o MQTT.
 
 A primeira implementação do domínio está em `app/domain/telemetry.py`. Ela transforma
 bytes MQTT não confiáveis em um `TelemetryPayload` estrito e imutável, rejeitando

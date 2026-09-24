@@ -36,6 +36,7 @@ Não usar `latest`, `^` ou `~` nos manifestos finais.
 | Pydantic / Pydantic Settings | `2.13.5` / `2.15.0` |
 | paho-mqtt | `2.1.0` |
 | influxdb-client | `1.50.0` |
+| psycopg / psycopg-binary | `3.3.6` / `3.3.6` (PostgreSQL local) |
 | pytest / pytest-cov | `9.1.1` / `7.1.0` |
 | HTTPX / jsonschema | `0.28.1` / `4.26.0` |
 
@@ -57,6 +58,7 @@ As dependências de teste já instaladas e suas transitivas estão fixadas em `b
 | node | `24.20.0-alpine3.24` |
 | python | `3.13.15-slim` |
 | influxdb | `2.7.12-alpine` |
+| postgres | `17.11-alpine3.24` |
 | eclipse-mosquitto | `2.0.22` |
 
 ## Regra de atualização

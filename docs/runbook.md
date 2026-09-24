@@ -42,7 +42,8 @@ Edite o `.env` e defina valores locais, fortes e diferentes para:
 - `MQTT_DEVICE_PASSWORD`;
 - `DOCKER_INFLUXDB_INIT_USERNAME`;
 - `DOCKER_INFLUXDB_INIT_PASSWORD`;
-- `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`.
+- `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`;
+- `POSTGRES_PASSWORD`.
 
 Use um gerenciador de senhas ou outro gerador seguro. Não coloque os valores
 no histórico do terminal, não altere `.env.example` e não envie o `.env` para o
@@ -113,7 +114,7 @@ As variáveis `DOCKER_INFLUXDB_INIT_*` só inicializam um volume vazio. Em um
 volume existente, alterar esses valores não recria usuário, organização,
 bucket ou token.
 
-## 4. Subir os quatro serviços
+## 4. Subir os serviços
 
 Valide novamente a configuração e recrie os containers para carregar o token
 restrito salvo no `.env`:
@@ -126,9 +127,13 @@ docker compose ps -a
 
 O resultado esperado é:
 
-- `mosquitto`, `influxdb`, `backend` e `frontend` em execução e `healthy`;
+- `mosquitto`, `influxdb`, `postgres`, `backend` e `frontend` em execução e `healthy`;
 - `mosquitto-init` encerrado com código `0` (`Exited (0)`). Ele é uma tarefa de
-  inicialização, não um quinto serviço persistente.
+  inicialização, não um sexto serviço persistente.
+
+Na primeira inicialização, o backend aplica as migrações relacionais. O volume
+`postgres-data` preserva cadastros e configurações entre reinícios; não o apague
+ao atualizar a aplicação.
 
 O `mosquitto-init` gera automaticamente o arquivo de senhas no volume
 `mosquitto-auth` com os valores do `.env`. Não crie nem edite um arquivo
@@ -192,6 +197,7 @@ Veja o estado completo e os últimos logs sem imprimir o conteúdo do `.env`:
 docker compose ps -a
 docker compose logs --tail=100 mosquitto
 docker compose logs --tail=100 influxdb
+docker compose logs --tail=100 postgres
 docker compose logs --tail=100 backend
 docker compose logs --tail=100 frontend
 ```
@@ -210,11 +216,14 @@ Erros comuns:
   `.env`; depois recrie o inicializador e o broker com
   `docker compose up -d --force-recreate mosquitto-init mosquitto`.
 - `backend` não fica pronto: confirme que `INFLUXDB_TOKEN` é o token restrito
-  criado na seção 3, e não o token administrativo;
+  criado na seção 3, e não o token administrativo; confirme também que
+  `postgres` está saudável e que `POSTGRES_PASSWORD` corresponde à senha
+  usada na criação do volume;
   então rode `docker compose up -d --no-deps --force-recreate backend`.
 - autenticação administrativa do InfluxDB falha em um volume antigo: use as
   credenciais que inicializaram esse volume. Alterar o `.env` não altera o
-  estado já persistido. Não apague volumes com histórico sem decidir e fazer o
+  estado já persistido. O mesmo vale para as credenciais do PostgreSQL.
+  Não apague volumes com histórico sem decidir e fazer o
   backup necessário.
 - frontend abre, mas não acessa a API: verifique se readiness retorna `200`, se
   `http://localhost:8000` corresponde a `VITE_API_BASE_URL` e se
@@ -232,8 +241,8 @@ docker compose run --rm --no-deps frontend npm ci
 docker compose up -d --no-deps --force-recreate --wait frontend
 ```
 
-Essa sequência não apaga nem recria os volumes de dados do InfluxDB ou do
-Mosquitto. Ela foi validada com o frontend saudável e acessível na porta `5173`.
+Essa sequência não apaga nem recria os volumes de dados do InfluxDB, do
+PostgreSQL ou do Mosquitto. Ela foi validada com o frontend saudável e acessível na porta `5173`.
 
 ## 7. Encerrar sem apagar dados
 
@@ -243,6 +252,7 @@ Pare e remova os containers e redes da composição:
 docker compose down
 ```
 
-Esse comando preserva os volumes nomeados, incluindo o histórico do InfluxDB e
+Esse comando preserva os volumes nomeados, incluindo o histórico do InfluxDB, os
+cadastros do PostgreSQL e
 as credenciais geradas do Mosquitto. Não use `docker compose down --volumes` no
 fluxo normal: `--volumes` apaga esses dados e força um novo bootstrap.

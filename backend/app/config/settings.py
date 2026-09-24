@@ -25,6 +25,12 @@ class RuntimeSettings(BaseSettings):
     influxdb_bucket: str = Field(min_length=1)
     influxdb_token: SecretStr = Field(min_length=1)
 
+    postgres_host: str = Field(min_length=1)
+    postgres_port: int = Field(ge=1, le=65_535)
+    postgres_db: str = Field(min_length=1)
+    postgres_user: str = Field(min_length=1)
+    postgres_password: SecretStr = Field(min_length=1)
+
     @property
     def allowed_cors_origins(self) -> tuple[str, ...]:
         return tuple(

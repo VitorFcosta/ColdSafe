@@ -17,6 +17,11 @@ def valid_settings() -> dict[str, object]:
         "influxdb_org": "coldsafe",
         "influxdb_bucket": "telemetry",
         "influxdb_token": "influx-secret",
+        "postgres_host": "postgres",
+        "postgres_port": 5432,
+        "postgres_db": "coldsafe",
+        "postgres_user": "coldsafe",
+        "postgres_password": "postgres-secret",
     }
 
 
@@ -25,6 +30,7 @@ def test_runtime_settings_hide_secrets_from_representations() -> None:
 
     assert "mqtt-secret" not in repr(settings)
     assert "influx-secret" not in repr(settings)
+    assert "postgres-secret" not in repr(settings)
 
 
 def test_runtime_settings_parse_numeric_values_from_environment(monkeypatch) -> None:
@@ -35,9 +41,10 @@ def test_runtime_settings_parse_numeric_values_from_environment(monkeypatch) -> 
 
     assert settings.mqtt_port == 1883
     assert settings.mqtt_qos == 1
+    assert settings.postgres_port == 5432
 
 
-@pytest.mark.parametrize("field", ["mqtt_backend_password", "influxdb_token"])
+@pytest.mark.parametrize("field", ["mqtt_backend_password", "influxdb_token", "postgres_password"])
 def test_runtime_settings_fail_early_when_secret_is_missing(field: str) -> None:
     values = valid_settings() | {field: ""}
 

@@ -19,6 +19,11 @@ constexpr char mqtt_topic[]{"coldsafe/v1/telemetry"};
 constexpr int mqtt_qos{1};
 constexpr std::size_t payload_buffer_size{192U};
 
+#ifndef COLDSAFE_DEVICE_ID
+#define COLDSAFE_DEVICE_ID coldsafe::secrets::DEVICE_ID
+#endif
+constexpr const char* device_id{COLDSAFE_DEVICE_ID};
+
 DHTesp dht_sensor;
 WiFiClient network_client;
 MQTTClient mqtt_client{256};
@@ -101,7 +106,7 @@ void maintain_mqtt(const unsigned long current_time_ms) {
     last_mqtt_attempt_ms = current_time_ms;
     Serial.println("ColdSafe: tentando conectar ao MQTT");
     if (!mqtt_client.connect(
-            coldsafe::secrets::DEVICE_ID,
+            device_id,
             coldsafe::secrets::MQTT_USERNAME,
             coldsafe::secrets::MQTT_PASSWORD
         )) {
@@ -147,7 +152,7 @@ void publish_telemetry(const unsigned long current_time_ms) {
         sizeof(payload),
         "{\"schema_version\":1,\"device_id\":\"%s\",\"temperature_c\":%.1f,"
         "\"humidity_percent\":%.1f}",
-        coldsafe::secrets::DEVICE_ID,
+        device_id,
         latest_reading.temperature,
         latest_reading.humidity
     )};

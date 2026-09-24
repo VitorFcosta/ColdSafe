@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coldsafe.local/contracts/evolution.schema.json",
+  "title": "ColdSafe evolution messages (proposed)",
+  "description": "Version 2 telemetry and future command, acknowledgment, REST and WebSocket messages. Not implemented by the current runtime.",
+  "$defs": {
+    "device_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "light_percent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Calibrated relative brightness: 0 is dark and 100 is bright."
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "device_id", "temperature_c", "humidity_percent", "light_percent"],
+      "properties": {
+        "schema_version": {"const": 2},
+        "device_id": {"$ref": "#/$defs/device_id"},
+        "temperature_c": {"type": "number", "minimum": -40, "maximum": 80},
+        "humidity_percent": {"type": "number", "minimum": 0, "maximum": 100},
+        "light_percent": {"$ref": "#/$defs/light_percent"}
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "command_id", "device_id", "actuator", "desired_state", "source", "issued_at"],
+      "properties": {
+        "schema_version": {"const": 2},
+        "command_id": {"type": "string", "format": "uuid"},
+        "device_id": {"$ref": "#/$defs/device_id"},
+        "actuator": {"enum": ["led", "buzzer"]},
+        "desired_state": {"type": "boolean"},
+        "source": {"enum": ["manual", "automatic"]},
+        "issued_at": {"type": "string", "format": "date-time"}
+      },
+      "oneOf": [
+        {"properties": {"actuator": {"const": "led"}, "source": {"const": "manual"}}},
+        {"properties": {"actuator": {"const": "buzzer"}, "source": {"const": "automatic"}}}
+      ]
+    },
+    "ack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "command_id", "device_id", "actuator", "result", "applied_state"],
+      "properties": {
+        "schema_version": {"const": 2},
+        "command_id": {"type": "string", "format": "uuid"},
+        "device_id": {"$ref": "#/$defs/device_id"},
+        "actuator": {"enum": ["led", "buzzer"]},
+        "result": {"enum": ["applied", "rejected"]},
+        "applied_state": {"type": ["boolean", "null"]},
+        "reason": {"enum": ["INVALID_COMMAND", "ACTUATOR_FAILURE"]}
+      },
+      "oneOf": [
+        {"properties": {"result": {"const": "applied"}, "applied_state": {"type": "boolean"}}, "not": {"required": ["reason"]}},
+        {"properties": {"result": {"const": "rejected"}, "applied_state": {"type": "null"}}, "required": ["reason"]}
+      ]
+    },
+    "command_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "command_id", "device_id", "actuator", "desired_state", "confirmed_state", "status"],
+      "properties": {
+        "schema_version": {"const": 2},
+        "command_id": {"type": "string", "format": "uuid"},
+        "device_id": {"$ref": "#/$defs/device_id"},
+        "actuator": {"enum": ["led", "buzzer"]},
+        "desired_state": {"type": "boolean"},
+        "confirmed_state": {"type": ["boolean", "null"]},
+        "status": {"enum": ["pending", "confirmed", "unconfirmed", "rejected"]}
+      },
+      "oneOf": [
+        {"properties": {"status": {"const": "confirmed"}, "desired_state": {"const": true}, "confirmed_state": {"const": true}}},
+        {"properties": {"status": {"const": "confirmed"}, "desired_state": {"const": false}, "confirmed_state": {"const": false}}},
+        {"properties": {"status": {"enum": ["pending", "unconfirmed", "rejected"]}, "confirmed_state": {"type": "null"}}}
+      ]
+    },
+    "command_api_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["success", "data", "meta"],
+      "properties": {
+        "success": {"const": true},
+        "data": {"$ref": "#/$defs/command_response"},
+        "meta": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_version"],
+          "properties": {"schema_version": {"const": 2}}
+        }
+      }
+    },
+    "historical_reading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "device_id", "temperature_c", "humidity_percent", "light_percent", "received_at", "status"],
+      "properties": {
+        "schema_version": {"enum": [1, 2]},
+        "device_id": {"$ref": "#/$defs/device_id"},
+        "temperature_c": {"type": "number", "minimum": -40, "maximum": 80},
+        "humidity_percent": {"type": "number", "minimum": 0, "maximum": 100},
+        "light_percent": {"oneOf": [{"$ref": "#/$defs/light_percent"}, {"type": "null"}]},
+        "received_at": {"type": "string", "format": "date-time"},
+        "status": {"enum": ["normal", "attention", "critical", "stale"]}
+      },
+      "oneOf": [
+        {"properties": {"schema_version": {"const": 1}, "light_percent": {"type": "null"}}},
+        {"properties": {"schema_version": {"const": 2}, "light_percent": {"$ref": "#/$defs/light_percent"}}}
+      ]
+    },
+    "ws_event": {
+      "oneOf": [
+        {"$ref": "#/$defs/ws_reading"},
+        {"$ref": "#/$defs/ws_command"},
+        {"$ref": "#/$defs/ws_alert"}
+      ]
+    },
+    "ws_reading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "type", "environment_id", "device_id", "occurred_at", "data"],
+      "properties": {
+        "schema_version": {"const": 2},
+        "type": {"const": "reading"},
+        "environment_id": {"type": "string", "minLength": 1},
+        "device_id": {"$ref": "#/$defs/device_id"},
+        "occurred_at": {"type": "string", "format": "date-time"},
+        "data": {
+          "allOf": [
+            {"$ref": "#/$defs/historical_reading"},
+            {"properties": {"schema_version": {"const": 2}}}
+          ]
+        }
+      }
+    },
+    "ws_command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "type", "environment_id", "device_id", "occurred_at", "data"],
+      "properties": {
+        "schema_version": {"const": 2},
+        "type": {"const": "command_status"},
+        "environment_id": {"type": "string", "minLength": 1},
+        "device_id": {"$ref": "#/$defs/device_id"},
+        "occurred_at": {"type": "string", "format": "date-time"},
+        "data": {"$ref": "#/$defs/command_response"}
+      }
+    },
+    "ws_alert": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "type", "environment_id", "device_id", "occurred_at", "data"],
+      "properties": {
+        "schema_version": {"const": 2},
+        "type": {"const": "alert"},
+        "environment_id": {"type": "string", "minLength": 1},
+        "device_id": {"$ref": "#/$defs/device_id"},
+        "occurred_at": {"type": "string", "format": "date-time"},
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["alert_id", "status"],
+          "properties": {
+            "alert_id": {"type": "string", "format": "uuid"},
+            "status": {"enum": ["opened", "closed"]}
+          }
+        }
+      }
+    }
+  }
+}

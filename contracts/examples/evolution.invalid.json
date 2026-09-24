@@ -1,0 +1,62 @@
+[
+  {
+    "name": "v2-telemetry-without-light",
+    "schema": "telemetry",
+    "payload": {"schema_version": 2, "device_id": "esp32-lab-01", "temperature_c": 5.4, "humidity_percent": 62.1}
+  },
+  {
+    "name": "v1-telemetry-on-v2-contract",
+    "schema": "telemetry",
+    "payload": {"schema_version": 1, "device_id": "esp32-lab-01", "temperature_c": 5.4, "humidity_percent": 62.1, "light_percent": 43.2}
+  },
+  {
+    "name": "invalid-light-percentage",
+    "schema": "telemetry",
+    "payload": {"schema_version": 2, "device_id": "esp32-lab-01", "temperature_c": 5.4, "humidity_percent": 62.1, "light_percent": 101}
+  },
+  {
+    "name": "manual-buzzer-forbidden",
+    "schema": "command",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "buzzer", "desired_state": true, "source": "manual", "issued_at": "2026-09-23T12:00:00Z"}
+  },
+  {
+    "name": "command-without-correlation",
+    "schema": "command",
+    "payload": {"schema_version": 2, "device_id": "esp32-lab-01", "actuator": "led", "desired_state": true, "source": "manual", "issued_at": "2026-09-23T12:00:00Z"}
+  },
+  {
+    "name": "ack-rejected-without-reason",
+    "schema": "ack",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "result": "rejected", "applied_state": null}
+  },
+  {
+    "name": "ack-applied-with-null-state",
+    "schema": "ack",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "result": "applied", "applied_state": null}
+  },
+  {
+    "name": "pending-command-claims-confirmation",
+    "schema": "command_response",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "desired_state": true, "confirmed_state": true, "status": "pending"}
+  },
+  {
+    "name": "confirmed-command-with-opposite-state",
+    "schema": "command_response",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "desired_state": true, "confirmed_state": false, "status": "confirmed"}
+  },
+  {
+    "name": "historical-light-missing",
+    "schema": "historical_reading",
+    "payload": {"schema_version": 1, "device_id": "esp32-lab-01", "temperature_c": 5.4, "humidity_percent": 62.1, "received_at": "2026-09-23T11:59:00Z", "status": "normal"}
+  },
+  {
+    "name": "v2-history-with-null-light",
+    "schema": "historical_reading",
+    "payload": {"schema_version": 2, "device_id": "esp32-lab-01", "temperature_c": 5.4, "humidity_percent": 62.1, "light_percent": null, "received_at": "2026-09-23T11:59:00Z", "status": "normal"}
+  },
+  {
+    "name": "websocket-unknown-event",
+    "schema": "ws_event",
+    "payload": {"schema_version": 2, "type": "secret", "environment_id": "lab-cold-room-01", "device_id": "esp32-lab-01", "occurred_at": "2026-09-23T12:00:00Z", "data": {}}
+  }
+]

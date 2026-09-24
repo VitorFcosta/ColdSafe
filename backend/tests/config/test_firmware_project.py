@@ -1,6 +1,7 @@
 import json
 import subprocess
 import tomllib
+from configparser import ConfigParser
 from pathlib import Path
 
 
@@ -119,6 +120,33 @@ def test_wokwi_uses_platformio_build_artifacts():
         "elf": ".pio/build/esp32dev/firmware.elf",
         "rfc2217ServerPort": 4000,
     }
+
+
+def test_two_wokwi_projects_use_distinct_firmware_and_mqtt_ids():
+    platformio = ConfigParser(interpolation=None)
+    platformio.read(FIRMWARE_ROOT / "platformio.ini", encoding="utf-8")
+    first = platformio["env:esp32dev"]
+    second = platformio["env:esp32dev-02"]
+    assert 'COLDSAFE_DEVICE_ID="esp32-lab-01"' in first["build_flags"]
+    assert 'COLDSAFE_DEVICE_ID="esp32-lab-02"' in second["build_flags"]
+
+    first_wokwi = tomllib.loads((FIRMWARE_ROOT / "wokwi.toml").read_text())['wokwi']
+    second_root = FIRMWARE_ROOT / "device-02"
+    second_wokwi = tomllib.loads((second_root / "wokwi.toml").read_text())['wokwi']
+    assert first_wokwi["rfc2217ServerPort"] != second_wokwi["rfc2217ServerPort"]
+    assert second_root.joinpath(second_wokwi["firmware"]).resolve() == (
+        FIRMWARE_ROOT / ".pio/build/esp32dev-02/firmware.bin"
+    )
+    assert second_root.joinpath(second_wokwi["elf"]).resolve() == (
+        FIRMWARE_ROOT / ".pio/build/esp32dev-02/firmware.elf"
+    )
+    assert json.loads((second_root / "diagram.json").read_text()) == json.loads(
+        (FIRMWARE_ROOT / "diagram.json").read_text()
+    )
+
+    source = (FIRMWARE_ROOT / "src/main.cpp").read_text()
+    assert "mqtt_client.connect(\n            device_id," in source
+    assert "device_id,\n        latest_reading.temperature" in source
 
 
 def test_platformio_build_artifacts_are_ignored():

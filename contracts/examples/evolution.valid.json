@@ -1,0 +1,72 @@
+[
+  {
+    "name": "telemetry-two-sensors",
+    "schema": "telemetry",
+    "topic": "coldsafe/v2/devices/esp32-lab-01/telemetry",
+    "payload": {"schema_version": 2, "device_id": "esp32-lab-01", "temperature_c": 5.4, "humidity_percent": 62.1, "light_percent": 43.2}
+  },
+  {
+    "name": "manual-led-on",
+    "schema": "command",
+    "topic": "coldsafe/v2/devices/esp32-lab-01/commands",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "desired_state": true, "source": "manual", "issued_at": "2026-09-23T12:00:00Z"}
+  },
+  {
+    "name": "automatic-buzzer-off",
+    "schema": "command",
+    "topic": "coldsafe/v2/devices/esp32-lab-02/commands",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440001", "device_id": "esp32-lab-02", "actuator": "buzzer", "desired_state": false, "source": "automatic", "issued_at": "2026-09-23T12:01:00Z"}
+  },
+  {
+    "name": "actuator-applied",
+    "schema": "ack",
+    "topic": "coldsafe/v2/devices/esp32-lab-01/acks",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "result": "applied", "applied_state": true}
+  },
+  {
+    "name": "actuator-rejected",
+    "schema": "ack",
+    "topic": "coldsafe/v2/devices/esp32-lab-01/acks",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440002", "device_id": "esp32-lab-01", "actuator": "led", "result": "rejected", "applied_state": null, "reason": "ACTUATOR_FAILURE"}
+  },
+  {
+    "name": "command-pending",
+    "schema": "command_response",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "desired_state": true, "confirmed_state": null, "status": "pending"}
+  },
+  {
+    "name": "rest-command-pending",
+    "schema": "command_api_response",
+    "payload": {"success": true, "data": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "desired_state": true, "confirmed_state": null, "status": "pending"}, "meta": {"schema_version": 2}}
+  },
+  {
+    "name": "command-confirmed",
+    "schema": "command_response",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "desired_state": true, "confirmed_state": true, "status": "confirmed"}
+  },
+  {
+    "name": "command-unconfirmed",
+    "schema": "command_response",
+    "payload": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "desired_state": true, "confirmed_state": null, "status": "unconfirmed"}
+  },
+  {
+    "name": "historical-v1-reading",
+    "schema": "historical_reading",
+    "payload": {"schema_version": 1, "device_id": "esp32-lab-01", "temperature_c": 5.4, "humidity_percent": 62.1, "light_percent": null, "received_at": "2026-09-23T11:59:00Z", "status": "normal"}
+  },
+  {
+    "name": "websocket-reading",
+    "schema": "ws_event",
+    "payload": {"schema_version": 2, "type": "reading", "environment_id": "lab-cold-room-01", "device_id": "esp32-lab-01", "occurred_at": "2026-09-23T12:00:00Z", "data": {"schema_version": 2, "device_id": "esp32-lab-01", "temperature_c": 5.4, "humidity_percent": 62.1, "light_percent": 43.2, "received_at": "2026-09-23T12:00:00Z", "status": "normal"}}
+  },
+  {
+    "name": "websocket-command-confirmed",
+    "schema": "ws_event",
+    "payload": {"schema_version": 2, "type": "command_status", "environment_id": "lab-cold-room-01", "device_id": "esp32-lab-01", "occurred_at": "2026-09-23T12:00:01Z", "data": {"schema_version": 2, "command_id": "550e8400-e29b-41d4-a716-446655440000", "device_id": "esp32-lab-01", "actuator": "led", "desired_state": true, "confirmed_state": true, "status": "confirmed"}}
+  },
+  {
+    "name": "websocket-alert-opened",
+    "schema": "ws_event",
+    "payload": {"schema_version": 2, "type": "alert", "environment_id": "lab-cold-room-02", "device_id": "esp32-lab-02", "occurred_at": "2026-09-23T12:00:01Z", "data": {"alert_id": "550e8400-e29b-41d4-a716-446655440003", "status": "opened"}}
+  }
+]

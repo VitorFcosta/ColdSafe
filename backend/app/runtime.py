@@ -11,6 +11,7 @@ from backend.app.repositories.influxdb_client import (
     InfluxSettings,
     create_influx_repository,
 )
+from backend.app.repositories.postgres import initialize_schema, is_ready as postgres_is_ready
 from backend.app.services.telemetry_ingestion import TelemetryIngestionService
 
 
@@ -39,6 +40,7 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
         try:
+            initialize_schema(settings)
             subscriber.start()
         except Exception:
             resources.close()
@@ -53,7 +55,9 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
 
     return create_app(
         repository=resources.repository,
-        readiness_check=lambda: resources.is_ready() and subscriber.is_connected(),
+        readiness_check=lambda: resources.is_ready()
+        and postgres_is_ready(settings)
+        and subscriber.is_connected(),
         lifespan=lifespan,
         cors_origins=settings.allowed_cors_origins,
     )

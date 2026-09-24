@@ -88,6 +88,26 @@ services:
       retries: 10
       start_period: 20s
 
+  postgres:
+    image: postgres:17.11-alpine3.24
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-coldsafe}"
+      POSTGRES_USER: "${POSTGRES_USER:-coldsafe}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Preencha POSTGRES_PASSWORD no arquivo .env}"
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
+    networks:
+      - coldsafe-internal
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
   backend:
     build:
       context: .
@@ -97,6 +117,8 @@ services:
       mosquitto:
         condition: service_healthy
       influxdb:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     ports:
       - "127.0.0.1:8000:8000"
@@ -113,6 +135,11 @@ services:
       INFLUXDB_ORG: "${DOCKER_INFLUXDB_INIT_ORG:-coldsafe}"
       INFLUXDB_BUCKET: "${DOCKER_INFLUXDB_INIT_BUCKET:-telemetry}"
       INFLUXDB_TOKEN: "${INFLUXDB_TOKEN:?Preencha INFLUXDB_TOKEN no arquivo .env}"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: "${POSTGRES_DB:-coldsafe}"
+      POSTGRES_USER: "${POSTGRES_USER:-coldsafe}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Preencha POSTGRES_PASSWORD no arquivo .env}"
     networks:
       - coldsafe-internal
       - coldsafe-edge
@@ -178,4 +205,5 @@ volumes:
   mosquitto-data:
   influxdb-data:
   influxdb-config:
+  postgres-data:
   frontend-node-modules:

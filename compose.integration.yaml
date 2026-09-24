@@ -5,3 +5,9 @@ services:
     networks:
       - coldsafe-internal
       - coldsafe-edge
+  postgres:
+    ports:
+      - "127.0.0.1:15432:5432"
+    networks:
+      - coldsafe-internal
+      - coldsafe-edge
