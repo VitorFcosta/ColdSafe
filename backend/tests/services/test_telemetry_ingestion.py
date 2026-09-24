@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from backend.app.domain.reading_classification import ReadingStatus
+from backend.app.domain.reading_classification import ReadingStatus, TemperatureThresholds
 from backend.app.domain.telemetry import TelemetryPayload
 from backend.app.services.telemetry_ingestion import TelemetryIngestionService
 
@@ -44,3 +44,34 @@ def test_repository_failure_propagates_so_mqtt_message_is_not_acknowledged() -> 
 
     with pytest.raises(RuntimeError, match="InfluxDB unavailable"):
         service(telemetry_payload())
+
+
+def test_ingestion_uses_registered_device_thresholds() -> None:
+    repository = Mock()
+    service = TelemetryIngestionService(
+        repository=repository,
+        clock=lambda: datetime(2026, 9, 6, 21, 0, tzinfo=UTC),
+        thresholds_for_device=lambda device_id: TemperatureThresholds(
+            min_c=4, max_c=6, attention_margin_c=0.5
+        ),
+    )
+
+    service(telemetry_payload(temperature_c=7))
+
+    assert repository.save.call_args.kwargs["status"] == ReadingStatus.CRITICAL
+
+
+def test_unknown_device_is_not_persisted() -> None:
+    repository = Mock()
+
+    def unknown_device(_device_id: str) -> TemperatureThresholds:
+        raise ValueError("unknown")
+
+    service = TelemetryIngestionService(
+        repository=repository,
+        thresholds_for_device=unknown_device,
+    )
+
+    with pytest.raises(ValueError, match="unknown"):
+        service(telemetry_payload())
+    repository.save.assert_not_called()

@@ -93,6 +93,11 @@ class ErrorDetail(ApiModel):
     code: Literal[
         "VALIDATION_ERROR",
         "DEVICE_NOT_FOUND",
+        "ENVIRONMENT_NOT_FOUND",
+        "DEVICE_ID_EXISTS",
+        "UNAUTHORIZED",
+        "EMAIL_ALREADY_REGISTERED",
+        "INVALID_CREDENTIALS",
         "DEPENDENCY_UNAVAILABLE",
         "INTERNAL_ERROR",
     ]

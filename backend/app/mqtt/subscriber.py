@@ -13,6 +13,7 @@ from backend.app.domain.telemetry import (
     TelemetryPayloadTooLargeError,
     parse_telemetry_payload,
 )
+from backend.app.errors import DeviceNotFoundError
 
 
 LOGGER = logging.getLogger(__name__)
@@ -134,6 +135,10 @@ class MqttSubscriber:
 
         try:
             self._handler(telemetry)
+        except DeviceNotFoundError:
+            LOGGER.warning("Rejected telemetry from unregistered or inactive device")
+            self._acknowledge(message)
+            return
         except Exception as error:  # noqa: BLE001 - callback boundary containment
             LOGGER.error(
                 "MQTT telemetry handler failed: error_type=%s",

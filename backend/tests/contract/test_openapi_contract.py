@@ -48,10 +48,16 @@ def test_openapi_document_is_valid_version_3_1():
     validate(specification)
 
 
-def test_openapi_exposes_the_four_planned_get_endpoints():
+def test_openapi_exposes_legacy_and_block_two_endpoints():
     specification = load_openapi()
 
-    assert EXPECTED_GET_PATHS == set(specification["paths"])
+    assert EXPECTED_GET_PATHS <= set(specification["paths"])
+    assert {
+        "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/logout",
+        "/api/v1/environments", "/api/v1/environments/{environment_id}",
+        "/api/v1/environments/{environment_id}/devices",
+        "/api/v1/environments/{environment_id}/rules", "/api/v1/devices/{device_id}",
+    } <= set(specification["paths"])
     assert all("get" in specification["paths"][path] for path in EXPECTED_GET_PATHS)
 
 
@@ -122,6 +128,11 @@ def test_error_contract_exposes_the_planned_codes():
     assert error_codes == [
         "VALIDATION_ERROR",
         "DEVICE_NOT_FOUND",
+        "ENVIRONMENT_NOT_FOUND",
+        "DEVICE_ID_EXISTS",
+        "UNAUTHORIZED",
+        "EMAIL_ALREADY_REGISTERED",
+        "INVALID_CREDENTIALS",
         "DEPENDENCY_UNAVAILABLE",
         "INTERNAL_ERROR",
     ]

@@ -8,6 +8,7 @@ from backend.app.config.settings import RuntimeSettings
 MIGRATIONS = (
     (1, Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"),
     (2, Path(__file__).resolve().parents[2] / "migrations" / "002_command_status.sql"),
+    (3, Path(__file__).resolve().parents[2] / "migrations" / "003_environment_rules.sql"),
 )
 
 

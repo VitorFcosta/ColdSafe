@@ -5,7 +5,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from backend.app.api.app import create_app
+from backend.app.api.auth import AuthService
+from backend.app.api.catalog import CatalogService
 from backend.app.config.settings import RuntimeSettings
+from backend.app.domain.reading_classification import DEFAULT_THRESHOLDS, TemperatureThresholds
+from backend.app.errors import DeviceNotFoundError
 from backend.app.mqtt.subscriber import MqttSubscriber, MqttSubscriberSettings
 from backend.app.repositories.influxdb_client import (
     InfluxSettings,
@@ -16,6 +20,22 @@ from backend.app.services.telemetry_ingestion import TelemetryIngestionService
 
 
 def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
+    auth = AuthService(settings)
+    catalog = CatalogService(settings)
+
+    def thresholds_for_device(device_id: str) -> TemperatureThresholds:
+        device = catalog.active_device(device_id)
+        if device is not None:
+            return TemperatureThresholds(
+                **catalog.thresholds_for_environment(device["environment_id"])
+            )
+        if catalog.registered_device(device_id) is not None:
+            raise DeviceNotFoundError(device_id)
+        # Preserve unclaimed v1 simulator telemetry until its owner registers it.
+        if device_id in {"esp32-lab-01", "esp32-lab-02"}:
+            return DEFAULT_THRESHOLDS
+        raise DeviceNotFoundError(device_id)
+
     resources = create_influx_repository(
         InfluxSettings(
             url=settings.influxdb_url,
@@ -34,7 +54,10 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             username=settings.mqtt_backend_username,
             password=settings.mqtt_backend_password.get_secret_value(),
         ),
-        handler=TelemetryIngestionService(repository=resources.repository),
+        handler=TelemetryIngestionService(
+            repository=resources.repository,
+            thresholds_for_device=thresholds_for_device,
+        ),
     )
 
     @asynccontextmanager
@@ -60,4 +83,6 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         and subscriber.is_connected(),
         lifespan=lifespan,
         cors_origins=settings.allowed_cors_origins,
+        auth=auth,
+        catalog=catalog,
     )

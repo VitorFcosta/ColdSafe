@@ -6,6 +6,7 @@ from paho.mqtt.client import MQTTv311
 from paho.mqtt.enums import CallbackAPIVersion
 
 from backend.app.domain.telemetry import TelemetryPayload
+from backend.app.errors import DeviceNotFoundError
 from backend.app.mqtt.subscriber import MqttSubscriber, MqttSubscriberSettings
 
 
@@ -221,6 +222,18 @@ def test_handler_failure_is_contained_by_callback(
 
     assert "MQTT telemetry handler failed" in caplog.text
     client.ack.assert_not_called()
+
+
+def test_unregistered_device_is_rejected_and_acknowledged(subscriber, client, handler, caplog):
+    handler.side_effect = DeviceNotFoundError("unknown")
+    message = SimpleNamespace(
+        topic="coldsafe/v1/telemetry", payload=VALID_PAYLOAD, mid=46, qos=1,
+    )
+
+    client.on_message(client, None, message)
+
+    client.ack.assert_called_once_with(message.mid, message.qos)
+    assert "Rejected telemetry" in caplog.text
 
 
 def test_acknowledgement_failure_is_reported(subscriber, client, handler, caplog):

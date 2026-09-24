@@ -12,7 +12,6 @@ from backend.app.domain.reading_classification import (
     TemperatureThresholds,
     assess_reading,
 )
-from backend.app.errors import DeviceNotFoundError
 from backend.app.repositories.influxdb import StoredReading
 
 
@@ -68,19 +67,25 @@ class MonitoringService:
     clock: Callable[[], datetime] = utc_now
     thresholds: TemperatureThresholds = DEFAULT_THRESHOLDS
 
-    def get_summary(self) -> MonitoringSummary:
-        reading = self.repository.get_latest(DEVICE_ID)
+    def get_summary(
+        self,
+        *,
+        device_id: str = DEVICE_ID,
+        thresholds: TemperatureThresholds | None = None,
+    ) -> MonitoringSummary:
+        selected_thresholds = thresholds or self.thresholds
+        reading = self.repository.get_latest(device_id)
         assessment = assess_reading(
             temperature_c=None if reading is None else reading.temperature_c,
             received_at=None if reading is None else reading.received_at,
             now=self.clock(),
-            thresholds=self.thresholds,
+            thresholds=selected_thresholds,
         )
         return MonitoringSummary(
             reading=reading,
             status=assessment.status,
             freshness=assessment.freshness,
-            thresholds=self.thresholds,
+            thresholds=selected_thresholds,
         )
 
     def list_history(
@@ -90,8 +95,6 @@ class MonitoringService:
         period: Period,
         limit: int,
     ) -> ReadingHistory:
-        if device_id != DEVICE_ID:
-            raise DeviceNotFoundError(device_id)
         end = self.clock()
         start = end - PERIOD_DURATION[period]
         readings = self.repository.list_history(

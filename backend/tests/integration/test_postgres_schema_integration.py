@@ -43,7 +43,7 @@ def test_migration_is_repeatable_and_relations_reject_invalid_data() -> None:
     try:
         assert connection.execute(
             "SELECT array_agg(version ORDER BY version) FROM schema_migrations"
-        ).fetchone() == ([1, 2],)
+        ).fetchone() == ([1, 2, 3],)
         tables = {
             row[0]
             for row in connection.execute(
@@ -52,7 +52,7 @@ def test_migration_is_repeatable_and_relations_reject_invalid_data() -> None:
         }
         assert {
             "users", "sessions", "environments", "devices", "rules",
-            "alerts", "actuator_commands", "audit_events",
+            "alerts", "actuator_commands", "audit_events", "environment_rules",
         } <= tables
 
         email = f"test-{uuid4().hex}@example.invalid"

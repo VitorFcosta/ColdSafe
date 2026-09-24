@@ -8,6 +8,10 @@ anyio==4.15.1
     # via
     #   httpx
     #   starlette
+argon2-cffi==25.1.0
+    # via pwdlib
+argon2-cffi-bindings==26.1.0
+    # via argon2-cffi
 attrs==26.1.0
     # via
     #   jsonschema
@@ -18,6 +22,8 @@ certifi==2026.7.22
     #   httpcore
     #   httpx
     #   influxdb-client
+cffi==2.1.1
+    # via argon2-cffi-bindings
 click==8.5.0
     # via uvicorn
 coverage==7.16.0
@@ -71,6 +77,10 @@ psycopg==3.3.6
     # via -r backend/requirements.txt
 psycopg-binary==3.3.6
     # via psycopg
+pwdlib==0.3.1
+    # via -r backend/requirements.txt
+pycparser==3.0
+    # via cffi
 pydantic==2.13.5
     # via
     #   -r backend/requirements.txt

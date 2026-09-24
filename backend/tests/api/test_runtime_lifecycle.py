@@ -3,6 +3,9 @@ from unittest.mock import Mock, patch
 from fastapi.testclient import TestClient
 
 from backend.app.config.settings import RuntimeSettings
+from backend.app.domain.reading_classification import ReadingStatus
+from backend.app.domain.telemetry import TelemetryPayload
+from backend.app.errors import DeviceNotFoundError
 from backend.app.runtime import build_runtime_app
 
 
@@ -91,3 +94,37 @@ def test_runtime_closes_repository_when_postgres_start_fails(
 
     subscriber_factory.return_value.start.assert_not_called()
     resources.close.assert_called_once_with()
+
+
+@patch("backend.app.runtime.CatalogService")
+@patch("backend.app.runtime.MqttSubscriber")
+@patch("backend.app.runtime.create_influx_repository")
+def test_runtime_ingestion_uses_registered_rules_and_rejects_inactive_device(
+    create_repository: Mock, subscriber_factory: Mock, catalog_factory: Mock
+) -> None:
+    build_runtime_app(settings())
+    handler = subscriber_factory.call_args.kwargs["handler"]
+    catalog = catalog_factory.return_value
+    catalog.active_device.return_value = {"environment_id": "owned-environment"}
+    catalog.thresholds_for_environment.return_value = {
+        "min_c": 4, "max_c": 6, "attention_margin_c": 0.5,
+    }
+    payload = TelemetryPayload(
+        schema_version=1, device_id="owned-device", temperature_c=7,
+        humidity_percent=60,
+    )
+
+    handler(payload)
+
+    assert create_repository.return_value.repository.save.call_args.kwargs["status"] == ReadingStatus.CRITICAL
+    catalog.thresholds_for_environment.assert_called_once_with("owned-environment")
+
+    catalog.active_device.return_value = None
+    catalog.registered_device.return_value = {"is_active": False}
+    try:
+        handler(payload)
+    except DeviceNotFoundError:
+        pass
+    else:
+        raise AssertionError("inactive device telemetry must be rejected")
+    create_repository.return_value.repository.save.assert_called_once()

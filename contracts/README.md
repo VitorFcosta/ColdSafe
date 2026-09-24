@@ -3,7 +3,8 @@
 Esta pasta é a fonte técnica de verdade para as fronteiras do ColdSafe.
 
 - `telemetry.schema.json`: telemetria **v1 em produção no protótipo atual**.
-- `openapi.yaml`: interface HTTP **v1 atualmente implementada**.
+- `openapi.yaml`: contrato HTTP **v1 completo**, incluindo contas, ambientes,
+  dispositivos, limites, monitoramento e saúde; deve acompanhar `/openapi.json`.
 - `evolution.schema.json`: formatos **propostos** para a evolução, ainda sem implementação no runtime.
 - `examples/`: mensagens válidas e inválidas verificadas pelos testes de contrato.
 
@@ -11,7 +12,7 @@ Uma mudança de formato deve começar aqui e nos testes de contrato antes de che
 
 ## Estado atual e versões
 
-Hoje o ESP32 publica temperatura e umidade em `coldsafe/v1/telemetry`, o backend aceita somente esse tópico e o HTTP v1 atende um dispositivo fixo. A documentação de evolução abaixo **não significa que o firmware, o backend, o WebSocket ou a autorização já existam**. O contrato v1 e os volumes de InfluxDB devem permanecer intactos durante a migração.
+Hoje o ESP32 publica temperatura e umidade em `coldsafe/v1/telemetry`, e o backend aceita somente esse tópico. O HTTP v1 já oferece cadastro, sessão revogável, ambientes, dispositivos e limites, além das consultas por dispositivo com autorização por propriedade. A rota legada do dispositivo fixo permanece pública somente enquanto ele não tiver proprietário. A documentação de evolução abaixo **não significa que telemetria v2, comandos, WebSocket ou interface de login já existam**. O contrato v1 e os volumes de InfluxDB permanecem intactos durante a migração.
 
 O campo `schema_version` versiona o formato da mensagem, enquanto o segmento `v2` versiona os novos tópicos MQTT. Mensagens v1 continuam válidas apenas no tópico v1; mensagens v2 incluem `light_percent` e usam os novos tópicos. Não aceitar uma v1 como v2 preenchendo luminosidade artificialmente.
 
