@@ -106,7 +106,7 @@ def test_mqtt_message_is_classified_and_persisted_in_real_influxdb() -> None:
     mqtt_port = int(_required_environment("MQTT_TEST_PORT"))
     backend_password = _required_environment("MQTT_TEST_BACKEND_PASSWORD")
     device_password = _required_environment("MQTT_TEST_DEVICE_PASSWORD")
-    device_id = f"integration-{uuid4().hex}"
+    device_id = "esp32-lab-01"
     connected = Event()
     publisher = mqtt.Client(
         mqtt.CallbackAPIVersion.VERSION2,
@@ -138,17 +138,18 @@ def test_mqtt_message_is_classified_and_persisted_in_real_influxdb() -> None:
 
         message = json.dumps(
             {
-                "schema_version": 1,
+                "schema_version": 2,
                 "device_id": device_id,
                 "temperature_c": 8.2,
                 "humidity_percent": 61.0,
+                "light_percent": 43.2,
             }
         )
         latest = None
         deadline = monotonic() + 5
         while latest is None and monotonic() < deadline:
             publish_result = publisher.publish(
-                "coldsafe/v1/telemetry",
+                "coldsafe/v2/devices/esp32-lab-01/telemetry",
                 payload=message,
                 qos=1,
                 retain=False,
@@ -161,6 +162,7 @@ def test_mqtt_message_is_classified_and_persisted_in_real_influxdb() -> None:
         assert latest.device_id == device_id
         assert latest.status is ReadingStatus.CRITICAL
         assert latest.temperature_c == 8.2
+        assert latest.light_percent == 43.2
     finally:
         publisher.loop_stop()
         publisher.disconnect()

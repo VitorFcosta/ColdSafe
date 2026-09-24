@@ -8,6 +8,7 @@ services:
     environment:
       MQTT_BACKEND_PASSWORD: "${MQTT_BACKEND_PASSWORD:?Preencha MQTT_BACKEND_PASSWORD no arquivo .env}"
       MQTT_DEVICE_PASSWORD: "${MQTT_DEVICE_PASSWORD:?Preencha MQTT_DEVICE_PASSWORD no arquivo .env}"
+      MQTT_DEVICE_02_PASSWORD: "${MQTT_DEVICE_02_PASSWORD:?Preencha MQTT_DEVICE_02_PASSWORD no arquivo .env}"
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
@@ -15,6 +16,7 @@ services:
         rm -f /tmp/passwords
         mosquitto_passwd -b -c /tmp/passwords coldsafe-backend "$${MQTT_BACKEND_PASSWORD}"
         mosquitto_passwd -b /tmp/passwords coldsafe-device "$${MQTT_DEVICE_PASSWORD}"
+        mosquitto_passwd -b /tmp/passwords coldsafe-device-02 "$${MQTT_DEVICE_02_PASSWORD}"
         install -m 0600 /tmp/passwords /mosquitto/auth/passwords
         install -m 0600 /bootstrap/acl /mosquitto/auth/acl
         chown 1883:1883 /mosquitto/auth/passwords /mosquitto/auth/acl

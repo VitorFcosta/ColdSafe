@@ -18,6 +18,7 @@ def test_platformio_target_and_sensor_library_are_pinned():
     assert "monitor_speed = 115200" in configuration
     assert "beegee-tokyo/DHT sensor library for ESPx@1.19" in configuration
     assert "256dpi/MQTT@2.5.3" in configuration
+    assert "bblanchon/ArduinoJson@7.4.3" in configuration
     assert "build_unflags = -std=gnu++11" in configuration
     assert "build_flags = -std=gnu++17" in configuration
 
@@ -57,11 +58,13 @@ def test_firmware_configures_mqtt_broker_through_wokwi_gateway():
     assert "coldsafe::secrets::MQTT_PORT" in source
 
 
-def test_firmware_publishes_versioned_telemetry_with_qos_one_and_reconnects():
+def test_firmware_publishes_v2_telemetry_and_handles_correlated_commands():
     source = (FIRMWARE_ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
 
     assert "#include <MQTT.h>" in source
-    assert 'constexpr char mqtt_topic[]{"coldsafe/v1/telemetry"};' in source
+    assert '"coldsafe/v2/devices/%s/telemetry"' in source
+    assert '"coldsafe/v2/devices/%s/commands"' in source
+    assert '"coldsafe/v2/devices/%s/acks"' in source
     assert "constexpr int mqtt_qos{1};" in source
     assert "constexpr unsigned long publish_interval_ms{5000UL};" in source
     assert "WiFiClient network_client;" in source
@@ -70,14 +73,19 @@ def test_firmware_publishes_versioned_telemetry_with_qos_one_and_reconnects():
     assert "coldsafe::secrets::MQTT_HOST" in source
     assert "coldsafe::secrets::MQTT_PORT" in source
     assert "mqtt_client.connect(" in source
-    assert "coldsafe::secrets::MQTT_USERNAME" in source
     assert "coldsafe::secrets::MQTT_PASSWORD" in source
+    assert "mqtt_client.subscribe(command_topic, mqtt_qos)" in source
+    assert "mqtt_client.onMessage(on_mqtt_message)" in source
+    assert "valid_uuid(command_id)" in source
+    assert "for (const auto& previous : ack_history)" in source
     assert "mqtt_client.loop();" in source
-    assert '\\"schema_version\\":1' in source
+    assert '\\"schema_version\\":2' in source
     assert '\\"device_id\\":\\"%s\\"' in source
     assert '\\"temperature_c\\":%.1f' in source
     assert '\\"humidity_percent\\":%.1f' in source
-    assert "mqtt_client.publish(mqtt_topic, payload, false, mqtt_qos)" in source
+    assert '\\"light_percent\\":%.1f' in source
+    assert "mqtt_client.publish(telemetry_topic, payload, false, mqtt_qos)" in source
+    assert "mqtt_client.publish(ack_topic, payload, false, mqtt_qos)" in source
     assert "delay(reading_interval_ms);" not in source
 
 
@@ -97,6 +105,18 @@ def test_wokwi_diagram_connects_dht22_to_esp32_gpio_15():
     assert frozenset(("esp32:15", "dht22:SDA")) in connections
     assert frozenset(("esp32:TX", "$serialMonitor:RX")) in connections
     assert frozenset(("esp32:RX", "$serialMonitor:TX")) in connections
+    assert parts["light"]["type"] == "wokwi-photoresistor-sensor"
+    assert parts["buzzer"]["type"] == "wokwi-buzzer"
+    assert parts["led"]["type"] == "wokwi-led"
+    assert parts["led_resistor"]["attrs"]["value"] == "220"
+    for pair in (
+        ("esp32:34", "light:AO"),
+        ("esp32:19", "buzzer:2"),
+        ("esp32:18", "led_resistor:1"),
+        ("led_resistor:2", "led:A"),
+        ("esp32:GND.1", "led:C"),
+    ):
+        assert frozenset(pair) in connections
 
 
 def test_wokwi_serial_monitor_is_always_visible():
@@ -145,8 +165,8 @@ def test_two_wokwi_projects_use_distinct_firmware_and_mqtt_ids():
     )
 
     source = (FIRMWARE_ROOT / "src/main.cpp").read_text()
-    assert "mqtt_client.connect(\n            device_id," in source
-    assert "device_id,\n        latest_reading.temperature" in source
+    assert "mqtt_client.connect(device_id, mqtt_username, mqtt_password)" in source
+    assert "device_id, latest_reading.temperature" in source
 
 
 def test_platformio_build_artifacts_are_ignored():

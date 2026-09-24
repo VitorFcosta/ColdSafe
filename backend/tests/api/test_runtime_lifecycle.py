@@ -1,4 +1,5 @@
 from unittest.mock import Mock, patch
+from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
@@ -40,7 +41,9 @@ def test_runtime_starts_and_closes_infrastructure(
     subscriber = subscriber_factory.return_value
     application = build_runtime_app(settings())
 
-    with patch("backend.app.runtime.initialize_schema") as initialize, patch(
+    with patch("backend.app.services.commands.CommandService.expire_pending"), patch(
+        "backend.app.runtime.initialize_schema"
+    ) as initialize, patch(
         "backend.app.runtime.postgres_is_ready", return_value=True
     ) as postgres_ready:
         with TestClient(application) as client:
@@ -63,7 +66,9 @@ def test_runtime_closes_repository_when_subscriber_start_fails(
     subscriber_factory.return_value.start.side_effect = RuntimeError("broker down")
     application = build_runtime_app(settings())
 
-    with patch("backend.app.runtime.initialize_schema"):
+    with patch("backend.app.runtime.initialize_schema"), patch(
+        "backend.app.services.commands.CommandService.expire_pending"
+    ):
         try:
             with TestClient(application):
                 pass
@@ -102,10 +107,13 @@ def test_runtime_closes_repository_when_postgres_start_fails(
 def test_runtime_ingestion_uses_registered_rules_and_rejects_inactive_device(
     create_repository: Mock, subscriber_factory: Mock, catalog_factory: Mock
 ) -> None:
-    build_runtime_app(settings())
+    with patch("backend.app.runtime.AlertService"), patch("backend.app.runtime.CommandService"):
+        build_runtime_app(settings())
     handler = subscriber_factory.call_args.kwargs["handler"]
     catalog = catalog_factory.return_value
-    catalog.active_device.return_value = {"environment_id": "owned-environment"}
+    catalog.active_device.return_value = {
+        "id": str(uuid4()), "environment_id": "owned-environment"
+    }
     catalog.thresholds_for_environment.return_value = {
         "min_c": 4, "max_c": 6, "attention_margin_c": 0.5,
     }

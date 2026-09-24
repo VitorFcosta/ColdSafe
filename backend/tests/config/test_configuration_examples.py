@@ -21,6 +21,8 @@ EXPECTED_ENVIRONMENT_KEYS = {
     "MQTT_BACKEND_PASSWORD",
     "MQTT_DEVICE_USERNAME",
     "MQTT_DEVICE_PASSWORD",
+    "MQTT_DEVICE_02_USERNAME",
+    "MQTT_DEVICE_02_PASSWORD",
     "INFLUXDB_URL",
     "INFLUXDB_ORG",
     "INFLUXDB_BUCKET",
@@ -48,6 +50,7 @@ EXPECTED_ENVIRONMENT_KEYS = {
 SENSITIVE_ENVIRONMENT_KEYS = {
     "MQTT_BACKEND_PASSWORD",
     "MQTT_DEVICE_PASSWORD",
+    "MQTT_DEVICE_02_PASSWORD",
     "INFLUXDB_TOKEN",
     "DOCKER_INFLUXDB_INIT_USERNAME",
     "DOCKER_INFLUXDB_INIT_PASSWORD",
@@ -87,6 +90,7 @@ def test_environment_defaults_match_the_frozen_contracts():
     assert values["MQTT_QOS"] == "1"
     assert values["MQTT_BACKEND_USERNAME"] == "coldsafe-backend"
     assert values["MQTT_DEVICE_USERNAME"] == "coldsafe-device"
+    assert values["MQTT_DEVICE_02_USERNAME"] == "coldsafe-device-02"
     assert values["TEMP_MIN_C"] == "2"
     assert values["TEMP_MAX_C"] == "8"
     assert values["ATTENTION_MARGIN_C"] == "0.5"

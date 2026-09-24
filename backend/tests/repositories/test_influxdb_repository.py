@@ -71,6 +71,19 @@ def test_save_writes_valid_reading_with_utc_timestamp(repository, write_api):
     )
 
 
+def test_v2_light_is_written_and_legacy_rows_remain_readable(repository, write_api, query_api):
+    payload = TelemetryPayload(schema_version=2, device_id="esp32-lab-02",
+                               temperature_c=4.2, humidity_percent=55, light_percent=43.2)
+    repository.save(payload=payload, received_at=RECEIVED_AT, status=ReadingStatus.NORMAL)
+    assert write_api.write.call_args.kwargs["record"]["fields"]["light_percent"] == 43.2
+    query_api.query.return_value = flux_tables({
+        "_time": RECEIVED_AT, "device_id": "esp32-lab-02", "status": "normal",
+        "schema_version": 2, "temperature_c": 4.2, "humidity_percent": 55,
+        "light_percent": 43.2,
+    })
+    assert repository.get_latest("esp32-lab-02").light_percent == 43.2
+
+
 def test_save_normalizes_aware_timestamp_to_utc(repository, write_api):
     local_time = datetime(
         2026,

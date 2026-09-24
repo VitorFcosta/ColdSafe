@@ -1,6 +1,8 @@
 """Lifecycle-managed MQTT telemetry subscriber."""
 
 import logging
+import json
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -13,10 +15,12 @@ from backend.app.domain.telemetry import (
     TelemetryPayloadTooLargeError,
     parse_telemetry_payload,
 )
+from backend.app.domain.commands import parse_ack_payload
 from backend.app.errors import DeviceNotFoundError
 
 
 LOGGER = logging.getLogger(__name__)
+V2_TOPIC = re.compile(r"^coldsafe/v2/devices/([A-Za-z0-9._-]{1,64})/(telemetry|acks)$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,10 +56,12 @@ class MqttSubscriber:
         *,
         settings: MqttSubscriberSettings,
         handler: Callable[[TelemetryPayload], None],
+        ack_handler: Callable[[dict], None] | None = None,
         client: Any | None = None,
     ) -> None:
         self._settings = settings
         self._handler = handler
+        self._ack_handler = ack_handler
         self._client = client or mqtt.Client(
             mqtt.CallbackAPIVersion.VERSION2,
             client_id=settings.client_id,
@@ -112,23 +118,44 @@ class MqttSubscriber:
             LOGGER.error("MQTT connection rejected: %s", reason_code)
             return
 
-        result, _message_id = client.subscribe(
-            self._settings.topic,
-            qos=self._settings.qos,
-        )
-        if result != mqtt.MQTT_ERR_SUCCESS:
-            LOGGER.error("MQTT subscription request failed: code=%s", result)
+        for topic in (self._settings.topic, "coldsafe/v2/devices/+/telemetry",
+                      "coldsafe/v2/devices/+/acks"):
+            result, _message_id = client.subscribe(topic, qos=self._settings.qos)
+            if result != mqtt.MQTT_ERR_SUCCESS:
+                LOGGER.error("MQTT subscription request failed: code=%s", result)
 
     def _on_message(self, client: Any, userdata: Any, message: Any) -> None:
         del client, userdata
-        if message.topic != self._settings.topic:
+        match = V2_TOPIC.fullmatch(message.topic)
+        if message.topic != self._settings.topic and match is None:
             LOGGER.warning("Ignored MQTT message from unexpected topic")
+            self._acknowledge(message)
+            return
+
+        if match is not None and match.group(2) == "acks":
+            try:
+                ack = parse_ack_payload(message.payload)
+                if ack.device_id != match.group(1):
+                    raise ValueError("MQTT topic and ack device differ")
+                if self._ack_handler is not None:
+                    self._ack_handler(ack.model_dump())
+            except (ValidationError, ValueError):
+                LOGGER.warning("Rejected invalid MQTT acknowledgment")
+            except Exception as error:  # noqa: BLE001 - keep QoS1 delivery on storage failure
+                LOGGER.error("MQTT acknowledgment handler failed: error_type=%s", type(error).__name__)
+                return
             self._acknowledge(message)
             return
 
         try:
             telemetry = parse_telemetry_payload(message.payload)
-        except (ValidationError, TelemetryPayloadTooLargeError):
+            if match is not None and (telemetry.schema_version != 2 or
+                                      telemetry.device_id != match.group(1)):
+                raise ValueError("MQTT topic and telemetry device/version differ")
+            if match is None and (telemetry.schema_version != 1 or
+                                  telemetry.device_id != "esp32-lab-01"):
+                raise ValueError("MQTT topic and telemetry version differ")
+        except (ValidationError, TelemetryPayloadTooLargeError, ValueError):
             LOGGER.warning("Rejected invalid MQTT telemetry")
             self._acknowledge(message)
             return
@@ -147,6 +174,14 @@ class MqttSubscriber:
             return
 
         self._acknowledge(message)
+
+    def publish_command(self, device_id: str, payload: dict) -> bool:
+        if not re.fullmatch(r"[A-Za-z0-9._-]{1,64}", device_id):
+            raise ValueError("invalid MQTT device ID")
+        topic = f"coldsafe/v2/devices/{device_id}/commands"
+        result = self._client.publish(topic, json.dumps(payload, separators=(",", ":")),
+                                      qos=1, retain=False)
+        return result.rc == mqtt.MQTT_ERR_SUCCESS
 
     def _acknowledge(self, message: Any) -> None:
         result = self._client.ack(message.mid, message.qos)

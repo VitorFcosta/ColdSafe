@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from uuid import UUID
 
 from fastapi import FastAPI
 
@@ -17,6 +18,8 @@ from backend.app.repositories.influxdb_client import (
 )
 from backend.app.repositories.postgres import initialize_schema, is_ready as postgres_is_ready
 from backend.app.services.telemetry_ingestion import TelemetryIngestionService
+from backend.app.services.commands import CommandService
+from backend.app.services.alerts import AlertService
 
 
 def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
@@ -44,6 +47,26 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             token=settings.influxdb_token.get_secret_value(),
         )
     )
+
+    commands = CommandService(
+        settings, lambda device_id, payload: subscriber.publish_command(device_id, payload)
+    )
+    alerts = AlertService(
+        settings,
+        lambda device_id, mqtt_device_id, desired_state: commands.request(
+            device_id, mqtt_device_id, "buzzer", desired_state, "automatic", None
+        ),
+    )
+
+    def after_save(payload, received_at, thresholds) -> None:
+        device = catalog.active_device(payload.device_id)
+        if device is not None:
+            commands.expire_pending()
+            alerts.evaluate(
+                UUID(device["id"]), payload.device_id, payload.temperature_c,
+                thresholds, received_at,
+            )
+
     subscriber = MqttSubscriber(
         settings=MqttSubscriberSettings(
             host=settings.mqtt_host,
@@ -57,13 +80,16 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         handler=TelemetryIngestionService(
             repository=resources.repository,
             thresholds_for_device=thresholds_for_device,
+            after_save=after_save,
         ),
+        ack_handler=commands.handle_ack,
     )
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
         try:
             initialize_schema(settings)
+            commands.expire_pending()
             subscriber.start()
         except Exception:
             resources.close()
@@ -85,4 +111,5 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         cors_origins=settings.allowed_cors_origins,
         auth=auth,
         catalog=catalog,
+        commands=commands,
     )

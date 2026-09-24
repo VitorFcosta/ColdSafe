@@ -1,61 +1,43 @@
-# Firmware
+# Firmware ColdSafe (ESP32 + Wokwi)
 
-Projeto PlatformIO do ESP32 com DHT22 para simulação no Wokwi.
+O mesmo código gera dois ESP32 independentes: `esp32-lab-01` (`esp32dev`, porta serial 4000) e `esp32-lab-02` (`esp32dev-02`, porta 4001).
 
-## Pré-requisitos
+## Configuração local
 
-- VS Code com as extensões PlatformIO IDE e Wokwi Simulator.
-- Uma licença ativa do Wokwi para executar a simulação no VS Code
-  (gratuita para projetos open source; comercial exige licença paga).
-- Mosquitto local iniciado pelo Docker Compose.
-- `firmware/include/secrets.h` preenchido com a mesma senha do usuário
-  `coldsafe-device` configurado no broker.
+1. Instale PlatformIO IDE e Wokwi Simulator no VS Code. A simulação local do Wokwi exige uma licença ativa.
+2. Configure `firmware/include/secrets.h` localmente. O arquivo é ignorado pelo Git. Use `secrets.example.h` como modelo, preservando as demais configurações que você já possui.
+3. `MQTT_PASSWORD` corresponde ao usuário existente `coldsafe-device` do primeiro ESP32. Para o segundo, acrescente **ao seu secrets.h local** a macro `COLDSAFE_DEVICE_02_PASSWORD_CONFIGURED` e a constante `MQTT_DEVICE_02_PASSWORD` com o valor de `MQTT_DEVICE_02_PASSWORD` do `.env`. A senha do segundo usuário deve ser diferente da primeira. Sem essa configuração, o segundo binário compila com a senha antiga, mas não autentica no broker atualizado.
+4. Inicie os serviços pelo Docker Compose antes de abrir as simulações.
 
-## Executar as duas simulações
-
-1. Abra a raiz do projeto `ColdSafe` no VS Code.
-2. No terminal da raiz, gere os dois firmwares a partir do mesmo código:
+Compile os dois firmwares:
 
 ```bash
 ~/.platformio/penv/bin/pio run --project-dir firmware -e esp32dev -e esp32dev-02
 ```
 
-3. Abra `firmware/` e `firmware/device-02/` em duas janelas do VS Code.
-4. Em cada janela, execute **Wokwi: Start Simulator**. Cada pasta tem seu
-   próprio `wokwi.toml` e `diagram.json`.
-5. Nos dois Serial Monitors, confirme a conexão MQTT, as leituras e publicações como:
-
-```text
-ColdSafe: MQTT conectado ao Mosquitto local
-temperature_c=5.4 humidity_percent=62.1
-ColdSafe: telemetria publicada em coldsafe/v1/telemetry com QoS 1
-```
-
-A primeira compilação usa o ID MQTT `esp32-lab-01` e a segunda,
-`esp32-lab-02`. As portas seriais são 4000 e 4001, respectivamente. Mantenha
-as duas janelas abertas e verifique que ambas continuam publicando. O usuário
-MQTT e a senha são compartilhados nesta etapa; o broker diferencia as sessões
-pelo ID do cliente. Cada mensagem inclui seu `device_id` para que o backend
-armazene as leituras separadamente.
-
-Clique no DHT22 durante a simulação e altere temperatura ou umidade. A leitura
-seguinte deve refletir o novo valor. O firmware lê o sensor a cada 2 segundos e
-publica o último valor válido a cada 5 segundos.
-
-Para testar a reconexão, reinicie somente o serviço `mosquitto`. O firmware deve
-tentar uma nova conexão em intervalos de 5 segundos e retomar as publicações sem
-reiniciar o ESP32.
+Abra `firmware/` e `firmware/device-02/` em janelas separadas do VS Code e execute **Wokwi: Start Simulator** em cada uma. Os dois usam o Wi-Fi `Wokwi-GUEST` e o broker `host.wokwi.internal`.
 
 ## Circuito
 
-- DHT22 `VCC` → ESP32 `3V3`.
-- DHT22 `GND` → ESP32 `GND`.
-- DHT22 `SDA` → ESP32 `GPIO 15`.
+| Componente | Pino ESP32 | Função |
+| --- | --- | --- |
+| DHT22 SDA | GPIO 15 | Temperatura e umidade |
+| Fotoresistor AO | GPIO 34 (ADC1) | Luminosidade relativa |
+| LED com resistor de 220 Ω | GPIO 18 | Controle manual |
+| Buzzer | GPIO 19 | Controle automático pelo backend |
 
-O firmware conecta ao `Wokwi-GUEST`, acessa o Mosquitto local por
-`host.wokwi.internal`, autentica como `coldsafe-device` e publica em
-`coldsafe/v1/telemetry` com QoS 1. Credenciais reais permanecem somente em
-`firmware/include/secrets.h`, que é ignorado pelo Git. O `DEVICE_ID` nesse
-arquivo serve como valor de reserva para compilações próprias sem a definição
-`COLDSAFE_DEVICE_ID`; os dois ambientes acima definem seus IDs em
-`platformio.ini`.
+DHT22 e fotoresistor usam 3V3 e GND. LED e buzzer têm retorno em GND. A luminosidade é uma porcentagem relativa calibrada pelos extremos ADC no firmware: 0 escuro, 100 claro. Para sensor físico, ajuste os dois extremos no código após medir o hardware.
+
+## MQTT v2
+
+Cada dispositivo publica a cada 5 segundos em `coldsafe/v2/devices/<device_id>/telemetry` com QoS 1. A leitura contém `schema_version: 2`, `device_id`, `temperature_c`, `humidity_percent` e `light_percent`. Uma leitura fora dos limites do contrato é descartada, sem republicar o valor antigo. O backend ainda pode ler o histórico v1; este firmware novo publica v2.
+
+O ESP32 assina `coldsafe/v2/devices/<device_id>/commands` com QoS 1. Só aceita LED com origem `manual` e buzzer com origem `automatic`. Após aplicar o estado explícito, publica `coldsafe/v2/devices/<device_id>/acks` com QoS 1 e o mesmo `command_id`. Comando inválido com ID, atuador e destino reconhecíveis recebe `rejected`/`INVALID_COMMAND`. Repetição recente de `command_id` reenvia a confirmação sem reaplicar o atuador. O histórico de duplicatas guarda os últimos 8 comandos em RAM; um reinício limpa esse histórico. Ligar/desligar por estado explícito continua idempotente.
+
+## Verificação manual
+
+- Ajuste temperatura, umidade e luz em um Wokwi por vez. Confira as leituras no Serial Monitor e no histórico do respectivo dispositivo.
+- Envie um comando válido de LED pela API e observe LED, log serial e confirmação. Repita o mesmo `command_id` por MQTT e confirme que o estado não é reaplicado.
+- Provoque temperatura fora da faixa e retorno à faixa de recuperação. Confira que o backend envia os comandos automáticos e que o buzzer responde.
+- Reinicie o Mosquitto; ambos os ESP32 devem reconectar e assinar novamente seus próprios tópicos.
+- Com clientes MQTT autenticados como cada dispositivo, tente ler os comandos do outro e publicar no tópico dele. A ACL deve negar ambas as operações.

@@ -24,6 +24,7 @@ class DeviceResponse(ApiModel):
 class ReadingResponse(ApiModel):
     temperature_c: float
     humidity_percent: float = Field(ge=0, le=100)
+    light_percent: float | None = Field(default=None, ge=0, le=100)
     received_at: datetime
 
 

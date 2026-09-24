@@ -19,14 +19,121 @@
         "temperature": "5.4",
         "humidity": "62.1"
       }
+    },
+    {
+      "type": "wokwi-photoresistor-sensor",
+      "id": "light",
+      "top": 145,
+      "left": 220,
+      "attrs": {
+        "lux": "500"
+      }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzzer",
+      "top": -135,
+      "left": 225,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led",
+      "top": -135,
+      "left": 365,
+      "attrs": {
+        "color": "green"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "led_resistor",
+      "top": -55,
+      "left": 365,
+      "attrs": {
+        "value": "220"
+      }
     }
   ],
   "connections": [
-    ["esp32:3V3", "dht22:VCC", "red", []],
-    ["esp32:GND.1", "dht22:GND", "black", []],
-    ["esp32:15", "dht22:SDA", "green", []],
-    ["esp32:TX", "$serialMonitor:RX", "", []],
-    ["esp32:RX", "$serialMonitor:TX", "", []]
+    [
+      "esp32:3V3",
+      "dht22:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp32:GND.1",
+      "dht22:GND",
+      "black",
+      []
+    ],
+    [
+      "esp32:15",
+      "dht22:SDA",
+      "green",
+      []
+    ],
+    [
+      "esp32:TX",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp32:RX",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "esp32:3V3",
+      "light:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp32:GND.1",
+      "light:GND",
+      "black",
+      []
+    ],
+    [
+      "esp32:34",
+      "light:AO",
+      "yellow",
+      []
+    ],
+    [
+      "esp32:19",
+      "buzzer:2",
+      "orange",
+      []
+    ],
+    [
+      "esp32:GND.1",
+      "buzzer:1",
+      "black",
+      []
+    ],
+    [
+      "esp32:18",
+      "led_resistor:1",
+      "green",
+      []
+    ],
+    [
+      "led_resistor:2",
+      "led:A",
+      "green",
+      []
+    ],
+    [
+      "esp32:GND.1",
+      "led:C",
+      "black",
+      []
+    ]
   ],
   "serialMonitor": {
     "display": "terminal",

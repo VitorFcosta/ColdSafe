@@ -75,3 +75,29 @@ def test_unknown_device_is_not_persisted() -> None:
     with pytest.raises(ValueError, match="unknown"):
         service(telemetry_payload())
     repository.save.assert_not_called()
+
+
+def test_automation_runs_only_after_persistence() -> None:
+    calls = []
+    repository = Mock()
+    repository.save.side_effect = lambda **kwargs: calls.append("saved")
+    service = TelemetryIngestionService(
+        repository=repository,
+        after_save=lambda payload, received_at, thresholds: calls.append("automated"),
+    )
+
+    service(telemetry_payload())
+    assert calls == ["saved", "automated"]
+
+
+def test_failed_automation_does_not_repeat_successful_influx_write(caplog) -> None:
+    repository = Mock()
+    service = TelemetryIngestionService(
+        repository=repository,
+        after_save=Mock(side_effect=RuntimeError("database unavailable")),
+    )
+
+    service(telemetry_payload())
+
+    repository.save.assert_called_once()
+    assert "Telemetry automation failed: error_type=RuntimeError" in caplog.text

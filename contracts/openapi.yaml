@@ -98,6 +98,61 @@ paths:
           $ref: "#/components/responses/DependencyUnavailable"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/v1/devices/{device_id}/led/commands:
+    post:
+      tags: [Commands]
+      summary: Solicitar estado do LED do dispositivo próprio
+      operationId: request_led_api_v1_devices__device_id__led_commands_post
+      security: [{HTTPBearer: []}]
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LedCommandInput'}
+      responses:
+        '200':
+          description: Estado solicitado; confirmação consultável pelo ID do comando.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CommandApiResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/DeviceNotFound'}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '503': {$ref: '#/components/responses/DependencyUnavailable'}
+  /api/v1/commands/{command_id}:
+    get:
+      tags: [Commands]
+      summary: Consultar confirmação de comando do dispositivo próprio
+      operationId: get_command_api_v1_commands__command_id__get
+      security: [{HTTPBearer: []}]
+      parameters:
+        - name: command_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Estado atual do comando.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CommandApiResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/DeviceNotFound'}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '503': {$ref: '#/components/responses/DependencyUnavailable'}
   /api/v1/auth/register:
     post:
       tags:
@@ -765,6 +820,36 @@ components:
             meta:
               request_id: 550e8400-e29b-41d4-a716-446655440000
   schemas:
+    LedCommandInput:
+      type: object
+      additionalProperties: false
+      required: [desired_state]
+      properties:
+        desired_state: {type: boolean}
+    CommandMeta:
+      type: object
+      required: [schema_version]
+      properties:
+        schema_version: {type: integer, const: 2}
+    CommandData:
+      type: object
+      required: [schema_version, command_id, device_id, actuator, desired_state, confirmed_state, status]
+      properties:
+        schema_version: {type: integer, const: 2}
+        command_id: {type: string, format: uuid}
+        device_id: {type: string}
+        actuator: {type: string, enum: [led, buzzer]}
+        desired_state: {type: boolean}
+        confirmed_state:
+          anyOf: [{type: boolean}, {type: 'null'}]
+        status: {type: string, enum: [pending, confirmed, rejected, unconfirmed]}
+    CommandApiResponse:
+      type: object
+      required: [success, data, meta]
+      properties:
+        success: {type: boolean, const: true}
+        data: {$ref: '#/components/schemas/CommandData'}
+        meta: {$ref: '#/components/schemas/CommandMeta'}
     DeviceInput:
       properties:
         name:
@@ -840,6 +925,13 @@ components:
           maximum: 100.0
           minimum: 0.0
           title: Humidity Percent
+        light_percent:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Light Percent
         received_at:
           type: string
           format: date-time
@@ -962,6 +1054,13 @@ components:
           maximum: 100.0
           minimum: 0.0
           title: Humidity Percent
+        light_percent:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Light Percent
         received_at:
           type: string
           format: date-time

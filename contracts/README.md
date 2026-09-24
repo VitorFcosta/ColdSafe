@@ -5,18 +5,18 @@ Esta pasta é a fonte técnica de verdade para as fronteiras do ColdSafe.
 - `telemetry.schema.json`: telemetria **v1 em produção no protótipo atual**.
 - `openapi.yaml`: contrato HTTP **v1 completo**, incluindo contas, ambientes,
   dispositivos, limites, monitoramento e saúde; deve acompanhar `/openapi.json`.
-- `evolution.schema.json`: formatos **propostos** para a evolução, ainda sem implementação no runtime.
+- `evolution.schema.json`: telemetria, comandos, confirmações e resposta REST v2; eventos WebSocket seguem planejados.
 - `examples/`: mensagens válidas e inválidas verificadas pelos testes de contrato.
 
 Uma mudança de formato deve começar aqui e nos testes de contrato antes de chegar aos produtores ou consumidores.
 
 ## Estado atual e versões
 
-Hoje o ESP32 publica temperatura e umidade em `coldsafe/v1/telemetry`, e o backend aceita somente esse tópico. O HTTP v1 já oferece cadastro, sessão revogável, ambientes, dispositivos e limites, além das consultas por dispositivo com autorização por propriedade. A rota legada do dispositivo fixo permanece pública somente enquanto ele não tiver proprietário. A documentação de evolução abaixo **não significa que telemetria v2, comandos, WebSocket ou interface de login já existam**. O contrato v1 e os volumes de InfluxDB permanecem intactos durante a migração.
+O firmware atual publica telemetria v2 por dispositivo, com luminosidade. O backend ainda lê v1 apenas para `esp32-lab-01`, preservando leituras antigas. O HTTP v1 oferece contas, ambientes, dispositivos, limites, monitoramento e comando manual de LED com consulta de confirmação. A rota legada do dispositivo fixo permanece pública somente enquanto ele não tiver proprietário. WebSocket e interface de login ainda não foram implementados.
 
 O campo `schema_version` versiona o formato da mensagem, enquanto o segmento `v2` versiona os novos tópicos MQTT. Mensagens v1 continuam válidas apenas no tópico v1; mensagens v2 incluem `light_percent` e usam os novos tópicos. Não aceitar uma v1 como v2 preenchendo luminosidade artificialmente.
 
-## MQTT planejado
+## MQTT v2
 
 | Tópico | Quem publica | Quem recebe | Conteúdo |
 | --- | --- | --- | --- |
@@ -32,7 +32,7 @@ Usar QoS 1, mensagens não retidas e `device_id` igual no tópico e no payload. 
 
 `command_id` (UUID) correlaciona um comando à confirmação. `desired_state` e `applied_state` são booleanos: `true` liga, `false` desliga. Controle manual alcança somente o LED; a regra automática alcança somente o buzzer. O backend registra o comando como `pending` antes de publicar e aplica prazo de **10 segundos**. Aceita `ack` somente se dispositivo, atuador e `command_id` coincidirem com um comando pendente; confirma `confirmed` apenas se `result=applied` e `applied_state=desired_state`. Rejeição ou estado divergente vira `rejected`. Sem confirmação válida no prazo, fica `unconfirmed` e `confirmed_state=null`; um `ack` tardio fica auditável, sem transformar silenciosamente um prazo vencido em sucesso. Duplicatas de QoS 1 não repetem a atuação nem criam comandos novos.
 
-Resposta REST proposta para solicitar comando: envelope `{ "success": true, "data": <command_response>, "meta": { "schema_version": 2 } }`. A resposta inicial é `pending`; a consulta autenticada de estado pode retornar `pending`, `confirmed`, `rejected` ou `unconfirmed`. O dashboard mostra separadamente o estado desejado e o último confirmado, inclusive ao reconectar. A rota e os códigos HTTP dessa futura API devem entrar no OpenAPI quando forem implementados; `openapi.yaml` continua descrevendo apenas a API atual.
+Resposta REST em `POST /api/v1/devices/{device_id}/led/commands`: envelope `{ "success": true, "data": <command_response>, "meta": { "schema_version": 2 } }`. `GET /api/v1/commands/{command_id}` consulta o estado autorizado: `pending`, `confirmed`, `rejected` ou `unconfirmed`. A resposta de publicação não significa atuação confirmada. A interface do dashboard para esses estados pertence ao bloco seguinte.
 
 ## WebSocket planejado
 
@@ -46,9 +46,9 @@ Exemplo de tentativa **inválida por autorização**, embora o formato JSON seja
 
 ## Histórico e fluxo completo
 
-Leituras antigas ficam no InfluxDB com temperatura e umidade. Nas respostas futuras de histórico, manter `schema_version: 1` e projetar `light_percent: null` para leituras v1; `null` significa que a luminosidade não foi coletada, nunca zero. Leituras v2 têm luminosidade numérica. Não apagar nem regravar dados antigos. O HTTP v1 atual mantém sua forma sem `light_percent`; a nova projeção deve ser exposta em contrato de API versionado quando o runtime correspondente existir.
+Leituras antigas ficam no InfluxDB com temperatura e umidade. O HTTP retorna `light_percent: null` para leituras v1; `null` significa que a luminosidade não foi coletada, nunca zero. Leituras v2 têm luminosidade numérica. Não apagar nem regravar dados antigos.
 
-1. Sensor → ESP32 publica `telemetry` v2 no tópico próprio → broker valida identidade e backend valida dispositivo, tópico e payload → InfluxDB armazena a leitura → backend emite `reading` apenas aos usuários proprietários.
-2. Web autenticada → REST solicita o LED → backend valida propriedade, cria `pending` e publica `command` → ESP32 atua e publica `ack` → backend correlaciona e grava `confirmed`/`rejected`, ou marca `unconfirmed` após 10 segundos → WebSocket informa a mudança ao proprietário; REST recupera o estado após reconexão.
+1. Sensor → ESP32 publica `telemetry` v2 no tópico próprio → broker valida identidade e backend valida dispositivo, tópico e payload → InfluxDB armazena a leitura → backend avalia o buzzer e os alertas.
+2. REST autenticado solicita o LED → backend valida propriedade, cria `pending` e publica `command` → ESP32 atua e publica `ack` → backend correlaciona e grava `confirmed`/`rejected`, ou marca `unconfirmed` após 10 segundos → REST recupera o estado. WebSocket é etapa posterior.
 
-Os exemplos em `examples/evolution.valid.json` e `examples/evolution.invalid.json` cobrem formatos MQTT, resposta REST, eventos WebSocket e histórico antigo. Os testes de contrato verificam os JSON Schemas e a separação dos tópicos; a autorização e os fluxos reais exigirão testes de integração nas tarefas de implementação.
+Os exemplos em `examples/evolution.valid.json` e `examples/evolution.invalid.json` cobrem formatos MQTT, resposta REST, eventos WebSocket e histórico antigo. Os testes de contrato verificam JSON Schemas e tópicos; testes de integração verificam comandos e autorização com PostgreSQL. A validação visual dos dois simuladores Wokwi permanece manual.

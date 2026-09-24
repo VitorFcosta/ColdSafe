@@ -28,6 +28,18 @@ def test_parse_valid_mqtt_payload():
     assert telemetry == TelemetryPayload(**VALID_PAYLOAD)
 
 
+def test_parse_v2_telemetry_requires_valid_light():
+    payload = VALID_PAYLOAD | {"schema_version": 2, "light_percent": 43.2}
+    telemetry = TelemetryPayload.model_validate(payload)
+    assert telemetry.light_percent == 43.2
+    for invalid in (VALID_PAYLOAD | {"schema_version": 2},
+                    payload | {"light_percent": -1},
+                    payload | {"light_percent": 101},
+                    VALID_PAYLOAD | {"light_percent": 43.2}):
+        with pytest.raises(ValidationError):
+            TelemetryPayload.model_validate(invalid)
+
+
 def test_parser_accepts_integer_measurements_allowed_by_json_number():
     telemetry = parse_telemetry_payload(
         b'{"schema_version":1,"device_id":"esp32-lab-01",'
@@ -41,7 +53,7 @@ def test_parser_accepts_integer_measurements_allowed_by_json_number():
 @pytest.mark.parametrize(
     "change",
     [
-        {"schema_version": 2},
+        {"schema_version": 3},
         {"device_id": ""},
         {"device_id": "esp32 lab 01"},
         {"temperature_c": "5.4"},

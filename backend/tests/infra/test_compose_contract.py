@@ -262,3 +262,23 @@ def test_mqtt_roles_have_least_privilege():
     assert "user coldsafe-device\ntopic write coldsafe/v1/telemetry" in acl
     assert "user coldsafe-backend\ntopic read coldsafe/v1/telemetry" in acl
     assert "topic read $SYS/#" in acl
+
+    roles = {}
+    for section in acl.strip().split("\n\n"):
+        user, *permissions = section.splitlines()
+        roles[user.removeprefix("user ")] = set(permissions)
+    first = roles["coldsafe-device"]
+    second = roles["coldsafe-device-02"]
+    backend = roles["coldsafe-backend"]
+    for device, permissions in (("esp32-lab-01", first), ("esp32-lab-02", second)):
+        prefix = f"coldsafe/v2/devices/{device}"
+        assert {
+            f"topic write {prefix}/telemetry",
+            f"topic read {prefix}/commands",
+            f"topic write {prefix}/acks",
+        } <= permissions
+    assert not any("esp32-lab-02" in permission for permission in first)
+    assert not any("esp32-lab-01" in permission for permission in second)
+    assert "topic read coldsafe/v2/devices/+/telemetry" in backend
+    assert "topic write coldsafe/v2/devices/+/commands" in backend
+    assert "topic read coldsafe/v2/devices/+/acks" in backend

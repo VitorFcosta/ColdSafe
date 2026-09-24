@@ -1,6 +1,17 @@
 user coldsafe-device
 topic write coldsafe/v1/telemetry
+topic write coldsafe/v2/devices/esp32-lab-01/telemetry
+topic read coldsafe/v2/devices/esp32-lab-01/commands
+topic write coldsafe/v2/devices/esp32-lab-01/acks
+
+user coldsafe-device-02
+topic write coldsafe/v2/devices/esp32-lab-02/telemetry
+topic read coldsafe/v2/devices/esp32-lab-02/commands
+topic write coldsafe/v2/devices/esp32-lab-02/acks
 
 user coldsafe-backend
 topic read coldsafe/v1/telemetry
+topic read coldsafe/v2/devices/+/telemetry
+topic write coldsafe/v2/devices/+/commands
+topic read coldsafe/v2/devices/+/acks
 topic read $SYS/#

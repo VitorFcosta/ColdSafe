@@ -8,6 +8,7 @@ from paho.mqtt.enums import CallbackAPIVersion
 from backend.app.domain.telemetry import TelemetryPayload
 from backend.app.errors import DeviceNotFoundError
 from backend.app.mqtt.subscriber import MqttSubscriber, MqttSubscriberSettings
+from backend.app.services.telemetry_ingestion import TelemetryIngestionService
 
 
 VALID_PAYLOAD = (
@@ -127,7 +128,11 @@ def test_successful_connection_subscribes_again_after_reconnection(
 
     assert client.subscribe.call_args_list == [
         call(settings.topic, qos=settings.qos),
+        call("coldsafe/v2/devices/+/telemetry", qos=settings.qos),
+        call("coldsafe/v2/devices/+/acks", qos=settings.qos),
         call(settings.topic, qos=settings.qos),
+        call("coldsafe/v2/devices/+/telemetry", qos=settings.qos),
+        call("coldsafe/v2/devices/+/acks", qos=settings.qos),
     ]
 
 
@@ -166,6 +171,45 @@ def test_valid_message_reaches_handler_as_validated_model(
     telemetry = handler.call_args.args[0]
     assert telemetry == TelemetryPayload.model_validate_json(VALID_PAYLOAD)
     client.ack.assert_called_once_with(message.mid, message.qos)
+
+
+def test_v2_telemetry_requires_topic_identity_and_version(subscriber, client, handler):
+    payload = (b'{"schema_version":2,"device_id":"esp32-lab-02",'
+               b'"temperature_c":5.4,"humidity_percent":62.1,"light_percent":43.2}')
+    message = SimpleNamespace(topic="coldsafe/v2/devices/esp32-lab-02/telemetry",
+                              payload=payload, mid=47, qos=1)
+    client.on_message(client, None, message)
+    assert handler.call_args.args[0].light_percent == 43.2
+    message.topic = "coldsafe/v2/devices/esp32-lab-01/telemetry"
+    client.on_message(client, None, message)
+    assert handler.call_count == 1
+    assert client.ack.call_count == 2
+
+
+def test_legacy_topic_cannot_impersonate_second_device(subscriber, client, handler):
+    message = SimpleNamespace(
+        topic="coldsafe/v1/telemetry",
+        payload=VALID_PAYLOAD.replace(b"esp32-lab-01", b"esp32-lab-02"),
+        mid=49, qos=1,
+    )
+    client.on_message(client, None, message)
+    handler.assert_not_called()
+    client.ack.assert_called_once_with(49, 1)
+
+
+def test_v2_ack_is_validated_and_delivered(settings, client, handler):
+    ack_handler = Mock()
+    subscriber = MqttSubscriber(settings=settings, handler=handler,
+                                ack_handler=ack_handler, client=client)
+    message = SimpleNamespace(
+        topic="coldsafe/v2/devices/esp32-lab-01/acks",
+        payload=(b'{"schema_version":2,"command_id":"550e8400-e29b-41d4-a716-446655440000",'
+                 b'"device_id":"esp32-lab-01","actuator":"led",'
+                 b'"result":"applied","applied_state":true}'), mid=48, qos=1)
+    client.on_message(client, None, message)
+    assert ack_handler.call_count == 1
+    handler.assert_not_called()
+    client.ack.assert_called_once_with(48, 1)
 
 
 def test_invalid_message_is_rejected_without_logging_payload(
@@ -222,6 +266,25 @@ def test_handler_failure_is_contained_by_callback(
 
     assert "MQTT telemetry handler failed" in caplog.text
     client.ack.assert_not_called()
+
+
+def test_post_save_automation_failure_still_acks_telemetry(settings, client):
+    repository = Mock()
+    subscriber = MqttSubscriber(
+        settings=settings,
+        handler=TelemetryIngestionService(
+            repository=repository,
+            after_save=Mock(side_effect=RuntimeError("automation failed")),
+        ),
+        client=client,
+    )
+    message = SimpleNamespace(topic="coldsafe/v1/telemetry", payload=VALID_PAYLOAD,
+                              mid=52, qos=1)
+
+    client.on_message(client, None, message)
+
+    repository.save.assert_called_once()
+    client.ack.assert_called_once_with(52, 1)
 
 
 def test_unregistered_device_is_rejected_and_acknowledged(subscriber, client, handler, caplog):

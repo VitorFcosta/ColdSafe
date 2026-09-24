@@ -34,6 +34,7 @@ class StoredReading:
     humidity_percent: float
     status: ReadingStatus
     received_at: datetime
+    light_percent: float | None = None
 
 
 _BASE_QUERY = """
@@ -104,7 +105,8 @@ class InfluxReadingRepository:
                         "schema_version": payload.schema_version,
                         "temperature_c": payload.temperature_c,
                         "humidity_percent": payload.humidity_percent,
-                    },
+                    } | ({"light_percent": payload.light_percent}
+                         if payload.light_percent is not None else {}),
                     "time": normalized_received_at,
                 },
             )
@@ -180,6 +182,8 @@ def _stored_reading(values: dict[str, Any]) -> StoredReading:
         humidity_percent=float(values["humidity_percent"]),
         status=ReadingStatus(values["status"]),
         received_at=values["_time"],
+        light_percent=(float(values["light_percent"])
+                       if values.get("light_percent") is not None else None),
     )
 
 

@@ -29,6 +29,7 @@ from backend.app.api.schemas import (
 )
 from backend.app.api.auth import AuthService
 from backend.app.api.catalog import CatalogService, create_catalog_router
+from backend.app.api.commands import create_command_router
 from backend.app.domain.reading_classification import TemperatureThresholds
 from backend.app.errors import DependencyUnavailableError, DeviceNotFoundError
 from backend.app.services.monitoring import (
@@ -40,6 +41,7 @@ from backend.app.services.monitoring import (
     ReadingRepository,
     utc_now,
 )
+from backend.app.services.commands import CommandService
 
 
 ERRORS: dict[str, str] = {
@@ -70,6 +72,7 @@ def create_app(
     cors_origins: tuple[str, ...] = (),
     auth: AuthService | None = None,
     catalog: CatalogService | None = None,
+    commands: CommandService | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="ColdSafe Monitoring API",
@@ -94,6 +97,7 @@ def create_app(
     if auth is not None and catalog is not None:
         app.include_router(auth.router)
         app.include_router(create_catalog_router(catalog, auth.require_user))
+        app.include_router(create_command_router(catalog, commands, auth.require_user))
         auth.install_exception_handlers(app)
 
     def selected_device(request: Request, device_id: str):
@@ -171,6 +175,7 @@ def create_app(
             reading = ReadingResponse(
                 temperature_c=summary.reading.temperature_c,
                 humidity_percent=summary.reading.humidity_percent,
+                light_percent=summary.reading.light_percent,
                 received_at=summary.reading.received_at,
             )
         freshness = None
@@ -222,6 +227,7 @@ def create_app(
             HistoricalReadingResponse(
                 temperature_c=reading.temperature_c,
                 humidity_percent=reading.humidity_percent,
+                light_percent=reading.light_percent,
                 received_at=reading.received_at,
                 status=reading.status,
             )
