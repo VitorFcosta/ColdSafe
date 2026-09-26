@@ -110,6 +110,34 @@ def test_history_uses_default_period_and_limit_and_returns_metadata() -> None:
     ]
 
 
+def test_history_uses_explicit_timezone_aware_interval() -> None:
+    repository = Mock()
+    repository.list_history.return_value = ()
+    start = NOW - timedelta(hours=6)
+    response = make_client(repository).get("/api/v1/readings", params={
+        "device_id": DEVICE_ID, "start": start.isoformat(), "end": NOW.isoformat(),
+        "limit": 20,
+    })
+    assert response.status_code == 200
+    repository.list_history.assert_called_once_with(
+        device_id=DEVICE_ID, start=start, end=NOW, limit=20,
+    )
+
+
+def test_history_rejects_partial_and_reversed_intervals() -> None:
+    repository = Mock()
+    for params in (
+        {"start": NOW.isoformat()},
+        {"start": NOW.isoformat(), "end": (NOW - timedelta(hours=1)).isoformat()},
+        {"start": "2026-09-06T20:00:00", "end": NOW.isoformat()},
+    ):
+        response = make_client(repository).get(
+            "/api/v1/readings", params={"device_id": DEVICE_ID, **params}
+        )
+        assert response.status_code == 422
+    repository.list_history.assert_not_called()
+
+
 def test_history_rejects_unknown_device_with_contract_error() -> None:
     repository = Mock()
 

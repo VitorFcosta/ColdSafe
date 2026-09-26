@@ -6,6 +6,7 @@ export type MonitoringSummary = Readonly<{
   reading: Readonly<{
     temperature_c: number
     humidity_percent: number
+    light_percent?: number | null
     received_at: string
   }> | null
   status: ReadingStatus
@@ -22,6 +23,8 @@ type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Respons
 type FetchMonitoringSummaryOptions = Readonly<{
   baseUrl: string
   fetcher: Fetcher
+  token?: string
+  deviceId?: string
 }>
 
 const monitoringStatuses: readonly ReadingStatus[] = [
@@ -35,10 +38,13 @@ const monitoringStatuses: readonly ReadingStatus[] = [
 export async function fetchMonitoringSummary({
   baseUrl,
   fetcher,
+  token,
+  deviceId,
 }: FetchMonitoringSummaryOptions): Promise<MonitoringSummary> {
+  const query = deviceId ? `?${new URLSearchParams({ device_id: deviceId })}` : ''
   const response = await fetcher(
-    `${baseUrl.replace(/\/+$/, '')}/api/v1/monitoring/summary`,
-    { headers: { accept: 'application/json' } },
+    `${baseUrl.replace(/\/+$/, '')}/api/v1/monitoring/summary${query}`,
+    { headers: { accept: 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) } },
   )
 
   if (!response.ok) {
@@ -101,6 +107,7 @@ function isReading(value: unknown): value is MonitoringSummary['reading'] {
     (isRecord(value) &&
       isFiniteNumber(value.temperature_c) &&
       isFiniteNumber(value.humidity_percent) &&
+      (value.light_percent === undefined || value.light_percent === null || isFiniteNumber(value.light_percent)) &&
       isString(value.received_at))
   )
 }

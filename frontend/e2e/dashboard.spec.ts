@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { mockMonitoringApi, type DashboardStatus } from './monitoring-api'
+import { mockDashboardAccount, mockMonitoringApi, type DashboardStatus } from './monitoring-api'
 
 const statusCases: ReadonlyArray<
   Readonly<{
@@ -96,7 +96,8 @@ test.describe('dashboard operacional', () => {
   })
 
   test('exibe o fluxo de erro e permite tentar novamente', async ({ page }) => {
-    await page.route('**/api/v1/monitoring/summary', async (route) => {
+    await mockDashboardAccount(page)
+    await page.route('**/api/v1/monitoring/summary**', async (route) => {
       await route.fulfill({
         status: 503,
         contentType: 'application/json',
@@ -112,7 +113,7 @@ test.describe('dashboard operacional', () => {
     const alert = page.getByRole('alert')
     await expect(alert).toContainText('Diagnóstico indisponível')
     await expect(alert.getByRole('button', { name: 'Tentar novamente' })).toBeVisible()
-    await expect(page.getByText('Laboratório Refrigerado', { exact: true })).toHaveCount(0)
+    await expect(page.getByRole('region', { name: 'Medições do ambiente' })).toHaveCount(0)
 
     await mockMonitoringApi(page, { status: 'normal' })
     await alert.getByRole('button', { name: 'Tentar novamente' }).click()
@@ -126,7 +127,7 @@ test('mostra carregamento até receber uma leitura válida', async ({ page }) =>
   await mockMonitoringApi(page, { status: 'normal' })
   let releaseSummary = () => {}
   const summaryReady = new Promise<void>((resolve) => { releaseSummary = resolve })
-  await page.route('**/api/v1/monitoring/summary', async (route) => {
+  await page.route('**/api/v1/monitoring/summary**', async (route) => {
     await summaryReady
     await route.fallback()
   })
@@ -139,6 +140,71 @@ test('mostra carregamento até receber uma leitura válida', async ({ page }) =>
     releaseSummary()
   }
   await expect(page.getByText('Normal', { exact: true })).toBeVisible()
+})
+
+test('recupera o catálogo sem clique quando a API volta', async ({ page }) => {
+  await mockMonitoringApi(page, { status: 'normal' })
+  let apiUnavailable = true
+  await page.route('**/api/v1/environments', async (route) => {
+    if (apiUnavailable) {
+      await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({
+        success: false, error: { message: 'Serviço indisponível.' },
+      }) })
+    } else {
+      await route.fallback()
+    }
+  })
+
+  await page.goto('/dashboard')
+  await expect(page.getByText('Não foi possível carregar ambientes ou dispositivos.')).toBeVisible()
+  apiUnavailable = false
+  await expect(page.getByRole('combobox', { name: 'Dispositivo' })).toBeEnabled()
+  await expect(page.getByText('Laboratório Refrigerado / esp32-lab-01', { exact: true })).toBeVisible()
+})
+
+test('troca de dispositivo e só mostra LED ligado após confirmação', async ({ page }) => {
+  await mockMonitoringApi(page, { status: 'normal' })
+  await page.route('**/api/v1/monitoring/summary**', async (route) => {
+    const deviceId = new URL(route.request().url()).searchParams.get('device_id')
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      success: true, data: {
+        environment: { id: 'lab-refrigerado', name: 'Laboratório Refrigerado' },
+        device: { id: deviceId },
+        reading: { temperature_c: deviceId === 'esp32-lab-02' ? 4 : 5, humidity_percent: 65,
+          light_percent: 42, received_at: '2026-09-09T12:00:00Z' },
+        status: 'normal', freshness: { is_stale: false, age_seconds: 2 },
+        thresholds: { min_c: 2, max_c: 8, attention_margin_c: 1 },
+      },
+    }) })
+  })
+  await page.route('**/api/v1/readings?**', async (route) => {
+    const deviceId = new URL(route.request().url()).searchParams.get('device_id')
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      success: true, data: { readings: [] },
+      meta: { device_id: deviceId, start: '2026-09-09T11:00:00Z', end: '2026-09-09T12:00:00Z', count: 0, limit: 300 },
+    }) })
+  })
+  await page.route('**/api/v1/devices/uuid-02/led/commands', (route) => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: {
+      schema_version: 2, command_id: 'command-02', device_id: 'esp32-lab-02', actuator: 'led',
+      desired_state: true, confirmed_state: null, status: 'pending',
+    } }),
+  }))
+  await page.route('**/api/v1/commands/command-02', (route) => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: {
+      schema_version: 2, command_id: 'command-02', device_id: 'esp32-lab-02', actuator: 'led',
+      desired_state: true, confirmed_state: true, status: 'confirmed',
+    } }),
+  }))
+
+  await page.goto('/dashboard')
+  await expect(page.getByText('Laboratório Refrigerado / esp32-lab-01', { exact: true })).toBeVisible()
+  await page.getByRole('combobox', { name: 'Dispositivo' }).selectOption('uuid-02')
+  await expect(page.getByText('Laboratório Refrigerado / esp32-lab-02', { exact: true })).toBeVisible()
+  await expect(page.getByRole('article').filter({ hasText: 'Temperatura' }).getByText('4 °C')).toBeVisible()
+  await page.getByRole('button', { name: 'Ligar LED' }).click()
+  await expect(page.getByText('Aguardando confirmação', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Desligar LED' })).toBeVisible()
 })
 
 test('troca o período do histórico sem perder a leitura atual', async ({ page }) => {
@@ -172,5 +238,5 @@ test('preserva leitura válida quando apenas o histórico falha', async ({ page 
   await expect(page.getByText('Normal', { exact: true })).toBeVisible()
   await expect(page.getByText('Agora mesmo', { exact: true })).toBeVisible()
   await expect(page.getByRole('article').filter({ hasText: 'Temperatura' }).getByText('5 °C', { exact: true })).toBeVisible()
-  await expect(page.getByRole('status')).toContainText('histórico de temperatura não pôde ser carregado')
+  await expect(page.getByText(/histórico de temperatura não pôde ser carregado/)).toBeVisible()
 })

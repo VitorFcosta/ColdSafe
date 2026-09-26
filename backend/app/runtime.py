@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 from uuid import UUID
 
@@ -20,11 +22,34 @@ from backend.app.repositories.postgres import initialize_schema, is_ready as pos
 from backend.app.services.telemetry_ingestion import TelemetryIngestionService
 from backend.app.services.commands import CommandService
 from backend.app.services.alerts import AlertService
+from backend.app.api.events import EventHub
+from backend.app.domain.reading_classification import assess_reading
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
     auth = AuthService(settings)
     catalog = CatalogService(settings)
+    events = EventHub()
+
+    def emit(device_id: str, event_type: str, occurred_at, data: dict) -> None:
+        try:
+            device = catalog.active_device(device_id)
+            if device is None:
+                return
+            events.publish(device_id, {
+                "schema_version": 2, "type": event_type,
+                "environment_id": device["environment_id"], "device_id": device_id,
+                "occurred_at": occurred_at.isoformat(), "data": data,
+            })
+        except Exception as error:  # noqa: BLE001 - notifications must not abort persisted work
+            LOGGER.error("Event notification failed: error_type=%s", type(error).__name__)
+
+    def command_status(data: dict) -> None:
+        from datetime import UTC, datetime
+        emit(data["device_id"], "command_status", datetime.now(UTC), data)
 
     def thresholds_for_device(device_id: str) -> TemperatureThresholds:
         device = catalog.active_device(device_id)
@@ -49,18 +74,35 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
     )
 
     commands = CommandService(
-        settings, lambda device_id, payload: subscriber.publish_command(device_id, payload)
+        settings, lambda device_id, payload: subscriber.publish_command(device_id, payload),
+        on_status=command_status,
     )
     alerts = AlertService(
         settings,
         lambda device_id, mqtt_device_id, desired_state: commands.request(
             device_id, mqtt_device_id, "buzzer", desired_state, "automatic", None
         ),
+        on_transition=lambda device_id, alert_id, status, occurred_at: emit(
+            device_id, "alert", occurred_at,
+            {"alert_id": str(alert_id), "status": status},
+        ),
     )
 
     def after_save(payload, received_at, thresholds) -> None:
         device = catalog.active_device(payload.device_id)
         if device is not None:
+            if payload.schema_version == 2:
+                status = assess_reading(
+                    temperature_c=payload.temperature_c, received_at=received_at,
+                    now=received_at, thresholds=thresholds,
+                ).status.value
+                emit(payload.device_id, "reading", received_at, {
+                    "schema_version": 2, "device_id": payload.device_id,
+                    "temperature_c": payload.temperature_c,
+                    "humidity_percent": payload.humidity_percent,
+                    "light_percent": payload.light_percent,
+                    "received_at": received_at.isoformat(), "status": status,
+                })
             commands.expire_pending()
             alerts.evaluate(
                 UUID(device["id"]), payload.device_id, payload.temperature_c,
@@ -87,6 +129,14 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        async def expire_commands() -> None:
+            while True:
+                await asyncio.sleep(1)
+                try:
+                    await asyncio.to_thread(commands.expire_pending)
+                except Exception as error:  # noqa: BLE001 - keep live events running
+                    LOGGER.error("Command expiry failed: error_type=%s", type(error).__name__)
+
         try:
             initialize_schema(settings)
             commands.expire_pending()
@@ -94,9 +144,15 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         except Exception:
             resources.close()
             raise
+        expiry_task = asyncio.create_task(expire_commands())
         try:
             yield
         finally:
+            expiry_task.cancel()
+            try:
+                await expiry_task
+            except asyncio.CancelledError:
+                pass
             try:
                 subscriber.stop()
             finally:
@@ -112,4 +168,6 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         auth=auth,
         catalog=catalog,
         commands=commands,
+        alerts=alerts,
+        events=events,
     )

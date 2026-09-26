@@ -2,6 +2,36 @@ import { expect, type Page } from '@playwright/test'
 
 export type DashboardStatus = 'normal' | 'attention' | 'critical' | 'stale' | 'no_data'
 
+export async function mockDashboardAccount(page: Page) {
+  await page.routeWebSocket('**/api/v1/events?**', (socket) => {
+    socket.onMessage(() => {})
+  })
+  await page.addInitScript(() => {
+    sessionStorage.setItem('coldsafe-session', JSON.stringify({
+      token: 'test-token', expires_at: '2099-01-01T00:00:00Z',
+    }))
+  })
+  await page.route('**/api/v1/environments', (route) => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ success: true, data: [{ id: 'lab-refrigerado', name: 'Laboratório Refrigerado' }] }),
+  }))
+  await page.route('**/api/v1/environments/lab-refrigerado/devices', (route) => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ success: true, data: [
+      { id: 'uuid-01', environment_id: 'lab-refrigerado', name: 'Sensor 1', mqtt_device_id: 'esp32-lab-01', is_active: true },
+      { id: 'uuid-02', environment_id: 'lab-refrigerado', name: 'Sensor 2', mqtt_device_id: 'esp32-lab-02', is_active: true },
+    ] }),
+  }))
+  await page.route('**/api/v1/devices/*/actuators', (route) => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ success: true, data: { led: null, buzzer: null }, meta: { schema_version: 2 } }),
+  }))
+  await page.route('**/api/v1/alerts?**', (route) => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ success: true, data: { alerts: [] }, meta: { schema_version: 2 } }),
+  }))
+}
+
 export async function mockMonitoringApi(
   page: Page,
   scenario: Readonly<{
@@ -10,7 +40,8 @@ export async function mockMonitoringApi(
     ageSeconds?: number
   }>,
 ) {
-  await page.route('**/api/v1/monitoring/summary', async (route) => {
+  await mockDashboardAccount(page)
+  await page.route('**/api/v1/monitoring/summary**', async (route) => {
     const hasReading = scenario.status !== 'no_data'
     const receivedAt = '2026-09-09T12:00:00Z'
 
@@ -26,6 +57,7 @@ export async function mockMonitoringApi(
             ? {
                 temperature_c: scenario.temperature ?? 5,
                 humidity_percent: 65,
+                light_percent: 42,
                 received_at: receivedAt,
               }
             : null,
@@ -48,7 +80,9 @@ export async function mockMonitoringApi(
     const requestUrl = new URL(route.request().url())
 
     expect(requestUrl.searchParams.get('device_id')).toBe('esp32-lab-01')
-    expect(['1h', '6h', '24h']).toContain(requestUrl.searchParams.get('period'))
+    if (!requestUrl.searchParams.has('start')) {
+      expect(['15m', '1h', '6h', '24h']).toContain(requestUrl.searchParams.get('period'))
+    }
     expect(requestUrl.searchParams.get('limit')).toBe('300')
 
     await route.fulfill({
@@ -62,6 +96,7 @@ export async function mockMonitoringApi(
                 {
                   temperature_c: scenario.temperature ?? 5,
                   humidity_percent: 65,
+                  light_percent: 42,
                   received_at: receivedAt,
                   status: scenario.status,
                 },

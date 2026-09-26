@@ -28,6 +28,7 @@ const architecture = [
         <nav aria-label="Navegação principal">
           <a href="#como-funciona">Como funciona</a>
           <a href="#demonstracao">Demonstração</a>
+          <RouterLink to="/dashboard">Acessar painel</RouterLink>
           <a :href="repositoryUrl">GitHub <span aria-hidden="true">↗</span></a>
         </nav>
       </header>

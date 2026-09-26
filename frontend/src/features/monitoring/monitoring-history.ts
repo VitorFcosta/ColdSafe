@@ -7,6 +7,7 @@ export type HistoryPeriod = (typeof historyPeriods)[number]
 export type HistoricalReading = Readonly<{
   temperature_c: number
   humidity_percent: number
+  light_percent?: number | null
   received_at: string
   status: ReadingStatus
 }>
@@ -26,6 +27,9 @@ type FetchMonitoringHistoryOptions = Readonly<{
   deviceId: string
   period: HistoryPeriod
   fetcher: Fetcher
+  token?: string
+  start?: string
+  end?: string
 }>
 
 const readingStatuses: readonly ReadingStatus[] = [
@@ -41,15 +45,18 @@ export async function fetchMonitoringHistory({
   deviceId,
   period,
   fetcher,
+  token,
+  start,
+  end,
 }: FetchMonitoringHistoryOptions): Promise<MonitoringHistory> {
   const query = new URLSearchParams({
     device_id: deviceId,
-    period,
+    ...(start && end ? { start, end } : { period }),
     limit: '300',
   })
   const response = await fetcher(
     `${baseUrl.replace(/\/+$/, '')}/api/v1/readings?${query.toString()}`,
-    { headers: { accept: 'application/json' } },
+    { headers: { accept: 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) } },
   )
 
   if (!response.ok) {
@@ -97,6 +104,7 @@ function isHistoricalReading(value: unknown): value is HistoricalReading {
     isRecord(value) &&
     isFiniteNumber(value.temperature_c) &&
     isFiniteNumber(value.humidity_percent) &&
+    (value.light_percent === undefined || value.light_percent === null || isFiniteNumber(value.light_percent)) &&
     isIsoDate(value.received_at) &&
     isReadingStatus(value.status)
   )

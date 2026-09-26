@@ -19,10 +19,36 @@ LOGGER = logging.getLogger(__name__)
 
 class CommandService:
     def __init__(
-        self, settings: RuntimeSettings, publisher: Callable[[str, dict[str, Any]], bool]
+        self, settings: RuntimeSettings, publisher: Callable[[str, dict[str, Any]], bool],
+        on_status: Callable[[dict[str, Any]], None] | None = None,
     ) -> None:
         self.settings = settings
         self.publisher = publisher
+        self.on_status = on_status
+
+    def latest_for_device(self, device_id: UUID, user_id: UUID) -> dict[str, dict[str, Any] | None]:
+        with self._cursor() as cursor:
+            rows = cursor.execute(
+                "SELECT DISTINCT ON (c.actuator) c.id, c.device_id, c.requested_by_user_id, "
+                "c.actuator, c.desired_on, c.origin, c.status, c.deadline_at, d.mqtt_device_id "
+                "FROM actuator_commands c JOIN devices d ON d.id = c.device_id "
+                "JOIN environments e ON e.id = d.environment_id "
+                "WHERE c.device_id = %s AND e.owner_user_id = %s "
+                "ORDER BY c.actuator, c.requested_at DESC, c.id DESC",
+                (device_id, user_id),
+            ).fetchall()
+            latest = {"led": None, "buzzer": None}
+            expired = []
+            for row in rows:
+                was_pending = row["status"] == "pending"
+                row = self._expire(cursor, row)
+                latest[row["actuator"]] = self._response(row)
+                if was_pending and row["status"] == "unconfirmed":
+                    expired.append(latest[row["actuator"]])
+        if self.on_status is not None:
+            for response in expired:
+                self.on_status(response)
+        return latest
 
     @contextmanager
     def _cursor(self) -> Iterator[psycopg.Cursor[dict[str, Any]]]:
@@ -88,7 +114,7 @@ class CommandService:
             row = cursor.execute(
                 "INSERT INTO actuator_commands "
                 "(id, device_id, requested_by_user_id, actuator, desired_on, origin, deadline_at) "
-                "SELECT %s, d.id, %s, %s, %s, %s, now() + interval '10 seconds' "
+                "SELECT %s, d.id, %s, %s, %s, %s, now() + interval '30 seconds' "
                 "FROM devices d JOIN environments e ON e.id = d.environment_id "
                 "WHERE d.id = %s AND d.mqtt_device_id = %s AND d.is_active "
                 "AND (%s = 'automatic' OR e.owner_user_id = %s) "
@@ -117,7 +143,10 @@ class CommandService:
             published = False
         if not published:
             self._mark_unconfirmed(command_id, cause="publish_failed")
-        return self.get(command_id)
+        response = self.get(command_id)
+        if self.on_status is not None and response is not None:
+            self.on_status(response)
+        return response
 
     def _mark_unconfirmed(self, command_id: UUID, *, cause: str) -> None:
         with self._cursor() as cursor:
@@ -144,8 +173,12 @@ class CommandService:
             ).fetchone()
             if row is None:
                 return None
+            was_pending = row["status"] == "pending"
             row = self._expire(cursor, row)
-            return self._response(row)
+            response = self._response(row)
+        if was_pending and row["status"] == "unconfirmed" and self.on_status is not None:
+            self.on_status(response)
+        return response
 
     def get_for_user(self, command_id: UUID, user_id: UUID) -> dict[str, Any] | None:
         with self._cursor() as cursor:
@@ -160,13 +193,18 @@ class CommandService:
             ).fetchone()
             if row is None:
                 return None
+            was_pending = row["status"] == "pending"
             row = self._expire(cursor, row)
-            return self._response(row)
+            response = self._response(row)
+        if was_pending and row["status"] == "unconfirmed" and self.on_status is not None:
+            self.on_status(response)
+        return response
 
     def handle_ack(self, payload: dict[str, Any]) -> None:
         command_id = payload["command_id"]
         if not isinstance(command_id, UUID):
             command_id = UUID(command_id)
+        changed = False
         with self._cursor() as cursor:
             row = cursor.execute(
                 "SELECT c.id, c.device_id, c.requested_by_user_id, c.actuator, "
@@ -212,6 +250,11 @@ class CommandService:
                 "status": status, "result": payload["result"],
                 "applied_state": payload["applied_state"], "reason": payload.get("reason"),
             })
+            changed = True
+        if changed and self.on_status is not None:
+            response = self.get(command_id)
+            if response is not None:
+                self.on_status(response)
 
     def expire_pending(self) -> int:
         with self._cursor() as cursor:
@@ -225,4 +268,10 @@ class CommandService:
                     cursor, row, "command_unconfirmed",
                     {"status": "unconfirmed", "cause": "timeout"},
                 )
-            return len(rows)
+            command_ids = [row["id"] for row in rows]
+        if self.on_status is not None:
+            for command_id in command_ids:
+                response = self.get(command_id)
+                if response is not None:
+                    self.on_status(response)
+        return len(command_ids)

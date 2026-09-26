@@ -18,9 +18,35 @@ class AlertService:
         self,
         settings: RuntimeSettings,
         command: Callable[[UUID, str, bool], None],
+        on_transition: Callable[[str, UUID, str, datetime], None] | None = None,
     ) -> None:
         self.settings = settings
         self.command = command
+        self.on_transition = on_transition
+
+    def list_for_device(
+        self, mqtt_device_id: str, user_id: UUID, *, start: datetime | None,
+        end: datetime | None, limit: int,
+    ) -> list[dict]:
+        """Return alert intervals intersecting [start, end), newest first."""
+        with connect(self.settings) as connection:
+            with connection.cursor(row_factory=dict_row) as cursor:
+                rows = cursor.execute(
+                    "SELECT a.id, a.kind, a.opened_at, a.closed_at "
+                    "FROM alerts a JOIN devices d ON d.id = a.device_id "
+                    "JOIN environments e ON e.id = d.environment_id "
+                    "WHERE d.mqtt_device_id = %s AND e.owner_user_id = %s "
+                    "AND (%s::timestamptz IS NULL OR a.opened_at < %s) "
+                    "AND (%s::timestamptz IS NULL OR a.closed_at IS NULL OR a.closed_at > %s) "
+                    "ORDER BY a.opened_at DESC, a.id DESC LIMIT %s",
+                    (mqtt_device_id, user_id, end, end, start, start, limit),
+                ).fetchall()
+        return [{
+            "alert_id": str(row["id"]), "device_id": mqtt_device_id,
+            "kind": row["kind"], "opened_at": row["opened_at"],
+            "closed_at": row["closed_at"],
+            "status": "open" if row["closed_at"] is None else "closed",
+        } for row in rows]
 
     def evaluate(
         self,
@@ -47,6 +73,7 @@ class AlertService:
         )
         recovered = minimum + margin <= temperature_c <= maximum - margin
         command_state: bool | None = None
+        transitions: list[tuple[UUID, str]] = []
 
         with connect(self.settings) as connection:
             with connection.cursor(row_factory=dict_row) as cursor:
@@ -78,6 +105,7 @@ class AlertService:
                     )
                     self._audit(cursor, device_id, "alert_closed", alert["id"],
                                 alert["kind"], temperature_c, received_at)
+                    transitions.append((alert["id"], "closed"))
 
                 already_open = any(alert["kind"] == kind for alert in open_alerts)
                 if kind is not None and not already_open:
@@ -88,6 +116,7 @@ class AlertService:
                     ).fetchone()["id"]
                     self._audit(cursor, device_id, "alert_opened", alert_id,
                                 kind, temperature_c, received_at)
+                    transitions.append((alert_id, "opened"))
 
                 has_open_alert = bool(kind) or (had_open_alert and not recovered)
                 if had_open_alert != has_open_alert:
@@ -114,6 +143,9 @@ class AlertService:
 
         # The command service uses another PostgreSQL connection. Call after commit
         # so its device FK check cannot wait on our row lock.
+        if self.on_transition is not None:
+            for alert_id, status in transitions:
+                self.on_transition(mqtt_device_id, alert_id, status, received_at)
         if command_state is not None:
             self.command(device_id, mqtt_device_id, command_state)
 

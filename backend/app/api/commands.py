@@ -37,6 +37,12 @@ class CommandApiResponse(BaseModel):
     meta: CommandMeta = CommandMeta()
 
 
+class ActuatorStateResponse(BaseModel):
+    success: Literal[True] = True
+    data: dict[Literal["led", "buzzer"], CommandData | None]
+    meta: CommandMeta = CommandMeta()
+
+
 def create_command_router(
     catalog: CatalogService,
     commands: CommandService | None,
@@ -75,5 +81,18 @@ def create_command_router(
         if data is None:
             raise HTTPException(status_code=404, detail="DEVICE_NOT_FOUND")
         return CommandApiResponse(data=CommandData.model_validate(data))
+
+    @router.get("/devices/{device_id}/actuators", response_model=ActuatorStateResponse)
+    def get_actuators(
+        device_id: UUID, user_id: UUID = Depends(require_user)
+    ) -> ActuatorStateResponse:
+        if commands is None:
+            raise HTTPException(status_code=503, detail="DEPENDENCY_UNAVAILABLE")
+        catalog.get_device(user_id, device_id)
+        latest = commands.latest_for_device(device_id, user_id)
+        return ActuatorStateResponse(data={
+            actuator: CommandData.model_validate(value) if value is not None else None
+            for actuator, value in latest.items()
+        })
 
     return router

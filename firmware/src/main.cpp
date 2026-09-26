@@ -280,6 +280,7 @@ void setup() {
                   "coldsafe/v2/devices/%s/acks", device_id);
     mqtt_client.begin(coldsafe::secrets::MQTT_HOST, coldsafe::secrets::MQTT_PORT,
                       network_client);
+    mqtt_client.setKeepAlive(60);
     mqtt_client.onMessage(on_mqtt_message);
     start_wifi();
 }
