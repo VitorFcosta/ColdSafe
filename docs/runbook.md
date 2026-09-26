@@ -40,6 +40,7 @@ Edite o `.env` e defina valores locais, fortes e diferentes para:
 
 - `MQTT_BACKEND_PASSWORD`;
 - `MQTT_DEVICE_PASSWORD`;
+- `MQTT_DEVICE_02_PASSWORD` (diferente da senha do primeiro dispositivo);
 - `DOCKER_INFLUXDB_INIT_USERNAME`;
 - `DOCKER_INFLUXDB_INIT_PASSWORD`;
 - `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`;
@@ -56,10 +57,9 @@ temporário apenas no ambiente dos comandos de bootstrap. Ele não é salvo no
 `.env`, não é usado pelo InfluxDB e não inicia o backend. O token administrativo
 `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN` nunca deve ser usado como `INFLUXDB_TOKEN`.
 
-Depois, edite `firmware/include/secrets.h` e substitua somente
-`REPLACE_WITH_MQTT_DEVICE_PASSWORD` pelo mesmo valor definido em
-`MQTT_DEVICE_PASSWORD`. Preserve o usuário `coldsafe-device`, o tópico e os
-demais valores do exemplo. Mais detalhes estão em
+Depois, edite `firmware/include/secrets.h` e configure as senhas dos dois
+dispositivos conforme [`firmware/README.md`](../firmware/README.md). Preserve
+as configurações locais existentes. Mais detalhes estão em
 [`configuration.md`](configuration.md).
 
 ## 3. Inicializar o InfluxDB e criar o token do backend
@@ -141,24 +141,34 @@ O `mosquitto-init` gera automaticamente o arquivo de senhas no volume
 
 ## 5. Verificar a aplicação
 
-Teste liveness, readiness, API e frontend:
+Teste liveness, readiness e frontend:
 
 ```bash
 curl -fsS http://127.0.0.1:8000/health/live
 curl -fsS http://127.0.0.1:8000/health/ready
-curl -fsS http://127.0.0.1:8000/api/v1/monitoring/summary
 curl -fsS -o /dev/null http://127.0.0.1:5173/dashboard
 ```
 
-Todos os comandos devem terminar com código `0`. Antes de chegar telemetria, o
-resumo pode representar ausência de leitura; isso não significa que a API está
-indisponível. Abra [http://localhost:5173/dashboard](http://localhost:5173/dashboard) no navegador
-e confirme que o dashboard é carregado.
+Todos os comandos devem terminar com código `0`. Abra
+[http://localhost:5173/](http://localhost:5173/) no navegador, crie uma conta
+local e entre. No dashboard, crie dois ambientes e associe
+`esp32-lab-01` e `esp32-lab-02`, um a cada ambiente. Um resumo de dispositivo
+cadastrado exige sessão Bearer do proprietário: uma consulta anônima ou de
+outra conta deve ser recusada. Antes de chegar telemetria, o resumo autenticado
+pode representar ausência de leitura sem que a API esteja indisponível.
 
-Para validar o fluxo completo, execute a simulação seguindo
-[`firmware/README.md`](../firmware/README.md). Depois da primeira publicação do
-ESP32, confirme novamente o dashboard e o resumo da API. O firmware precisa
-usar a mesma `MQTT_DEVICE_PASSWORD` do `.env`.
+Para validar o fluxo completo, compile os dois alvos e abra as duas simulações
+seguindo [`firmware/README.md`](../firmware/README.md). Cada ESP32 usa sua
+própria senha MQTT do `.env`. Confira leituras, luminosidade e alertas por
+dispositivo; solicite o LED pela interface e aguarde a confirmação. Altere a
+temperatura além do limite para acionar o buzzer e devolva-a à faixa de
+recuperação. O passo a passo e a separação entre verificações automáticas e
+manuais estão em [`testing/demo-rehearsal.md`](testing/demo-rehearsal.md).
+
+Para testar persistência, anote um cadastro e uma leitura antes de
+`docker compose down`, suba novamente sem `--volumes` e confirme que ambos ainda
+existem. Interrompa e retome Mosquitto para observar perda/retorno de telemetria;
+um comando sem confirmação deve aparecer como `unconfirmed`, nunca como sucesso.
 
 ## 6. Diagnóstico
 
@@ -212,7 +222,7 @@ docker inspect "$(docker compose ps -q backend)" \
 
 Erros comuns:
 
-- `mosquitto-init` falha: confirme que as duas senhas MQTT estão preenchidas no
+- `mosquitto-init` falha: confirme que as três senhas MQTT estão preenchidas no
   `.env`; depois recrie o inicializador e o broker com
   `docker compose up -d --force-recreate mosquitto-init mosquitto`.
 - `backend` não fica pronto: confirme que `INFLUXDB_TOKEN` é o token restrito

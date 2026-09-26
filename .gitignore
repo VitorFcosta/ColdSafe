@@ -1,8 +1,7 @@
 .venv/
 __pycache__/
 .pytest_cache/
-.coverage
-.coverage.*
+.coverage*
 htmlcov/
 *.py[cod]
 .DS_Store

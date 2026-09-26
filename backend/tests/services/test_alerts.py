@@ -96,13 +96,18 @@ def test_alert_lifecycle_hysteresis_and_buzzer_transitions() -> None:
                 "GROUP BY event_type ORDER BY event_type", (device_id,),
             ).fetchall() == [("alert_closed", 2), ("alert_opened", 2)]
 
-        # A failed publication is retried after its 10-second deadline, not per reading.
+        # A failed publication is retried after the recorded deadline, not per reading.
         publisher.reset_mock()
         publisher.side_effect = [False, True]
         service.evaluate(device_id, mqtt_id, 9.0, thresholds, start + timedelta(seconds=7))
         service.evaluate(device_id, mqtt_id, 9.0, thresholds, start + timedelta(seconds=8))
         assert publisher.call_count == 1
-        service.evaluate(device_id, mqtt_id, 9.0, thresholds, start + timedelta(seconds=18))
+        with connect(settings) as connection:
+            deadline = connection.execute(
+                "SELECT deadline_at FROM actuator_commands WHERE device_id = %s "
+                "ORDER BY requested_at DESC LIMIT 1", (device_id,),
+            ).fetchone()[0]
+        service.evaluate(device_id, mqtt_id, 9.0, thresholds, deadline + timedelta(seconds=1))
         assert publisher.call_count == 2
     finally:
         with connect(settings) as connection:

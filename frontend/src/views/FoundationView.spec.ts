@@ -171,4 +171,66 @@ describe('FoundationView', () => {
       vi.useRealTimers()
     }
   })
+
+  it('orienta o usuário quando não há ambiente ou dispositivo ativo', async () => {
+    vi.mocked(listEnvironments).mockResolvedValueOnce([])
+    vi.mocked(useMonitoringSummary).mockReturnValueOnce({
+      loadSummary: vi.fn(), monitoringState: computed(() => ({ kind: 'no_data', history: 'unavailable' } as const)),
+      refreshRevision: ref(0), summary: ref(null), connectionState: ref('offline'),
+    })
+    const empty = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    expect(empty.text()).toContain('Nenhum ambiente cadastrado')
+    expect(fetchActuators).not.toHaveBeenCalled()
+    empty.unmount()
+
+    vi.mocked(listDevices).mockResolvedValueOnce([
+      { id: 'uuid-01', environment_id: 'lab-01', name: 'Inativo', mqtt_device_id: 'esp32-lab-01', is_active: false },
+    ])
+    vi.mocked(useMonitoringSummary).mockReturnValueOnce({
+      loadSummary: vi.fn(), monitoringState: computed(() => ({ kind: 'no_data', history: 'unavailable' } as const)),
+      refreshRevision: ref(0), summary: ref(null), connectionState: ref('offline'),
+    })
+    const inactive = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    expect(inactive.text()).toContain('Nenhum dispositivo ativo neste ambiente')
+    expect(fetchActuators).not.toHaveBeenCalled()
+    inactive.unmount()
+  })
+
+  it('não exibe uma leitura antiga como atual durante erro da API', async () => {
+    const loadSummary = vi.fn()
+    vi.mocked(useMonitoringSummary).mockReturnValue({
+      loadSummary, monitoringState: computed(() => ({ kind: 'service_error', history: 'error' } as const)),
+      refreshRevision: ref(0), summary: ref(summary), connectionState: ref('offline'),
+    })
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    expect(wrapper.text()).toContain('Diagnóstico indisponível')
+    expect(wrapper.find('.metrics-grid').exists()).toBe(false)
+    await wrapper.findAll('button').find((button) => button.text() === 'Tentar novamente')?.trigger('click')
+    expect(loadSummary).toHaveBeenCalledOnce()
+    wrapper.unmount()
+  })
+
+  it.each([
+    ['attention', 'Atenção'],
+    ['critical', 'Crítico'],
+    ['stale', 'Leitura desatualizada'],
+    ['no_data', 'Sem dados'],
+  ] as const)('mostra o estado %s com seu rótulo correto', async (kind, label) => {
+    const currentSummary: MonitoringSummary = kind === 'no_data'
+      ? { ...summary, status: kind, reading: null, freshness: null }
+      : { ...summary, status: kind, freshness: { is_stale: kind === 'stale', age_seconds: kind === 'stale' ? 90 : 4 } }
+    vi.mocked(useMonitoringSummary).mockReturnValue({
+      loadSummary: vi.fn(), monitoringState: computed(() => ({ kind, history: 'ready' } as const)),
+      refreshRevision: ref(0), summary: ref(currentSummary), connectionState: ref('connected'),
+    })
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    expect(wrapper.get('.status-panel h2').text()).toBe(label)
+    if (kind === 'no_data') expect(wrapper.get('.temperature').text()).toBe('—')
+    if (kind === 'stale') expect(wrapper.text()).toContain('situação atual não está confirmada')
+    wrapper.unmount()
+  })
 })

@@ -270,7 +270,6 @@ void setup() {
     pinMode(led_pin, OUTPUT);
     pinMode(buzzer_pin, OUTPUT);
     digitalWrite(led_pin, LOW);
-    noTone(buzzer_pin);
 
     std::snprintf(telemetry_topic, sizeof(telemetry_topic),
                   "coldsafe/v2/devices/%s/telemetry", device_id);

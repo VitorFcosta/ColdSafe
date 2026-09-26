@@ -30,6 +30,7 @@ No `.env`:
 
 - `MQTT_BACKEND_PASSWORD`
 - `MQTT_DEVICE_PASSWORD`
+- `MQTT_DEVICE_02_PASSWORD` (distinta da primeira)
 - `INFLUXDB_TOKEN`
 - `DOCKER_INFLUXDB_INIT_USERNAME`
 - `DOCKER_INFLUXDB_INIT_PASSWORD`
@@ -41,20 +42,18 @@ backend usa `POSTGRES_HOST=postgres` e a porta interna `5432`; no Compose,
 o PostgreSQL não expõe porta ao host. Use senhas distintas para PostgreSQL,
 MQTT e InfluxDB.
 
-No `firmware/include/secrets.h`:
-
-- manter o usuário `coldsafe-device`;
-- substituir `REPLACE_WITH_MQTT_DEVICE_PASSWORD` pela mesma senha definida para o dispositivo no Mosquitto.
-
-Os usuários MQTT são fixos por intenção: `coldsafe-device` só publica telemetria e
-`coldsafe-backend` só lê telemetria e métricas `$SYS`. Compartilhar um único usuário
-entre os dois quebraria essa separação de privilégios.
+No `firmware/include/secrets.h`, configure a senha do primeiro ESP32 e a do
+segundo conforme [`firmware/README.md`](../firmware/README.md). O segundo usa
+`coldsafe-device-02`; o primeiro usa `coldsafe-device`. O backend usa
+`coldsafe-backend`. A ACL restringe telemetria, comandos e confirmações por
+identidade. Não compartilhe usuários ou senhas entre os dispositivos.
 
 Não altere esses usuários nem `MQTT_TOPIC` apenas no `.env`: eles fazem parte do
 contrato da ACL. Uma mudança futura precisa atualizar configuração, ACL, firmware e
 testes em conjunto.
 
-O SSID `Wokwi-GUEST`, o host `host.wokwi.internal` e o identificador `esp32-lab-01` são configurações demonstrativas, não credenciais.
+O SSID `Wokwi-GUEST`, o host `host.wokwi.internal` e os identificadores
+`esp32-lab-01`/`esp32-lab-02` são configurações demonstrativas, não credenciais.
 
 ## Permissões do token InfluxDB
 
