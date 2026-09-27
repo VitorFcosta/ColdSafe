@@ -147,6 +147,7 @@ dos integrantes.
 | Suíte Python com bancos e broker reais, bucket de teste temporário | 263 passaram, 1 ignorado por exigir `API_TEST_URL` de uma pilha de ensaio legada; cobertura 92,59% |
 | Teste integrado específico do bloco 5 | Passou com PostgreSQL e InfluxDB reais: duas contas e dispositivos com IDs únicos, isolamento REST/WebSocket, leitura, histórico, alerta, buzzer, LED pendente e comando sem confirmação |
 | Quedas controladas | Readiness `503` com MQTT ou bancos parados; voltou a `200` após reinício |
+| Reconexão dos dois Wokwi após queda do MQTT | Com Mosquitto parado, ambos exibiram falha e novas tentativas; depois do reinício, ambos reconectaram e o InfluxDB registrou novas leituras às 23:58:43 UTC. As simulações foram encerradas ao fim |
 | Persistência | Contagens PostgreSQL e timestamps das leituras dos dispositivos 01/02 permaneceram iguais após reinício dos serviços |
 | Broker | Usuários MQTT 01/02 receberam `Not authorized` ao publicar no tópico alheio |
 | Frontend | 57 testes, build e 19 testes Playwright passaram; cobertura 87,33% de instruções, 81,19% de ramos, 88,78% de funções e 91,81% de linhas |
@@ -173,8 +174,7 @@ O teste legado `test_runtime_pipeline_integration.py` espera uma API com
 persistidos atuais. O fluxo autenticado foi coberto pelo teste integrado deste
 bloco; o transporte MQTT real foi verificado separadamente.
 
-**Ainda pendente:** comprovar visualmente a atuação de LED/buzzer e a reconexão
-de ambos os Wokwi após uma queda, percorrer os dez passos
+**Ainda pendente:** comprovar visualmente a atuação de LED/buzzer, percorrer os dez passos
 com o grupo e registrar quem explicou cada parte. O Node do host era `22.19.0`;
 as verificações locais passaram, mas a referência fixada para a aplicação é
 `24.20.0` no Docker. O PlatformIO foi usado em ambiente temporário fora do
