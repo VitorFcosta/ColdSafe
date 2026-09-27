@@ -153,6 +153,7 @@ dos integrantes.
 | Frontend | 57 testes, build e 19 testes Playwright passaram; cobertura 87,33% de instruções, 81,19% de ramos, 88,78% de funções e 91,81% de linhas |
 | Firmware | `esp32dev` e `esp32dev-02` compilaram |
 | Wokwi com dois ESP32 | Ambos iniciaram em janelas separadas, conectaram ao MQTT e publicaram com QoS 1 nos tópicos próprios; o InfluxDB registrou leituras de `esp32-lab-01` às 18:02:52 UTC e de `esp32-lab-02` às 18:02:54 UTC |
+| Atuação real nos dois Wokwi | Comandos MQTT v2 diretos de LED e buzzer foram enviados separadamente aos dispositivos 01/02. Nos dois, o LED acendeu e apagou na simulação; o buzzer mostrou atividade e depois parou. Cada comando de ligar/desligar recebeu ACK `applied` com o estado correspondente. Os dois simuladores foram encerrados após o teste. Isto verifica firmware, broker e atuadores; o clique no dashboard da conta proprietária ainda não foi ensaiado. |
 | Segunda conta contra dispositivos existentes | Conta temporária com senha gerada tentou resumo, histórico, alertas, detalhe e comando LED para os dois ESP32; as dez requisições retornaram `404`. A conta temporária foi removida sem mudar o proprietário dos dispositivos |
 | Auditoria de dependências | `npm audit` e `pip-audit` no lock de desenvolvimento: nenhuma vulnerabilidade conhecida |
 
@@ -174,8 +175,9 @@ O teste legado `test_runtime_pipeline_integration.py` espera uma API com
 persistidos atuais. O fluxo autenticado foi coberto pelo teste integrado deste
 bloco; o transporte MQTT real foi verificado separadamente.
 
-**Ainda pendente:** comprovar visualmente a atuação de LED/buzzer, percorrer os dez passos
-com o grupo e registrar quem explicou cada parte. O Node do host era `22.19.0`;
+**Ainda pendente:** percorrer o acionamento de LED e o alerta de buzzer a partir
+do dashboard com uma sessão legítima da conta proprietária, executar os dez
+passos com o grupo e registrar quem explicou cada parte. O Node do host era `22.19.0`;
 as verificações locais passaram, mas a referência fixada para a aplicação é
 `24.20.0` no Docker. O PlatformIO foi usado em ambiente temporário fora do
 repositório. A publicação no GitHub depende de push posterior, fora deste bloco
