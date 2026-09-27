@@ -144,7 +144,7 @@ dos integrantes.
 | Verificação | Resultado |
 | --- | --- |
 | Suíte Python sem credenciais de integração | 255 passaram, 9 ignorados; cobertura 82,72% |
-| Suíte Python com bancos e broker reais, bucket de teste temporário | 263 passaram, 1 ignorado por exigir `API_TEST_URL` de uma pilha de ensaio legada; cobertura 92,59% |
+| Suíte Python completa em pilha descartável isolada | 264 passaram, nenhum ignorado; cobertura 92,83%. Incluiu o teste legado atualizado para sessão autenticada, publicação MQTT v1, resumo e histórico pela API |
 | Teste integrado específico do bloco 5 | Passou com PostgreSQL e InfluxDB reais: duas contas e dispositivos com IDs únicos, isolamento REST/WebSocket, leitura, histórico, alerta, buzzer, LED pendente e comando sem confirmação |
 | Quedas controladas | Readiness `503` com MQTT ou bancos parados; voltou a `200` após reinício |
 | Reconexão dos dois Wokwi após queda do MQTT | Com Mosquitto parado, ambos exibiram falha e novas tentativas; depois do reinício, ambos reconectaram e o InfluxDB registrou novas leituras às 23:58:43 UTC. As simulações foram encerradas ao fim |
@@ -170,10 +170,12 @@ teste integrado, use infraestrutura de teste descartável e defina
 com `POSTGRES_TEST_HOST/PORT/DB/USER` e `INFLUXDB_TEST_URL/ORG` se os
 valores diferirem do Compose de integração. Os demais testes podem ser
 executados sem essas variáveis; nesse caso, o teste integrado é ignorado.
-O teste legado `test_runtime_pipeline_integration.py` espera uma API com
-`esp32-lab-01` sem proprietário e por isso não foi executado sobre os dados
-persistidos atuais. O fluxo autenticado foi coberto pelo teste integrado deste
-bloco; o transporte MQTT real foi verificado separadamente.
+O teste legado `test_runtime_pipeline_integration.py` foi atualizado para criar
+uma conta e associar `esp32-lab-01` numa pilha descartável, autenticar as
+consultas e verificar MQTT → API sem tocar nos dados da apresentação. Ele só
+é executado com `API_TEST_DISPOSABLE=1`. A suíte completa rodou numa pilha
+Compose isolada, com portas e volumes próprios, e essa pilha foi removida após
+os testes.
 
 **Ainda pendente:** percorrer o acionamento de LED e o alerta de buzzer a partir
 do dashboard com uma sessão legítima da conta proprietária, executar os dez

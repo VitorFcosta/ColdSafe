@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 from threading import Event
 from time import monotonic, sleep
 from urllib.error import URLError
 from urllib.parse import urlencode
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 from uuid import uuid4
 
 import pytest
@@ -24,20 +25,46 @@ def _required_environment(name: str) -> str:
     return value
 
 
-def _get_json(url: str) -> dict[str, object]:
-    with urlopen(url, timeout=2) as response:  # noqa: S310 - local test URL
+def _get_json(url: str, token: str) -> dict[str, object]:
+    request = Request(url, headers={"Authorization": f"Bearer {token}"})
+    with urlopen(request, timeout=2) as response:  # noqa: S310 - local test URL
         assert response.status == 200
+        return json.load(response)
+
+
+def _post_json(url: str, payload: dict[str, str], token: str | None = None) -> dict:
+    headers = {"Content-Type": "application/json"}
+    if token is not None:
+        headers["Authorization"] = f"Bearer {token}"
+    request = Request(url, data=json.dumps(payload).encode(), headers=headers)
+    with urlopen(request, timeout=2) as response:  # noqa: S310 - disposable local test API
+        assert response.status in (200, 201)
         return json.load(response)
 
 
 @pytest.mark.integration
 def test_mqtt_publication_reaches_summary_and_history_api() -> None:
+    if os.getenv("API_TEST_DISPOSABLE") != "1":
+        pytest.skip("API_TEST_DISPOSABLE=1 is required for an isolated test stack")
     mqtt_host = _required_environment("MQTT_TEST_HOST")
     mqtt_port = int(_required_environment("MQTT_TEST_PORT"))
     device_password = _required_environment("MQTT_TEST_DEVICE_PASSWORD")
     api_url = _required_environment("API_TEST_URL").rstrip("/")
     connected = Event()
     run_id = uuid4().hex
+    email = f"pipeline-{run_id}@example.invalid"
+    password = secrets.token_urlsafe(18)
+    _post_json(f"{api_url}/api/v1/auth/register", {"email": email, "password": password})
+    token = _post_json(
+        f"{api_url}/api/v1/auth/login", {"email": email, "password": password}
+    )["data"]["token"]
+    environment_id = _post_json(
+        f"{api_url}/api/v1/environments", {"name": "Pipeline test"}, token
+    )["data"]["id"]
+    _post_json(
+        f"{api_url}/api/v1/environments/{environment_id}/devices",
+        {"name": "ESP32 test", "mqtt_device_id": DEVICE_ID}, token,
+    )
     publisher = mqtt.Client(
         mqtt.CallbackAPIVersion.VERSION2,
         client_id=f"pipeline-test-{run_id}",
@@ -75,7 +102,9 @@ def test_mqtt_publication_reaches_summary_and_history_api() -> None:
         deadline = monotonic() + 10
         while monotonic() < deadline:
             try:
-                candidate = _get_json(f"{api_url}/api/v1/monitoring/summary")
+                candidate = _get_json(
+                    f"{api_url}/api/v1/monitoring/summary?device_id={DEVICE_ID}", token
+                )
                 reading = candidate["data"]["reading"]  # type: ignore[index]
                 if reading and reading["temperature_c"] == temperature_c:
                     summary = candidate
@@ -89,7 +118,7 @@ def test_mqtt_publication_reaches_summary_and_history_api() -> None:
         assert summary["data"]["reading"]["humidity_percent"] == humidity_percent  # type: ignore[index]
 
         query = urlencode({"device_id": DEVICE_ID, "period": "1h", "limit": 20})
-        history = _get_json(f"{api_url}/api/v1/readings?{query}")
+        history = _get_json(f"{api_url}/api/v1/readings?{query}", token)
         readings = history["data"]["readings"]  # type: ignore[index]
         assert any(
             reading["temperature_c"] == temperature_c
