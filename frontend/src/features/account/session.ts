@@ -3,14 +3,15 @@ import { ref } from 'vue'
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/+$/, '')
 const storageKey = 'coldsafe-session'
 
-type StoredSession = { token: string; expires_at: string }
+export type DashboardSelection = { environmentId: string; deviceUuid: string; period: string }
+type StoredSession = { token: string; expires_at: string; dashboard_selection?: DashboardSelection }
 
-function restoreSession(): string | null {
+function restoreSession(): StoredSession | null {
   try {
     const stored = sessionStorage.getItem(storageKey)
     if (!stored) return null
     const session: StoredSession = JSON.parse(stored)
-    if (typeof session.token === 'string' && Date.parse(session.expires_at) > Date.now()) return session.token
+    if (typeof session.token === 'string' && Date.parse(session.expires_at) > Date.now()) return session
     sessionStorage.removeItem(storageKey)
   } catch {
     // Storage may be unavailable (privacy settings or server rendering).
@@ -18,19 +19,38 @@ function restoreSession(): string | null {
   return null
 }
 
-export const sessionToken = ref<string | null>(restoreSession())
+let currentSession = restoreSession()
+export const sessionToken = ref<string | null>(currentSession?.token ?? null)
+export const dashboardSelection = ref<DashboardSelection | null>(
+  currentSession?.dashboard_selection &&
+  typeof currentSession.dashboard_selection.environmentId === 'string' &&
+  typeof currentSession.dashboard_selection.deviceUuid === 'string' &&
+  typeof currentSession.dashboard_selection.period === 'string'
+    ? currentSession.dashboard_selection : null,
+)
+
+export function saveDashboardSelection(selection: DashboardSelection): void {
+  if (!currentSession || currentSession.token !== sessionToken.value) return
+  dashboardSelection.value = selection
+  currentSession = { ...currentSession, dashboard_selection: selection }
+  try { sessionStorage.setItem(storageKey, JSON.stringify(currentSession)) } catch { /* In-memory session only. */ }
+}
 
 export function setSession(token: string, expiresAt: string): void {
+  currentSession = { token, expires_at: expiresAt }
   sessionToken.value = token
+  dashboardSelection.value = null
   try {
-    sessionStorage.setItem(storageKey, JSON.stringify({ token, expires_at: expiresAt }))
+    sessionStorage.setItem(storageKey, JSON.stringify(currentSession))
   } catch {
     // The current tab can still use its in-memory session.
   }
 }
 
 export function clearSession(): void {
+  currentSession = null
   sessionToken.value = null
+  dashboardSelection.value = null
   try { sessionStorage.removeItem(storageKey) } catch { /* Storage unavailable. */ }
 }
 

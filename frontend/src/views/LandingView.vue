@@ -25,40 +25,50 @@ const architecture = [
     <div class="presentation-shell">
       <header class="navigation">
         <a class="brand" href="/" aria-label="ColdSafe — início"><span aria-hidden="true">◉</span> ColdSafe</a>
-        <nav aria-label="Navegação principal">
+        <nav class="desktop-nav" aria-label="Navegação principal">
           <a href="#como-funciona">Como funciona</a>
           <a href="#demonstracao">Demonstração</a>
           <RouterLink to="/dashboard">Acessar painel</RouterLink>
           <a :href="repositoryUrl">GitHub <span aria-hidden="true">↗</span></a>
         </nav>
+        <details class="mobile-nav">
+          <summary>Menu</summary>
+          <nav aria-label="Navegação principal móvel">
+            <a href="#como-funciona">Como funciona</a>
+            <a href="#demonstracao">Demonstração</a>
+            <RouterLink to="/dashboard">Acessar painel</RouterLink>
+            <a :href="repositoryUrl">GitHub <span aria-hidden="true">↗</span></a>
+          </nav>
+        </details>
       </header>
 
       <main id="conteudo" class="sections">
         <section class="hero" aria-labelledby="presentation-title">
           <div class="hero-copy">
             <p class="eyebrow">Projeto acadêmico / Internet das coisas</p>
-            <h1 id="presentation-title">Cada grau<br />conta.</h1>
-            <p class="lead">Da leitura do sensor à decisão. Temperatura, umidade e histórico em uma visão clara do ambiente refrigerado.</p>
+            <h1 id="presentation-title" tabindex="-1">Cada grau<br />conta.</h1>
+            <p class="lead">Monitore temperatura, umidade e histórico de ambientes refrigerados. Veja o estado e a idade da última leitura antes de decidir o próximo passo.</p>
             <div class="hero-actions">
               <a class="button button-primary" href="#demonstracao">Ver demonstração</a>
-              <a class="button" :href="repositoryUrl">Ver código</a>
+              <RouterLink class="button" to="/dashboard">Entrar no painel</RouterLink>
             </div>
-            <p class="small muted">ESP32 + DHT22 · Vue + FastAPI · MQTT</p>
+            <a class="code-link" :href="repositoryUrl">Ver código <span aria-hidden="true">↗</span></a>
+            <p class="small muted">Protótipo acadêmico · Demonstração com dados simulados</p>
           </div>
           <figure class="media-frame hero-preview">
             <figcaption class="eyebrow">01 / Visão operacional · Demonstração simulada</figcaption>
             <img
               src="/media/dashboard-normal.png"
               alt="Dashboard ColdSafe com estado normal, temperatura de 5 °C, idade da leitura e histórico de temperatura. Dados simulados."
-              width="1440" height="1348" fetchpriority="high"
+              width="1440" height="1080" fetchpriority="high"
             />
           </figure>
         </section>
 
         <dl class="project-facts" aria-label="Características do projeto">
-          <div><dt>entre atualizações</dt><dd>05 s</dd></div>
-          <div><dt>períodos de histórico</dt><dd>04</dd></div>
-          <div><dt>ambiente monitorado</dt><dd>01</dd></div>
+          <div><dt>medidas exibidas</dt><dd>Temperatura e umidade</dd></div>
+          <div><dt>períodos de histórico</dt><dd>4</dd></div>
+          <div><dt>organização</dt><dd>Ambientes e dispositivos</dd></div>
         </dl>
 
         <motion.section v-bind="entrance" class="context reveal" aria-labelledby="context-title">
@@ -111,12 +121,12 @@ const architecture = [
             </video>
             <figcaption id="video-description">
               <span class="eyebrow">Demonstração simulada</span>
-              <p>O vídeo percorre as leituras, a troca de período e os estados do painel. Uma temperatura fora da faixa gera um estado crítico; uma leitura antiga informa que a situação atual não está confirmada.</p>
+              <p>O vídeo percorre as leituras, o histórico e os estados do painel. Uma temperatura fora da faixa gera um estado crítico; uma leitura antiga não confirma a situação atual. O LED só aparece ligado após a confirmação simulada do comando.</p>
             </figcaption>
           </figure>
           <div class="state-gallery">
             <figure>
-              <img src="/media/dashboard-critical.png" alt="Exemplo simulado do dashboard em estado crítico, com a temperatura fora da faixa demonstrativa." width="1440" height="1348" loading="lazy" />
+              <img src="/media/dashboard-critical.png" alt="Exemplo simulado do dashboard em estado crítico, com a temperatura fora da faixa demonstrativa." width="1440" height="1080" loading="lazy" />
               <figcaption>
                 <p class="eyebrow">Cenário simulado / Crítico</p>
                 <h3>Quando a temperatura sai da faixa.</h3>
@@ -124,7 +134,7 @@ const architecture = [
               </figcaption>
             </figure>
             <figure>
-              <img src="/media/dashboard-stale.png" alt="Exemplo simulado de leitura desatualizada: o dashboard mostra a última medição conhecida sem confirmar a situação atual." width="1440" height="1348" loading="lazy" />
+              <img src="/media/dashboard-stale.png" alt="Exemplo simulado de leitura desatualizada: o dashboard mostra a última medição conhecida sem confirmar a situação atual." width="1440" height="1080" loading="lazy" />
               <figcaption>
                 <p class="eyebrow">Cenário simulado / Leitura desatualizada</p>
                 <h3>Quando a leitura deixa de ser atual.</h3>
@@ -140,7 +150,7 @@ const architecture = [
             <h2 id="construction-title">Hardware encontra software.</h2>
           </div>
           <p class="muted">ESP32 · DHT22 · MQTT · FastAPI · InfluxDB · Vue · TypeScript</p>
-          <p class="lead">Um ambiente, um dispositivo e uma cadeia completa de monitoramento. Um projeto acadêmico para explorar a conexão entre o mundo físico e os dados.</p>
+          <p class="lead">Ambientes e dispositivos podem ser cadastrados e selecionados no painel. Este projeto acadêmico explora a conexão entre o mundo físico e os dados.</p>
           <a class="button" :href="repositoryUrl">Explorar o repositório <span aria-hidden="true">↗</span></a>
         </motion.section>
       </main>
@@ -160,11 +170,10 @@ const architecture = [
 .navigation { justify-content: space-between; gap: var(--cs-space-32); padding-bottom: var(--cs-space-48); border-bottom: 1px solid var(--cs-color-line); }
 .navigation nav { flex-wrap: wrap; gap: var(--cs-space-32); font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
 .navigation nav a { min-height: 44px; display: inline-flex; align-items: center; gap: var(--cs-space-4); }
+.mobile-nav { display: none; }
 a { text-decoration: none; transition: color var(--cs-motion-quick), background-color var(--cs-motion-quick); }
 a:hover { color: var(--cs-color-accent); }
 .brand { gap: var(--cs-space-12); font-size: var(--cs-type-24); font-weight: 650; white-space: nowrap; }
-.skip-link { position: fixed; top: var(--cs-space-16); left: var(--cs-space-16); z-index: 10; padding: var(--cs-space-12); transform: translateY(-200%); background: var(--cs-color-accent); color: var(--cs-color-accent-ink); }
-.skip-link:focus { transform: none; }
 .sections { display: flex; flex-direction: column; gap: var(--cs-space-64); padding-block: var(--cs-space-64); }
 .hero { display: grid; grid-template-columns: minmax(0, 528fr) minmax(0, 624fr); align-items: center; gap: var(--cs-space-48); }
 .hero-copy, .context-copy, .section-heading { display: flex; flex-direction: column; align-items: start; gap: var(--cs-space-24); }
@@ -177,18 +186,19 @@ h3 { font-size: var(--cs-type-24); font-weight: 600; line-height: 1.4; letter-sp
 .lead { font-size: var(--cs-type-20); max-width: 62ch; }
 .small { font-size: var(--cs-type-12); }
 .hero-actions { flex-wrap: wrap; gap: var(--cs-space-16); }
-.button { display: inline-flex; align-items: center; justify-content: center; gap: var(--cs-space-8); min-height: 48px; padding: var(--cs-space-12) var(--cs-space-24); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-4); background: var(--cs-color-surface); font-size: var(--cs-type-14); font-weight: 500; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: var(--cs-space-8); min-height: 48px; padding: var(--cs-space-12) var(--cs-space-24); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-4); background: var(--cs-color-surface); font-size: var(--cs-type-14); font-weight: 500; }
 .button:hover { background: var(--cs-color-surface-muted); }
 .button-primary { background: var(--cs-color-accent); color: var(--cs-color-accent-ink); }
 .button-primary:hover { background: var(--cs-color-accent-hover); color: var(--cs-color-accent-ink); }
 .hero-actions .button-primary { min-width: 224px; }
 .hero-actions .button:not(.button-primary) { min-width: 160px; }
+.code-link { display: inline-flex; align-items: center; gap: var(--cs-space-4); min-height: 44px; color: var(--cs-color-accent); text-decoration: underline; text-underline-offset: 0.25em; }
 .media-frame { display: flex; flex-direction: column; gap: var(--cs-space-16); padding: var(--cs-space-16); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); min-width: 0; }
 .hero-preview img { display: block; width: 100%; aspect-ratio: 1.12; object-fit: cover; object-position: top; }
 .project-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cs-space-48); padding-block: var(--cs-space-32); border-block: 1px solid var(--cs-color-line); }
 .project-facts div { display: flex; flex-direction: column-reverse; gap: var(--cs-space-8); }
 .project-facts dt { font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
-.project-facts dd { font-size: var(--cs-type-32); font-weight: 500; line-height: 1.1; }
+.project-facts dd { font-size: var(--cs-type-24); font-weight: 500; line-height: 1.2; text-wrap: balance; }
 .context { display: grid; grid-template-columns: minmax(0, 528fr) minmax(0, 608fr); gap: var(--cs-space-64); }
 .context-statement { font-size: var(--cs-type-24); font-weight: 500; }
 .content-section { display: flex; flex-direction: column; align-items: start; gap: var(--cs-space-32); scroll-margin-top: var(--cs-space-24); }
@@ -196,7 +206,7 @@ h3 { font-size: var(--cs-type-24); font-weight: 600; line-height: 1.4; letter-sp
 .architecture-step { display: flex; flex-direction: column; gap: var(--cs-space-24); padding: var(--cs-space-24); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); }
 .architecture-step .muted { font-size: var(--cs-type-14); }
 .demo-video { width: 100%; }
-.demo-video video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: var(--cs-color-canvas); }
+.demo-video video { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: var(--cs-color-canvas); }
 .demo-video figcaption { display: grid; gap: var(--cs-space-8); color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
 .state-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cs-space-24); width: 100%; }
 .state-gallery img { display: block; width: 100%; aspect-ratio: 1.45; object-fit: cover; object-position: top; border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); }
@@ -213,8 +223,12 @@ h3 { font-size: var(--cs-type-24); font-weight: 600; line-height: 1.4; letter-sp
 }
 @media (max-width: 767px) {
   .presentation { padding: var(--cs-space-24); }
-  .navigation { align-items: start; flex-direction: column; gap: var(--cs-space-16); padding-bottom: var(--cs-space-24); }
-  .navigation nav { gap: var(--cs-space-24); font-size: var(--cs-type-12); }
+  .navigation { position: relative; flex-wrap: wrap; padding-bottom: var(--cs-space-24); }
+  .desktop-nav { display: none !important; }
+  .mobile-nav { display: block; margin-left: auto; }
+  .mobile-nav summary { min-height: 44px; padding: var(--cs-space-8) var(--cs-space-16); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-4); cursor: pointer; }
+  .mobile-nav nav { position: absolute; z-index: 2; top: calc(100% - var(--cs-space-16)); right: 0; min-width: 220px; display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: var(--cs-space-8); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); box-shadow: var(--cs-shadow-panel); }
+  .mobile-nav nav a { padding-inline: var(--cs-space-12); }
   .sections { gap: var(--cs-space-48); padding-block: var(--cs-space-48); }
   .hero, .context, .state-gallery { grid-template-columns: minmax(0, 1fr); gap: var(--cs-space-32); }
   h1 { font-size: var(--cs-type-48); }
@@ -222,8 +236,8 @@ h3 { font-size: var(--cs-type-24); font-weight: 600; line-height: 1.4; letter-sp
   .lead, .context-statement { font-size: var(--cs-type-20); }
   .hero-actions { gap: var(--cs-space-12); }
   .hero-actions .button, .hero-actions .button-primary, .hero-actions .button:not(.button-primary) { min-width: 0; padding-inline: var(--cs-space-16); }
-  .project-facts { gap: var(--cs-space-16); }
-  .project-facts dd { font-size: var(--cs-type-24); }
+  .project-facts { grid-template-columns: minmax(0, 1fr); gap: var(--cs-space-16); }
+  .project-facts dd { font-size: var(--cs-type-16); }
   .project-facts dt { font-size: var(--cs-type-12); }
   .architecture-grid { grid-template-columns: minmax(0, 1fr); }
   .architecture-step { gap: var(--cs-space-16); }
@@ -233,7 +247,6 @@ h3 { font-size: var(--cs-type-24); font-weight: 600; line-height: 1.4; letter-sp
 @media (max-width: 374px) {
   .presentation { padding: var(--cs-space-16); }
   .hero-actions { align-items: stretch; flex-direction: column; width: 100%; }
-  .navigation nav { gap: var(--cs-space-16); }
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; }

@@ -2,23 +2,25 @@ import { expect, type Page } from '@playwright/test'
 
 export type DashboardStatus = 'normal' | 'attention' | 'critical' | 'stale' | 'no_data'
 
-export async function mockDashboardAccount(page: Page) {
+export async function mockDashboardAccount(page: Page, names: Readonly<{ environment?: string; device?: string }> = {}) {
   await page.routeWebSocket('**/api/v1/events?**', (socket) => {
     socket.onMessage(() => {})
   })
   await page.addInitScript(() => {
-    sessionStorage.setItem('coldsafe-session', JSON.stringify({
-      token: 'test-token', expires_at: '2099-01-01T00:00:00Z',
-    }))
+    if (!sessionStorage.getItem('coldsafe-session')) {
+      sessionStorage.setItem('coldsafe-session', JSON.stringify({
+        token: 'test-token', expires_at: '2099-01-01T00:00:00Z',
+      }))
+    }
   })
   await page.route('**/api/v1/environments', (route) => route.fulfill({
     status: 200, contentType: 'application/json',
-    body: JSON.stringify({ success: true, data: [{ id: 'lab-refrigerado', name: 'Laboratório Refrigerado' }] }),
+    body: JSON.stringify({ success: true, data: [{ id: 'lab-refrigerado', name: names.environment ?? 'Laboratório Refrigerado' }] }),
   }))
   await page.route('**/api/v1/environments/lab-refrigerado/devices', (route) => route.fulfill({
     status: 200, contentType: 'application/json',
     body: JSON.stringify({ success: true, data: [
-      { id: 'uuid-01', environment_id: 'lab-refrigerado', name: 'Sensor 1', mqtt_device_id: 'esp32-lab-01', is_active: true },
+      { id: 'uuid-01', environment_id: 'lab-refrigerado', name: names.device ?? 'Sensor 1', mqtt_device_id: 'esp32-lab-01', is_active: true },
       { id: 'uuid-02', environment_id: 'lab-refrigerado', name: 'Sensor 2', mqtt_device_id: 'esp32-lab-02', is_active: true },
     ] }),
   }))
@@ -38,9 +40,11 @@ export async function mockMonitoringApi(
     status: DashboardStatus
     temperature?: number
     ageSeconds?: number
+    environmentName?: string
+    deviceName?: string
   }>,
 ) {
-  await mockDashboardAccount(page)
+  await mockDashboardAccount(page, { environment: scenario.environmentName, device: scenario.deviceName })
   await page.route('**/api/v1/monitoring/summary**', async (route) => {
     const hasReading = scenario.status !== 'no_data'
     const receivedAt = '2026-09-09T12:00:00Z'
@@ -51,7 +55,7 @@ export async function mockMonitoringApi(
       body: JSON.stringify({
         success: true,
         data: {
-          environment: { id: 'lab-refrigerado', name: 'Laboratório Refrigerado' },
+          environment: { id: 'lab-refrigerado', name: scenario.environmentName ?? 'Laboratório Refrigerado' },
           device: { id: 'esp32-lab-01' },
           reading: hasReading
             ? {

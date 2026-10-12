@@ -8,6 +8,7 @@ import { Line } from 'vue-chartjs'
 
 import { fetchAlerts, type AlertRecord } from './alerts-api'
 import { fetchMonitoringHistory, type HistoricalReading, type HistoryPeriod } from './monitoring-history'
+import { describeHistoryCoverage } from './temperature-chart'
 
 ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend)
 
@@ -25,6 +26,7 @@ const periodMinutes: Readonly<Record<HistoryPeriod, number>> = {
 const alerts = ref<readonly AlertRecord[]>([])
 const current = ref<readonly HistoricalReading[]>([])
 const previous = ref<readonly HistoricalReading[]>([])
+const limits = ref({ current: 300, previous: 300 })
 const alertPhase = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
 const comparisonPhase = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
 const refreshRevision = ref(0)
@@ -86,6 +88,7 @@ watch([() => props.auth, () => props.deviceId, () => props.period, () => props.r
         currentResult.value.deviceId === deviceId && previousResult.value.deviceId === deviceId) {
       current.value = currentResult.value.readings
       previous.value = previousResult.value.readings
+      limits.value = { current: currentResult.value.limit, previous: previousResult.value.limit }
       comparisonPhase.value = 'ready'
     } else {
       comparisonPhase.value = 'error'
@@ -148,23 +151,26 @@ function plot(readings: readonly HistoricalReading[], start: string) {
 function describe(readings: readonly HistoricalReading[]) {
   if (!readings.length) return 'Sem leituras neste intervalo.'
   const mean = readings.reduce((sum, reading) => sum + reading.temperature_c, 0) / readings.length
-  return `${readings.length} leituras retornadas; média de ${mean.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} °C.`
+  return `média de ${mean.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} °C.`
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value))
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
+  }).format(new Date(value))
 }
 </script>
 
 <template>
   <section ref="panel" aria-label="Alertas e comparação de períodos" class="mt-8 grid gap-6 lg:grid-cols-2">
     <article class="min-w-0 rounded-panel border border-line bg-surface p-6">
-      <div class="flex items-start justify-between gap-4">
+      <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p class="text-xs uppercase text-ink-muted">Histórico de alertas</p>
           <h2 class="mt-2 text-xl font-semibold">Alertas do dispositivo</h2>
         </div>
-        <button v-if="deviceId && auth" type="button" class="rounded-md border border-line px-3 py-2 text-sm hover:bg-surface-muted" @click="refreshRevision++">Atualizar</button>
+        <button v-if="deviceId && auth" type="button" class="min-h-11 rounded-md border border-control-border px-3 py-2 text-sm hover:bg-surface-muted" @click="refreshRevision++">Atualizar</button>
       </div>
       <p v-if="!deviceId || !auth" class="mt-5 text-sm text-ink-muted">Selecione um dispositivo e entre na conta para consultar alertas.</p>
       <p v-else-if="alertPhase === 'loading'" class="mt-5 text-sm text-ink-muted" aria-live="polite">Carregando alertas…</p>
@@ -184,14 +190,14 @@ function formatDate(value: string) {
       <p class="mt-2 text-sm text-ink-muted">O período anterior termina quando o selecionado começa; ambos têm a mesma duração.</p>
       <p v-if="!deviceId || !auth" class="mt-5 text-sm text-ink-muted">Selecione um dispositivo para comparar leituras.</p>
       <p v-else-if="comparisonPhase === 'loading'" class="mt-5 text-sm text-ink-muted" aria-live="polite">Carregando comparação…</p>
-      <p v-else-if="comparisonPhase === 'error'" class="mt-5 text-sm text-ink-muted" role="status">Não foi possível comparar as leituras.</p>
+      <p v-else-if="comparisonPhase === 'error'" class="mt-5 text-sm text-ink-muted" role="status">Não foi possível comparar as leituras. <button type="button" class="min-h-11 font-medium text-accent underline" @click="refreshRevision++">Tentar novamente</button></p>
       <template v-else-if="comparisonPhase === 'ready'">
         <dl class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
-          <div><dt class="font-medium">Selecionado</dt><dd class="mt-1 text-ink-muted">{{ describe(current) }}</dd></div>
-          <div><dt class="font-medium">Anterior</dt><dd class="mt-1 text-ink-muted">{{ describe(previous) }}</dd></div>
+          <div><dt class="font-medium">Selecionado</dt><dd class="mt-1 text-ink-muted">{{ describe(current) }}<br>{{ describeHistoryCoverage(current, limits.current) }}</dd></div>
+          <div><dt class="font-medium">Anterior</dt><dd class="mt-1 text-ink-muted">{{ describe(previous) }}<br>{{ describeHistoryCoverage(previous, limits.previous) }}</dd></div>
         </dl>
         <p v-if="!current.length && !previous.length" class="mt-5 text-sm text-ink-muted">Não há leituras em nenhum dos dois períodos.</p>
-        <div v-else role="img" aria-label="Gráfico de temperaturas dos períodos selecionado e anterior, alinhados pelo tempo decorrido" aria-describedby="comparison-note" class="mt-5 h-72">
+        <div v-else role="img" aria-label="Gráfico de temperaturas dos períodos selecionado e anterior, alinhados pelo tempo decorrido" aria-describedby="comparison-note" class="mt-5 h-72 min-w-0 overflow-hidden">
           <Line :data="chartData" :options="chartOptions" />
         </div>
         <p id="comparison-note" class="mt-3 text-xs leading-5 text-ink-muted">Cada consulta retorna até 300 leituras mais recentes do intervalo. Os dois intervalos são alinhados pelo tempo decorrido, não pelo horário do dia.</p>

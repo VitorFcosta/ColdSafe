@@ -21,7 +21,10 @@ vi.mock('../features/monitoring/monitoring-history', async (importOriginal) => (
   ...await importOriginal<typeof import('../features/monitoring/monitoring-history')>(),
   fetchMonitoringHistory: vi.fn(),
 }))
-vi.mock('../features/monitoring/use-monitoring-summary', () => ({ useMonitoringSummary: vi.fn() }))
+vi.mock('../features/monitoring/use-monitoring-summary', async (importOriginal) => ({
+  ...await importOriginal<typeof import('../features/monitoring/use-monitoring-summary')>(),
+  useMonitoringSummary: vi.fn(),
+}))
 vi.mock('vue-router', async (importOriginal) => ({
   ...await importOriginal<typeof import('vue-router')>(),
   useRouter: () => ({ push: vi.fn() }),
@@ -58,6 +61,7 @@ describe('FoundationView', () => {
       loadSummary: vi.fn().mockResolvedValue(undefined),
       monitoringState: computed(() => ({ kind: 'normal', history: 'loading' } as const)),
       refreshRevision: ref(0), summary: ref(summary), connectionState: ref('connected'),
+      ageSeconds: computed(() => summary.freshness?.age_seconds ?? null),
     })
   })
 
@@ -78,14 +82,27 @@ describe('FoundationView', () => {
     wrapper.unmount()
   })
 
+  it('mantém o diagnóstico atual e permite repetir apenas o histórico com falha', async () => {
+    vi.mocked(fetchMonitoringHistory).mockRejectedValueOnce(new Error('Histórico indisponível'))
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    expect(wrapper.text()).toContain('5,2 °C')
+    expect(wrapper.text()).toContain('histórico de temperatura não pôde ser carregado')
+    await wrapper.get('section[aria-labelledby="temperature-history-title"] p[role="status"] button').trigger('click')
+    await flushPromises()
+    expect(fetchMonitoringHistory).toHaveBeenCalledTimes(2)
+    expect(wrapper.findComponent({ name: 'TemperatureHistoryChart' }).exists()).toBe(true)
+    wrapper.unmount()
+  })
+
   it('não anuncia LED ligado antes da confirmação do comando', async () => {
     vi.mocked(requestLed).mockResolvedValue(pending)
     const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
     await flushPromises()
-    await wrapper.findAll('button').find((button) => button.text() === 'Ligar LED')?.trigger('click')
+    await wrapper.findAll('button').find((button) => button.text() === 'Ligar Luz')?.trigger('click')
     await flushPromises()
     expect(wrapper.text()).toContain('Aguardando confirmação')
-    expect(wrapper.text()).not.toContain('LED manual Ligado')
+    expect(wrapper.text()).not.toContain('Luz manual Ligado')
     expect(requestLed).toHaveBeenCalledWith('token', 'uuid-01', true)
 
     const onEvent = vi.mocked(useMonitoringSummary).mock.calls[0]?.[2]
@@ -96,7 +113,73 @@ describe('FoundationView', () => {
     }
     onEvent?.(event)
     await flushPromises()
-    expect(wrapper.text()).toContain('Desligar LED')
+    expect(wrapper.text()).toContain('Desligar Luz')
+    wrapper.unmount()
+  })
+
+  it.each([
+    ['pending', 'Aguardando confirmação'],
+    ['rejected', 'Comando rejeitado'],
+    ['unconfirmed', 'Sem confirmação'],
+  ] as const)('mantém %s visível no cabeçalho fechado dos atuadores', async (status, label) => {
+    vi.mocked(fetchActuators).mockResolvedValueOnce({
+      led: { ...pending, status }, buzzer: null,
+    })
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    const details = wrapper.get('details[aria-label="Estado dos atuadores"]')
+    expect(details.attributes('open')).toBeUndefined()
+    expect(details.get('summary').text()).toContain(`Luz manual: ${label}`)
+    expect(details.get('summary').text()).toContain('Som de aviso automático: Sem confirmação registrada')
+    wrapper.unmount()
+  })
+
+  it('avisa no cabeçalho fechado quando o estado dos atuadores falha', async () => {
+    vi.mocked(fetchActuators).mockRejectedValueOnce(new Error('API indisponível'))
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    expect(wrapper.get('details summary').text()).toContain('Estado dos atuadores indisponível')
+    wrapper.unmount()
+  })
+
+  it('mantém a falha de envio visível no cabeçalho fechado', async () => {
+    vi.mocked(requestLed).mockRejectedValueOnce(new Error('API indisponível'))
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    await wrapper.findAll('button').find((button) => button.text() === 'Ligar Luz')?.trigger('click')
+    await flushPromises()
+    expect(wrapper.get('details summary').text()).toContain('Não foi possível enviar o comando')
+    wrapper.unmount()
+  })
+
+  it('isola uma pendência ao trocar de dispositivo', async () => {
+    vi.mocked(requestLed).mockResolvedValue(pending)
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    await wrapper.findAll('button').find((button) => button.text() === 'Ligar Luz')?.trigger('click')
+    await flushPromises()
+    expect(wrapper.get('details summary').text()).toContain('Aguardando confirmação')
+    await wrapper.findAll('select')[1]?.setValue('uuid-02')
+    await flushPromises()
+    expect(wrapper.get('details summary').text()).not.toContain('Aguardando confirmação')
+    expect(requestLed).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+  })
+
+  it('reconsulta após reconectar sem reenviar comando', async () => {
+    const connectionState = ref<'offline' | 'connected'>('offline')
+    vi.mocked(useMonitoringSummary).mockReturnValue({
+      loadSummary: vi.fn(), monitoringState: computed(() => ({ kind: 'normal', history: 'ready' } as const)),
+      refreshRevision: ref(0), summary: ref(summary), connectionState,
+      ageSeconds: computed(() => summary.freshness?.age_seconds ?? null),
+    })
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    const initialLoads = vi.mocked(fetchActuators).mock.calls.length
+    connectionState.value = 'connected'
+    await flushPromises()
+    expect(fetchActuators).toHaveBeenCalledTimes(initialLoads + 1)
+    expect(requestLed).not.toHaveBeenCalled()
     wrapper.unmount()
   })
 
@@ -110,10 +193,10 @@ describe('FoundationView', () => {
     await flushPromises()
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
     try {
-      await wrapper.findAll('button').find((button) => button.text() === 'Ligar LED')?.trigger('click')
+      await wrapper.findAll('button').find((button) => button.text() === 'Ligar Luz')?.trigger('click')
       await vi.advanceTimersByTimeAsync(16000)
       expect(fetchCommand).toHaveBeenCalledTimes(16)
-      expect(wrapper.text()).toContain('Desligar LED')
+      expect(wrapper.text()).toContain('Desligar Luz')
     } finally {
       wrapper.unmount()
       vi.useRealTimers()
@@ -176,7 +259,7 @@ describe('FoundationView', () => {
     vi.mocked(listEnvironments).mockResolvedValueOnce([])
     vi.mocked(useMonitoringSummary).mockReturnValueOnce({
       loadSummary: vi.fn(), monitoringState: computed(() => ({ kind: 'no_data', history: 'unavailable' } as const)),
-      refreshRevision: ref(0), summary: ref(null), connectionState: ref('offline'),
+      refreshRevision: ref(0), summary: ref(null), connectionState: ref('offline'), ageSeconds: computed(() => null),
     })
     const empty = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
     await flushPromises()
@@ -189,7 +272,7 @@ describe('FoundationView', () => {
     ])
     vi.mocked(useMonitoringSummary).mockReturnValueOnce({
       loadSummary: vi.fn(), monitoringState: computed(() => ({ kind: 'no_data', history: 'unavailable' } as const)),
-      refreshRevision: ref(0), summary: ref(null), connectionState: ref('offline'),
+      refreshRevision: ref(0), summary: ref(null), connectionState: ref('offline'), ageSeconds: computed(() => null),
     })
     const inactive = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
     await flushPromises()
@@ -203,10 +286,28 @@ describe('FoundationView', () => {
     vi.mocked(useMonitoringSummary).mockReturnValue({
       loadSummary, monitoringState: computed(() => ({ kind: 'service_error', history: 'error' } as const)),
       refreshRevision: ref(0), summary: ref(summary), connectionState: ref('offline'),
+      ageSeconds: computed(() => summary.freshness?.age_seconds ?? null),
     })
     const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
     await flushPromises()
     expect(wrapper.text()).toContain('Diagnóstico indisponível')
+    expect(wrapper.find('.metrics-grid').exists()).toBe(false)
+    await wrapper.findAll('button').find((button) => button.text() === 'Tentar novamente')?.trigger('click')
+    expect(loadSummary).toHaveBeenCalledOnce()
+    wrapper.unmount()
+  })
+
+  it('não exibe diagnóstico de outro ambiente mesmo quando o ID MQTT coincide', async () => {
+    const loadSummary = vi.fn()
+    vi.mocked(useMonitoringSummary).mockReturnValue({
+      loadSummary, monitoringState: computed(() => ({ kind: 'normal', history: 'ready' } as const)),
+      refreshRevision: ref(0), summary: ref({ ...summary, environment: { id: 'outro-ambiente', name: 'Outro ambiente' } }),
+      connectionState: ref('connected'), ageSeconds: computed(() => 4),
+    })
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    expect(wrapper.text()).toContain('A API retornou dados de outro ambiente')
+    expect(wrapper.find('.status-panel').exists()).toBe(false)
     expect(wrapper.find('.metrics-grid').exists()).toBe(false)
     await wrapper.findAll('button').find((button) => button.text() === 'Tentar novamente')?.trigger('click')
     expect(loadSummary).toHaveBeenCalledOnce()
@@ -225,12 +326,19 @@ describe('FoundationView', () => {
     vi.mocked(useMonitoringSummary).mockReturnValue({
       loadSummary: vi.fn(), monitoringState: computed(() => ({ kind, history: 'ready' } as const)),
       refreshRevision: ref(0), summary: ref(currentSummary), connectionState: ref('connected'),
+      ageSeconds: computed(() => currentSummary.freshness?.age_seconds ?? null),
     })
     const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
     await flushPromises()
     expect(wrapper.get('.status-panel h2').text()).toBe(label)
-    if (kind === 'no_data') expect(wrapper.get('.temperature').text()).toBe('—')
-    if (kind === 'stale') expect(wrapper.text()).toContain('situação atual não está confirmada')
+    if (kind === 'no_data') {
+      expect(wrapper.get('.temperature').text()).toBe('—')
+      expect(wrapper.text()).toContain('Verifique se ele está ativo e enviando dados')
+    }
+    if (kind === 'stale') {
+      expect(wrapper.text()).toContain('situação atual não está confirmada')
+      expect(wrapper.text()).toContain('aguarde uma leitura nova')
+    }
     wrapper.unmount()
   })
 })

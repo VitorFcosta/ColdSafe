@@ -110,4 +110,57 @@ describe('AlertsComparisonPanel', () => {
     expect(fetcher).toHaveBeenCalledTimes(6)
     wrapper.unmount()
   })
+
+  it('distingue 55 leituras de uma consulta que chegou ao limite de 300', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(end)
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input))
+      if (url.pathname.endsWith('/alerts')) {
+        return new Response(JSON.stringify({ success: true, data: { alerts: [] }, meta: { device_id: 'esp32-1', count: 0 } }))
+      }
+      const start = url.searchParams.get('start')!
+      const count = start === '2026-09-24T10:00:00.000Z' ? 300 : 55
+      const readings = Array.from({ length: count }, (_, index) => ({
+        ...reading, received_at: new Date(Date.parse(start) + index * 5_000).toISOString(),
+      }))
+      return new Response(JSON.stringify({ success: true, data: { readings }, meta: {
+        device_id: 'esp32-1', start, end: url.searchParams.get('end'), count, limit: 300,
+      } }))
+    }))
+    const wrapper = mount(AlertsComparisonPanel, {
+      props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('55 leituras retornadas')
+    expect(wrapper.text()).toContain('300 leituras retornadas')
+    expect(wrapper.text()).toContain('Limite de 300 atingido')
+    expect(wrapper.text()).not.toContain('cobertura completa')
+    wrapper.unmount()
+  })
+
+  it('permite repetir a comparação após uma falha sem esconder os alertas válidos', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(end)
+    const successfulFetch = installFetch()
+    let failPrevious = true
+    vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
+      const url = new URL(String(input))
+      if (failPrevious && url.searchParams.get('start') === '2026-09-24T10:00:00.000Z') {
+        return Promise.resolve(new Response('{}', { status: 503 }))
+      }
+      return successfulFetch(input)
+    }))
+    const wrapper = mount(AlertsComparisonPanel, {
+      props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Temperatura acima do limite')
+    expect(wrapper.text()).toContain('Não foi possível comparar as leituras')
+    failPrevious = false
+    await wrapper.get('article:nth-child(2) button').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('média de 4 °C')
+    wrapper.unmount()
+  })
 })

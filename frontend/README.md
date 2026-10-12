@@ -58,9 +58,11 @@ npm run capture:demo
 ```
 
 O script usa Playwright e os mesmos mocks HTTP dos E2E. Gera quatro PNGs,
-um WebM de cerca de 72 segundos e legendas VTT em `public/media/`.
+um WebM de cerca de 81 segundos e legendas VTT em `public/media/`.
 Não precisa de backend. A faixa “DEMONSTRAÇÃO SIMULADA” existe somente na
-captura. O vídeo também explica por texto cada cenário.
+captura. O vídeo também explica por texto cada cenário, incluindo a confirmação
+simulada de um comando. Para conferir arquivos antes de substituir a mídia,
+defina `CAPTURE_OUTPUT_DIR` com uma pasta temporária.
 
 ## Motion e tipagem
 

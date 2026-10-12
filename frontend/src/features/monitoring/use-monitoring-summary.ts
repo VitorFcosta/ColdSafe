@@ -1,9 +1,19 @@
 import { computed, onMounted, onUnmounted, ref, watch, type Ref } from 'vue'
 
-import { resolveMonitoringState, type SummaryState } from './monitoring-state'
+import { resolveMonitoringState, STALE_AFTER_SECONDS, type SummaryState } from './monitoring-state'
 import { fetchMonitoringSummary, type MonitoringSummary } from './monitoring-summary'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+
+export function formatFreshness(ageSeconds: number | undefined) {
+  if (ageSeconds === undefined) return 'Sem leitura recebida'
+  if (ageSeconds < 5) return 'Agora mesmo'
+  if (ageSeconds < 60) return `Há ${Math.floor(ageSeconds)} s`
+  if (ageSeconds < 3600) return `Há ${Math.floor(ageSeconds / 60)} min`
+  if (ageSeconds < 86400) return `Há ${Math.floor(ageSeconds / 3600)} h`
+  const days = Math.floor(ageSeconds / 86400)
+  return `Há ${days} ${days === 1 ? 'dia' : 'dias'}`
+}
 
 export type MonitoringEvent = Readonly<{
   schema_version: 2
@@ -32,14 +42,23 @@ export function useMonitoringSummary(
   const summaryState = ref<SummaryState>({ phase: 'loading' })
   const refreshRevision = ref(0)
   const connectionState = ref<'connecting' | 'connected' | 'offline' | 'unauthorized' | 'forbidden'>('offline')
+  const clock = ref(Date.now())
+  const summaryRequestedAt = ref(Date.now())
+  let clockTimer: ReturnType<typeof setInterval> | null = null
   let socket: WebSocket | null = null
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null
   let selectionRevision = 0
   let latestSummaryRequest = 0
   let disposed = false
 
+  const ageSeconds = computed(() => !summary.value?.freshness
+    ? null
+    : summary.value.freshness.age_seconds + Math.max(0, clock.value - summaryRequestedAt.value) / 1000)
+
   const monitoringState = computed(() => resolveMonitoringState({
-    summary: summaryState.value,
+    summary: summaryState.value.phase === 'ready' && summary.value?.reading && ageSeconds.value !== null && ageSeconds.value > STALE_AFTER_SECONDS
+      ? { phase: 'ready', status: 'stale' }
+      : summaryState.value,
     history: { phase: 'idle' },
   }))
 
@@ -47,6 +66,7 @@ export function useMonitoringSummary(
     const currentToken = token.value
     const currentDevice = deviceId.value
     if (!currentToken || !currentDevice) return
+    const requestedAt = Date.now()
     const requestId = ++latestSummaryRequest
     if (summary.value === null) summaryState.value = { phase: 'loading' }
 
@@ -59,6 +79,8 @@ export function useMonitoringSummary(
       })
       if (requestId !== latestSummaryRequest || token.value !== currentToken || deviceId.value !== currentDevice) return
       if (result.device.id !== currentDevice) throw new Error('Dispositivo inesperado no resumo.')
+      clock.value = Math.max(clock.value, Date.now())
+      summaryRequestedAt.value = requestedAt
       summary.value = result
       summaryState.value = { phase: 'ready', status: result.status }
       refreshRevision.value += 1
@@ -121,6 +143,7 @@ export function useMonitoringSummary(
   }
 
   onMounted(() => {
+    clockTimer = setInterval(() => { clock.value = Math.max(clock.value, Date.now()) }, 1000)
     watch([token, deviceId], () => {
       selectionRevision += 1
       latestSummaryRequest += 1
@@ -138,8 +161,9 @@ export function useMonitoringSummary(
   onUnmounted(() => {
     disposed = true
     selectionRevision += 1
+    if (clockTimer !== null) clearInterval(clockTimer)
     disconnect()
   })
 
-  return { loadSummary, monitoringState, refreshRevision, summary, connectionState }
+  return { loadSummary, monitoringState, refreshRevision, summary, connectionState, ageSeconds }
 }

@@ -53,6 +53,28 @@ test('abre a demonstração por teclado e oferece vídeo simulado com controles 
   }
 })
 
+test('menu móvel abre por teclado e mantém acesso à demonstração, código e painel', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByText('Protótipo acadêmico · Demonstração com dados simulados')).toBeVisible()
+  await expect(page.getByText('Ambientes e dispositivos', { exact: true })).toBeVisible()
+  await expect(page.getByText('01', { exact: true })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Entrar no painel' })).toHaveAttribute('href', '/dashboard')
+
+  const menu = page.getByText('Menu', { exact: true })
+  await menu.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.mobile-nav')).toHaveAttribute('open', '')
+  await expect(page.getByRole('navigation', { name: 'Navegação principal móvel' }).getByRole('link')).toHaveCount(4)
+  await expect(page.getByRole('navigation', { name: 'Navegação principal móvel' }).getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/VitorFcosta/ColdSafe')
+  const demonstration = page.getByRole('navigation', { name: 'Navegação principal móvel' }).getByRole('link', { name: 'Demonstração' })
+  await demonstration.focus()
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/#demonstracao$/)
+})
+
 for (const width of [320, 375, 768, 1440]) {
   test(`mantém apresentação e dashboard legíveis sem rolagem horizontal em ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
@@ -103,5 +125,25 @@ test('ampliação de 200% preserva conteúdo e controles nas duas rotas', async 
     await control.focus()
     await expect(control).toBeFocused()
     await expect(control).toBeVisible()
+  }
+})
+
+test('texto ampliado não cria rolagem horizontal nas quatro rotas', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 })
+  for (const route of ['/', '/login']) {
+    await page.goto(route)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), route).toBeLessThanOrEqual(360)
+  }
+  await mockMonitoringApi(page, { status: 'normal' })
+  await page.route('**/api/v1/environments/*/rules', (route) => route.fulfill({
+    json: { success: true, data: { min_c: 2, max_c: 8, attention_margin_c: 1 } },
+  }))
+  for (const route of ['/dashboard', '/manage']) {
+    await page.goto(route)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), route).toBeLessThanOrEqual(360)
   }
 })

@@ -73,6 +73,24 @@ test.describe('dashboard operacional', () => {
     })
   }
 
+  test('abre a tabela de leituras pelo teclado sem criar rolagem horizontal no celular', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 700 })
+    await mockMonitoringApi(page, { status: 'normal' })
+    await page.goto('/dashboard')
+
+    const details = page.locator('details').filter({ hasText: 'Ver 1 leitura em tabela' })
+    await expect(details).toBeVisible()
+    await details.locator('summary').focus()
+    await page.keyboard.press('Enter')
+    await expect(details).toHaveAttribute('open', '')
+    const table = page.getByRole('table', { name: /Leituras individuais do período selecionado/ })
+    await expect(table.getByRole('row')).toHaveCount(2)
+    await expect(table.getByRole('cell', { name: '5 °C' })).toBeVisible()
+    await page.keyboard.press('Tab')
+    await expect(page.getByRole('region', { name: 'Leituras individuais de temperatura' })).toBeFocused()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+  })
+
   test('exibe o fluxo sem dados sem inventar medições', async ({ page }) => {
     await mockMonitoringApi(page, { status: 'no_data' })
 
@@ -121,6 +139,64 @@ test.describe('dashboard operacional', () => {
     await expect(page.getByText('Normal', { exact: true })).toBeVisible()
     await expect(page.getByRole('alert')).toHaveCount(0)
   })
+})
+
+for (const scenario of [
+  { status: 'normal', label: 'Normal', age: 'Agora mesmo' },
+  { status: 'stale', label: 'Leitura desatualizada', age: 'Há 1 h' },
+] as const) {
+  test(`mostra temperatura, estado e atualidade juntos na primeira tela móvel: ${scenario.status}`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await mockMonitoringApi(page, { status: scenario.status, temperature: 5, ageSeconds: scenario.status === 'stale' ? 3600 : 2 })
+    await page.goto('/dashboard')
+
+    const primary = page.getByRole('article').filter({ hasText: 'Temperatura' }).first()
+    await expect(primary).toContainText('5 °C')
+    await expect(primary).toContainText(scenario.label)
+    await expect(primary).toContainText(scenario.age)
+    const bounds = await primary.boundingBox()
+    expect(bounds).not.toBeNull()
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(844)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+
+    if (scenario.status === 'stale') {
+      await expect(page.getByText(/Conexão com servidor: conectada\. O sensor não enviou leitura recente\./)).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Umidade da última leitura' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Luminosidade da última leitura' })).toBeVisible()
+    }
+
+    if (scenario.status === 'normal') {
+      await page.setViewportSize({ width: 1440, height: 900 })
+      const secondary = page.getByRole('region', { name: 'Medições do ambiente' }).locator('article')
+      await expect(secondary).toHaveCount(2)
+      const tops = await secondary.evaluateAll((articles) => articles.map((article) => article.getBoundingClientRect().top))
+      expect(tops[0]).toBe(tops[1])
+    }
+  })
+}
+
+test('mantém nomes longos e temperatura extrema legíveis em 320 px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 })
+  await mockMonitoringApi(page, {
+    status: 'critical',
+    temperature: -123.5,
+    environmentName: 'Laboratório de amostras ultracongeladas do bloco experimental',
+    deviceName: 'Sensor de monitoramento da câmara ultracongelada',
+  })
+  await page.goto('/dashboard')
+
+  const primary = page.getByRole('article').filter({ hasText: 'Temperatura' }).first()
+  await expect(primary).toContainText('-123,5 °C')
+  await expect(primary).toContainText('Crítico')
+  await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente' })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
+
+  for (const locator of [page.locator('.dashboard-heading'), page.locator('.selection-panel'), primary]) {
+    const bounds = await locator.boundingBox()
+    expect(bounds).not.toBeNull()
+    expect(bounds!.x).toBeGreaterThanOrEqual(0)
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320)
+  }
 })
 
 test('mostra carregamento até receber uma leitura válida', async ({ page }) => {
@@ -202,9 +278,37 @@ test('troca de dispositivo e só mostra LED ligado após confirmação', async (
   await page.getByRole('combobox', { name: 'Dispositivo' }).selectOption('uuid-02')
   await expect(page.getByText('Laboratório Refrigerado / esp32-lab-02', { exact: true })).toBeVisible()
   await expect(page.getByRole('article').filter({ hasText: 'Temperatura' }).getByText('4 °C')).toBeVisible()
-  await page.getByRole('button', { name: 'Ligar LED' }).click()
+  await page.locator('details[aria-label="Estado dos atuadores"] summary').click()
+  await page.getByRole('button', { name: 'Ligar Luz' }).focus()
+  await page.keyboard.press('Enter')
   await expect(page.getByText('Aguardando confirmação', { exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Desligar LED' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Desligar Luz' })).toBeVisible()
+})
+
+test('abre os atuadores por teclado sem enviar comandos', async ({ page }) => {
+  await mockMonitoringApi(page, { status: 'normal' })
+  const commandRequests: string[] = []
+  await page.route('**/api/v1/devices/*/led/commands', (route) => {
+    commandRequests.push(route.request().url())
+    return route.abort()
+  })
+  await page.goto('/dashboard')
+
+  const details = page.locator('details[aria-label="Estado dos atuadores"]')
+  const summary = details.locator('summary')
+  await expect(details).not.toHaveAttribute('open')
+  await expect(summary).toContainText('Luz manual: Sem confirmação registrada')
+  await expect(summary).toContainText('Som de aviso automático: Sem confirmação registrada')
+  await summary.focus()
+  await page.keyboard.press('Enter')
+  await expect(details).toHaveAttribute('open', '')
+  await expect(details.getByRole('button', { name: 'Atualizar estado' })).toBeVisible()
+  await expect(details.getByRole('button', { name: 'Ligar Luz' })).toBeVisible()
+  await page.keyboard.press('Enter')
+  await expect(details).not.toHaveAttribute('open')
+  await page.goto('/manage')
+  await page.goto('/dashboard')
+  expect(commandRequests).toEqual([])
 })
 
 test('troca o período do histórico sem perder a leitura atual', async ({ page }) => {
@@ -212,17 +316,19 @@ test('troca o período do histórico sem perder a leitura atual', async ({ page 
   await page.goto('/dashboard')
   await expect(page.getByRole('button', { name: '1h', exact: true })).toHaveAttribute('aria-pressed', 'true')
 
-  const historyRequest = page.waitForRequest((request) => {
-    const url = new URL(request.url())
-    return url.pathname === '/api/v1/readings' && url.searchParams.get('period') === '24h'
-  })
-  await page.getByRole('button', { name: '24h', exact: true }).click()
-  await historyRequest
+  for (const period of ['15m', '6h', '24h']) {
+    const historyRequest = page.waitForRequest((request) => {
+      const url = new URL(request.url())
+      return url.pathname === '/api/v1/readings' && url.searchParams.get('period') === period
+    })
+    await page.getByRole('button', { name: period, exact: true }).click()
+    await historyRequest
+    await expect(page.getByRole('button', { name: period, exact: true })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('img', { name: 'Gráfico de linha da temperatura no período selecionado' })).toBeVisible()
+  }
 
-  await expect(page.getByRole('button', { name: '24h', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('button', { name: '1h', exact: true })).toHaveAttribute('aria-pressed', 'false')
   await expect(page.getByText('Normal', { exact: true })).toBeVisible()
-  await expect(page.getByRole('img', { name: 'Gráfico de linha da temperatura no período selecionado' })).toBeVisible()
 })
 
 test('preserva leitura válida quando apenas o histórico falha', async ({ page }) => {

@@ -38,7 +38,7 @@ async function submit() {
       <RouterLink to="/" class="brand"><span aria-hidden="true">◉</span> ColdSafe</RouterLink>
       <section class="panel" aria-labelledby="access-title">
         <p class="eyebrow">Acesso à sua operação</p>
-        <h1 id="access-title">{{ mode === 'login' ? 'Entrar' : 'Criar conta' }}</h1>
+        <h1 id="access-title" tabindex="-1">{{ mode === 'login' ? 'Entrar' : 'Criar conta' }}</h1>
         <p class="intro">Seus ambientes e dispositivos ficam vinculados à sua conta.</p>
         <form @submit.prevent="submit">
           <label for="email">Email</label>
@@ -66,7 +66,7 @@ h1 { margin: var(--cs-space-8) 0 var(--cs-space-12); font-size: var(--cs-type-32
 .intro { color: var(--cs-color-ink-muted); line-height: 1.5; }
 form { display: grid; gap: var(--cs-space-12); margin-top: var(--cs-space-32); }
 label { font-size: var(--cs-type-14); font-weight: 600; }
-input { width: 100%; min-height: 44px; padding: var(--cs-space-12); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-4); background: var(--cs-color-surface); color: var(--cs-color-ink); font: inherit; }
+input { width: 100%; min-height: 44px; padding: var(--cs-space-12); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-4); background: var(--cs-color-surface); color: var(--cs-color-ink); font: inherit; }
 button { min-height: 44px; cursor: pointer; }
 .primary { margin-top: var(--cs-space-12); border-radius: var(--cs-radius-4); background: var(--cs-color-accent); color: var(--cs-color-accent-ink); font-weight: 600; }
 .primary:hover { background: var(--cs-color-accent-hover); }
