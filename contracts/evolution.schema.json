@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://coldsafe.local/contracts/evolution.schema.json",
   "title": "ColdSafe evolution messages",
-  "description": "Version 2 telemetry, command, acknowledgment and REST messages; WebSocket messages remain planned.",
+  "description": "Version 2 telemetry, command, acknowledgment, REST and WebSocket messages.",
   "$defs": {
     "device_id": {
       "type": "string",

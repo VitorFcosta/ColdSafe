@@ -17,6 +17,9 @@ constexpr std::uint8_t dht_pin{15};
 constexpr std::uint8_t light_pin{34};  // ADC1 works while Wi-Fi is active.
 constexpr std::uint8_t led_pin{18};
 constexpr std::uint8_t buzzer_pin{19};
+constexpr unsigned int buzzer_frequency_hz{500U};
+constexpr unsigned long buzzer_beep_duration_ms{120UL};
+constexpr unsigned long buzzer_beep_interval_ms{2000UL};
 constexpr unsigned long reading_interval_ms{2000UL};
 constexpr unsigned long publish_interval_ms{5000UL};
 constexpr unsigned long connection_retry_interval_ms{5000UL};
@@ -64,12 +67,14 @@ char command_topic[topic_buffer_size]{};
 char ack_topic[topic_buffer_size]{};
 bool wifi_connected_reported{false};
 bool has_valid_reading{false};
+bool buzzer_enabled{false};
 TempAndHumidity latest_reading{};
 float latest_light_percent{0.0F};
 unsigned long last_wifi_attempt_ms{0UL};
 unsigned long last_mqtt_attempt_ms{0UL};
 unsigned long last_reading_ms{0UL};
 unsigned long last_publish_ms{0UL};
+unsigned long last_buzzer_beep_ms{0UL};
 
 bool interval_elapsed(const unsigned long now, const unsigned long previous,
                       const unsigned long interval) {
@@ -154,8 +159,11 @@ void on_mqtt_message(String& topic, String& payload) {
     if (std::strcmp(actuator, "led") == 0) {
         digitalWrite(led_pin, desired_state ? HIGH : LOW);
     } else if (desired_state) {
-        tone(buzzer_pin, 1000);
+        buzzer_enabled = true;
+        last_buzzer_beep_ms = millis();
+        tone(buzzer_pin, buzzer_frequency_hz, buzzer_beep_duration_ms);
     } else {
+        buzzer_enabled = false;
         noTone(buzzer_pin);
     }
 
@@ -270,7 +278,6 @@ void setup() {
     pinMode(led_pin, OUTPUT);
     pinMode(buzzer_pin, OUTPUT);
     digitalWrite(led_pin, LOW);
-    noTone(buzzer_pin);
 
     std::snprintf(telemetry_topic, sizeof(telemetry_topic),
                   "coldsafe/v2/devices/%s/telemetry", device_id);
@@ -280,6 +287,7 @@ void setup() {
                   "coldsafe/v2/devices/%s/acks", device_id);
     mqtt_client.begin(coldsafe::secrets::MQTT_HOST, coldsafe::secrets::MQTT_PORT,
                       network_client);
+    mqtt_client.setKeepAlive(60);
     mqtt_client.onMessage(on_mqtt_message);
     start_wifi();
 }
@@ -288,6 +296,10 @@ void loop() {
     const unsigned long now{millis()};
     maintain_wifi(now);
     maintain_mqtt(now);
+    if (buzzer_enabled && now - last_buzzer_beep_ms >= buzzer_beep_interval_ms) {
+        last_buzzer_beep_ms = now;
+        tone(buzzer_pin, buzzer_frequency_hz, buzzer_beep_duration_ms);
+    }
     mqtt_client.loop();
     sample_sensor(now);
     publish_telemetry(now);

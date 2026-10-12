@@ -1,4 +1,5 @@
 from unittest.mock import Mock, patch
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
@@ -136,3 +137,19 @@ def test_runtime_ingestion_uses_registered_rules_and_rejects_inactive_device(
     else:
         raise AssertionError("inactive device telemetry must be rejected")
     create_repository.return_value.repository.save.assert_called_once()
+
+
+@patch("backend.app.runtime.CatalogService")
+@patch("backend.app.runtime.AlertService")
+@patch("backend.app.runtime.CommandService")
+@patch("backend.app.runtime.MqttSubscriber")
+@patch("backend.app.runtime.create_influx_repository")
+def test_notification_failure_does_not_abort_committed_command_or_alert(
+    _repository, _subscriber, commands, alerts, catalog,
+) -> None:
+    build_runtime_app(settings())
+    catalog.return_value.active_device.side_effect = RuntimeError("database unavailable")
+    commands.call_args.kwargs["on_status"]({"device_id": "owned"})
+    alerts.call_args.kwargs["on_transition"](
+        "owned", uuid4(), "opened", datetime.now(UTC)
+    )

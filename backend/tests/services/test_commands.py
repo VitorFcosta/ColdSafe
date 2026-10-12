@@ -26,7 +26,7 @@ class FakeCursor:
                 "id": command_id, "device_id": device_id,
                 "requested_by_user_id": user_id, "actuator": actuator,
                 "desired_on": desired, "origin": source, "status": "pending",
-                "requested_at": self.now, "deadline_at": self.now + timedelta(seconds=10),
+                "requested_at": self.now, "deadline_at": self.now + timedelta(seconds=30),
                 "mqtt_device_id": mqtt_id,
             }
             self.result = dict(self.row)
@@ -38,6 +38,8 @@ class FakeCursor:
                 "e.owner_user_id" not in sql or params[1] == self.row["requested_by_user_id"]
             )
             self.result = dict(self.row) if permitted else None
+        elif sql.startswith("SELECT DISTINCT ON"):
+            self.result = [dict(self.row)] if self.row and params[0] == self.row["device_id"] and params[1] == self.row["requested_by_user_id"] else []
         elif sql.startswith("SELECT 1 FROM audit_events"):
             self.result = (1,) if any(event == sql.split("event_type = '")[1].split("'")[0] for event, _ in self.audits) else None
         elif sql.startswith("UPDATE actuator_commands"):
@@ -77,8 +79,8 @@ class FakeCursor:
 
 
 class FakeService(CommandService):
-    def __init__(self, publisher):
-        super().__init__(settings=None, publisher=publisher)
+    def __init__(self, publisher, on_status=None):
+        super().__init__(settings=None, publisher=publisher, on_status=on_status)
         self.db = FakeCursor()
         self.commits = 0
 
@@ -116,7 +118,17 @@ def test_command_is_committed_pending_before_publication_and_response_stays_pend
     response = request(service)
     assert response["status"] == "pending"
     assert response["confirmed_state"] is None
-    assert service.db.row["deadline_at"] - service.db.row["requested_at"] == timedelta(seconds=10)
+    assert service.db.row["deadline_at"] - service.db.row["requested_at"] == timedelta(seconds=30)
+    assert "interval '30 seconds'" in service.db.statements[0]
+
+
+def test_ack_after_simulator_latency_still_confirms_within_deadline():
+    service = FakeService(lambda *_: True)
+    response = request(service)
+    service.db.now += timedelta(seconds=15)
+    service.handle_ack(ack(response["command_id"]))
+
+    assert service.get(service.db.row["id"])["status"] == "confirmed"
 
 
 @pytest.mark.parametrize(
@@ -140,6 +152,29 @@ def test_ack_result_requires_matching_applied_state_and_duplicate_is_idempotent(
     assert service.db.audits[-1][0] == f"command_{expected}"
 
 
+def test_status_events_follow_request_and_confirmed_ack_once():
+    events = []
+    service = FakeService(lambda *_: True, on_status=events.append)
+    response = request(service)
+    service.handle_ack(ack(response["command_id"]))
+    service.handle_ack(ack(response["command_id"]))
+    assert [event["status"] for event in events] == ["pending", "confirmed"]
+
+
+def test_latest_actuators_query_checks_owner_and_keeps_pending_unconfirmed():
+    events = []
+    service = FakeService(lambda *_: True, on_status=events.append)
+    request(service)
+    owner = service.db.row["requested_by_user_id"]
+    device = service.db.row["device_id"]
+    assert service.latest_for_device(device, uuid4()) == {"led": None, "buzzer": None}
+    service.db.now += timedelta(seconds=31)
+    latest = service.latest_for_device(device, owner)
+    assert latest["led"]["status"] == "unconfirmed"
+    assert latest["led"]["confirmed_state"] is None
+    assert [event["status"] for event in events] == ["pending", "unconfirmed"]
+
+
 def test_wrong_device_and_actuator_cannot_confirm_and_mismatch_is_audited_once():
     service = FakeService(lambda *_: True)
     response = request(service)
@@ -154,7 +189,7 @@ def test_wrong_device_and_actuator_cannot_confirm_and_mismatch_is_audited_once()
 def test_timeout_and_late_ack_keep_unconfirmed_and_audit_only_once():
     service = FakeService(lambda *_: True)
     response = request(service)
-    service.db.now += timedelta(seconds=11)
+    service.db.now += timedelta(seconds=31)
     assert service.get(service.db.row["id"])["status"] == "unconfirmed"
     service.handle_ack(ack(response["command_id"]))
     service.handle_ack(ack(response["command_id"]))
@@ -169,7 +204,7 @@ def test_timeout_and_late_ack_keep_unconfirmed_and_audit_only_once():
 def test_user_query_checks_ownership_before_expiring_or_returning_command():
     service = FakeService(lambda *_: True)
     request(service)
-    service.db.now += timedelta(seconds=11)
+    service.db.now += timedelta(seconds=31)
 
     assert service.get_for_user(service.db.row["id"], uuid4()) is None
     assert service.db.row["status"] == "pending"
@@ -192,7 +227,7 @@ def test_failed_publish_is_unconfirmed_and_audited():
 def test_expire_pending_marks_all_due_commands_once():
     service = FakeService(lambda *_: True)
     request(service)
-    service.db.now += timedelta(seconds=11)
+    service.db.now += timedelta(seconds=31)
 
     assert service.expire_pending() == 1
     assert service.expire_pending() == 0

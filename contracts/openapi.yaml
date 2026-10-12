@@ -20,8 +20,8 @@ paths:
       operationId: getMonitoringSummary
       summary: Consultar o diagnóstico atual
       description: >-
-        Sem device_id, consulta o dispositivo legado enquanto ele não tiver
-        proprietário. Dispositivos cadastrados exigem sessão Bearer e propriedade.
+        Com autenticação configurada, todas as consultas exigem sessão Bearer e
+        propriedade. O modo isolado de demonstração permite somente o dispositivo legado.
       parameters:
         - name: device_id
           in: query
@@ -54,8 +54,10 @@ paths:
       operationId: listReadings
       summary: Consultar o histórico de leituras
       description: >-
-        O dispositivo legado sem proprietário permanece público; dispositivos
-        cadastrados exigem sessão Bearer e propriedade, inclusive após desativação.
+        Com autenticação configurada, todas as consultas exigem sessão Bearer e
+        propriedade, inclusive após desativação. O modo isolado permite o dispositivo legado.
+        start e end devem ser enviados juntos com fuso horário; quando ausentes, period
+        define a janela até o instante atual.
       parameters:
         - name: device_id
           in: query
@@ -81,6 +83,14 @@ paths:
             minimum: 1
             maximum: 1000
             default: 300
+        - name: start
+          in: query
+          required: false
+          schema: {type: string, format: date-time}
+        - name: end
+          in: query
+          required: false
+          schema: {type: string, format: date-time}
       responses:
         "200":
           description: Histórico encontrado ou lista vazia.
@@ -98,6 +108,67 @@ paths:
           $ref: "#/components/responses/DependencyUnavailable"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/v1/alerts:
+    get:
+      tags: [Alerts]
+      summary: Consultar intervalos de alertas do dispositivo próprio
+      operationId: list_alerts_api_v1_alerts_get
+      description: >-
+        Retorna alertas cuja duração intercepta [start, end). start e end exigem
+        fuso horário e devem ser enviados juntos. Sem ambos, retorna os mais recentes.
+      parameters:
+        - name: device_id
+          in: query
+          required: true
+          schema: {type: string, minLength: 1, maxLength: 64, pattern: "^[A-Za-z0-9._-]+$"}
+        - name: start
+          in: query
+          required: false
+          schema: {type: string, format: date-time}
+        - name: end
+          in: query
+          required: false
+          schema: {type: string, format: date-time}
+        - name: limit
+          in: query
+          required: false
+          schema: {type: integer, minimum: 1, maximum: 1000, default: 300}
+      responses:
+        '200':
+          description: Intervalos de alertas encontrados ou lista vazia.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AlertHistoryResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/DeviceNotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/DependencyUnavailable'}
+  /api/v1/devices/{device_id}/actuators:
+    get:
+      tags: [Commands]
+      summary: Consultar últimos estados de LED e buzzer do dispositivo próprio
+      operationId: get_actuators_api_v1_devices__device_id__actuators_get
+      security: [{HTTPBearer: []}]
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Últimos comandos por atuador; null quando nunca comandado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ActuatorStateResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/DeviceNotFound'}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '503': {$ref: '#/components/responses/DependencyUnavailable'}
   /api/v1/devices/{device_id}/led/commands:
     post:
       tags: [Commands]
@@ -850,6 +921,54 @@ components:
         success: {type: boolean, const: true}
         data: {$ref: '#/components/schemas/CommandData'}
         meta: {$ref: '#/components/schemas/CommandMeta'}
+    ActuatorStateResponse:
+      type: object
+      required: [success, data, meta]
+      properties:
+        success: {type: boolean, const: true}
+        data:
+          type: object
+          required: [led, buzzer]
+          properties:
+            led:
+              anyOf: [{$ref: '#/components/schemas/CommandData'}, {type: 'null'}]
+            buzzer:
+              anyOf: [{$ref: '#/components/schemas/CommandData'}, {type: 'null'}]
+        meta: {$ref: '#/components/schemas/CommandMeta'}
+    AlertHistoryResponse:
+      type: object
+      required: [success, data, meta]
+      properties:
+        success: {type: boolean, const: true}
+        data:
+          type: object
+          required: [alerts]
+          properties:
+            alerts:
+              type: array
+              items:
+                type: object
+                required: [alert_id, device_id, kind, opened_at, closed_at, status]
+                properties:
+                  alert_id: {type: string, format: uuid}
+                  device_id: {type: string}
+                  kind: {type: string, enum: [temperature_low, temperature_high]}
+                  opened_at: {type: string, format: date-time}
+                  closed_at:
+                    anyOf: [{type: string, format: date-time}, {type: 'null'}]
+                  status: {type: string, enum: [open, closed]}
+        meta:
+          type: object
+          required: [schema_version, device_id, start, end, count, limit]
+          properties:
+            schema_version: {type: integer, const: 2}
+            device_id: {type: string}
+            start:
+              anyOf: [{type: string, format: date-time}, {type: 'null'}]
+            end:
+              anyOf: [{type: string, format: date-time}, {type: 'null'}]
+            count: {type: integer, minimum: 0}
+            limit: {type: integer, minimum: 1, maximum: 1000}
     DeviceInput:
       properties:
         name:

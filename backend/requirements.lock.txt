@@ -70,3 +70,5 @@ urllib3==2.7.0
     # via influxdb-client
 uvicorn==0.52.4
     # via -r backend/requirements.txt
+websockets==17.1
+    # via -r backend/requirements.txt

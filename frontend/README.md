@@ -2,8 +2,10 @@
 
 Apresentação de portfólio em `/` e dashboard operacional em `/dashboard`,
 com a direção **tecnologia de precisão**. A apresentação funciona sem backend.
-O dashboard mantém os contratos HTTP, os períodos de histórico e o polling
-a cada 5 segundos.
+No dashboard, cadastro/login, ambientes, dispositivos e limites usam REST
+autenticado. A leitura atual, os alertas e o estado do LED acompanham o
+dispositivo selecionado. Eventos WebSocket atualizam a tela; após reconexão,
+REST recupera o estado atual e o histórico.
 
 - [Definição do produto](PRODUCT.md).
 - [Figma editável](https://www.figma.com/design/EIn6llJ5Fc3uIFlIDdokZu).
@@ -16,16 +18,16 @@ operacionais: atualidade explícita, estados com texto e falhas parciais.
 ## Como executar
 
 - Referência de runtime: Node.js `24.20.0`.
-- Instalar dependências: `npm install`.
+- Instalar dependências fixadas: `npm ci`.
 - Iniciar o ambiente local: `npm run dev`.
 - Validar tipos e gerar a build: `npm run build`.
 - Executar os testes unitários do frontend: `npm run test:unit:run`.
 - Instalar o Chromium usado pelos testes E2E: `npx playwright install chromium`.
 - Executar os cenários E2E das duas interfaces: `npm run test:e2e`.
 
-Os testes E2E sobem o Vite automaticamente e simulam somente a fronteira HTTP
-da API. Assim, os estados normal, atenção, crítico, leitura desatualizada, sem
-dados e erro de serviço são reproduzíveis sem depender do InfluxDB ou do MQTT.
+Os testes E2E sobem o Vite automaticamente e simulam as fronteiras HTTP e
+WebSocket da API. Assim, estados normais, alertas, reconexão e falhas são
+reproduzíveis sem depender do InfluxDB ou do MQTT.
 
 ### Compatibilidade de versões
 
@@ -56,9 +58,11 @@ npm run capture:demo
 ```
 
 O script usa Playwright e os mesmos mocks HTTP dos E2E. Gera quatro PNGs,
-um WebM de cerca de 72 segundos e legendas VTT em `public/media/`.
+um WebM de cerca de 81 segundos e legendas VTT em `public/media/`.
 Não precisa de backend. A faixa “DEMONSTRAÇÃO SIMULADA” existe somente na
-captura. O vídeo também explica por texto cada cenário.
+captura. O vídeo também explica por texto cada cenário, incluindo a confirmação
+simulada de um comando. Para conferir arquivos antes de substituir a mídia,
+defina `CAPTURE_OUTPUT_DIR` com uma pasta temporária.
 
 ## Motion e tipagem
 

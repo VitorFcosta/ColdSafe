@@ -16,8 +16,9 @@ Na raiz do projeto:
 cp .env.example .env
 ```
 
-Preencha os campos vazios com valores exclusivos para desenvolvimento. Use a
-mesma senha escolhida para `MQTT_DEVICE_PASSWORD` ao configurar o firmware. O
+Preencha os campos vazios com valores exclusivos para desenvolvimento. Configure
+`MQTT_DEVICE_PASSWORD` e `MQTT_DEVICE_02_PASSWORD` com senhas diferentes e use
+cada uma no ESP32 correspondente. O
 backend deve receber um `INFLUXDB_TOKEN` exclusivo, com leitura e escrita
 somente no bucket de telemetria; nunca reutilize o token administrativo.
 Defina também `POSTGRES_PASSWORD` no `.env` local. O backend aplica a migração
@@ -26,8 +27,10 @@ relacional versionada ao iniciar; ela não modifica o histórico do InfluxDB.
 ## Credenciais MQTT
 
 O `mosquitto-init` gera automaticamente o arquivo de senhas no volume nomeado
-`mosquitto-auth`, usando `MQTT_BACKEND_PASSWORD` e `MQTT_DEVICE_PASSWORD` do
-`.env`. Não crie um arquivo `passwords` manualmente.
+`mosquitto-auth`, usando `MQTT_BACKEND_PASSWORD`, `MQTT_DEVICE_PASSWORD` e
+`MQTT_DEVICE_02_PASSWORD` do `.env`. Não crie um arquivo `passwords` manualmente.
+A ACL limita cada dispositivo aos próprios tópicos de telemetria, comandos e
+confirmações.
 
 ## Subir e verificar
 

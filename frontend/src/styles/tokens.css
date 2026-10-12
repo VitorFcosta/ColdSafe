@@ -6,6 +6,7 @@
   --cs-color-ink: #122e33;
   --cs-color-ink-muted: #526c70;
   --cs-color-line: #cbd8d6;
+  --cs-color-control-border: #687e7e;
   --cs-color-accent: #0c6d65;
   --cs-color-accent-hover: #07564f;
   --cs-color-accent-ink: #ffffff;
@@ -57,6 +58,7 @@
   --cs-color-ink: #edf6f3;
   --cs-color-ink-muted: #a8bfbd;
   --cs-color-line: #345057;
+  --cs-color-control-border: #829b9e;
   --cs-color-accent: #9bf1d9;
   --cs-color-accent-hover: #b7f9e8;
   --cs-color-accent-ink: #0b302e;
@@ -79,6 +81,7 @@
   --color-ink: var(--cs-color-ink);
   --color-ink-muted: var(--cs-color-ink-muted);
   --color-line: var(--cs-color-line);
+  --color-control-border: var(--cs-color-control-border);
   --color-accent: var(--cs-color-accent);
   --color-status-normal: var(--cs-color-status-normal);
   --color-status-attention: var(--cs-color-status-attention);

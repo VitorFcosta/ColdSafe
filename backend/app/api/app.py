@@ -42,6 +42,8 @@ from backend.app.services.monitoring import (
     utc_now,
 )
 from backend.app.services.commands import CommandService
+from backend.app.services.alerts import AlertService
+from backend.app.api.events import EventHub, install_events
 
 
 ERRORS: dict[str, str] = {
@@ -73,6 +75,8 @@ def create_app(
     auth: AuthService | None = None,
     catalog: CatalogService | None = None,
     commands: CommandService | None = None,
+    alerts: AlertService | None = None,
+    events: EventHub | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="ColdSafe Monitoring API",
@@ -99,13 +103,13 @@ def create_app(
         app.include_router(create_catalog_router(catalog, auth.require_user))
         app.include_router(create_command_router(catalog, commands, auth.require_user))
         auth.install_exception_handlers(app)
+        if events is not None:
+            install_events(app, events, auth, catalog)
 
     def selected_device(request: Request, device_id: str):
         if catalog is None or auth is None:
             if device_id != DEVICE_ID:
                 raise DeviceNotFoundError(device_id)
-            return ENVIRONMENT_ID, ENVIRONMENT_NAME, monitoring.thresholds
-        if device_id == DEVICE_ID and catalog.registered_device(device_id) is None:
             return ENVIRONMENT_ID, ENVIRONMENT_NAME, monitoring.thresholds
         scheme, _, token = request.headers.get("authorization", "").partition(" ")
         user_id = auth.current_user(token) if scheme.lower() == "bearer" else None
@@ -216,12 +220,20 @@ def create_app(
         ],
         period: Period = "1h",
         limit: Annotated[int, Query(ge=1, le=1000)] = 300,
+        start: datetime | None = None,
+        end: datetime | None = None,
     ) -> ReadingHistoryResponse:
         selected_device(request, device_id)
+        if (start is None) != (end is None) or (
+            start is not None and (start.utcoffset() is None or end.utcoffset() is None or start >= end)
+        ):
+            raise HTTPException(status_code=422, detail="VALIDATION_ERROR")
         history = monitoring.list_history(
             device_id=device_id,
             period=period,
             limit=limit,
+            start=start,
+            end=end,
         )
         readings = tuple(
             HistoricalReadingResponse(
@@ -243,6 +255,32 @@ def create_app(
                 limit=history.limit,
             ),
         )
+
+    if auth is not None and catalog is not None:
+        @app.get("/api/v1/alerts", responses=error_responses, tags=["Alerts"])
+        def list_alerts(
+            request: Request,
+            device_id: Annotated[str, Query(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9._-]+$")],
+            start: datetime | None = None,
+            end: datetime | None = None,
+            limit: Annotated[int, Query(ge=1, le=1000)] = 300,
+        ) -> dict:
+            if alerts is None:
+                raise HTTPException(status_code=503, detail="DEPENDENCY_UNAVAILABLE")
+            selected_device(request, device_id)
+            if (start is None) != (end is None) or (
+                start is not None and (start.utcoffset() is None or end.utcoffset() is None or start >= end)
+            ):
+                raise HTTPException(status_code=422, detail="VALIDATION_ERROR")
+            token = request.headers["authorization"].partition(" ")[2]
+            user_id = auth.current_user(token)
+            if user_id is None:
+                raise HTTPException(status_code=401, detail="UNAUTHORIZED")
+            rows = alerts.list_for_device(device_id, user_id, start=start, end=end, limit=limit)
+            return {"success": True, "data": {"alerts": rows}, "meta": {
+                "schema_version": 2, "device_id": device_id, "start": start,
+                "end": end, "count": len(rows), "limit": limit,
+            }}
 
     @app.get(
         "/health/live",

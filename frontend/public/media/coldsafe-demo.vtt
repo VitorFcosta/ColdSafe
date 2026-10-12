@@ -1,29 +1,33 @@
 WEBVTT
 
 1
-00:00:01.683 --> 00:00:09.687
+00:00:00.788 --> 00:00:08.793
 DEMONSTRAÇÃO SIMULADA — Leitura simulada: temperatura, estado e idade da leitura aparecem juntos.
 
 2
-00:00:09.868 --> 00:00:19.685
+00:00:10.081 --> 00:00:18.793
 DEMONSTRAÇÃO SIMULADA — O período de 24 horas ajuda a observar a variação da temperatura simulada.
 
 3
-00:00:21.512 --> 00:00:28.685
+00:00:19.387 --> 00:00:27.790
 DEMONSTRAÇÃO SIMULADA — Atenção: a temperatura simulada se aproxima do limite demonstrativo.
 
 4
-00:00:31.513 --> 00:00:37.685
+00:00:28.149 --> 00:00:36.790
 DEMONSTRAÇÃO SIMULADA — Crítico: uma leitura simulada fora da faixa ganha destaque com texto e cor.
 
 5
-00:00:41.523 --> 00:00:48.686
+00:00:37.152 --> 00:00:47.791
 DEMONSTRAÇÃO SIMULADA — Um valor antigo dentro da faixa não confirma a condição atual do ambiente.
 
 6
-00:00:51.527 --> 00:00:59.684
+00:00:48.189 --> 00:00:58.788
 DEMONSTRAÇÃO SIMULADA — Falha simulada no histórico: o diagnóstico atual continua disponível.
 
 7
-00:01:01.504 --> 00:01:09.686
-DEMONSTRAÇÃO SIMULADA — Recuperação simulada: o histórico volta na atualização automática, a cada 5 segundos.
+00:00:59.050 --> 00:01:08.790
+DEMONSTRAÇÃO SIMULADA — Recuperação simulada: o histórico volta após uma nova consulta.
+
+8
+00:01:09.045 --> 00:01:20.790
+DEMONSTRAÇÃO SIMULADA — Comando simulado: o LED só aparece ligado após a confirmação do dispositivo.

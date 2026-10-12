@@ -94,9 +94,16 @@ class MonitoringService:
         device_id: str,
         period: Period,
         limit: int,
+        start: datetime | None = None,
+        end: datetime | None = None,
     ) -> ReadingHistory:
-        end = self.clock()
-        start = end - PERIOD_DURATION[period]
+        if (start is None) != (end is None):
+            raise ValueError("start and end must be supplied together")
+        if start is None:
+            end = self.clock()
+            start = end - PERIOD_DURATION[period]
+        elif start.utcoffset() is None or end.utcoffset() is None or start >= end:
+            raise ValueError("invalid time interval")
         readings = self.repository.list_history(
             device_id=device_id,
             start=start,

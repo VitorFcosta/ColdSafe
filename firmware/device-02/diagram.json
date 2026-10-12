@@ -34,7 +34,7 @@
       "id": "buzzer",
       "top": -135,
       "left": 225,
-      "attrs": {}
+      "attrs": {"volume": "0.1"}
     },
     {
       "type": "wokwi-led",

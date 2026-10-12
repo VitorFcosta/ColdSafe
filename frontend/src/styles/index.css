@@ -26,7 +26,7 @@
 
   body {
     margin: 0;
-    min-width: 20rem;
+    min-width: 320px;
     background: var(--cs-color-canvas);
     color: var(--cs-color-ink);
     font-family: var(--cs-font-sans);
@@ -59,4 +59,25 @@
       animation-iteration-count: 1 !important;
     }
   }
+}
+
+.skip-link {
+  position: fixed;
+  top: var(--cs-space-16);
+  left: var(--cs-space-16);
+  z-index: 10;
+  padding: var(--cs-space-12);
+  transform: translateY(-200%);
+  background: var(--cs-color-accent);
+  color: var(--cs-color-accent-ink);
+}
+
+.skip-link:focus { transform: none; }
+
+nav [aria-current='page'] {
+  color: var(--cs-color-accent);
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.3em;
 }

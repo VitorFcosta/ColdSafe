@@ -3,14 +3,44 @@
 ## Propósito
 
 O frontend do ColdSafe é um dashboard operacional acadêmico para reconhecer,
-em poucos segundos, o estado de um único ambiente refrigerado simulado, a
-atualidade da última leitura e a variação recente da temperatura.
+em poucos segundos, o estado do ambiente refrigerado selecionado, a atualidade
+da última leitura e a variação recente da temperatura.
 
 O dashboard também serve como prova visível da cadeia DHT22 → ESP32 → MQTT →
 FastAPI → InfluxDB → API → Vue.
 
 > O ColdSafe é um protótipo acadêmico. Ele não é equipamento médico, sistema
 > sanitário certificado nem substitui procedimentos oficiais de controle.
+
+## Contrato vigente para o redesign visual (27/09/2026)
+
+As seções sobre o primeiro bimestre abaixo registram o escopo histórico do MVP.
+Para o redesign, prevalecem o [roadmap visual](https://app.notion.com/p/3e8d67001da981d4a27fed1418af291e),
+o código atual e os [contratos compartilhados](../contracts/README.md).
+
+| Rota | Função atual a preservar |
+| --- | --- |
+| `/` | Apresentação acadêmica escura, demonstração identificada como simulada, vídeo com legendas e caminho para o painel. |
+| `/login` | Entrada e cadastro da conta. |
+| `/dashboard` | Seleção de ambiente e dispositivo, leitura atual, alertas, histórico, comparação e estados do LED e buzzer. |
+| `/manage` | Cadastro e edição de ambientes, dispositivos e limites. |
+
+`/dashboard` e `/manage` exigem sessão. A operação usa dados reais da API, com
+dois dispositivos simulados no projeto; o histórico oferece **15 min, 1 h, 6 h e
+24 h**. O WebSocket atualiza eventos, e a reconexão recupera o estado por REST.
+Uma conexão com o servidor não confirma leitura recente nem atuação do LED:
+comandos podem estar pendentes, confirmados, rejeitados ou sem confirmação.
+Leitura antiga, ausência de dados, carregamento, erro e falha parcial devem
+continuar distinguíveis por texto, inclusive no celular.
+
+As duas imagens do roadmap são **propostas com dados simulados**: orientam a
+hierarquia visual, sem substituir os valores da API. A composição móvel resume
+controles, mas a implementação mantém troca de ambiente e dispositivo, os
+quatro períodos, alertas, comparação e tabela de leituras. A landing conserva
+o conteúdo acadêmico, a mídia e o rodapé.
+Referências de regressão: `e2e/landing.spec.ts`, `e2e/dashboard.spec.ts` e os
+testes unitários de estado, histórico, comandos e formulários. Não há biblioteca
+nova prevista para este contrato.
 
 ## Para quem é
 
@@ -41,7 +71,7 @@ deve permitir comparar os períodos de 15 minutos, 1 hora, 6 horas e 24 horas.
 O diagnóstico técnico pode existir em uma área secundária, mas não deve competir
 com a leitura operacional.
 
-## Escopo do primeiro bimestre
+## Histórico: escopo do primeiro bimestre
 
 - Um ambiente: `Laboratório Refrigerado`.
 - Um dispositivo: `esp32-lab-01`.
@@ -56,7 +86,7 @@ com a leitura operacional.
 - Layout responsivo para desktop e mobile.
 - Informação compreensível sem depender apenas de cor.
 
-## Fora do MVP
+## Histórico: fora do MVP
 
 - Autenticação e gestão de usuários.
 - Múltiplos ambientes ou dispositivos.
@@ -106,7 +136,7 @@ resposta como se fosse uma leitura nova.
 - Vue 3, TypeScript e Vite.
 - Tailwind CSS com tokens próprios, sem Vuetify.
 - Chart.js por `vue-chartjs`.
-- `fetch` e composables para polling.
+- `fetch` para REST e WebSocket para eventos; REST recupera o estado ao reconectar.
 - Contraste WCAG AA, foco visível e HTML semântico.
 - Suporte a redução de movimento.
 - Gráfico acompanhado de resumo textual e tooltips acessíveis.
@@ -162,8 +192,8 @@ identificadas no vídeo e nas imagens. Não oferece sistema real público.
 
 Estado e atualidade permanecem próximos; temperatura dominante, umidade
 secundária e histórico amplo. Uma leitura antiga é explicitamente a última
-leitura conhecida, sem confirmar a situação atual. Contratos e polling de
-5 segundos permanecem iguais. Falha do histórico preserva o resumo válido.
+leitura conhecida, sem confirmar a situação atual. Eventos chegam por WebSocket;
+REST recupera o estado ao reconectar. Falha do histórico preserva o resumo válido.
 
 Motion for Vue executa entradas uma vez; com redução de movimento, o conteúdo
 aparece imediatamente. Medições não têm contadores animados. Vídeo com

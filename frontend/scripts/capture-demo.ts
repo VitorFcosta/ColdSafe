@@ -10,7 +10,7 @@ import { mockMonitoringApi, type DashboardStatus } from '../e2e/monitoring-api.t
 // Node 24: node scripts/capture-demo.ts [http://127.0.0.1:4175]
 const baseUrl = new URL(process.argv[2] ?? process.env.CAPTURE_BASE_URL ?? 'http://127.0.0.1:4175')
 assert(['http:', 'https:'].includes(baseUrl.protocol), 'A URL precisa usar HTTP ou HTTPS.')
-const output = fileURLToPath(new URL('../public/media/', import.meta.url))
+const output = process.env.CAPTURE_OUTPUT_DIR ?? fileURLToPath(new URL('../public/media/', import.meta.url))
 const receivedAt = Date.parse('2026-09-09T12:00:00Z')
 
 type Scene = Readonly<{
@@ -22,6 +22,7 @@ type Scene = Readonly<{
   ageSeconds?: number
   historyError?: boolean
   period?: '24h'
+  command?: boolean
   image?: string
 }>
 
@@ -39,14 +40,21 @@ const scenes: readonly Scene[] = [
   { status: 'normal', label: 'Normal', seconds: 11, historyError: true,
     caption: 'Falha simulada no histórico: o diagnóstico atual continua disponível.' },
   { status: 'normal', label: 'Normal', seconds: 10,
-    caption: 'Recuperação simulada: o histórico volta na atualização automática, a cada 5 segundos.' },
+    caption: 'Recuperação simulada: o histórico volta após uma nova consulta.' },
+  { status: 'normal', label: 'Normal', seconds: 12, command: true,
+    caption: 'Comando simulado: o LED só aparece ligado após a confirmação do dispositivo.' },
 ]
-assert.equal(scenes.reduce((total, scene) => total + scene.seconds, 0), 68)
+assert.equal(scenes.reduce((total, scene) => total + scene.seconds, 0), 80)
 
 async function installScenario(page: Page, scene: Scene) {
   await page.unroute('**/api/v1/monitoring/summary')
   await page.unroute('**/api/v1/readings?**')
   await mockMonitoringApi(page, scene)
+  await page.route('**/api/v1/alerts?**', (route) => {
+    const deviceId = new URL(route.request().url()).searchParams.get('device_id')
+    return route.fulfill({ json: { success: true, data: { alerts: [] },
+      meta: { schema_version: 2, device_id: deviceId, count: 0, limit: 300 } } })
+  })
   await page.route('**/api/v1/readings?**', async (route) => {
     if (scene.historyError) {
       await route.fulfill({ status: 503, json: { success: false, error: {
@@ -54,21 +62,24 @@ async function installScenario(page: Page, scene: Scene) {
       } } })
       return
     }
-    const period = new URL(route.request().url()).searchParams.get('period')
+    const query = new URL(route.request().url()).searchParams
+    const period = query.get('period')
     const duration = period === '24h' ? 86_400_000 : period === '6h' ? 21_600_000 : period === '15m' ? 900_000 : 3_600_000
+    const end = query.get('end') ? Date.parse(query.get('end')!) : receivedAt
+    const start = query.get('start') ? Date.parse(query.get('start')!) : end - duration
     const readings = Array.from({ length: 40 }, (_, index) => {
       const temperature = index === 39 ? scene.temperature ?? 5 : Number((4.7 + Math.sin(index * 0.45) * 0.65).toFixed(1))
       return {
         temperature_c: temperature,
         humidity_percent: 65,
-        received_at: new Date(receivedAt - duration + duration * index / 39).toISOString(),
+        received_at: new Date(start + (end - start) * index / 39).toISOString(),
         status: temperature < 2 || temperature > 8 ? 'critical' : temperature < 3 || temperature > 7 ? 'attention' : 'normal',
       }
     })
     await route.fulfill({ json: {
       success: true, data: { readings },
-      meta: { device_id: 'esp32-lab-01', start: new Date(receivedAt - duration).toISOString(),
-        end: new Date(receivedAt).toISOString(), count: readings.length, limit: 300 },
+      meta: { device_id: 'esp32-lab-01', start: new Date(start).toISOString(),
+        end: new Date(end).toISOString(), count: readings.length, limit: 300 },
     } })
   })
 }
@@ -104,7 +115,7 @@ async function caption(page: Page, text: string) {
 async function ready(page: Page, scene: Scene) {
   await expect(page.getByText(scene.label, { exact: true })).toBeVisible({ timeout: 12_000 })
   if (scene.historyError) {
-    await expect(page.getByRole('status')).toContainText('histórico de temperatura não pôde ser carregado', { timeout: 12_000 })
+    await expect(page.locator('section[aria-labelledby="temperature-history-title"] [role="status"]')).toContainText('histórico de temperatura não pôde ser carregado', { timeout: 12_000 })
   } else {
     await expect(page.getByRole('img', { name: 'Gráfico de linha da temperatura no período selecionado' })).toBeVisible({ timeout: 12_000 })
   }
@@ -124,6 +135,7 @@ try {
   })
   const recordingStart = Date.now()
   const page = await context.newPage()
+  await page.clock.setFixedTime(receivedAt)
   await installScenario(page, scenes[0]!)
   await page.goto(new URL('/dashboard', baseUrl).href)
   await ready(page, scenes[0]!)
@@ -135,19 +147,37 @@ try {
   for (const [index, scene] of scenes.entries()) {
     targetEnd += scene.seconds * 1000
     if (index > 0) {
-      await caption(page, 'Próximo cenário simulado: aguardando a atualização automática…')
+      await caption(page, 'Próximo cenário simulado: carregando o painel…')
       await installScenario(page, scene)
-      if (scene.period) await page.getByRole('button', { name: scene.period, exact: true }).click()
+      await page.reload()
       await ready(page, scene)
+      await addCaptureBanner(page)
+      if (scene.period) await page.getByRole('button', { name: scene.period, exact: true }).click()
     }
     const start = Date.now() - recordingStart
     await caption(page, scene.caption)
-    if (scene.period || scene.historyError) {
+    if (scene.command) {
+      await page.route('**/api/v1/devices/uuid-01/led/commands', (route) => route.fulfill({
+        json: { success: true, data: { schema_version: 2, command_id: 'demo-command',
+          device_id: 'esp32-lab-01', actuator: 'led', desired_state: true,
+          confirmed_state: null, status: 'pending' } },
+      }))
+      await page.route('**/api/v1/commands/demo-command', (route) => route.fulfill({
+        json: { success: true, data: { schema_version: 2, command_id: 'demo-command',
+          device_id: 'esp32-lab-01', actuator: 'led', desired_state: true,
+          confirmed_state: true, status: 'confirmed' } },
+      }))
+      const actuators = page.locator('details[aria-label="Estado dos atuadores"]')
+      await actuators.locator('summary').click()
+      await actuators.getByRole('button', { name: 'Ligar Luz' }).click()
+      await expect(actuators.getByText('Aguardando confirmação', { exact: true })).toBeVisible()
+      await expect(actuators.getByText('Ligado', { exact: true })).toBeVisible({ timeout: 12_000 })
+    } else if (scene.period || scene.historyError) {
       await page.locator('#temperature-history-title').scrollIntoViewIfNeeded()
     } else {
       await page.evaluate(() => window.scrollTo(0, 0))
     }
-    if (scene.image) await page.screenshot({ path: join(output, scene.image), fullPage: true })
+    if (scene.image) await page.screenshot({ path: join(output, scene.image) })
     console.log(`Cena ${index + 1}/${scenes.length}: ${scene.label}${scene.historyError ? ' / histórico indisponível' : ''}`)
     await page.waitForTimeout(Math.max(0, targetEnd - Date.now()))
     cues.push({ start, end: Date.now() - recordingStart, text: `DEMONSTRAÇÃO SIMULADA — ${scene.caption}` })
@@ -163,6 +193,7 @@ try {
 
   const mobile = await browser.newContext({ viewport: { width: 375, height: 900 }, reducedMotion: 'reduce', locale: 'pt-BR', timezoneId: 'UTC' })
   const mobilePage = await mobile.newPage()
+  await mobilePage.clock.setFixedTime(receivedAt)
   await installScenario(mobilePage, scenes[0]!)
   await mobilePage.goto(new URL('/dashboard', baseUrl).href)
   await ready(mobilePage, scenes[0]!)

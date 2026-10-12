@@ -1,4 +1,7 @@
 /** Estados publicados pelo contrato HTTP de monitoramento. */
+// Mesmo limite usado por assess_reading no backend.
+export const STALE_AFTER_SECONDS = 30
+
 export type ReadingStatus =
   | 'normal'
   | 'attention'
