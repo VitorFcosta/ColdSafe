@@ -1,0 +1,670 @@
+[
+  {
+    "name": "telemetry_edge",
+    "schema": "mqtt_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000100",
+      "type": "telemetry",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": null,
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"equipment": {"equipment_id": "00000000-0000-4000-8000-000000000003", "running": true}, "measurements": {"ambient_temperature": {"sensor_id": "00000000-0000-4000-8000-000000000010", "unit": "degC", "value": 6.5}, "humidity": {"sensor_id": "00000000-0000-4000-8000-000000000011", "unit": "percent", "value": 60}, "light": {"sensor_id": "00000000-0000-4000-8000-000000000012", "unit": "percent", "value": 45}, "vibration": {"sensor_id": "00000000-0000-4000-8000-000000000013", "unit": "mm/s", "value": 2.3}, "motor_current": {"sensor_id": "00000000-0000-4000-8000-000000000014", "unit": "A", "value": 1.4}, "motor_temperature": {"sensor_id": "00000000-0000-4000-8000-000000000015", "unit": "degC", "value": 38}}, "actuators": {"led": {"actuator_id": "00000000-0000-4000-8000-000000000020", "actual_state": false}, "buzzer": {"actuator_id": "00000000-0000-4000-8000-000000000021", "actual_state": false}}}
+    },
+    "topic": "coldsafe/v3/devices/esp32.lab-01/telemetry"
+  },
+  {
+    "name": "telemetry_received",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000100",
+      "type": "telemetry",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"equipment": {"equipment_id": "00000000-0000-4000-8000-000000000003", "running": true}, "measurements": {"ambient_temperature": {"sensor_id": "00000000-0000-4000-8000-000000000010", "unit": "degC", "value": 6.5}, "humidity": {"sensor_id": "00000000-0000-4000-8000-000000000011", "unit": "percent", "value": 60}, "light": {"sensor_id": "00000000-0000-4000-8000-000000000012", "unit": "percent", "value": 45}, "vibration": {"sensor_id": "00000000-0000-4000-8000-000000000013", "unit": "mm/s", "value": 2.3}, "motor_current": {"sensor_id": "00000000-0000-4000-8000-000000000014", "unit": "A", "value": 1.4}, "motor_temperature": {"sensor_id": "00000000-0000-4000-8000-000000000015", "unit": "degC", "value": 38}}, "actuators": {"led": {"actuator_id": "00000000-0000-4000-8000-000000000020", "actual_state": false}, "buzzer": {"actuator_id": "00000000-0000-4000-8000-000000000021", "actual_state": false}}}
+    },
+    "routing_key": "v3.telemetry.00000000-0000-4000-8000-000000000001"
+  },
+  {
+    "name": "prediction_available_zero_rul",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000101",
+      "type": "prediction",
+      "occurred_at": "2026-10-12T18:00:00.200Z",
+      "received_at": "2026-10-12T18:00:00.200Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"equipment_id": "00000000-0000-4000-8000-000000000003", "source_event_id": "00000000-0000-4000-8000-000000000100", "input_received_at": "2026-10-12T18:00:00.100Z", "features_version": "fan-features-1", "model_id": "00000000-0000-4000-8000-000000000200", "model_version": "fan-model-1", "status": "available", "health_score": 12, "rul_hours": 0, "reason": null}
+    },
+    "routing_key": "v3.prediction.00000000-0000-4000-8000-000000000001",
+    "reference": "telemetry_received"
+  },
+  {
+    "name": "prediction_unavailable_no_model",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000110",
+      "type": "prediction",
+      "occurred_at": "2026-10-12T18:00:00.200Z",
+      "received_at": "2026-10-12T18:00:00.200Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"equipment_id": "00000000-0000-4000-8000-000000000003", "source_event_id": "00000000-0000-4000-8000-000000000100", "input_received_at": "2026-10-12T18:00:00.100Z", "features_version": "fan-features-1", "model_id": null, "model_version": null, "status": "unavailable", "health_score": null, "rul_hours": null, "reason": "no_model"}
+    },
+    "routing_key": "v3.prediction.00000000-0000-4000-8000-000000000001",
+    "reference": "telemetry_received"
+  },
+  {
+    "name": "prediction_unavailable_insufficient_history",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000111",
+      "type": "prediction",
+      "occurred_at": "2026-10-12T18:00:00.200Z",
+      "received_at": "2026-10-12T18:00:00.200Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"equipment_id": "00000000-0000-4000-8000-000000000003", "source_event_id": "00000000-0000-4000-8000-000000000100", "input_received_at": "2026-10-12T18:00:00.100Z", "features_version": "fan-features-1", "model_id": "00000000-0000-4000-8000-000000000200", "model_version": "fan-model-1", "status": "unavailable", "health_score": null, "rul_hours": null, "reason": "insufficient_history"}
+    },
+    "routing_key": "v3.prediction.00000000-0000-4000-8000-000000000001",
+    "reference": "telemetry_received"
+  },
+  {
+    "name": "prediction_unavailable_invalid_features",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000112",
+      "type": "prediction",
+      "occurred_at": "2026-10-12T18:00:00.200Z",
+      "received_at": "2026-10-12T18:00:00.200Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"equipment_id": "00000000-0000-4000-8000-000000000003", "source_event_id": "00000000-0000-4000-8000-000000000100", "input_received_at": "2026-10-12T18:00:00.100Z", "features_version": "fan-features-1", "model_id": "00000000-0000-4000-8000-000000000200", "model_version": "fan-model-1", "status": "unavailable", "health_score": null, "rul_hours": null, "reason": "invalid_features"}
+    },
+    "routing_key": "v3.prediction.00000000-0000-4000-8000-000000000001",
+    "reference": "telemetry_received"
+  },
+  {
+    "name": "prediction_unavailable_model_unavailable",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000113",
+      "type": "prediction",
+      "occurred_at": "2026-10-12T18:00:00.200Z",
+      "received_at": "2026-10-12T18:00:00.200Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"equipment_id": "00000000-0000-4000-8000-000000000003", "source_event_id": "00000000-0000-4000-8000-000000000100", "input_received_at": "2026-10-12T18:00:00.100Z", "features_version": "fan-features-1", "model_id": "00000000-0000-4000-8000-000000000200", "model_version": "fan-model-1", "status": "unavailable", "health_score": null, "rul_hours": null, "reason": "model_unavailable"}
+    },
+    "routing_key": "v3.prediction.00000000-0000-4000-8000-000000000001",
+    "reference": "telemetry_received"
+  },
+  {
+    "name": "prediction_unavailable_stale_input",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000114",
+      "type": "prediction",
+      "occurred_at": "2026-10-12T18:00:30.101Z",
+      "received_at": "2026-10-12T18:00:30.101Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"equipment_id": "00000000-0000-4000-8000-000000000003", "source_event_id": "00000000-0000-4000-8000-000000000100", "input_received_at": "2026-10-12T18:00:00.100Z", "features_version": "fan-features-1", "model_id": "00000000-0000-4000-8000-000000000200", "model_version": "fan-model-1", "status": "unavailable", "health_score": null, "rul_hours": null, "reason": "stale_input"}
+    },
+    "routing_key": "v3.prediction.00000000-0000-4000-8000-000000000001",
+    "reference": "telemetry_received"
+  },
+  {
+    "name": "predictive_alert_opened",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000120",
+      "type": "alert",
+      "occurred_at": "2026-10-12T18:00:00.300Z",
+      "received_at": "2026-10-12T18:00:00.300Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"alert_id": "00000000-0000-4000-8000-000000000300", "equipment_id": "00000000-0000-4000-8000-000000000003", "kind": "predictive_rul", "state": "opened", "source_event_id": "00000000-0000-4000-8000-000000000101"}
+    },
+    "routing_key": "v3.alert.00000000-0000-4000-8000-000000000001",
+    "reference": "prediction_available_zero_rul"
+  },
+  {
+    "name": "temperature_alert_closed",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000121",
+      "type": "alert",
+      "occurred_at": "2026-10-12T18:00:00.300Z",
+      "received_at": "2026-10-12T18:00:00.300Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"alert_id": "00000000-0000-4000-8000-000000000301", "equipment_id": "00000000-0000-4000-8000-000000000003", "kind": "temperature_high", "state": "closed", "source_event_id": "00000000-0000-4000-8000-000000000100"}
+    },
+    "routing_key": "v3.alert.00000000-0000-4000-8000-000000000001",
+    "reference": "telemetry_received"
+  },
+  {
+    "name": "fresh_boundary",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000130",
+      "type": "freshness",
+      "occurred_at": "2026-10-12T18:00:30.100Z",
+      "received_at": "2026-10-12T18:00:30.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"last_event_id": "00000000-0000-4000-8000-000000000100", "last_received_at": "2026-10-12T18:00:00.100Z", "state": "fresh", "age_seconds": 30, "stale_after_seconds": 30}
+    },
+    "routing_key": "v3.freshness.00000000-0000-4000-8000-000000000001"
+  },
+  {
+    "name": "stale_after_boundary",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000131",
+      "type": "freshness",
+      "occurred_at": "2026-10-12T18:00:30.101Z",
+      "received_at": "2026-10-12T18:00:30.101Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"last_event_id": "00000000-0000-4000-8000-000000000100", "last_received_at": "2026-10-12T18:00:00.100Z", "state": "stale", "age_seconds": 30.001, "stale_after_seconds": 30}
+    },
+    "routing_key": "v3.freshness.00000000-0000-4000-8000-000000000001"
+  },
+  {
+    "name": "freshness_no_data",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000132",
+      "type": "freshness",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000132",
+      "data": {"last_event_id": null, "last_received_at": null, "state": "no_data", "age_seconds": null, "stale_after_seconds": 30}
+    },
+    "routing_key": "v3.freshness.00000000-0000-4000-8000-000000000001"
+  },
+  {
+    "name": "manual_led_command",
+    "schema": "mqtt_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000140",
+      "type": "command",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000400",
+      "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "desired_state": true, "source": "manual", "deadline_at": "2026-10-12T18:00:30Z"}
+    },
+    "topic": "coldsafe/v3/devices/esp32.lab-01/commands"
+  },
+  {
+    "name": "automatic_buzzer_command",
+    "schema": "mqtt_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000141",
+      "type": "command",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000401",
+      "data": {"command_id": "00000000-0000-4000-8000-000000000401", "actuator_id": "00000000-0000-4000-8000-000000000021", "actuator": "buzzer", "desired_state": true, "source": "automatic", "deadline_at": "2026-10-12T18:00:30Z"}
+    },
+    "topic": "coldsafe/v3/devices/esp32.lab-01/commands"
+  },
+  {
+    "name": "led_ack_edge",
+    "schema": "mqtt_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000142",
+      "type": "ack",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": null,
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000400",
+      "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}
+    },
+    "topic": "coldsafe/v3/devices/esp32.lab-01/acks",
+    "reference": "manual_led_command"
+  },
+  {
+    "name": "led_ack_received",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000142",
+      "type": "ack",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000400",
+      "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}
+    },
+    "routing_key": "v3.ack.00000000-0000-4000-8000-000000000001",
+    "reference": "manual_led_command"
+  },
+  {
+    "name": "led_ack_rejected",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000143",
+      "type": "ack",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000400",
+      "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "rejected", "applied_state": null, "reason": "ACTUATOR_FAILURE"}
+    },
+    "routing_key": "v3.ack.00000000-0000-4000-8000-000000000001",
+    "reference": "manual_led_command"
+  },
+  {
+    "name": "led_status_pending",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000150",
+      "type": "command_status",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000400",
+      "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "desired_state": true, "status": "pending", "confirmed_state": null}
+    },
+    "routing_key": "v3.command_status.00000000-0000-4000-8000-000000000001",
+    "reference": "manual_led_command"
+  },
+  {
+    "name": "led_status_confirmed",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000151",
+      "type": "command_status",
+      "occurred_at": "2026-10-12T18:00:00.200Z",
+      "received_at": "2026-10-12T18:00:00.200Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000400",
+      "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "desired_state": true, "status": "confirmed", "confirmed_state": true}
+    },
+    "routing_key": "v3.command_status.00000000-0000-4000-8000-000000000001",
+    "reference": "manual_led_command",
+    "ack_reference": "led_ack_received"
+  },
+  {
+    "name": "led_status_rejected",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000152",
+      "type": "command_status",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000400",
+      "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "desired_state": true, "status": "rejected", "confirmed_state": null}
+    },
+    "routing_key": "v3.command_status.00000000-0000-4000-8000-000000000001",
+    "reference": "manual_led_command"
+  },
+  {
+    "name": "led_status_unconfirmed",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000153",
+      "type": "command_status",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000400",
+      "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "desired_state": true, "status": "unconfirmed", "confirmed_state": null}
+    },
+    "routing_key": "v3.command_status.00000000-0000-4000-8000-000000000001",
+    "reference": "manual_led_command"
+  },
+  {
+    "name": "job_generation_requested",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000160",
+      "type": "job_requested",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000500",
+      "data": {"job_id": "00000000-0000-4000-8000-000000000500", "job_type": "generation", "dataset_id": null}
+    },
+    "routing_key": "v3.job_requested.00000000-0000-4000-8000-000000000500"
+  },
+  {
+    "name": "job_training_requested",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000161",
+      "type": "job_requested",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000501",
+      "data": {"job_id": "00000000-0000-4000-8000-000000000501", "job_type": "training", "dataset_id": "00000000-0000-4000-8000-000000000510"}
+    },
+    "routing_key": "v3.job_requested.00000000-0000-4000-8000-000000000501"
+  },
+  {
+    "name": "job_training_queued",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000170",
+      "type": "job_progress",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000501",
+      "data": {"job_id": "00000000-0000-4000-8000-000000000501", "job_type": "training", "status": "queued", "completed_units": 0, "total_units": 2, "result_id": null, "error_code": null}
+    },
+    "routing_key": "v3.job_progress.00000000-0000-4000-8000-000000000501",
+    "reference": "job_training_requested"
+  },
+  {
+    "name": "job_training_running",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000171",
+      "type": "job_progress",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000501",
+      "data": {"job_id": "00000000-0000-4000-8000-000000000501", "job_type": "training", "status": "running", "completed_units": 1, "total_units": 2, "result_id": null, "error_code": null}
+    },
+    "routing_key": "v3.job_progress.00000000-0000-4000-8000-000000000501",
+    "reference": "job_training_requested"
+  },
+  {
+    "name": "job_training_completed",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000172",
+      "type": "job_progress",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000501",
+      "data": {"job_id": "00000000-0000-4000-8000-000000000501", "job_type": "training", "status": "completed", "completed_units": 2, "total_units": 2, "result_id": "00000000-0000-4000-8000-000000000200", "error_code": null}
+    },
+    "routing_key": "v3.job_progress.00000000-0000-4000-8000-000000000501",
+    "reference": "job_training_requested"
+  },
+  {
+    "name": "job_training_failed",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000173",
+      "type": "job_progress",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000501",
+      "data": {"job_id": "00000000-0000-4000-8000-000000000501", "job_type": "training", "status": "failed", "completed_units": 1, "total_units": 2, "result_id": null, "error_code": "TRAINING_FAILED"}
+    },
+    "routing_key": "v3.job_progress.00000000-0000-4000-8000-000000000501",
+    "reference": "job_training_requested"
+  },
+  {
+    "name": "job_training_cancelled",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000174",
+      "type": "job_progress",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000501",
+      "data": {"job_id": "00000000-0000-4000-8000-000000000501", "job_type": "training", "status": "cancelled", "completed_units": 1, "total_units": 2, "result_id": null, "error_code": null}
+    },
+    "routing_key": "v3.job_progress.00000000-0000-4000-8000-000000000501",
+    "reference": "job_training_requested"
+  },
+  {
+    "name": "model_activation_requested",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000180",
+      "type": "model_activation",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000600",
+      "data": {"activation_id": "00000000-0000-4000-8000-000000000600", "model_id": "00000000-0000-4000-8000-000000000200", "model_version": "fan-model-1", "features_version": "fan-features-1", "previous_active_model_id": "00000000-0000-4000-8000-000000000201"}
+    },
+    "routing_key": "v3.model_activation.00000000-0000-4000-8000-000000000200"
+  },
+  {
+    "name": "model_ready",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000181",
+      "type": "model_status",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000600",
+      "data": {"activation_id": "00000000-0000-4000-8000-000000000600", "model_id": "00000000-0000-4000-8000-000000000200", "model_version": "fan-model-1", "features_version": "fan-features-1", "status": "ready", "active_model_id": "00000000-0000-4000-8000-000000000201", "error_code": null}
+    },
+    "routing_key": "v3.model_status.00000000-0000-4000-8000-000000000200",
+    "reference": "model_activation_requested"
+  },
+  {
+    "name": "model_loading",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000182",
+      "type": "model_status",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000600",
+      "data": {"activation_id": "00000000-0000-4000-8000-000000000600", "model_id": "00000000-0000-4000-8000-000000000200", "model_version": "fan-model-1", "features_version": "fan-features-1", "status": "loading", "active_model_id": "00000000-0000-4000-8000-000000000201", "error_code": null}
+    },
+    "routing_key": "v3.model_status.00000000-0000-4000-8000-000000000200",
+    "reference": "model_activation_requested"
+  },
+  {
+    "name": "model_active",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000183",
+      "type": "model_status",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000600",
+      "data": {"activation_id": "00000000-0000-4000-8000-000000000600", "model_id": "00000000-0000-4000-8000-000000000200", "model_version": "fan-model-1", "features_version": "fan-features-1", "status": "active", "active_model_id": "00000000-0000-4000-8000-000000000200", "error_code": null}
+    },
+    "routing_key": "v3.model_status.00000000-0000-4000-8000-000000000200",
+    "reference": "model_activation_requested"
+  },
+  {
+    "name": "model_failed",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000184",
+      "type": "model_status",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000600",
+      "data": {"activation_id": "00000000-0000-4000-8000-000000000600", "model_id": "00000000-0000-4000-8000-000000000200", "model_version": "fan-model-1", "features_version": "fan-features-1", "status": "failed", "active_model_id": "00000000-0000-4000-8000-000000000201", "error_code": "MODEL_LOAD_FAILED"}
+    },
+    "routing_key": "v3.model_status.00000000-0000-4000-8000-000000000200",
+    "reference": "model_activation_requested"
+  },
+  {
+    "name": "transient_processing_error",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000190",
+      "type": "processing_error",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"source_event_id": "00000000-0000-4000-8000-000000000100", "code": "PROCESSING_FAILED", "retryable": true, "attempt": 1}
+    },
+    "routing_key": "v3.processing_error.00000000-0000-4000-8000-000000000100"
+  },
+  {
+    "name": "private_invalid_source_error",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000191",
+      "type": "processing_error",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": null,
+      "device_record_id": null,
+      "environment_id": null,
+      "correlation_id": "00000000-0000-4000-8000-000000000191",
+      "data": {"source_event_id": null, "code": "INVALID_SCHEMA", "retryable": false, "attempt": 1}
+    },
+    "routing_key": "v3.processing_error.00000000-0000-4000-8000-000000000191"
+  },
+  {
+    "name": "retry_exhausted_error",
+    "schema": "bus_event",
+    "payload": {
+      "schema_version": 3,
+      "event_id": "00000000-0000-4000-8000-000000000192",
+      "type": "processing_error",
+      "occurred_at": "2026-10-12T18:00:00Z",
+      "received_at": "2026-10-12T18:00:00.100Z",
+      "device_id": "esp32.lab-01",
+      "device_record_id": "00000000-0000-4000-8000-000000000001",
+      "environment_id": "00000000-0000-4000-8000-000000000002",
+      "correlation_id": "00000000-0000-4000-8000-000000000100",
+      "data": {"source_event_id": "00000000-0000-4000-8000-000000000100", "code": "RETRY_EXHAUSTED", "retryable": false, "attempt": 3}
+    },
+    "routing_key": "v3.processing_error.00000000-0000-4000-8000-000000000100"
+  },
+  {
+    "name": "offline_observed_zero_rul",
+    "schema": "offline_row",
+    "payload": {"schema_version": 3, "dataset_id": "00000000-0000-4000-8000-000000000510", "equipment_id": "00000000-0000-4000-8000-000000000003", "observed_at": "2026-10-12T18:00:00Z", "measurements": {"ambient_temperature_c": 6.5, "humidity_percent": 60, "light_percent": 45, "vibration_rms_mm_s": 2.3, "motor_current_a": 1.4, "motor_temperature_c": 38}, "labels": {"health_score_true": 12, "rul_hours_true": 0, "rul_observed": true}}
+  },
+  {
+    "name": "offline_censored_missing_features",
+    "schema": "offline_row",
+    "payload": {"schema_version": 3, "dataset_id": "00000000-0000-4000-8000-000000000510", "equipment_id": "00000000-0000-4000-8000-000000000003", "observed_at": "2026-10-12T18:00:00Z", "measurements": {"ambient_temperature_c": 6.5, "humidity_percent": 60, "light_percent": 45, "vibration_rms_mm_s": null, "motor_current_a": 1.4, "motor_temperature_c": 250}, "labels": {"health_score_true": 80, "rul_hours_true": null, "rul_observed": false}}
+  },
+  {"name": "led_ack_at_deadline", "schema": "bus_event", "payload": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000144", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": "2026-10-12T18:00:30Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}}, "routing_key": "v3.ack.00000000-0000-4000-8000-000000000001", "reference": "manual_led_command"},
+  {"name": "led_ack_late_auditable", "schema": "bus_event", "payload": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000145", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": "2026-10-12T18:00:30.001Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}}, "routing_key": "v3.ack.00000000-0000-4000-8000-000000000001", "reference": "manual_led_command"},
+  {"name": "led_ack_divergent_auditable", "schema": "bus_event", "payload": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000146", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": "2026-10-12T18:00:00.100Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": false, "reason": null}}, "routing_key": "v3.ack.00000000-0000-4000-8000-000000000001", "reference": "manual_led_command"},
+  {"name": "led_status_confirmed_ack_at_deadline", "schema": "bus_event", "payload": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000154", "type": "command_status", "occurred_at": "2026-10-12T18:00:31Z", "received_at": "2026-10-12T18:00:31Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "desired_state": true, "status": "confirmed", "confirmed_state": true}}, "routing_key": "v3.command_status.00000000-0000-4000-8000-000000000001", "reference": "manual_led_command", "ack_reference": "led_ack_at_deadline"}
+]

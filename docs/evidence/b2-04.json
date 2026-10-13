@@ -1,0 +1,147 @@
+{
+  "task": "B2-04",
+  "page": "https://app.notion.com/p/3f7d67001da981e3b226fc7c981bee3f",
+  "recorded_on_client_date": "2026-10-13",
+  "branch": "codex/block-5-validation",
+  "head": "32f3e73f4c02c4076bbb9419b1792b0886f1e09a",
+  "committed": false,
+  "scope": "Contract v3 only; application remains v1/v2",
+  "dependencies_added": [],
+  "test_environment": {
+    "python": "3.13.15",
+    "pytest": "9.1.1",
+    "jsonschema": "4.26.0",
+    "requirements": "backend/requirements-dev.lock.txt",
+    "isolated_venv": "/tmp/coldsafe-b204-venv",
+    "source_snapshot": "/tmp/coldsafe-b204-check",
+    "snapshot": "HEAD archive for unchanged sources plus byte-identical copies of seven changed/new files",
+    "reason": "Original Documents Python environment stalled during preparation; interrupted attempt has no test result"
+  },
+  "verification": {
+    "initial_RED": "3 passed, 10 setup errors: schema absent",
+    "semantic_RED": "12 passed, 1 failed before enforcing invalid model/stale-input cases",
+    "final_command": "python -m pytest backend/tests/contract -q --no-cov -o addopts='' --tb=short",
+    "final_result": "62 passed in 1.17s",
+    "new_tests": 13,
+    "old_contract_tests_executed_now": 49,
+    "valid_examples": 39,
+    "invalid_examples": 84,
+    "legacy": "v1/v2/OpenAPI unchanged; seven legacy schema/example files checked byte-identical to HEAD",
+    "git_diff_check": "passed",
+    "review": "Primary agent reviewed and fixed concrete semantic gaps. Independent reviewer attempted but failed due to account usage limit; no independent approval claimed.",
+    "app_coverage": "Not measured; application code unchanged"
+  },
+  "not_run": [
+    "Runtime v3 integration",
+    "real equipment or Wokwi rehearsal",
+    "full backend regression",
+    "frontend tests or E2E",
+    "AI quality evaluation"
+  ],
+  "artifacts": [
+    {
+      "path": "contracts/README.md",
+      "change": "modified",
+      "sha256": "561515d57ad5bc494a09052bed35400f4682f1d39d794b6ddab7b9edeb88a763"
+    },
+    {
+      "path": "contracts/aiot.md",
+      "change": "created",
+      "sha256": "260f94a97823af559fc08f298520b2fbb3412096067f17fafcd36383bc4eb698"
+    },
+    {
+      "path": "contracts/aiot.schema.json",
+      "change": "created",
+      "sha256": "4415104674b3e395ed90c76862516034fa9e26cd01cbfff441789207c93fece4"
+    },
+    {
+      "path": "contracts/examples/aiot.context.json",
+      "change": "created",
+      "sha256": "7002b1dd1931358b78d50a0126b511336feda5064b87461b38e02024cbf29917"
+    },
+    {
+      "path": "contracts/examples/aiot.valid.json",
+      "change": "created",
+      "sha256": "8edffab9b613b72e3d581d6314f5858fe712fd7ab0a78febe3d07592550d9016"
+    },
+    {
+      "path": "contracts/examples/aiot.invalid.json",
+      "change": "created",
+      "sha256": "371a7ac242801ba1eb883fb2f8cd7769c02b4a923c3653cfb52adae2817e1b1f"
+    },
+    {
+      "path": "backend/tests/contract/test_aiot_contract.py",
+      "change": "created",
+      "sha256": "ac4af42541ede5c1cdeeffeb9915f9c683eadc61111c69733b1ad87a58349939"
+    }
+  ],
+  "note": "Historical hashes/results. Source files remain in contracts and backend/tests; docs links changed during migration.",
+  "local_revalidation_2026_10_13": {
+    "status": "Concluída — contract scope only",
+    "branch": "codex/block-5-validation",
+    "head": "32f3e73f4c02c4076bbb9419b1792b0886f1e09a",
+    "committed": false,
+    "source": "Local task card and contracts; no Notion access",
+    "dependencies_added": [],
+    "files_created": [],
+    "files_changed": [
+      "backend/tests/contract/test_aiot_contract.py",
+      "contracts/aiot.md",
+      "contracts/examples/aiot.valid.json",
+      "contracts/examples/aiot.invalid.json",
+      "docs/aiot/tasks/B2-04.md",
+      "docs/evidence/b2-04.json"
+    ],
+    "changes": [
+      "Require command reference for ACK/status",
+      "Require accepted telemetry source for predictions",
+      "Require matching successful ACK received within deadline for confirmed status",
+      "Add four valid and fifteen invalid fixtures",
+      "Clarify trusted ACK receipt and reference metadata",
+      "Record current acceptance and resumption checkpoint"
+    ],
+    "verification": {
+      "baseline": "62 passed in 1.05s",
+      "RED": "1 failed, 12 passed in 0.32s; ack_requires_command_reference accepted without reference",
+      "final_command": "/tmp/coldsafe-b204-venv/bin/python -m pytest backend/tests/contract -q --no-cov -o addopts='' --tb=short",
+      "final_workdir": "/Users/vitorhugofernandescosta/Documents/ColdSafe",
+      "final_result": "62 passed in 19.98s",
+      "aiot_tests_rerun": 13,
+      "legacy_contract_tests_rerun": 49,
+      "valid_examples": 43,
+      "invalid_examples": 99,
+      "new_example_count": 19,
+      "verified_snapshot": "/var/folders/mh/8_tw2w997_q4v73t9jnq38n00000gn/T/coldsafe-b204-recheck-wf453syx",
+      "snapshot_result": "62 passed in 1.15s",
+      "snapshot_provenance": "Reused previous snapshot; 39 tracked runtime/contract/config files match current Git index; changed technical files copied and byte-compared to workspace",
+      "environment": {
+        "python": "3.13.15",
+        "pytest": "9.1.1",
+        "jsonschema": "4.26.0",
+        "venv": "/tmp/coldsafe-b204-venv",
+        "installed_this_session": false
+      },
+      "independent_review": "Two gaps confirmed, fixed delta reviewed with no findings; 13 passed in 4.50s and old escapes now rejected",
+      "git_diff_check": "Full check stalled and interrupted; not a pass",
+      "whitespace_check": "git diff --no-index --check /dev/null <file> for all six session files; no diagnostics",
+      "legacy_preserved": "Tracked legacy sources match index; aiot schema/context and contracts README match start-of-session SHA-256",
+      "app_coverage": "Not measured; runtime unchanged"
+    },
+    "limitations": [
+      "No runtime v3 producer/consumer implementation",
+      "No real authorization/broker/actuator or AI-quality verification",
+      "No full backend/frontend/E2E/capacity or app-coverage execution",
+      "New git archive attempt stalled and interrupted; direct workspace tests succeeded",
+      "Temporary test environment/snapshot may disappear"
+    ],
+    "acceptance_pending": [],
+    "next_action": "Wait for user task selection; do not start another task",
+    "current_artifact_sha256_excluding_this_evidence_file": {
+      "backend/tests/contract/test_aiot_contract.py": "68eed6fc54b63f3737ff4ac40d0f09fd677aae06c82b5641eb93d17b7401598a",
+      "contracts/aiot.md": "f9222a0dc56f11f0cf8f62e52c44abd3302e95b47481f4c97f9ffbc8ba72d36d",
+      "contracts/examples/aiot.valid.json": "9c0e425c0795e101421d7aeb57e41c9dbd899b71b5291f556d78236b712301e5",
+      "contracts/examples/aiot.invalid.json": "a8be81bde7c81d28413411a4ae3c6c6740ce4f6a48069d74d8614398316e0268",
+      "docs/aiot/tasks/B2-04.md": "93c289b3a9fe887d556e962d44c8966d6159c896a3c13279dcfddd121684b98e"
+    }
+  }
+}

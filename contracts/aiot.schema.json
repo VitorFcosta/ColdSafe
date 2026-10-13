@@ -1,0 +1,486 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ColdSafe AIoT v3 — planned wire and offline contracts",
+  "description": "B2-04 contract only. See aiot.md for binding, trust, authorization, cross-event and compatibility rules.",
+  "$ref": "#/$defs/event",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "utc_time": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(?:Z|\\+00:00)$"
+    },
+    "device_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "ambient_measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sensor_id","unit","value"],
+      "properties": {
+        "sensor_id": {"$ref":"#/$defs/uuid"},
+        "unit": {"const":"degC"},
+        "value": {"type":"number","minimum":-40,"maximum":80}
+      }
+    },
+    "percent_measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sensor_id","unit","value"],
+      "properties": {
+        "sensor_id": {"$ref":"#/$defs/uuid"},
+        "unit": {"const":"percent"},
+        "value": {"type":"number","minimum":0,"maximum":100}
+      }
+    },
+    "vibration_measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sensor_id","unit","value"],
+      "properties": {
+        "sensor_id": {"$ref":"#/$defs/uuid"},
+        "unit": {"const":"mm/s"},
+        "value": {"type":"number","minimum":0,"maximum":100}
+      }
+    },
+    "current_measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sensor_id","unit","value"],
+      "properties": {
+        "sensor_id": {"$ref":"#/$defs/uuid"},
+        "unit": {"const":"A"},
+        "value": {"type":"number","minimum":0,"maximum":100}
+      }
+    },
+    "motor_measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sensor_id","unit","value"],
+      "properties": {
+        "sensor_id": {"$ref":"#/$defs/uuid"},
+        "unit": {"const":"degC"},
+        "value": {"type":"number","minimum":-40,"maximum":200}
+      }
+    },
+    "actuator_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actuator_id","actual_state"],
+      "properties": {
+        "actuator_id": {"$ref":"#/$defs/uuid"},
+        "actual_state": {"type":"boolean"}
+      }
+    },
+    "telemetry_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["equipment","measurements","actuators"],
+      "properties": {
+        "equipment": {"type":"object","additionalProperties":false,"required":["equipment_id","running"],"properties":{"equipment_id":{"$ref":"#/$defs/uuid"},"running":{"type":"boolean"}}},
+        "measurements": {"type":"object","additionalProperties":false,"required":["ambient_temperature","humidity","light","vibration","motor_current","motor_temperature"],"properties":{"ambient_temperature":{"$ref":"#/$defs/ambient_measurement"},"humidity":{"$ref":"#/$defs/percent_measurement"},"light":{"$ref":"#/$defs/percent_measurement"},"vibration":{"$ref":"#/$defs/vibration_measurement"},"motor_current":{"$ref":"#/$defs/current_measurement"},"motor_temperature":{"$ref":"#/$defs/motor_measurement"}}},
+        "actuators": {"type":"object","additionalProperties":false,"required":["led","buzzer"],"properties":{"led":{"$ref":"#/$defs/actuator_state"},"buzzer":{"$ref":"#/$defs/actuator_state"}}}
+      }
+    },
+    "command_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_id","actuator_id","actuator","desired_state","source","deadline_at"],
+      "properties": {
+        "command_id": {"$ref":"#/$defs/uuid"},
+        "actuator_id": {"$ref":"#/$defs/uuid"},
+        "actuator": {"enum":["led","buzzer"]},
+        "desired_state": {"type":"boolean"},
+        "source": {"enum":["manual","automatic"]},
+        "deadline_at": {"$ref":"#/$defs/utc_time"}
+      },
+      "oneOf": [{"properties":{"actuator":{"const":"led"},"source":{"const":"manual"}}},{"properties":{"actuator":{"const":"buzzer"},"source":{"const":"automatic"}}}]
+    },
+    "ack_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_id","actuator_id","actuator","result","applied_state","reason"],
+      "properties": {
+        "command_id": {"$ref":"#/$defs/uuid"},
+        "actuator_id": {"$ref":"#/$defs/uuid"},
+        "actuator": {"enum":["led","buzzer"]},
+        "result": {"enum":["applied","rejected"]},
+        "applied_state": {"anyOf":[{"type":"boolean"},{"type":"null"}]},
+        "reason": {"anyOf":[{"enum":["INVALID_COMMAND","ACTUATOR_FAILURE","EXPIRED_COMMAND"]},{"type":"null"}]}
+      },
+      "oneOf": [{"properties":{"result":{"const":"applied"},"applied_state":{"type":"boolean"},"reason":{"type":"null"}}},{"properties":{"result":{"const":"rejected"},"applied_state":{"type":"null"},"reason":{"enum":["INVALID_COMMAND","ACTUATOR_FAILURE","EXPIRED_COMMAND"]}}}]
+    },
+    "command_status_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_id","actuator_id","actuator","desired_state","confirmed_state","status"],
+      "properties": {
+        "command_id": {"$ref":"#/$defs/uuid"},
+        "actuator_id": {"$ref":"#/$defs/uuid"},
+        "actuator": {"enum":["led","buzzer"]},
+        "desired_state": {"type":"boolean"},
+        "confirmed_state": {"anyOf":[{"type":"boolean"},{"type":"null"}]},
+        "status": {"enum":["pending","confirmed","rejected","unconfirmed"]}
+      },
+      "oneOf": [{"properties":{"status":{"const":"confirmed"},"confirmed_state":{"type":"boolean"}}},{"properties":{"status":{"enum":["pending","rejected","unconfirmed"]},"confirmed_state":{"type":"null"}}}]
+    },
+    "prediction_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["equipment_id","source_event_id","input_received_at","features_version","model_id","model_version","status","health_score","rul_hours","reason"],
+      "properties": {
+        "equipment_id": {"$ref":"#/$defs/uuid"},
+        "source_event_id": {"$ref":"#/$defs/uuid"},
+        "input_received_at": {"$ref":"#/$defs/utc_time"},
+        "features_version": {"$ref":"#/$defs/version"},
+        "model_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "model_version": {"anyOf":[{"$ref":"#/$defs/version"},{"type":"null"}]},
+        "status": {"enum":["available","unavailable"]},
+        "health_score": {"anyOf":[{"type":"number","minimum":0,"maximum":100},{"type":"null"}]},
+        "rul_hours": {"anyOf":[{"type":"number","minimum":0},{"type":"null"}]},
+        "reason": {"anyOf":[{"enum":["no_model","insufficient_history","invalid_features","model_unavailable","stale_input"]},{"type":"null"}]}
+      },
+      "oneOf": [{"properties":{"status":{"const":"available"},"model_id":{"$ref":"#/$defs/uuid"},"model_version":{"$ref":"#/$defs/version"},"health_score":{"type":"number","minimum":0,"maximum":100},"rul_hours":{"type":"number","minimum":0},"reason":{"type":"null"}}},{"properties":{"status":{"const":"unavailable"},"model_id":{"type":"null"},"model_version":{"type":"null"},"health_score":{"type":"null"},"rul_hours":{"type":"null"},"reason":{"const":"no_model"}}},{"properties":{"status":{"const":"unavailable"},"model_id":{"$ref":"#/$defs/uuid"},"model_version":{"$ref":"#/$defs/version"},"health_score":{"type":"null"},"rul_hours":{"type":"null"},"reason":{"enum":["insufficient_history","invalid_features","model_unavailable","stale_input"]}}}]
+    },
+    "model_activation_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["activation_id","model_id","model_version","features_version","previous_active_model_id"],
+      "properties": {
+        "activation_id": {"$ref":"#/$defs/uuid"},
+        "model_id": {"$ref":"#/$defs/uuid"},
+        "model_version": {"$ref":"#/$defs/version"},
+        "features_version": {"$ref":"#/$defs/version"},
+        "previous_active_model_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]}
+      }
+    },
+    "model_status_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["activation_id","model_id","model_version","features_version","status","active_model_id","error_code"],
+      "properties": {
+        "activation_id": {"$ref":"#/$defs/uuid"},
+        "model_id": {"$ref":"#/$defs/uuid"},
+        "model_version": {"$ref":"#/$defs/version"},
+        "features_version": {"$ref":"#/$defs/version"},
+        "status": {"enum":["ready","loading","active","failed"]},
+        "active_model_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "error_code": {"anyOf":[{"const":"MODEL_LOAD_FAILED"},{"type":"null"}]}
+      },
+      "oneOf": [{"properties":{"status":{"const":"active"},"active_model_id":{"$ref":"#/$defs/uuid"},"error_code":{"type":"null"}}},{"properties":{"status":{"enum":["ready","loading"]},"error_code":{"type":"null"}}},{"properties":{"status":{"const":"failed"},"error_code":{"const":"MODEL_LOAD_FAILED"}}}]
+    },
+    "job_requested_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["job_id","job_type","dataset_id"],
+      "properties": {
+        "job_id": {"$ref":"#/$defs/uuid"},
+        "job_type": {"enum":["generation","training"]},
+        "dataset_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]}
+      },
+      "oneOf": [{"properties":{"job_type":{"const":"generation"},"dataset_id":{"type":"null"}}},{"properties":{"job_type":{"const":"training"},"dataset_id":{"$ref":"#/$defs/uuid"}}}]
+    },
+    "job_progress_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["job_id","job_type","status","completed_units","total_units","result_id","error_code"],
+      "properties": {
+        "job_id": {"$ref":"#/$defs/uuid"},
+        "job_type": {"enum":["generation","training"]},
+        "status": {"enum":["queued","running","completed","failed","cancelled"]},
+        "completed_units": {"type":"integer","minimum":0},
+        "total_units": {"type":"integer","minimum":1},
+        "result_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "error_code": {"anyOf":[{"enum":["GENERATION_FAILED","TRAINING_FAILED"]},{"type":"null"}]}
+      },
+      "oneOf": [{"properties":{"status":{"enum":["queued","running","cancelled"]},"result_id":{"type":"null"},"error_code":{"type":"null"}}},{"properties":{"status":{"const":"completed"},"result_id":{"$ref":"#/$defs/uuid"},"error_code":{"type":"null"}}},{"properties":{"status":{"const":"failed"},"result_id":{"type":"null"},"error_code":{"enum":["GENERATION_FAILED","TRAINING_FAILED"]}}}]
+    },
+    "freshness_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["last_event_id","last_received_at","state","age_seconds","stale_after_seconds"],
+      "properties": {
+        "last_event_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "last_received_at": {"anyOf":[{"$ref":"#/$defs/utc_time"},{"type":"null"}]},
+        "state": {"enum":["fresh","stale","no_data"]},
+        "age_seconds": {"anyOf":[{"type":"number","minimum":0},{"type":"null"}]},
+        "stale_after_seconds": {"const":30}
+      },
+      "oneOf": [{"properties":{"state":{"const":"fresh"},"last_event_id":{"$ref":"#/$defs/uuid"},"last_received_at":{"$ref":"#/$defs/utc_time"},"age_seconds":{"type":"number","minimum":0,"maximum":30}}},{"properties":{"state":{"const":"stale"},"last_event_id":{"$ref":"#/$defs/uuid"},"last_received_at":{"$ref":"#/$defs/utc_time"},"age_seconds":{"type":"number","exclusiveMinimum":30}}},{"properties":{"state":{"const":"no_data"},"last_event_id":{"type":"null"},"last_received_at":{"type":"null"},"age_seconds":{"type":"null"}}}]
+    },
+    "alert_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alert_id","equipment_id","kind","state","source_event_id"],
+      "properties": {
+        "alert_id": {"$ref":"#/$defs/uuid"},
+        "equipment_id": {"$ref":"#/$defs/uuid"},
+        "kind": {"enum":["temperature_low","temperature_high","predictive_health","predictive_rul"]},
+        "state": {"enum":["opened","closed"]},
+        "source_event_id": {"$ref":"#/$defs/uuid"}
+      }
+    },
+    "processing_error_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_event_id","code","retryable","attempt"],
+      "properties": {
+        "source_event_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "code": {"enum":["INVALID_SCHEMA","INVALID_BINDING","IDENTITY_MISMATCH","UNAUTHORIZED_SCOPE","PAYLOAD_TOO_LARGE","PROCESSING_FAILED","RETRY_EXHAUSTED"]},
+        "retryable": {"type":"boolean"},
+        "attempt": {"type":"integer","minimum":1,"maximum":3}
+      }
+    },
+    "offline_labels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["health_score_true","rul_hours_true","rul_observed"],
+      "properties": {
+        "health_score_true": {"type":"number","minimum":0,"maximum":100},
+        "rul_hours_true": {"anyOf":[{"type":"number","minimum":0},{"type":"null"}]},
+        "rul_observed": {"type":"boolean"}
+      },
+      "oneOf": [{"properties":{"rul_observed":{"const":true},"rul_hours_true":{"type":"number","minimum":0}}},{"properties":{"rul_observed":{"const":false},"rul_hours_true":{"type":"null"}}}]
+    },
+    "offline_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","dataset_id","equipment_id","observed_at","measurements","labels"],
+      "properties": {
+        "schema_version": {"const":3},
+        "dataset_id": {"$ref":"#/$defs/uuid"},
+        "equipment_id": {"$ref":"#/$defs/uuid"},
+        "observed_at": {"$ref":"#/$defs/utc_time"},
+        "measurements": {"type":"object","additionalProperties":false,"required":["ambient_temperature_c","humidity_percent","light_percent","vibration_rms_mm_s","motor_current_a","motor_temperature_c"],"properties":{"ambient_temperature_c":{"anyOf":[{"type":"number"},{"type":"null"}]},"humidity_percent":{"anyOf":[{"type":"number"},{"type":"null"}]},"light_percent":{"anyOf":[{"type":"number"},{"type":"null"}]},"vibration_rms_mm_s":{"anyOf":[{"type":"number"},{"type":"null"}]},"motor_current_a":{"anyOf":[{"type":"number"},{"type":"null"}]},"motor_temperature_c":{"anyOf":[{"type":"number"},{"type":"null"}]}}},
+        "labels": {"$ref":"#/$defs/offline_labels"}
+      }
+    },
+    "telemetry_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"telemetry"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"anyOf":[{"$ref":"#/$defs/utc_time"},{"type":"null"}]},
+        "device_id": {"$ref":"#/$defs/device_id"},
+        "device_record_id": {"$ref":"#/$defs/uuid"},
+        "environment_id": {"$ref":"#/$defs/uuid"},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/telemetry_data"}
+      }
+    },
+    "command_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"command"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"$ref":"#/$defs/utc_time"},
+        "device_id": {"$ref":"#/$defs/device_id"},
+        "device_record_id": {"$ref":"#/$defs/uuid"},
+        "environment_id": {"$ref":"#/$defs/uuid"},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/command_data"}
+      }
+    },
+    "ack_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"ack"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"anyOf":[{"$ref":"#/$defs/utc_time"},{"type":"null"}]},
+        "device_id": {"$ref":"#/$defs/device_id"},
+        "device_record_id": {"$ref":"#/$defs/uuid"},
+        "environment_id": {"$ref":"#/$defs/uuid"},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/ack_data"}
+      }
+    },
+    "command_status_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"command_status"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"$ref":"#/$defs/utc_time"},
+        "device_id": {"$ref":"#/$defs/device_id"},
+        "device_record_id": {"$ref":"#/$defs/uuid"},
+        "environment_id": {"$ref":"#/$defs/uuid"},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/command_status_data"}
+      }
+    },
+    "prediction_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"prediction"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"$ref":"#/$defs/utc_time"},
+        "device_id": {"$ref":"#/$defs/device_id"},
+        "device_record_id": {"$ref":"#/$defs/uuid"},
+        "environment_id": {"$ref":"#/$defs/uuid"},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/prediction_data"}
+      }
+    },
+    "alert_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"alert"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"$ref":"#/$defs/utc_time"},
+        "device_id": {"$ref":"#/$defs/device_id"},
+        "device_record_id": {"$ref":"#/$defs/uuid"},
+        "environment_id": {"$ref":"#/$defs/uuid"},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/alert_data"}
+      }
+    },
+    "freshness_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"freshness"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"$ref":"#/$defs/utc_time"},
+        "device_id": {"$ref":"#/$defs/device_id"},
+        "device_record_id": {"$ref":"#/$defs/uuid"},
+        "environment_id": {"$ref":"#/$defs/uuid"},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/freshness_data"}
+      }
+    },
+    "job_requested_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"job_requested"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"$ref":"#/$defs/utc_time"},
+        "device_id": {"type":"null"},
+        "device_record_id": {"type":"null"},
+        "environment_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/job_requested_data"}
+      }
+    },
+    "job_progress_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"job_progress"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"$ref":"#/$defs/utc_time"},
+        "device_id": {"type":"null"},
+        "device_record_id": {"type":"null"},
+        "environment_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/job_progress_data"}
+      }
+    },
+    "model_activation_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"model_activation"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"$ref":"#/$defs/utc_time"},
+        "device_id": {"type":"null"},
+        "device_record_id": {"type":"null"},
+        "environment_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/model_activation_data"}
+      }
+    },
+    "model_status_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"model_status"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"$ref":"#/$defs/utc_time"},
+        "device_id": {"type":"null"},
+        "device_record_id": {"type":"null"},
+        "environment_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/model_status_data"}
+      }
+    },
+    "processing_error_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","event_id","type","occurred_at","received_at","device_id","device_record_id","environment_id","correlation_id","data"],
+      "properties": {
+        "schema_version": {"const":3},
+        "event_id": {"$ref":"#/$defs/uuid"},
+        "type": {"const":"processing_error"},
+        "occurred_at": {"$ref":"#/$defs/utc_time"},
+        "received_at": {"$ref":"#/$defs/utc_time"},
+        "device_id": {"anyOf":[{"$ref":"#/$defs/device_id"},{"type":"null"}]},
+        "device_record_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "environment_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
+        "correlation_id": {"$ref":"#/$defs/uuid"},
+        "data": {"$ref":"#/$defs/processing_error_data"}
+      },
+      "oneOf": [{"properties":{"device_id":{"$ref":"#/$defs/device_id"},"device_record_id":{"$ref":"#/$defs/uuid"},"environment_id":{"$ref":"#/$defs/uuid"}}},{"properties":{"device_id":{"type":"null"},"device_record_id":{"type":"null"},"environment_id":{"type":"null"}}}]
+    },
+    "event": {
+      "oneOf": [{"$ref":"#/$defs/telemetry_event"},{"$ref":"#/$defs/command_event"},{"$ref":"#/$defs/ack_event"},{"$ref":"#/$defs/command_status_event"},{"$ref":"#/$defs/prediction_event"},{"$ref":"#/$defs/alert_event"},{"$ref":"#/$defs/freshness_event"},{"$ref":"#/$defs/job_requested_event"},{"$ref":"#/$defs/job_progress_event"},{"$ref":"#/$defs/model_activation_event"},{"$ref":"#/$defs/model_status_event"},{"$ref":"#/$defs/processing_error_event"}]
+    },
+    "mqtt_event": {
+      "oneOf": [{"allOf":[{"$ref":"#/$defs/telemetry_event"},{"properties":{"received_at":{"type":"null"}}}]},{"allOf":[{"$ref":"#/$defs/command_event"},{"properties":{"received_at":{"$ref":"#/$defs/utc_time"}}}]},{"allOf":[{"$ref":"#/$defs/ack_event"},{"properties":{"received_at":{"type":"null"}}}]}]
+    },
+    "bus_event": {
+      "allOf": [{"$ref":"#/$defs/event"},{"properties":{"received_at":{"$ref":"#/$defs/utc_time"}}}]
+    }
+  }
+}

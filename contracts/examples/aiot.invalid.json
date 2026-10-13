@@ -1,0 +1,473 @@
+[
+  {
+    "name": "legacy_version_rejected",
+    "base": "telemetry_received",
+    "set": {"schema_version": 2},
+    "expected": "schema"
+  },
+  {
+    "name": "extra_top_level_field",
+    "base": "telemetry_received",
+    "set": {"debug": true},
+    "expected": "schema"
+  },
+  {
+    "name": "missing_event_id",
+    "base": "telemetry_received",
+    "remove": ["event_id"],
+    "expected": "schema"
+  },
+  {
+    "name": "invalid_event_uuid",
+    "base": "telemetry_received",
+    "set": {"event_id": "not-a-uuid"},
+    "expected": "schema"
+  },
+  {
+    "name": "non_utc_instant",
+    "base": "telemetry_received",
+    "set": {"occurred_at": "2026-10-12T15:00:00-03:00"},
+    "expected": "schema"
+  },
+  {
+    "name": "invalid_instant",
+    "base": "telemetry_received",
+    "set": {"occurred_at": "2026-99-99T18:00:00Z"},
+    "expected": "schema"
+  },
+  {
+    "name": "bus_missing_receipt",
+    "base": "telemetry_received",
+    "set": {"received_at": null},
+    "expected": "schema"
+  },
+  {
+    "name": "topic_device_mismatch",
+    "base": "telemetry_edge",
+    "topic": "coldsafe/v3/devices/esp32.lab-02/telemetry",
+    "expected": "binding"
+  },
+  {
+    "name": "topic_command_suffix_for_telemetry",
+    "base": "telemetry_edge",
+    "topic": "coldsafe/v3/devices/esp32.lab-01/commands",
+    "expected": "binding"
+  },
+  {
+    "name": "rabbit_uses_mqtt_identity",
+    "base": "telemetry_received",
+    "routing_key": "v3.telemetry.esp32.lab-01",
+    "expected": "binding"
+  },
+  {
+    "name": "telemetry_correlation_mismatch",
+    "base": "telemetry_received",
+    "set": {"correlation_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "semantic"
+  },
+  {
+    "name": "ambient_motor_sensor_swapped",
+    "base": "telemetry_received",
+    "set": {"data.measurements.ambient_temperature.sensor_id": "00000000-0000-4000-8000-000000000015", "data.measurements.motor_temperature.sensor_id": "00000000-0000-4000-8000-000000000010"},
+    "expected": "catalog"
+  },
+  {
+    "name": "wrong_catalog_device",
+    "base": "telemetry_received",
+    "set": {"device_id": "esp32.lab-02"},
+    "expected": "catalog"
+  },
+  {
+    "name": "wrong_catalog_environment",
+    "base": "telemetry_received",
+    "set": {"environment_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "catalog"
+  },
+  {
+    "name": "wrong_equipment",
+    "base": "telemetry_received",
+    "set": {"data.equipment.equipment_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "catalog"
+  },
+  {
+    "name": "unknown_sensor",
+    "base": "telemetry_received",
+    "set": {"data.measurements.vibration.sensor_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "catalog"
+  },
+  {
+    "name": "wrong_unit",
+    "base": "telemetry_received",
+    "set": {"data.measurements.motor_temperature.unit": "percent"},
+    "expected": "schema"
+  },
+  {
+    "name": "ambient_above_simulation_bound",
+    "base": "telemetry_received",
+    "set": {"data.measurements.ambient_temperature.value": 81},
+    "expected": "schema"
+  },
+  {
+    "name": "negative_vibration",
+    "base": "telemetry_received",
+    "set": {"data.measurements.vibration.value": -1},
+    "expected": "schema"
+  },
+  {
+    "name": "humidity_above_percent",
+    "base": "telemetry_received",
+    "set": {"data.measurements.humidity.value": 101},
+    "expected": "schema"
+  },
+  {
+    "name": "missing_measurement",
+    "base": "telemetry_received",
+    "remove": ["data.measurements.motor_current"],
+    "expected": "schema"
+  },
+  {
+    "name": "extra_measurement",
+    "base": "telemetry_received",
+    "set": {"data.measurements.pressure": {"sensor_id": "00000000-0000-4000-8000-000000000999", "unit": "Pa", "value": 1}},
+    "expected": "schema"
+  },
+  {
+    "name": "offline_label_at_live_data",
+    "base": "telemetry_received",
+    "set": {"data.health_score_true": 12},
+    "expected": "schema"
+  },
+  {
+    "name": "offline_labels_nested_live",
+    "base": "telemetry_received",
+    "set": {"data.measurements.motor_temperature.labels": {"rul_hours_true": 0}},
+    "expected": "schema"
+  },
+  {
+    "name": "offline_label_at_prediction",
+    "base": "prediction_available_zero_rul",
+    "set": {"data.rul_hours_true": 0},
+    "expected": "schema"
+  },
+  {
+    "name": "unavailable_fake_zero_outputs",
+    "base": "prediction_unavailable_no_model",
+    "set": {"data.health_score": 0, "data.rul_hours": 0},
+    "expected": "schema"
+  },
+  {
+    "name": "available_missing_model",
+    "base": "prediction_available_zero_rul",
+    "set": {"data.model_id": null},
+    "expected": "schema"
+  },
+  {
+    "name": "unavailable_without_reason",
+    "base": "prediction_unavailable_no_model",
+    "set": {"data.reason": null},
+    "expected": "schema"
+  },
+  {
+    "name": "no_model_with_model_identity",
+    "base": "prediction_unavailable_no_model",
+    "set": {"data.model_id": "00000000-0000-4000-8000-000000000200", "data.model_version": "fan-model-1"},
+    "expected": "schema"
+  },
+  {
+    "name": "prediction_wrong_source",
+    "base": "prediction_available_zero_rul",
+    "set": {"data.source_event_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "semantic"
+  },
+  {
+    "name": "prediction_wrong_receipt",
+    "base": "prediction_available_zero_rul",
+    "set": {"data.input_received_at": "2026-10-12T18:00:01Z"},
+    "expected": "semantic"
+  },
+  {
+    "name": "prediction_wrong_equipment",
+    "base": "prediction_available_zero_rul",
+    "set": {"data.equipment_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "semantic"
+  },
+  {
+    "name": "prediction_wrong_correlation",
+    "base": "prediction_available_zero_rul",
+    "set": {"correlation_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "semantic"
+  },
+  {
+    "name": "manual_buzzer_forbidden",
+    "base": "automatic_buzzer_command",
+    "set": {"data.source": "manual"},
+    "expected": "schema"
+  },
+  {
+    "name": "automatic_led_forbidden",
+    "base": "manual_led_command",
+    "set": {"data.source": "automatic"},
+    "expected": "schema"
+  },
+  {
+    "name": "toggle_command_forbidden",
+    "base": "manual_led_command",
+    "set": {"data.desired_state": "toggle"},
+    "expected": "schema"
+  },
+  {
+    "name": "command_deadline_not_30_seconds",
+    "base": "manual_led_command",
+    "set": {"data.deadline_at": "2026-10-12T18:00:31Z"},
+    "expected": "semantic"
+  },
+  {
+    "name": "command_correlation_mismatch",
+    "base": "manual_led_command",
+    "set": {"correlation_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "semantic"
+  },
+  {
+    "name": "ack_wrong_command",
+    "base": "led_ack_received",
+    "set": {"data.command_id": "00000000-0000-4000-8000-000000000999", "correlation_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "semantic"
+  },
+  {
+    "name": "ack_wrong_actuator",
+    "base": "led_ack_received",
+    "set": {"data.actuator_id": "00000000-0000-4000-8000-000000000021"},
+    "expected": "semantic"
+  },
+  {
+    "name": "applied_ack_contains_failure",
+    "base": "led_ack_received",
+    "set": {"data.reason": "ACTUATOR_FAILURE"},
+    "expected": "schema"
+  },
+  {
+    "name": "rejected_ack_has_boolean_state",
+    "base": "led_ack_rejected",
+    "set": {"data.applied_state": false},
+    "expected": "schema"
+  },
+  {
+    "name": "confirmed_differs_from_desired",
+    "base": "led_status_confirmed",
+    "set": {"data.confirmed_state": false},
+    "expected": "semantic"
+  },
+  {
+    "name": "predictive_alert_from_unavailable_prediction",
+    "base": "predictive_alert_opened",
+    "reference": "prediction_unavailable_no_model",
+    "set": {"data.source_event_id": "00000000-0000-4000-8000-000000000110"},
+    "expected": "semantic"
+  },
+  {
+    "name": "temperature_alert_from_prediction",
+    "base": "temperature_alert_closed",
+    "reference": "prediction_available_zero_rul",
+    "set": {"data.source_event_id": "00000000-0000-4000-8000-000000000101"},
+    "expected": "semantic"
+  },
+  {
+    "name": "pending_claims_confirmation",
+    "base": "led_status_pending",
+    "set": {"data.confirmed_state": true},
+    "expected": "schema"
+  },
+  {
+    "name": "no_data_invents_age",
+    "base": "freshness_no_data",
+    "set": {"data.age_seconds": 0},
+    "expected": "schema"
+  },
+  {
+    "name": "freshness_future_receipt",
+    "base": "fresh_boundary",
+    "set": {"data.age_seconds": -1},
+    "expected": "schema"
+  },
+  {
+    "name": "freshness_wrong_age",
+    "base": "fresh_boundary",
+    "set": {"data.age_seconds": 29},
+    "expected": "semantic"
+  },
+  {
+    "name": "freshness_wrong_state",
+    "base": "fresh_boundary",
+    "set": {"data.state": "stale"},
+    "expected": "schema"
+  },
+  {
+    "name": "job_generation_has_input_dataset",
+    "base": "job_generation_requested",
+    "set": {"data.dataset_id": "00000000-0000-4000-8000-000000000510"},
+    "expected": "schema"
+  },
+  {
+    "name": "training_without_dataset",
+    "base": "job_training_requested",
+    "set": {"data.dataset_id": null},
+    "expected": "schema"
+  },
+  {
+    "name": "job_progress_over_total",
+    "base": "job_training_running",
+    "set": {"data.completed_units": 3},
+    "expected": "semantic"
+  },
+  {
+    "name": "queued_has_progress",
+    "base": "job_training_queued",
+    "set": {"data.completed_units": 1},
+    "expected": "semantic"
+  },
+  {
+    "name": "completed_before_total",
+    "base": "job_training_completed",
+    "set": {"data.completed_units": 1},
+    "expected": "semantic"
+  },
+  {
+    "name": "completed_without_result",
+    "base": "job_training_completed",
+    "set": {"data.result_id": null},
+    "expected": "schema"
+  },
+  {
+    "name": "failed_job_without_error",
+    "base": "job_training_failed",
+    "set": {"data.error_code": null},
+    "expected": "schema"
+  },
+  {
+    "name": "training_job_reports_generation_error",
+    "base": "job_training_failed",
+    "set": {"data.error_code": "GENERATION_FAILED"},
+    "expected": "semantic"
+  },
+  {
+    "name": "job_scope_contains_device",
+    "base": "job_training_requested",
+    "set": {"device_id": "esp32.lab-01"},
+    "expected": "schema"
+  },
+  {
+    "name": "model_active_wrong_id",
+    "base": "model_active",
+    "set": {"data.active_model_id": "00000000-0000-4000-8000-000000000201"},
+    "expected": "semantic"
+  },
+  {
+    "name": "failed_model_loses_previous",
+    "base": "model_failed",
+    "set": {"data.active_model_id": null},
+    "expected": "semantic"
+  },
+  {
+    "name": "model_wrong_activation",
+    "base": "model_active",
+    "set": {"data.activation_id": "00000000-0000-4000-8000-000000000999", "correlation_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "semantic"
+  },
+  {
+    "name": "model_failed_without_error",
+    "base": "model_failed",
+    "set": {"data.error_code": null},
+    "expected": "schema"
+  },
+  {
+    "name": "model_status_wrong_version",
+    "base": "model_active",
+    "set": {"data.model_version": "fan-model-2"},
+    "expected": "semantic"
+  },
+  {
+    "name": "model_correlation_mismatch",
+    "base": "model_active",
+    "set": {"correlation_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "semantic"
+  },
+  {
+    "name": "processing_mixed_identity_scope",
+    "base": "private_invalid_source_error",
+    "set": {"device_id": "esp32.lab-01"},
+    "expected": "schema"
+  },
+  {
+    "name": "error_fourth_attempt",
+    "base": "retry_exhausted_error",
+    "set": {"data.attempt": 4},
+    "expected": "schema"
+  },
+  {
+    "name": "invalid_schema_retryable",
+    "base": "private_invalid_source_error",
+    "set": {"data.retryable": true},
+    "expected": "semantic"
+  },
+  {
+    "name": "error_leaks_raw_payload",
+    "base": "private_invalid_source_error",
+    "set": {"data.raw_payload": {"secret": "example-only"}},
+    "expected": "schema"
+  },
+  {
+    "name": "offline_censored_invents_rul",
+    "base": "offline_censored_missing_features",
+    "set": {"labels.rul_hours_true": 0},
+    "expected": "schema"
+  },
+  {
+    "name": "offline_observed_missing_rul",
+    "base": "offline_observed_zero_rul",
+    "set": {"labels.rul_hours_true": null},
+    "expected": "schema"
+  },
+  {
+    "name": "offline_negative_rul",
+    "base": "offline_observed_zero_rul",
+    "set": {"labels.rul_hours_true": -1},
+    "expected": "schema"
+  },
+  {
+    "name": "offline_wrong_equipment",
+    "base": "offline_observed_zero_rul",
+    "set": {"equipment_id": "00000000-0000-4000-8000-000000000999"},
+    "expected": "catalog"
+  },
+  {
+    "name": "offline_routed_to_mqtt",
+    "base": "offline_observed_zero_rul",
+    "topic": "coldsafe/v3/devices/esp32.lab-01/telemetry",
+    "expected": "binding"
+  },
+  {"name": "no_model_cannot_have_model_id", "base": "prediction_unavailable_no_model", "set": {"data.model_id": "00000000-0000-4000-8000-000000000200"}, "expected": "schema"},
+  {"name": "no_model_cannot_have_model_version", "base": "prediction_unavailable_no_model", "set": {"data.model_version": "fan-model-1"}, "expected": "schema"},
+  {"name": "model_status_version_must_match_activation", "base": "model_active", "set": {"data.model_version": "other-model"}, "expected": "semantic"},
+  {"name": "model_status_features_must_match_activation", "base": "model_active", "set": {"data.features_version": "other-features"}, "expected": "semantic"},
+  {"name": "training_failure_code_cannot_report_generation", "base": "job_training_failed", "set": {"data.error_code": "GENERATION_FAILED"}, "expected": "semantic"},
+  {"name": "job_progress_type_must_match_request", "base": "job_training_running", "set": {"data.job_type": "generation"}, "expected": "semantic"},
+  {"name": "retryable_error_cannot_retry_after_last_attempt", "base": "transient_processing_error", "set": {"data.attempt": 3}, "expected": "semantic"},
+  {"name": "available_prediction_cannot_use_stale_input", "base": "prediction_available_zero_rul", "set": {"occurred_at": "2026-10-12T18:00:30.101Z"}, "expected": "semantic"},
+  {"name": "prediction_cannot_precede_input_receipt", "base": "prediction_available_zero_rul", "set": {"occurred_at": "2026-10-12T18:00:00Z"}, "expected": "semantic"},
+  {"name": "predictive_alert_cannot_close_from_stale_prediction", "base": "predictive_alert_opened", "set": {"data.state": "closed", "occurred_at": "2026-10-12T18:00:30.101Z"}, "expected": "semantic"},
+  {"name": "ack_requires_command_reference", "base": "led_ack_received", "reference": null, "expected": "semantic"},
+  {"name": "status_requires_command_reference", "base": "led_status_pending", "reference": null, "expected": "semantic"},
+  {"name": "ack_reference_must_be_command", "base": "led_ack_received", "reference": "led_status_pending", "expected": "semantic"},
+  {"name": "prediction_source_must_be_telemetry", "base": "prediction_available_zero_rul", "reference": "led_ack_received", "set": {"data.source_event_id": "00000000-0000-4000-8000-000000000142", "correlation_id": "00000000-0000-4000-8000-000000000400"}, "expected": "semantic"},
+  {"name": "prediction_requires_accepted_source", "base": "prediction_available_zero_rul", "reference": "telemetry_edge", "expected": "semantic"},
+  {"name": "confirmed_requires_ack_reference", "base": "led_status_confirmed", "ack_reference": null, "expected": "semantic"},
+  {"name": "confirmed_requires_ack_event", "base": "led_status_confirmed", "ack_reference": "manual_led_command", "expected": "semantic"},
+  {"name": "confirmed_rejects_rejected_ack", "base": "led_status_confirmed", "ack_reference": "led_ack_rejected", "expected": "semantic"},
+  {"name": "confirmed_rejects_divergent_ack", "base": "led_status_confirmed", "ack_reference": "led_ack_divergent_auditable", "expected": "semantic"},
+  {"name": "confirmed_rejects_late_ack", "base": "led_status_confirmed_ack_at_deadline", "ack_reference": "led_ack_late_auditable", "expected": "semantic"},
+  {"name": "confirmed_cannot_precede_ack_receipt", "base": "led_status_confirmed", "set": {"occurred_at": "2026-10-12T18:00:00Z"}, "expected": "semantic"},
+  {"name": "confirmed_rejects_ack_from_other_command", "base": "led_status_confirmed", "ack_reference": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000142", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": "2026-10-12T18:00:00.100Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000999", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}}, "expected": "semantic"},
+  {"name": "confirmed_rejects_ack_from_other_scope", "base": "led_status_confirmed", "ack_reference": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000142", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": "2026-10-12T18:00:00.100Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000999", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}}, "expected": "semantic"},
+  {"name": "confirmed_rejects_ack_before_command_receipt", "base": "led_status_confirmed", "ack_reference": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000142", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": "2026-10-12T18:00:00Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}}, "expected": "semantic"},
+  {"name": "confirmed_rejects_ack_without_trusted_receipt", "base": "led_status_confirmed", "ack_reference": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000142", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": null, "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}}, "expected": "semantic"}
+]
