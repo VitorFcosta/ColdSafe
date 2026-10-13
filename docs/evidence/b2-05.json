@@ -1,0 +1,162 @@
+{
+  "task": "B2-05",
+  "executed_on": "2026-10-13",
+  "timezone": "America/Sao_Paulo",
+  "status": "Concluída",
+  "scope": "PostgreSQL migrations and private metadata; no AIoT business workers or model loading",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "0bb7fea6b790765585264f3a2c26b9df37dacb4a",
+    "committed": true,
+    "pushed": false,
+    "preexisting_changes_preserved": true,
+    "implementation_commit": "7941ac473e05d13fb301663fab41bd36181eea93"
+  },
+  "dependencies_added": [],
+  "created": [
+    "backend/migrations/004_user_roles.sql",
+    "backend/migrations/005_aiot_records.sql",
+    "backend/app/repositories/aiot.py",
+    "backend/tests/integration/test_aiot_migrations_integration.py",
+    "backend/migrations/README.md",
+    "docs/evidence/b2-05.json"
+  ],
+  "modified": [
+    "backend/app/repositories/postgres.py",
+    "backend/tests/integration/test_postgres_schema_integration.py",
+    "backend/README.md",
+    "docs/aiot/tasks/B2-05.md",
+    "docs/aiot/tasks/README.md",
+    "docs/aiot/README.md"
+  ],
+  "tests": {
+    "red_initial": {
+      "failed": 1,
+      "seconds": 22.55,
+      "reason": "expected migration versions 1-5; only 1-3 existed"
+    },
+    "green_initial": {
+      "passed": 17,
+      "seconds": 6.27
+    },
+    "regression_initial": {
+      "passed": 290,
+      "skipped": 4,
+      "seconds": 95.74,
+      "python_coverage_percent": 91.08
+    },
+    "targeted_intermediate": {
+      "passed": 91,
+      "seconds": 63.18,
+      "new_cases": 22,
+      "existing_cases": 69
+    },
+    "red_result_origin": {
+      "failed": 1,
+      "seconds": 1.01,
+      "reason": "same-owner result produced by another training job was wrongly accepted"
+    },
+    "regression_final": {
+      "passed": 297,
+      "skipped": 4,
+      "warnings": 2,
+      "seconds": 51.61,
+      "new_cases": 24,
+      "existing_cases_rerun": 273,
+      "python_coverage_percent": 91.07896323086196,
+      "coverage_totals": {
+        "covered_lines": 1296,
+        "num_statements": 1387,
+        "percent_covered": 91.07896323086196,
+        "percent_covered_display": "91",
+        "missing_lines": 91,
+        "excluded_lines": 29,
+        "percent_statements_covered": 93.43907714491709,
+        "percent_statements_covered_display": "93",
+        "num_branches": 272,
+        "num_partial_branches": 43,
+        "covered_branches": 215,
+        "missing_branches": 57,
+        "percent_branches_covered": 79.04411764705883,
+        "percent_branches_covered_display": "79"
+      },
+      "aiot_repository_coverage_percent": 100.0,
+      "command": "python -m pytest backend/tests --cov=backend/app --cov-branch --cov-report=term --cov-report=json:/tmp/coldsafe-b205-coverage-final.json --cov-fail-under=80 -o addopts= -q --tb=short -rs",
+      "environment": "private POSTGRES_TEST_* variables for isolated PostgreSQL; no personal DB credentials",
+      "output": "........................................................................ [ 23%]\n........................................................................ [ 47%]\n....................................................................s..s [ 71%]\ns.s..................................................................... [ 95%]\n.............                                                            [100%]\n=============================== warnings summary ===============================\n../../../../tmp/coldsafe-b204-venv/lib/python3.13/site-packages/fastapi/testclient.py:1\n  /tmp/coldsafe-b204-venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n../../../../tmp/coldsafe-b204-venv/lib/python3.13/site-packages/starlette/testclient.py:53\n  /tmp/coldsafe-b204-venv/lib/python3.13/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.\n    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================ tests coverage ================================\n______________ coverage: platform darwin, python 3.13.15-final-0 _______________\n\nName                                           Stmts   Miss Branch BrPart  Cover\n--------------------------------------------------------------------------------\nbackend/app/__init__.py                            0      0      0      0   100%\nbackend/app/api/__init__.py                        0      0      0      0   100%\nbackend/app/api/app.py                           115      5     32      3    95%\nbackend/app/api/auth.py                          123      3     12      3    96%\nbackend/app/api/catalog.py                       156      6      6      0    96%\nbackend/app/api/commands.py                       59      7     10      5    83%\nbackend/app/api/events.py                         93     14     26      7    82%\nbackend/app/api/schemas.py                        66      0      0      0   100%\nbackend/app/config/__init__.py                     0      0      0      0   100%\nbackend/app/config/settings.py                    24      0      0      0   100%\nbackend/app/domain/__init__.py                     3      0      0      0   100%\nbackend/app/domain/commands.py                    24      1      6      1    93%\nbackend/app/domain/reading_classification.py      45      0     14      0   100%\nbackend/app/domain/telemetry.py                   20      0      4      0   100%\nbackend/app/errors.py                              2      0      0      0   100%\nbackend/app/main.py                                3      3      0      0     0%\nbackend/app/mqtt/__init__.py                       2      0      0      0   100%\nbackend/app/mqtt/subscriber.py                   118     11     36      2    90%\nbackend/app/repositories/__init__.py               3      0      0      0   100%\nbackend/app/repositories/aiot.py                  27      0      0      0   100%\nbackend/app/repositories/influxdb.py              57      0      6      0   100%\nbackend/app/repositories/influxdb_client.py       56      0     12      0   100%\nbackend/app/repositories/postgres.py              21      5      4      0    80%\nbackend/app/runtime.py                            85     12     12      3    80%\nbackend/app/services/__init__.py                   0      0      0      0   100%\nbackend/app/services/alerts.py                    66      7     26      4    84%\nbackend/app/services/commands.py                 143     14     58     13    85%\nbackend/app/services/monitoring.py                48      3      6      2    91%\nbackend/app/services/telemetry_ingestion.py       28      0      2      0   100%\n--------------------------------------------------------------------------------\nTOTAL                                           1387     91    272     43    91%\nCoverage JSON written to file /tmp/coldsafe-b205-coverage-final.json\nRequired test coverage of 80% reached. Total coverage: 91.08%\n=========================== short test summary info ============================\nSKIPPED [1] backend/tests/integration/test_block5_isolation_integration.py:24: PostgreSQL and a dedicated InfluxDB test bucket are required\nSKIPPED [2] backend/tests/integration/test_influxdb_repository_integration.py:26: INFLUXDB_TEST_URL is required for the InfluxDB integration test\nSKIPPED [1] backend/tests/integration/test_runtime_pipeline_integration.py:48: API_TEST_DISPOSABLE=1 is required for an isolated test stack\n297 passed, 4 skipped, 2 warnings in 51.61s\n"
+    }
+  },
+  "recovery_final": {
+    "status": "passed",
+    "method": "pg_dump -Fc / pg_restore --exit-on-error --no-owner --no-privileges; full old fixture snapshot matched after restore into a different empty DB; final migrations upgraded to 1-5",
+    "dump_bytes": 23112,
+    "dump_sha256": "2d7c0eac28d7cccdbe3a282e3d280fe9d2814a77df0afcf0516a7bd993a6adc1",
+    "fixture_scope": "schema 001-003 with rows in every legacy table; no existing personal volumes",
+    "dump_retained": false
+  },
+  "cleanup": {
+    "container": "coldsafe-b205-483b4021",
+    "removed": true,
+    "persistent_mounts": [],
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw"
+    },
+    "oom_killed": false,
+    "restarts": 0,
+    "credentials_removed": true,
+    "existing_containers": [
+      "coldsafe-postgres-1 Exited (0) 2 weeks ago postgres:17.11-alpine3.24",
+      "coldsafe-influxdb-1 Exited (2) 2 weeks ago influxdb:2.7.12-alpine",
+      "coldsafe-backend-1 Exited (0) 2 weeks ago coldsafe-backend",
+      "coldsafe-frontend-1 Exited (143) 2 weeks ago coldsafe-frontend",
+      "coldsafe-mosquitto-1 Exited (0) 2 weeks ago eclipse-mosquitto:2.0.22",
+      "coldsafe-mosquitto-init-1 Exited (0) 2 weeks ago eclipse-mosquitto:2.0.22"
+    ],
+    "versions": {
+      "python": "3.13.15",
+      "pytest": "9.1.1",
+      "psycopg": "3.3.6",
+      "postgres_image": "postgres:17.11-alpine3.24"
+    }
+  },
+  "review": {
+    "independent_static_review": true,
+    "finding": "same-owner result could come from another job",
+    "resolved": "composite result foreign keys include producer job; generation provenance enforces generation type",
+    "recheck": "resolved, no new concrete findings",
+    "independent_test_execution": false,
+    "attempt": "project .venv pytest import blocked; interrupted, no result claimed"
+  },
+  "limitations": [
+    "legacy fixture represents schema 001-003 with rows in every old table, not the personal database",
+    "personal volumes not mounted or migrated",
+    "no SQL RLS: service credential is trusted; caller must resolve owner via authentication",
+    "role authorization/JWT/bcrypt/WS tickets belong to B2-06",
+    "workers, generation/training, approval/features and loading/atomic swap of artifacts remain later tasks",
+    "4 full-stack/InfluxDB tests skipped: no dedicated test InfluxDB or API_TEST_DISPOSABLE=1 stack",
+    "no browser E2E, firmware/hardware or full-stack capacity test",
+    "Python coverage does not measure SQL coverage",
+    "temporary credentials removed, environment/logs may disappear"
+  ],
+  "source_sha256": {
+    "backend/migrations/004_user_roles.sql": "ddc51f662c967d479696b750dc124971de82490edef122dbaf71efb5d8f5fc09",
+    "backend/migrations/005_aiot_records.sql": "607039a0a47a5d86d6a317ab0d0934ef94272bc6aeed5fc2db2c38393b31d4e0",
+    "backend/app/repositories/aiot.py": "6a2ab235d485b8a8efefa83b211a553971bab24e855e400f5e97760bdd137c12",
+    "backend/app/repositories/postgres.py": "97540481cd52f8476429ecf9580f7cf1d690f26a2967b5e7582a2a80eb98e854",
+    "backend/tests/integration/test_aiot_migrations_integration.py": "18e37125af7159e90333eb1efa587bb2fd94bbf981b3f41a9efacdc03966f55e",
+    "backend/tests/integration/test_postgres_schema_integration.py": "d7eb8ff5425b5baa1b8250f498e056d1c400a6cb428d04077ccdc66e0189c396",
+    "backend/migrations/README.md": "ccd832b4c8570fc704ebd72aa2fb7100a2c9a92cf5231a930757b9866758b753",
+    "backend/README.md": "7a361a200b71aff664927708116468c46a0142027c262b66a22f67ce3cd33ab0",
+    "docs/aiot/tasks/B2-05.md": "2b2b3a429e795fc5fa4a1e999d63589aedfe9b1842d780749e79423416095a52",
+    "docs/aiot/tasks/README.md": "279725360a6d715bef3a1c47949a4a767730478b030d60b190f5c8eac4b8306a",
+    "docs/aiot/README.md": "a6666fa09b11d96f685f1fd7e27af1c4ea2d40f3f2777144b9f6bbad3080ec99"
+  },
+  "checkpoint": "B2-05 complete. Await user selection before B2-06; do not continue automatically.",
+  "post_delivery_commit": {
+    "date": "2026-10-13",
+    "evidence": "precommit-2026-10-13.json",
+    "implementation_commit": "7941ac473e05d13fb301663fab41bd36181eea93",
+    "documentation": "Separate local documentation commit",
+    "pushed": false
+  }
+}

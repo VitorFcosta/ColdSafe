@@ -1,0 +1,901 @@
+{
+  "migrated_on": "2026-10-13",
+  "pages": {
+    "3ced67001da980518b3ee591cb27882c": {
+      "url": "https://app.notion.com/p/3ced67001da980518b3ee591cb27882c?pvs=204",
+      "title": "❄️ ColdSafe",
+      "local": "docs/README.md",
+      "source_edited_at": "2026-10-12T17:45:28.298Z"
+    },
+    "3f7d67001da9818ab16ad13e51cec9cc": {
+      "url": "https://app.notion.com/p/3f7d67001da9818ab16ad13e51cec9cc?pvs=204",
+      "title": "🧭 Comece por aqui — decisões e retomada",
+      "local": "docs/aiot/README.md",
+      "source_edited_at": "2026-10-12T17:45:29.078Z"
+    },
+    "3f7d67001da981f39c55ed9fa61f2ddd": {
+      "url": "https://app.notion.com/p/3f7d67001da981f39c55ed9fa61f2ddd?pvs=204",
+      "title": "📚 1º bimestre — Base entregue",
+      "local": "docs/history/README.md",
+      "source_edited_at": "2026-10-12T17:45:26.508Z"
+    },
+    "3f7d67001da981e484a1e57a9b63b5bd": {
+      "url": "https://app.notion.com/p/3f7d67001da981e484a1e57a9b63b5bd?pvs=204",
+      "title": "🚀 2º bimestre — AIoT",
+      "local": "docs/aiot/README.md",
+      "source_edited_at": "2026-10-12T17:47:23.628Z"
+    },
+    "3f7d67001da981d59d21d175867f8862": {
+      "url": "https://app.notion.com/p/3f7d67001da981d59d21d175867f8862?pvs=204",
+      "title": "📋 Plano técnico e cronograma — AIoT",
+      "local": "docs/aiot/plan.md",
+      "source_edited_at": "2026-10-12T17:44:22.528Z"
+    },
+    "3f7d67001da981c4b6b4f29d2eb90830": {
+      "url": "https://app.notion.com/p/3f7d67001da981c4b6b4f29d2eb90830?pvs=204",
+      "title": "🗺️ Arquitetura e fluxos — AIoT",
+      "local": "docs/aiot/architecture.md",
+      "source_edited_at": "2026-10-12T17:42:07.435Z"
+    },
+    "3f7d67001da98163948af2331ee5699d": {
+      "url": "https://app.notion.com/p/3f7d67001da98163948af2331ee5699d?pvs=204",
+      "title": "✅ Requisitos e evidências — matriz de aceite",
+      "local": "docs/aiot/requirements.md",
+      "source_edited_at": "2026-10-12T17:44:21.346Z"
+    },
+    "3f7d67001da9811489f7f222bb086418": {
+      "url": "https://app.notion.com/p/3f7d67001da9811489f7f222bb086418?pvs=204",
+      "title": "🎓 Apresentação final — 16 de novembro",
+      "local": "docs/aiot/presentation.md",
+      "source_edited_at": "2026-10-12T17:42:07.435Z"
+    },
+    "3f7d67001da9817a9ceae9efd6d0bbe9": {
+      "url": "https://app.notion.com/p/3f7d67001da9817a9ceae9efd6d0bbe9?pvs=204",
+      "title": "📎 Enunciado original — requisitos do professor",
+      "local": "docs/history/assignment.md",
+      "source_edited_at": "2026-10-12T17:44:20.636Z"
+    },
+    "3e9d67001da9810a9a84fea43ccf974e": {
+      "url": "https://app.notion.com/p/3e9d67001da9810a9a84fea43ccf974e?pvs=204",
+      "title": "📘 Documentação do projeto",
+      "local": "docs/README.md",
+      "source_edited_at": "2026-09-29T00:38:46.692Z"
+    },
+    "3cfd67001da981e491dfc5d5a3cae070": {
+      "url": "https://app.notion.com/p/3cfd67001da981e491dfc5d5a3cae070?pvs=204",
+      "title": "🛣️ 09 — Evolução de setembro · histórico do 1º bimestre",
+      "local": "docs/history/project-notes.md",
+      "source_edited_at": "2026-10-12T17:35:27.137Z"
+    },
+    "3e8d67001da981d4a27fed1418af291e": {
+      "url": "https://app.notion.com/p/3e8d67001da981d4a27fed1418af291e?pvs=204",
+      "title": "🎨 10 — Redesign visual e UX · roadmap e retomada",
+      "local": "docs/history/project-notes.md",
+      "source_edited_at": "2026-09-28T02:36:17.668Z"
+    },
+    "3e9d67001da981b98e5bed915d59cb21": {
+      "url": "https://app.notion.com/p/3e9d67001da981b98e5bed915d59cb21?pvs=204",
+      "title": "🎤 Apresentação — 5 minutos",
+      "local": "docs/history/presentation-2026-09.md",
+      "source_edited_at": "2026-09-28T02:36:46.639Z"
+    },
+    "3e4d67001da9819a9783cadc280ef4c7": {
+      "url": "https://app.notion.com/p/3e4d67001da9819a9783cadc280ef4c7?pvs=204",
+      "title": "Redesign para portfólio — entrega e commit",
+      "local": "docs/testing/redesign-portfolio.md",
+      "source_edited_at": "2026-09-23T00:41:32.335Z"
+    },
+    "3e8d67001da981269939de4bfb6c5ce9": {
+      "url": "https://app.notion.com/p/3e8d67001da981269939de4bfb6c5ce9?pvs=204",
+      "title": "Arquivo — tarefas retiradas do redesign",
+      "local": "docs/history/tasks/README.md",
+      "source_edited_at": "2026-09-27T21:33:01.606Z"
+    },
+    "3e8d67001da981ad8077fb9bf175548c": {
+      "url": "https://app.notion.com/p/3e8d67001da981ad8077fb9bf175548c?pvs=204",
+      "title": "Visualização de Tarefas ColdSafe",
+      "local": "docs/history/tasks/README.md",
+      "source_edited_at": null
+    },
+    "3e8d67001da9815db977eeba44a36a4c": {
+      "url": "https://app.notion.com/p/3e8d67001da9815db977eeba44a36a4c?pvs=204",
+      "title": "Visualização de Tarefas ColdSafe",
+      "local": "docs/history/tasks/README.md",
+      "source_edited_at": null
+    },
+    "3e5d67001da981b48ac5f310f81981d5": {
+      "url": "https://app.notion.com/p/3e5d67001da981b48ac5f310f81981d5?pvs=204",
+      "title": "Visualização de Tarefas ColdSafe",
+      "local": "docs/history/tasks/README.md",
+      "source_edited_at": null
+    },
+    "3cfd67001da9810582ccc4bd125ed4b4": {
+      "url": "https://app.notion.com/p/3cfd67001da9810582ccc4bd125ed4b4?pvs=204",
+      "title": "Adicionar healthchecks dos quatro serviços",
+      "local": "docs/history/tasks/CS-09.md",
+      "source_edited_at": "2026-09-06T23:18:22.847Z"
+    },
+    "3cfd67001da98109881adba7198e8a95": {
+      "url": "https://app.notion.com/p/3cfd67001da98109881adba7198e8a95?pvs=204",
+      "title": "Criar circuito ESP32 e DHT22",
+      "local": "docs/history/tasks/CS-10.md",
+      "source_edited_at": "2026-09-07T06:00:31.732Z"
+    },
+    "3cfd67001da98139966ee8e3fb899649": {
+      "url": "https://app.notion.com/p/3cfd67001da98139966ee8e3fb899649?pvs=204",
+      "title": "Configurar Wokwi VS Code e gateway privado",
+      "local": "docs/history/tasks/CS-11.md",
+      "source_edited_at": "2026-09-07T06:27:23.733Z"
+    },
+    "3cfd67001da981659032e21460f2ab62": {
+      "url": "https://app.notion.com/p/3cfd67001da981659032e21460f2ab62?pvs=204",
+      "title": "Implementar leitura e validação local do DHT22",
+      "local": "docs/history/tasks/CS-12.md",
+      "source_edited_at": "2026-09-07T06:00:33.328Z"
+    },
+    "3cfd67001da981ff83cbd3f7a72ae3b3": {
+      "url": "https://app.notion.com/p/3cfd67001da981ff83cbd3f7a72ae3b3?pvs=204",
+      "title": "Implementar MQTT QoS 1 e reconexão",
+      "local": "docs/history/tasks/CS-13.md",
+      "source_edited_at": "2026-09-07T22:23:02.538Z"
+    },
+    "3cfd67001da981828dbee7be2522153b": {
+      "url": "https://app.notion.com/p/3cfd67001da981828dbee7be2522153b?pvs=204",
+      "title": "Testar contrato do payload MQTT",
+      "local": "docs/history/tasks/CS-14.md",
+      "source_edited_at": "2026-09-04T19:19:34.796Z"
+    },
+    "3cfd67001da9819cae9fd829e92cff2e": {
+      "url": "https://app.notion.com/p/3cfd67001da9819cae9fd829e92cff2e?pvs=204",
+      "title": "Implementar modelos e validação MQTT",
+      "local": "docs/history/tasks/CS-15.md",
+      "source_edited_at": "2026-09-04T19:19:33.921Z"
+    },
+    "3cfd67001da981ccb92ad7bbf0af1f94": {
+      "url": "https://app.notion.com/p/3cfd67001da981ccb92ad7bbf0af1f94?pvs=204",
+      "title": "Testar regras de classificação",
+      "local": "docs/history/tasks/CS-16.md",
+      "source_edited_at": "2026-09-04T21:19:15.019Z"
+    },
+    "3cfd67001da9816cabfafa9d33e7b709": {
+      "url": "https://app.notion.com/p/3cfd67001da9816cabfafa9d33e7b709?pvs=204",
+      "title": "Implementar comandos e confirmações MQTT",
+      "local": "docs/history/tasks/CS-45.md",
+      "source_edited_at": "2026-10-12T17:36:50.209Z"
+    },
+    "3e5d67001da9813c97e7e24f32420759": {
+      "url": "https://app.notion.com/p/3e5d67001da9813c97e7e24f32420759?pvs=204",
+      "title": "Implementar controle manual do LED",
+      "local": "docs/history/tasks/CS-53.md",
+      "source_edited_at": "2026-10-12T17:36:51.054Z"
+    },
+    "3e5d67001da9816a8a5ec02d5f3a41c7": {
+      "url": "https://app.notion.com/p/3e5d67001da9816a8a5ec02d5f3a41c7?pvs=204",
+      "title": "Implementar buzzer automático",
+      "local": "docs/history/tasks/CS-54.md",
+      "source_edited_at": "2026-10-12T17:36:51.691Z"
+    },
+    "3cfd67001da981f281a1f783fff5bf65": {
+      "url": "https://app.notion.com/p/3cfd67001da981f281a1f783fff5bf65?pvs=204",
+      "title": "Registrar alertas e auditoria",
+      "local": "docs/history/tasks/CS-43.md",
+      "source_edited_at": "2026-10-12T17:36:52.307Z"
+    },
+    "3e5d67001da9817db6e0dc66258bf38e": {
+      "url": "https://app.notion.com/p/3e5d67001da9817db6e0dc66258bf38e?pvs=204",
+      "title": "Implementar WebSocket autenticado",
+      "local": "docs/history/tasks/CS-55.md",
+      "source_edited_at": "2026-10-12T17:36:52.909Z"
+    },
+    "3cfd67001da98157915efae5a1fa05cb": {
+      "url": "https://app.notion.com/p/3cfd67001da98157915efae5a1fa05cb?pvs=204",
+      "title": "Criar telas de acesso e gerenciamento",
+      "local": "docs/history/tasks/CS-41.md",
+      "source_edited_at": "2026-10-12T17:36:53.524Z"
+    },
+    "3e5d67001da9818c84aee467da319661": {
+      "url": "https://app.notion.com/p/3e5d67001da9818c84aee467da319661?pvs=204",
+      "title": "Integrar dashboard e atuadores",
+      "local": "docs/history/tasks/CS-56.md",
+      "source_edited_at": "2026-10-12T17:36:54.215Z"
+    },
+    "3e5d67001da9815aae78c6084cdf4cb4": {
+      "url": "https://app.notion.com/p/3e5d67001da9815aae78c6084cdf4cb4?pvs=204",
+      "title": "Integrar atualização em tempo real",
+      "local": "docs/history/tasks/CS-57.md",
+      "source_edited_at": "2026-10-12T17:36:54.794Z"
+    },
+    "3e8d67001da9813ab130f0ef845fdaa0": {
+      "url": "https://app.notion.com/p/3e8d67001da9813ab130f0ef845fdaa0?pvs=204",
+      "title": "UX-03 — Unificar navegação e orientar o foco entre rotas",
+      "local": "docs/history/tasks/UX-03.md",
+      "source_edited_at": "2026-10-12T17:38:09.097Z"
+    },
+    "3e8d67001da981ea8453f267dbb4d7ac": {
+      "url": "https://app.notion.com/p/3e8d67001da981ea8453f267dbb4d7ac?pvs=204",
+      "title": "UX-04 — Reorganizar painel e priorizar a primeira tela móvel",
+      "local": "docs/history/tasks/UX-04.md",
+      "source_edited_at": "2026-10-12T17:38:09.771Z"
+    },
+    "3e8d67001da981228a3bee1a0af267fd": {
+      "url": "https://app.notion.com/p/3e8d67001da981228a3bee1a0af267fd?pvs=204",
+      "title": "UX-05 — Esclarecer idade da leitura e conexão do sensor",
+      "local": "docs/history/tasks/UX-05.md",
+      "source_edited_at": "2026-10-12T17:38:10.292Z"
+    },
+    "3e8d67001da98143a701e32e9ccfe489": {
+      "url": "https://app.notion.com/p/3e8d67001da98143a701e32e9ccfe489?pvs=204",
+      "title": "UX-06 — Reorganizar controles sem perder confirmações de comandos",
+      "local": "docs/history/tasks/UX-06.md",
+      "source_edited_at": "2026-10-12T17:38:10.855Z"
+    },
+    "3e8d67001da9816a9bb8f211156f27d6": {
+      "url": "https://app.notion.com/p/3e8d67001da9816a9bb8f211156f27d6?pvs=204",
+      "title": "UX-07 — Corrigir eixo temporal, lacunas e limites do histórico",
+      "local": "docs/history/tasks/UX-07.md",
+      "source_edited_at": "2026-10-12T17:38:11.495Z"
+    },
+    "3e8d67001da981a1907aef5ad0deddb0": {
+      "url": "https://app.notion.com/p/3e8d67001da981a1907aef5ad0deddb0?pvs=204",
+      "title": "UX-08 — Adicionar tabela acessível e esclarecer a comparação",
+      "local": "docs/history/tasks/UX-08.md",
+      "source_edited_at": "2026-10-12T17:38:12.092Z"
+    },
+    "3e8d67001da9819fa25cf7e068a56b43": {
+      "url": "https://app.notion.com/p/3e8d67001da9819fa25cf7e068a56b43?pvs=204",
+      "title": "UX-09 — Preservar seleção durante a navegação",
+      "local": "docs/history/tasks/UX-09.md",
+      "source_edited_at": "2026-10-12T17:38:12.593Z"
+    },
+    "3e8d67001da981859a93f353cfa9fcb4": {
+      "url": "https://app.notion.com/p/3e8d67001da981859a93f353cfa9fcb4?pvs=204",
+      "title": "UX-10 — Priorizar listas e contexto na gestão de ambientes",
+      "local": "docs/history/tasks/UX-10.md",
+      "source_edited_at": "2026-10-12T17:38:13.148Z"
+    },
+    "3e8d67001da9810d936ac76622eac820": {
+      "url": "https://app.notion.com/p/3e8d67001da9810d936ac76622eac820?pvs=204",
+      "title": "UX-13 — Recompor landing desktop e mobile",
+      "local": "docs/history/tasks/UX-13.md",
+      "source_edited_at": "2026-10-12T17:38:13.719Z"
+    },
+    "3e8d67001da981178a85e2da52bc9ba3": {
+      "url": "https://app.notion.com/p/3e8d67001da981178a85e2da52bc9ba3?pvs=204",
+      "title": "UX-15 — Fechar estados e erros do uso real",
+      "local": "docs/history/tasks/UX-15.md",
+      "source_edited_at": "2026-10-12T17:38:14.273Z"
+    },
+    "3e8d67001da9812b9fbcf3cdeb0b6d45": {
+      "url": "https://app.notion.com/p/3e8d67001da9812b9fbcf3cdeb0b6d45?pvs=204",
+      "title": "UX-14 — Atualizar vídeo e capturas da demonstração",
+      "local": "docs/history/tasks/UX-14.md",
+      "source_edited_at": "2026-10-12T17:38:14.760Z"
+    },
+    "3e8d67001da981399ecfe6ab39e8f55d": {
+      "url": "https://app.notion.com/p/3e8d67001da981399ecfe6ab39e8f55d?pvs=204",
+      "title": "UX-17 — Validar e entregar o front",
+      "local": "docs/history/tasks/UX-17.md",
+      "source_edited_at": "2026-10-12T17:38:15.640Z"
+    },
+    "3f7d67001da9811888e0f554aa2763ed": {
+      "url": "https://app.notion.com/p/3f7d67001da9811888e0f554aa2763ed?pvs=204",
+      "title": "🔹 B2-01 — Organizar Notion e matriz de requisitos",
+      "local": "docs/aiot/tasks/B2-01.md",
+      "source_edited_at": "2026-10-12T17:47:22.710Z"
+    },
+    "3f7d67001da9815f904fc003e7a20338": {
+      "url": "https://app.notion.com/p/3f7d67001da9815f904fc003e7a20338?pvs=204",
+      "title": "🔹 B2-02 — Registrar baseline local e pendências",
+      "local": "docs/aiot/tasks/B2-02.md",
+      "source_edited_at": "2026-10-12T23:32:08.970Z"
+    },
+    "3f7d67001da981ebbf9cf94a487d00fc": {
+      "url": "https://app.notion.com/p/3f7d67001da981ebbf9cf94a487d00fc?pvs=204",
+      "title": "🔹 B2-03 — Validar capacidade do Mac de 8 GB",
+      "local": "docs/aiot/tasks/B2-03.md",
+      "source_edited_at": "2026-10-13T00:14:26.632Z"
+    },
+    "3f7d67001da981e3b226fc7c981bee3f": {
+      "url": "https://app.notion.com/p/3f7d67001da981e3b226fc7c981bee3f?pvs=204",
+      "title": "🔹 B2-04 — Fechar contratos de sensores, mensagens e previsões",
+      "local": "docs/aiot/tasks/B2-04.md",
+      "source_edited_at": "2026-10-13T04:43:56.334Z"
+    },
+    "3cfd67001da981f291bade22dde3c7e1": {
+      "url": "https://app.notion.com/p/3cfd67001da981f291bade22dde3c7e1?pvs=204",
+      "title": "Registrar PRODUCT.md do frontend",
+      "local": "docs/history/tasks/CS-25.md",
+      "source_edited_at": "2026-09-08T00:23:52.077Z"
+    },
+    "3cfd67001da981108554cd452d3191b7": {
+      "url": "https://app.notion.com/p/3cfd67001da981108554cd452d3191b7?pvs=204",
+      "title": "Executar e aprovar composição Impeccable",
+      "local": "docs/history/tasks/CS-26.md",
+      "source_edited_at": "2026-09-09T05:26:25.219Z"
+    },
+    "3cfd67001da98173a83accb33d0c4107": {
+      "url": "https://app.notion.com/p/3cfd67001da98173a83accb33d0c4107?pvs=204",
+      "title": "Criar Vue, Tailwind e tokens do ColdSafe",
+      "local": "docs/history/tasks/CS-27.md",
+      "source_edited_at": "2026-09-09T18:25:28.536Z"
+    },
+    "3cfd67001da9813cbb2cc47439a4e260": {
+      "url": "https://app.notion.com/p/3cfd67001da9813cbb2cc47439a4e260?pvs=204",
+      "title": "Testar mapeamento dos estados da interface",
+      "local": "docs/history/tasks/CS-28.md",
+      "source_edited_at": "2026-09-09T18:35:28.786Z"
+    },
+    "3cfd67001da981a09b91f4ca1dc5fb3a": {
+      "url": "https://app.notion.com/p/3cfd67001da981a09b91f4ca1dc5fb3a?pvs=204",
+      "title": "Implementar diagnóstico atual",
+      "local": "docs/history/tasks/CS-29.md",
+      "source_edited_at": "2026-09-09T20:16:13.097Z"
+    },
+    "3cfd67001da981e3bbadd4ee65844dd1": {
+      "url": "https://app.notion.com/p/3cfd67001da981e3bbadd4ee65844dd1?pvs=204",
+      "title": "Implementar gráfico e períodos",
+      "local": "docs/history/tasks/CS-30.md",
+      "source_edited_at": "2026-09-09T20:41:09.768Z"
+    },
+    "3cfd67001da9818d82b9f469be7a3c7a": {
+      "url": "https://app.notion.com/p/3cfd67001da9818d82b9f469be7a3c7a?pvs=204",
+      "title": "Implementar polling e falhas parciais",
+      "local": "docs/history/tasks/CS-31.md",
+      "source_edited_at": "2026-09-09T23:52:14.229Z"
+    },
+    "3cfd67001da9814598bbf42da4993373": {
+      "url": "https://app.notion.com/p/3cfd67001da9814598bbf42da4993373?pvs=204",
+      "title": "Validar responsividade e acessibilidade",
+      "local": "docs/history/tasks/CS-32.md",
+      "source_edited_at": "2026-09-10T01:24:31.255Z"
+    },
+    "3cfd67001da9812393dec2b3ebabf764": {
+      "url": "https://app.notion.com/p/3cfd67001da9812393dec2b3ebabf764?pvs=204",
+      "title": "Executar integração MQTT → InfluxDB → API",
+      "local": "docs/history/tasks/CS-33.md",
+      "source_edited_at": "2026-09-08T00:19:40.073Z"
+    },
+    "3cfd67001da9812aab87ca67c1e69886": {
+      "url": "https://app.notion.com/p/3cfd67001da9812aab87ca67c1e69886?pvs=204",
+      "title": "Executar E2E do dashboard",
+      "local": "docs/history/tasks/CS-34.md",
+      "source_edited_at": "2026-09-10T05:07:06.388Z"
+    },
+    "3cfd67001da981a6859eee1ed2d278d4": {
+      "url": "https://app.notion.com/p/3cfd67001da981a6859eee1ed2d278d4?pvs=204",
+      "title": "Verificar cobertura mínima de 80%",
+      "local": "docs/history/tasks/CS-35.md",
+      "source_edited_at": "2026-09-10T05:47:00.587Z"
+    },
+    "3cfd67001da98144a95bc6233cb79c00": {
+      "url": "https://app.notion.com/p/3cfd67001da98144a95bc6233cb79c00?pvs=204",
+      "title": "Revisar segurança e segredos",
+      "local": "docs/history/tasks/CS-36.md",
+      "source_edited_at": "2026-09-10T23:43:32.294Z"
+    },
+    "3cfd67001da98179b8aefa5db81813b8": {
+      "url": "https://app.notion.com/p/3cfd67001da98179b8aefa5db81813b8?pvs=204",
+      "title": "Documentar instalação e runbook",
+      "local": "docs/history/tasks/CS-37.md",
+      "source_edited_at": "2026-09-10T17:40:48.745Z"
+    },
+    "3cfd67001da981cca40efe2ec87475dd": {
+      "url": "https://app.notion.com/p/3cfd67001da981cca40efe2ec87475dd?pvs=204",
+      "title": "Ensaiar demonstração completa",
+      "local": "docs/history/tasks/CS-38.md",
+      "source_edited_at": "2026-09-10T21:29:34.825Z"
+    },
+    "3cfd67001da981238857f2da76beca95": {
+      "url": "https://app.notion.com/p/3cfd67001da981238857f2da76beca95?pvs=204",
+      "title": "Fechar contratos da evolução",
+      "local": "docs/history/tasks/CS-44.md",
+      "source_edited_at": "2026-10-12T17:36:42.869Z"
+    },
+    "3e5d67001da9816b8808c91e20e7cbff": {
+      "url": "https://app.notion.com/p/3e5d67001da9816b8808c91e20e7cbff?pvs=204",
+      "title": "Adicionar PostgreSQL ao Compose",
+      "local": "docs/history/tasks/CS-47.md",
+      "source_edited_at": "2026-10-12T17:36:43.890Z"
+    },
+    "3f7d67001da981e0bc81e2740668f956": {
+      "url": "https://app.notion.com/p/3f7d67001da981e0bc81e2740668f956?pvs=204",
+      "title": "🔹 B2-21 — Baseline e regressão de saúde",
+      "local": "docs/aiot/tasks/B2-21.md",
+      "source_edited_at": "2026-10-12T17:43:20.386Z"
+    },
+    "3f7d67001da981e28062c2a7788be6f3": {
+      "url": "https://app.notion.com/p/3f7d67001da981e28062c2a7788be6f3?pvs=204",
+      "title": "🔹 B2-22 — Baseline e regressão de vida útil restante",
+      "local": "docs/aiot/tasks/B2-22.md",
+      "source_edited_at": "2026-10-12T17:43:21.371Z"
+    },
+    "3f7d67001da9813fb79ff536ba78e590": {
+      "url": "https://app.notion.com/p/3f7d67001da9813fb79ff536ba78e590?pvs=204",
+      "title": "🔹 B2-23 — Métricas, gráficos e importância no treinamento",
+      "local": "docs/aiot/tasks/B2-23.md",
+      "source_edited_at": "2026-10-12T17:43:22.269Z"
+    },
+    "3f7d67001da981b79aa0e3dde6f4d83c": {
+      "url": "https://app.notion.com/p/3f7d67001da981b79aa0e3dde6f4d83c?pvs=204",
+      "title": "🔹 B2-24 — Versionar e ativar modelos",
+      "local": "docs/aiot/tasks/B2-24.md",
+      "source_edited_at": "2026-10-12T17:43:23.161Z"
+    },
+    "3f7d67001da9817dac6ae9fb7fdef497": {
+      "url": "https://app.notion.com/p/3f7d67001da9817dac6ae9fb7fdef497?pvs=204",
+      "title": "🔹 B2-25 — Inferência ao vivo e troca de versão",
+      "local": "docs/aiot/tasks/B2-25.md",
+      "source_edited_at": "2026-10-12T17:43:46.504Z"
+    },
+    "3f7d67001da9817bb6c6f99c158429fc": {
+      "url": "https://app.notion.com/p/3f7d67001da9817bb6c6f99c158429fc?pvs=204",
+      "title": "🔹 B2-26 — Alertas com histerese e página Insights",
+      "local": "docs/aiot/tasks/B2-26.md",
+      "source_edited_at": "2026-10-12T17:43:47.373Z"
+    },
+    "3f7d67001da9819b9c90df45b838f083": {
+      "url": "https://app.notion.com/p/3f7d67001da9819b9c90df45b838f083?pvs=204",
+      "title": "🔹 B2-27 — Cena 3D, IDs e estados",
+      "local": "docs/aiot/tasks/B2-27.md",
+      "source_edited_at": "2026-10-12T17:43:48.477Z"
+    },
+    "3f7d67001da9815dbd25c55190bbfff7": {
+      "url": "https://app.notion.com/p/3f7d67001da9815dbd25c55190bbfff7?pvs=204",
+      "title": "🔹 B2-28 — Animações, ambiente reativo e ausência de dados",
+      "local": "docs/aiot/tasks/B2-28.md",
+      "source_edited_at": "2026-10-12T17:43:49.407Z"
+    },
+    "3f7d67001da9817e9a2fca05b337523c": {
+      "url": "https://app.notion.com/p/3f7d67001da9817e9a2fca05b337523c?pvs=204",
+      "title": "🔹 B2-05 — Planejar e aplicar migrações de papéis, jobs e modelos",
+      "local": "docs/aiot/tasks/B2-05.md",
+      "source_edited_at": "2026-10-12T17:42:46.111Z"
+    },
+    "3f7d67001da9811f8caaeb4d3638b6e4": {
+      "url": "https://app.notion.com/p/3f7d67001da9811f8caaeb4d3638b6e4?pvs=204",
+      "title": "🔹 B2-06 — JWT, bcrypt, limites de login e ticket WebSocket",
+      "local": "docs/aiot/tasks/B2-06.md",
+      "source_edited_at": "2026-10-12T17:42:47.121Z"
+    },
+    "3f7d67001da981879656c0a900de431e": {
+      "url": "https://app.notion.com/p/3f7d67001da981879656c0a900de431e?pvs=204",
+      "title": "🔹 B2-07 — RabbitMQ, credenciais, filas e DLQ",
+      "local": "docs/aiot/tasks/B2-07.md",
+      "source_edited_at": "2026-10-12T17:42:48.169Z"
+    },
+    "3f7d67001da981f7a88aca83d3f589b3": {
+      "url": "https://app.notion.com/p/3f7d67001da981f7a88aca83d3f589b3?pvs=204",
+      "title": "🔹 B2-08 — Proxy do frontend, portas e bootstrap seguro",
+      "local": "docs/aiot/tasks/B2-08.md",
+      "source_edited_at": "2026-10-12T17:42:49.009Z"
+    },
+    "3f7d67001da981cf94ece174f94a3294": {
+      "url": "https://app.notion.com/p/3f7d67001da981cf94ece174f94a3294?pvs=204",
+      "title": "🔹 B2-09 — Simulador de sensores e degradação",
+      "local": "docs/aiot/tasks/B2-09.md",
+      "source_edited_at": "2026-10-12T17:42:50.014Z"
+    },
+    "3f7d67001da98125a4b3d82b1aacb942": {
+      "url": "https://app.notion.com/p/3f7d67001da98125a4b3d82b1aacb942?pvs=204",
+      "title": "🔹 B2-10 — LED, buzzer e confirmações no simulador",
+      "local": "docs/aiot/tasks/B2-10.md",
+      "source_edited_at": "2026-10-12T17:42:51.024Z"
+    },
+    "3f7d67001da981dab559feacd2082ff2": {
+      "url": "https://app.notion.com/p/3f7d67001da981dab559feacd2082ff2?pvs=204",
+      "title": "🔹 B2-11 — Gateway MQTT e AMQP bidirecional",
+      "local": "docs/aiot/tasks/B2-11.md",
+      "source_edited_at": "2026-10-12T17:42:51.906Z"
+    },
+    "3f7d67001da981469b83e6079c802837": {
+      "url": "https://app.notion.com/p/3f7d67001da981469b83e6079c802837?pvs=204",
+      "title": "🔹 B2-12 — Gravador de telemetria no InfluxDB",
+      "local": "docs/aiot/tasks/B2-12.md",
+      "source_edited_at": "2026-10-12T17:42:52.763Z"
+    },
+    "3cfd67001da981fcabffca9180e66e47": {
+      "url": "https://app.notion.com/p/3cfd67001da981fcabffca9180e66e47?pvs=204",
+      "title": "Modelar dados relacionais",
+      "local": "docs/history/tasks/CS-39.md",
+      "source_edited_at": "2026-10-12T17:36:44.525Z"
+    },
+    "3e5d67001da98108a7fecb55152bce2e": {
+      "url": "https://app.notion.com/p/3e5d67001da98108a7fecb55152bce2e?pvs=204",
+      "title": "Preparar duas simulações",
+      "local": "docs/history/tasks/CS-48.md",
+      "source_edited_at": "2026-10-12T17:36:45.010Z"
+    },
+    "3cfd67001da9815d9383ede068c8eff9": {
+      "url": "https://app.notion.com/p/3cfd67001da9815d9383ede068c8eff9?pvs=204",
+      "title": "Implementar cadastro, login e logout",
+      "local": "docs/history/tasks/CS-40.md",
+      "source_edited_at": "2026-10-12T17:36:46.904Z"
+    },
+    "3e5d67001da981f3a1bcfa015fa74c7d": {
+      "url": "https://app.notion.com/p/3e5d67001da981f3a1bcfa015fa74c7d?pvs=204",
+      "title": "Implementar ambientes particulares",
+      "local": "docs/history/tasks/CS-49.md",
+      "source_edited_at": "2026-10-12T17:36:47.510Z"
+    },
+    "3e5d67001da9810a96bfe7cd20d39f76": {
+      "url": "https://app.notion.com/p/3e5d67001da9810a96bfe7cd20d39f76?pvs=204",
+      "title": "Implementar gerenciamento de dispositivos",
+      "local": "docs/history/tasks/CS-50.md",
+      "source_edited_at": "2026-10-12T17:36:48.011Z"
+    },
+    "3e5d67001da98103bdf0daf900767db8": {
+      "url": "https://app.notion.com/p/3e5d67001da98103bdf0daf900767db8?pvs=204",
+      "title": "Remover dependência do dispositivo fixo",
+      "local": "docs/history/tasks/CS-51.md",
+      "source_edited_at": "2026-10-12T17:36:48.675Z"
+    },
+    "3cfd67001da981968355e68bd11279c5": {
+      "url": "https://app.notion.com/p/3cfd67001da981968355e68bd11279c5?pvs=204",
+      "title": "Persistir limites e configurações",
+      "local": "docs/history/tasks/CS-42.md",
+      "source_edited_at": "2026-10-12T17:36:49.185Z"
+    },
+    "3e5d67001da981b7b6cdee54a48a6f27": {
+      "url": "https://app.notion.com/p/3e5d67001da981b7b6cdee54a48a6f27?pvs=204",
+      "title": "Ampliar circuitos e telemetria",
+      "local": "docs/history/tasks/CS-52.md",
+      "source_edited_at": "2026-10-12T17:36:49.704Z"
+    },
+    "3cfd67001da981d090bcef1761c939f6": {
+      "url": "https://app.notion.com/p/3cfd67001da981d090bcef1761c939f6?pvs=204",
+      "title": "Organizar documentação no Notion",
+      "local": "docs/history/tasks/CS-01.md",
+      "source_edited_at": "2026-09-02T01:24:51.691Z"
+    },
+    "3cfd67001da981948ac4dc3f1f75e109": {
+      "url": "https://app.notion.com/p/3cfd67001da981948ac4dc3f1f75e109?pvs=204",
+      "title": "Inicializar Git e estrutura do monorepo",
+      "local": "docs/history/tasks/CS-02.md",
+      "source_edited_at": "2026-09-03T16:04:54.572Z"
+    },
+    "3cfd67001da981348018ef6c0df6a235": {
+      "url": "https://app.notion.com/p/3cfd67001da981348018ef6c0df6a235?pvs=204",
+      "title": "Fixar matriz de versões",
+      "local": "docs/history/tasks/CS-03.md",
+      "source_edited_at": "2026-09-03T18:51:10.836Z"
+    },
+    "3cfd67001da9817caa47dce200918dd5": {
+      "url": "https://app.notion.com/p/3cfd67001da9817caa47dce200918dd5?pvs=204",
+      "title": "Registrar contratos MQTT, REST e estados",
+      "local": "docs/history/tasks/CS-04.md",
+      "source_edited_at": "2026-09-03T16:04:57.803Z"
+    },
+    "3cfd67001da9818ca216f357a6a3a7f4": {
+      "url": "https://app.notion.com/p/3cfd67001da9818ca216f357a6a3a7f4?pvs=204",
+      "title": "Criar política de ambiente e segredos",
+      "local": "docs/history/tasks/CS-05.md",
+      "source_edited_at": "2026-09-03T18:51:12.200Z"
+    },
+    "3cfd67001da981e3afa3c5e190b725a2": {
+      "url": "https://app.notion.com/p/3cfd67001da981e3afa3c5e190b725a2?pvs=204",
+      "title": "Criar Docker Compose e redes",
+      "local": "docs/history/tasks/CS-06.md",
+      "source_edited_at": "2026-09-06T23:17:59.719Z"
+    },
+    "3cfd67001da98167a4a1f49c420c1ecf": {
+      "url": "https://app.notion.com/p/3cfd67001da98167a4a1f49c420c1ecf?pvs=204",
+      "title": "Configurar volume persistente do InfluxDB",
+      "local": "docs/history/tasks/CS-07.md",
+      "source_edited_at": "2026-09-03T21:13:44.453Z"
+    },
+    "3cfd67001da98170aaeaf04130d68037": {
+      "url": "https://app.notion.com/p/3cfd67001da98170aaeaf04130d68037?pvs=204",
+      "title": "Configurar Mosquitto com usuário e ACL",
+      "local": "docs/history/tasks/CS-08.md",
+      "source_edited_at": "2026-09-03T21:13:45.918Z"
+    },
+    "3e5d67001da9818c868acc979a3ece36": {
+      "url": "https://app.notion.com/p/3e5d67001da9818c868acc979a3ece36?pvs=204",
+      "title": "Criar histórico de alertas e comparação",
+      "local": "docs/history/tasks/CS-58.md",
+      "source_edited_at": "2026-10-12T17:36:55.465Z"
+    },
+    "3e5d67001da981518addffac2f6fbd3e": {
+      "url": "https://app.notion.com/p/3e5d67001da981518addffac2f6fbd3e?pvs=204",
+      "title": "Validar integração e isolamento",
+      "local": "docs/history/tasks/CS-59.md",
+      "source_edited_at": "2026-10-12T17:38:04.209Z"
+    },
+    "3e5d67001da9810d8f95ee4c4193a425": {
+      "url": "https://app.notion.com/p/3e5d67001da9810d8f95ee4c4193a425?pvs=204",
+      "title": "Validar falhas, reinícios e persistência",
+      "local": "docs/history/tasks/CS-60.md",
+      "source_edited_at": "2026-10-12T17:38:04.742Z"
+    },
+    "3e5d67001da9818cb9a1d03227c25b78": {
+      "url": "https://app.notion.com/p/3e5d67001da9818cb9a1d03227c25b78?pvs=204",
+      "title": "Executar regressão e corrigir bloqueadores",
+      "local": "docs/history/tasks/CS-61.md",
+      "source_edited_at": "2026-10-12T17:38:05.372Z"
+    },
+    "3e5d67001da981b0b916f695a4a346be": {
+      "url": "https://app.notion.com/p/3e5d67001da981b0b916f695a4a346be?pvs=204",
+      "title": "Atualizar documentação e versionar entrega",
+      "local": "docs/history/tasks/CS-62.md",
+      "source_edited_at": "2026-10-12T17:38:06.679Z"
+    },
+    "3e5d67001da981938a0bc9b77b2ec2f0": {
+      "url": "https://app.notion.com/p/3e5d67001da981938a0bc9b77b2ec2f0?pvs=204",
+      "title": "Ensaiar apresentação completa",
+      "local": "docs/history/tasks/CS-63.md",
+      "source_edited_at": "2026-10-12T17:38:07.351Z"
+    },
+    "3e8d67001da981048350debb1b859f7b": {
+      "url": "https://app.notion.com/p/3e8d67001da981048350debb1b859f7b?pvs=204",
+      "title": "UX-01 — Conferir baseline e consolidar o contrato visual",
+      "local": "docs/history/tasks/UX-01.md",
+      "source_edited_at": "2026-10-12T17:38:07.852Z"
+    },
+    "3e8d67001da981349d1bcb05e52b1504": {
+      "url": "https://app.notion.com/p/3e8d67001da981349d1bcb05e52b1504?pvs=204",
+      "title": "UX-02 — Corrigir contraste, foco e tamanhos dos controles",
+      "local": "docs/history/tasks/UX-02.md",
+      "source_edited_at": "2026-10-12T17:38:08.450Z"
+    },
+    "3cfd67001da981f6b149e8c9aff6c581": {
+      "url": "https://app.notion.com/p/3cfd67001da981f6b149e8c9aff6c581?pvs=204",
+      "title": "Implementar classificação e freshness",
+      "local": "docs/history/tasks/CS-17.md",
+      "source_edited_at": "2026-09-04T21:19:15.818Z"
+    },
+    "3cfd67001da98180984ee9a2d9887118": {
+      "url": "https://app.notion.com/p/3cfd67001da98180984ee9a2d9887118?pvs=204",
+      "title": "Implementar ciclo de vida do assinante MQTT",
+      "local": "docs/history/tasks/CS-18.md",
+      "source_edited_at": "2026-09-04T21:27:42.768Z"
+    },
+    "3cfd67001da981009226e5e91ffb8fbe": {
+      "url": "https://app.notion.com/p/3cfd67001da981009226e5e91ffb8fbe?pvs=204",
+      "title": "Testar escrita e consultas no InfluxDB",
+      "local": "docs/history/tasks/CS-19.md",
+      "source_edited_at": "2026-09-06T23:19:06.262Z"
+    },
+    "3cfd67001da981ebbf63d8fecb486e6f": {
+      "url": "https://app.notion.com/p/3cfd67001da981ebbf63d8fecb486e6f?pvs=204",
+      "title": "Implementar repositório InfluxDB",
+      "local": "docs/history/tasks/CS-20.md",
+      "source_edited_at": "2026-09-06T20:25:18.132Z"
+    },
+    "3cfd67001da981a5b4bac956c430953c": {
+      "url": "https://app.notion.com/p/3cfd67001da981a5b4bac956c430953c?pvs=204",
+      "title": "Integrar ingestão MQTT ao InfluxDB",
+      "local": "docs/history/tasks/CS-21.md",
+      "source_edited_at": "2026-09-06T23:19:39.704Z"
+    },
+    "3cfd67001da9816292f7ddf260792af8": {
+      "url": "https://app.notion.com/p/3cfd67001da9816292f7ddf260792af8?pvs=204",
+      "title": "Testar envelopes e endpoints REST",
+      "local": "docs/history/tasks/CS-22.md",
+      "source_edited_at": "2026-09-06T23:20:03.858Z"
+    },
+    "3cfd67001da981d5af96d76319d8683c": {
+      "url": "https://app.notion.com/p/3cfd67001da981d5af96d76319d8683c?pvs=204",
+      "title": "Implementar resumo atual e histórico",
+      "local": "docs/history/tasks/CS-23.md",
+      "source_edited_at": "2026-09-06T23:20:22.032Z"
+    },
+    "3cfd67001da9818dbf46f7f5cafcd20f": {
+      "url": "https://app.notion.com/p/3cfd67001da9818dbf46f7f5cafcd20f?pvs=204",
+      "title": "Implementar liveness e readiness",
+      "local": "docs/history/tasks/CS-24.md",
+      "source_edited_at": "2026-09-06T23:20:39.664Z"
+    },
+    "3f7d67001da981b599dcd7b49839d26f": {
+      "url": "https://app.notion.com/p/3f7d67001da981b599dcd7b49839d26f?pvs=204",
+      "title": "🔹 B2-29 — Painel por item e comandos autorizados no 3D",
+      "local": "docs/aiot/tasks/B2-29.md",
+      "source_edited_at": "2026-10-12T17:43:50.256Z"
+    },
+    "3f7d67001da981619b04d1123679b1d8": {
+      "url": "https://app.notion.com/p/3f7d67001da981619b04d1123679b1d8?pvs=204",
+      "title": "🔹 B2-30 — Ollama, pré-carregamento e coordenação de memória",
+      "local": "docs/aiot/tasks/B2-30.md",
+      "source_edited_at": "2026-10-12T17:43:51.174Z"
+    },
+    "3f7d67001da981a4a3b4ddb53601b572": {
+      "url": "https://app.notion.com/p/3f7d67001da981a4a3b4ddb53601b572?pvs=204",
+      "title": "🔹 B2-31 — Resumo autorizado, streaming, limites e auditoria",
+      "local": "docs/aiot/tasks/B2-31.md",
+      "source_edited_at": "2026-10-12T17:43:52.089Z"
+    },
+    "3f7d67001da981339b11c3b41234f32e": {
+      "url": "https://app.notion.com/p/3f7d67001da981339b11c3b41234f32e?pvs=204",
+      "title": "🔹 B2-32 — Página Assistente e avaliação das respostas",
+      "local": "docs/aiot/tasks/B2-32.md",
+      "source_edited_at": "2026-10-12T17:43:53.253Z"
+    },
+    "3f7d67001da981a89962f3a9bf449dee": {
+      "url": "https://app.notion.com/p/3f7d67001da981a89962f3a9bf449dee?pvs=204",
+      "title": "🔹 B2-33 — Inicialização completa e recuperação",
+      "local": "docs/aiot/tasks/B2-33.md",
+      "source_edited_at": "2026-10-12T17:43:54.155Z"
+    },
+    "3f7d67001da9817e858bf4a07db4aa4b": {
+      "url": "https://app.notion.com/p/3f7d67001da9817e858bf4a07db4aa4b?pvs=204",
+      "title": "🔹 B2-34 — Regressão, integração real, segurança e cobertura",
+      "local": "docs/aiot/tasks/B2-34.md",
+      "source_edited_at": "2026-10-12T17:43:54.988Z"
+    },
+    "3f7d67001da9810c9d79d29cba9636c6": {
+      "url": "https://app.notion.com/p/3f7d67001da9810c9d79d29cba9636c6?pvs=204",
+      "title": "🔹 B2-35 — README, diagramas e roteiro final",
+      "local": "docs/aiot/tasks/B2-35.md",
+      "source_edited_at": "2026-10-12T17:43:55.840Z"
+    },
+    "3f7d67001da9819bb33cda3d32840943": {
+      "url": "https://app.notion.com/p/3f7d67001da9819bb33cda3d32840943?pvs=204",
+      "title": "🔹 B2-36 — Ensaiar demonstração e corrigir bloqueadores",
+      "local": "docs/aiot/tasks/B2-36.md",
+      "source_edited_at": "2026-10-12T17:43:56.653Z"
+    },
+    "3f7d67001da981f5a45cf97b232624e9": {
+      "url": "https://app.notion.com/p/3f7d67001da981f5a45cf97b232624e9?pvs=204",
+      "title": "🔹 B2-13 — Consumidor da API, regras e WebSocket",
+      "local": "docs/aiot/tasks/B2-13.md",
+      "source_edited_at": "2026-10-12T17:43:11.473Z"
+    },
+    "3f7d67001da981f78a59f9c3aea98f5a": {
+      "url": "https://app.notion.com/p/3f7d67001da981f78a59f9c3aea98f5a?pvs=204",
+      "title": "🔹 B2-14 — Integrar dashboard e novos sensores",
+      "local": "docs/aiot/tasks/B2-14.md",
+      "source_edited_at": "2026-10-12T17:43:12.352Z"
+    },
+    "3f7d67001da981a998e4d9af3a80115e": {
+      "url": "https://app.notion.com/p/3f7d67001da981a998e4d9af3a80115e?pvs=204",
+      "title": "🔹 B2-15 — Painel de filas, taxas e consumidores",
+      "local": "docs/aiot/tasks/B2-15.md",
+      "source_edited_at": "2026-10-12T17:43:14.638Z"
+    },
+    "3f7d67001da98130b4b5dae26e5a77a7": {
+      "url": "https://app.notion.com/p/3f7d67001da98130b4b5dae26e5a77a7?pvs=204",
+      "title": "🔹 B2-16 — Últimas mensagens, DLQ e consumidor parado",
+      "local": "docs/aiot/tasks/B2-16.md",
+      "source_edited_at": "2026-10-12T17:43:15.645Z"
+    },
+    "3f7d67001da9816d9191db82b88dc9f8": {
+      "url": "https://app.notion.com/p/3f7d67001da9816d9191db82b88dc9f8?pvs=204",
+      "title": "🔹 B2-17 — Jobs assíncronos, progresso e concorrência",
+      "local": "docs/aiot/tasks/B2-17.md",
+      "source_edited_at": "2026-10-12T17:43:16.679Z"
+    },
+    "3f7d67001da98156aad3fdb00db6adc7": {
+      "url": "https://app.notion.com/p/3f7d67001da98156aad3fdb00db6adc7?pvs=204",
+      "title": "🔹 B2-18 — Gerador massivo em blocos",
+      "local": "docs/aiot/tasks/B2-18.md",
+      "source_edited_at": "2026-10-12T17:43:17.583Z"
+    },
+    "3f7d67001da981f7b8ade374cfa46185": {
+      "url": "https://app.notion.com/p/3f7d67001da981f7b8ade374cfa46185?pvs=204",
+      "title": "🔹 B2-19 — Laboratório de Dados e validação do dataset",
+      "local": "docs/aiot/tasks/B2-19.md",
+      "source_edited_at": "2026-10-12T17:43:18.546Z"
+    },
+    "3f7d67001da98127bee4f58f23a40830": {
+      "url": "https://app.notion.com/p/3f7d67001da98127bee4f58f23a40830?pvs=204",
+      "title": "🔹 B2-20 — Features compartilhadas e divisão por equipamento",
+      "local": "docs/aiot/tasks/B2-20.md",
+      "source_edited_at": "2026-10-12T17:43:19.453Z"
+    },
+    "3e8d67001da9811da7f4e3e43998233b": {
+      "url": "https://app.notion.com/p/3e8d67001da9811da7f4e3e43998233b?pvs=204",
+      "title": "UX-12 — Aprimorar login e cadastro acessíveis",
+      "local": "docs/history/tasks/UX-12.md",
+      "source_edited_at": "2026-09-27T05:21:14.449Z"
+    },
+    "3e8d67001da981fda1b3d2e1a7525872": {
+      "url": "https://app.notion.com/p/3e8d67001da981fda1b3d2e1a7525872?pvs=204",
+      "title": "UX-11 — Melhorar erros de gestão e explicação dos limites",
+      "local": "docs/history/tasks/UX-11.md",
+      "source_edited_at": "2026-09-27T05:21:14.449Z"
+    },
+    "3e8d67001da981fd8527e030ffc9a007": {
+      "url": "https://app.notion.com/p/3e8d67001da981fd8527e030ffc9a007?pvs=204",
+      "title": "UX-16 — Validar acessibilidade e responsividade de ponta a ponta",
+      "local": "docs/history/tasks/UX-16.md",
+      "source_edited_at": "2026-09-27T05:21:23.374Z"
+    },
+    "3e8d67001da981d68eb8c3f1449dfbcc": {
+      "url": "https://app.notion.com/p/3e8d67001da981d68eb8c3f1449dfbcc?pvs=204",
+      "title": "UX-18 — Documentar entrega e registrar passagem de contexto",
+      "local": "docs/history/tasks/UX-18.md",
+      "source_edited_at": "2026-09-27T05:21:23.374Z"
+    }
+  },
+  "files": [
+    {
+      "source_reference": "notion-file-block://60afbedc-f776-431a-95ed-e774bfac7423/e6a426dc-554a-4771-88d4-0df1ff7a2a84?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-01-diagnostico-ambiente.png",
+      "local": "docs/history/media/coldsafe-01-diagnostico-ambiente.png",
+      "source_sha256": "60338d2d91d8806cd2a5ca81c0b0ed17d46bea0f9a6b105291351a19f1dde49d",
+      "source_bytes": 262985
+    },
+    {
+      "source_reference": "notion-file-block://886fbbcc-c243-4677-8935-e3f0bd99ae10/919444bd-e77e-425a-97a1-ea9dc7d47156?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-02-historico-temperatura.png",
+      "local": "docs/history/media/coldsafe-02-historico-temperatura.png",
+      "source_sha256": "faff3feb6710d97ec78735c98f534eea63bc1679b135967588fff3089b2fee43",
+      "source_bytes": 251836
+    },
+    {
+      "source_reference": "notion-file-block://07c0213f-9d41-4313-9575-1c0bd09d29e7/66b00f1a-7e3a-4f54-aefc-4a769b633fc6?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-03-atuadores.png",
+      "local": "docs/history/media/coldsafe-03-atuadores.png",
+      "source_sha256": "f13a80f4d868ef72ca3e09b42e0487751e596f0d44c66f7d4c0f9338414f91f6",
+      "source_bytes": 103290
+    },
+    {
+      "source_reference": "notion-file-block://d423e879-339e-4afd-8e94-bf55411c49f7/d361a396-2065-4be1-8431-87460e8a7c4c?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-04-alertas-comparacao.png",
+      "local": "docs/history/media/coldsafe-04-alertas-comparacao.png",
+      "source_sha256": "dce5050d964f14b4409f0df2a0f68a15359ef89dcaada1f2ef5efb875b9cbddf",
+      "source_bytes": 349268
+    },
+    {
+      "source_reference": "notion-file-block://fb22887d-585a-4d21-a3d7-e8f61c2d5f1d/cea37ede-de1d-4b94-b2ef-f77e7df2f360?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-landing-conceito-2026-09-27.png",
+      "local": "docs/history/media/coldsafe-landing-conceito-2026-09-27.png",
+      "source_sha256": "bec35e685a6ba76136b42f75ec610cac60c618d89ebcf82a8c7351d21e45299d",
+      "source_bytes": 1655526
+    },
+    {
+      "source_reference": "notion-file-block://c4b00ec8-683b-4b96-85bb-f4330fcae7c5/faa0149c-1d7b-4030-86b1-e8ae0bea94e9?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-painel-desktop-mobile-conceito-2026-09-27.png",
+      "local": "docs/history/media/coldsafe-painel-desktop-mobile-conceito-2026-09-27.png",
+      "source_sha256": "41c5eb56cd206da3c417ff58c949e67e132d6a0a43c1142dd0079e65b851d238",
+      "source_bytes": 1588778
+    },
+    {
+      "source_reference": "notion-file-block://84128438-6bef-4a3a-b176-610e4d8a7f3f/f03fa23b-6c5c-4522-b43e-cd61c8620432?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=dashboard-normal.png",
+      "local": "docs/history/media/dashboard-normal.png",
+      "source_sha256": "aeaaff7a0bfb5cde68ffb2d7b3d1e1a96f84e2ae79ac72dd065565b08f93c187",
+      "source_bytes": 135671
+    },
+    {
+      "source_reference": "notion-file-block://2b7a6fc5-1166-4532-ab53-337590b628a2/cff4a581-9c16-423b-b0ff-b394267f3ae0?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-demo-notion.webm",
+      "local": "docs/history/media/coldsafe-demo-notion.webm",
+      "source_sha256": "24cec8cf2aded36cedcc9bdeff2c678e84eedf0483ecdb88ebfa4187422013d5",
+      "source_bytes": 1098995
+    },
+    {
+      "source_reference": "notion-file-block://f670cf97-bb12-4fd5-ade0-f305f54df06d/25ef1bc1-6978-433c-a1f0-da6a2c6e0acd?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=redesign-portfolio.md",
+      "local": "docs/testing/redesign-portfolio.md",
+      "source_sha256": "1f405ca053bb1b67dc5c95db1a56a4700e612bcf86d4234f2bdf55ce16786594",
+      "source_bytes": 11313
+    },
+    {
+      "source_reference": "notion-file-block://7c16c959-328c-497d-9bc7-720496c7e057/84651e5b-a708-4986-b5ab-fa7a87e9f7a5?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-desktop-aprovado.png",
+      "local": "docs/history/media/coldsafe-desktop-aprovado.png",
+      "source_sha256": "bfeeaab07d285613afec72f59e0918e4857963009302db7274f209672a17c045",
+      "source_bytes": 1121298
+    },
+    {
+      "source_reference": "notion-file-block://a1021c40-8a27-4a39-a29a-a05d4a98da0b/7aa28fe0-6a93-42fd-8283-f79c9951c6e1?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-mobile-aprovado.png",
+      "local": "docs/history/media/coldsafe-mobile-aprovado.png",
+      "source_sha256": "c36fe55c622ffff8ef116626c1eab65d1e374b2954f102a9b52d458ebc941b8a",
+      "source_bytes": 1329068
+    },
+    {
+      "source_reference": "notion-file-block://40eff63f-7289-4e1e-b4ef-1bf22e7c7657/2e71e0ed-a3b4-41b8-b705-9efeed66d2bb?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-estados-aprovado.png",
+      "local": "docs/history/media/coldsafe-estados-aprovado.png",
+      "source_sha256": "3e38acc647e6f4a41658cdc4b3acb822257250eba8e99a5863d27032c104f22c",
+      "source_bytes": 1645675
+    },
+    {
+      "source_reference": "notion-file-block://cc2853c1-dbf2-4991-a608-35f5eb66627c/370c4888-eb1e-4791-a1ad-bf66592eb4e9?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=DESIGN.md",
+      "local": "docs/history/design-2026-09.md",
+      "source_sha256": "75adcd4d15aa684ea8062f0c3893dde49176d18a044bb25a1894a4917ecc3054",
+      "source_bytes": 3514
+    },
+    {
+      "source_reference": "notion-file-block://cac48f86-b4f5-4a9d-8168-27616eaf0fe1/57bcbe62-9ce5-4314-855e-f377252c4355?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-b203-capacity-2026-10-12.json",
+      "local": "docs/evidence/b2-03.json",
+      "source_sha256": "0820379777e3c1ea42f717bf14c71e41014324450db7d1266c9950ad1853d720",
+      "source_bytes": 144580
+    },
+    {
+      "source_reference": "notion-file-block://6ba7052d-e983-4a7a-9fcc-f36b640feb57/bb90967a-d562-4ecd-96a6-b57732e702c9?space_id=d6cd6700-1da9-8162-be7f-00033e0f6007&name=coldsafe-b204-contracts-evidence-2026-10-13.json",
+      "local": "docs/evidence/b2-04.json",
+      "source_sha256": "430dd2bef74800ef37dbf095ed1aa21e2d05b7e4f645b6aaf9789de389ea1833",
+      "source_bytes": 129168
+    }
+  ]
+}

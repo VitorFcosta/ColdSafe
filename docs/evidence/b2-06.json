@@ -1,0 +1,303 @@
+{
+  "task": "B2-06",
+  "status": "Concluída",
+  "executed_on": "2026-10-13",
+  "timezone": "America/Sao_Paulo",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "0bb7fea6b790765585264f3a2c26b9df37dacb4a",
+    "committed": true,
+    "pushed": false,
+    "previous_B2_05_changes_preserved": true,
+    "implementation_commit": "7941ac473e05d13fb301663fab41bd36181eea93"
+  },
+  "created": [
+    "backend/app/api/roles.py",
+    "backend/app/security/tokens.py",
+    "backend/migrations/006_auth_security.sql",
+    "backend/tests/conftest.py",
+    "backend/tests/api/test_role_permissions.py",
+    "backend/tests/security/test_tokens.py",
+    "backend/tests/integration/test_auth_security_integration.py",
+    "backend/tests/integration/test_role_permissions_integration.py",
+    "backend/tests/integration/test_ws_security_integration.py",
+    "docs/evidence/b2-06.json"
+  ],
+  "modified": [
+    ".env.example",
+    "compose.yaml",
+    "backend/README.md",
+    "backend/migrations/README.md",
+    "backend/app/api/app.py",
+    "backend/app/api/auth.py",
+    "backend/app/api/catalog.py",
+    "backend/app/api/commands.py",
+    "backend/app/api/events.py",
+    "backend/app/api/schemas.py",
+    "backend/app/config/settings.py",
+    "backend/app/repositories/postgres.py",
+    "backend/requirements.txt",
+    "backend/requirements.lock.txt",
+    "backend/requirements-dev.lock.txt",
+    "backend/tests/api/test_auth_api.py",
+    "backend/tests/api/test_block4_rest.py",
+    "backend/tests/api/test_catalog_api.py",
+    "backend/tests/api/test_commands_api.py",
+    "backend/tests/api/test_events_api.py",
+    "backend/tests/api/test_runtime_openapi.py",
+    "backend/tests/config/test_configuration_examples.py",
+    "backend/tests/config/test_runtime_settings.py",
+    "backend/tests/contract/test_openapi_contract.py",
+    "backend/tests/infra/test_compose_contract.py",
+    "backend/tests/integration/test_catalog_integration.py",
+    "backend/tests/integration/test_postgres_schema_integration.py",
+    "backend/tests/integration/test_aiot_migrations_integration.py",
+    "contracts/README.md",
+    "contracts/openapi.yaml",
+    "docs/configuration.md",
+    "docs/version-matrix.md",
+    "docs/aiot/README.md",
+    "docs/aiot/tasks/README.md",
+    "docs/aiot/tasks/B2-06.md",
+    "frontend/src/features/account/session.ts",
+    "frontend/src/features/account/account.spec.ts",
+    "frontend/src/features/monitoring/use-monitoring-summary.ts",
+    "frontend/src/features/monitoring/use-monitoring-summary.spec.ts",
+    "frontend/src/views/ManageView.vue",
+    "frontend/src/views/ManageView.spec.ts",
+    "frontend/src/views/FoundationView.vue",
+    "frontend/src/views/FoundationView.spec.ts",
+    "frontend/e2e/dashboard.spec.ts",
+    "frontend/e2e/monitoring-api.ts",
+    "frontend/e2e/navigation.spec.ts"
+  ],
+  "dependencies_added": {
+    "PyJWT": "2.15.1",
+    "bcrypt": "5.0.0"
+  },
+  "existing_dependency_extra": "pwdlib[argon2,bcrypt]==0.3.1",
+  "lock_check": {
+    "backend/requirements.lock.txt": {
+      "added": {
+        "bcrypt": "5.0.0",
+        "pyjwt": "2.15.1"
+      },
+      "existing_pins_preserved": true
+    },
+    "backend/requirements-dev.lock.txt": {
+      "added": {
+        "bcrypt": "5.0.0",
+        "pyjwt": "2.15.1"
+      },
+      "existing_pins_preserved": true
+    }
+  },
+  "tests": {
+    "red": {
+      "auth_worker": "9 failed,1 passed before implementation",
+      "config_secret": "2 failed before code",
+      "operator_guard": "1 failed unexpected keyword before guard",
+      "role_endpoint": "404 expected403 before endpoint",
+      "ticket_endpoint": "404 expected200 before endpoint"
+    },
+    "backend_final": {
+      "passed": 375,
+      "skipped": 4,
+      "seconds": 198.21,
+      "python_coverage_percent": 92.27600411946447,
+      "coverage_totals": {
+        "covered_lines": 1517,
+        "num_statements": 1604,
+        "percent_covered": 92.27600411946447,
+        "percent_covered_display": "92",
+        "missing_lines": 87,
+        "excluded_lines": 29,
+        "percent_statements_covered": 94.57605985037407,
+        "percent_statements_covered_display": "95",
+        "num_branches": 338,
+        "num_partial_branches": 49,
+        "covered_branches": 275,
+        "missing_branches": 63,
+        "percent_branches_covered": 81.36094674556213,
+        "percent_branches_covered_display": "81"
+      },
+      "command": "python -m pytest backend/tests --cov=backend/app --cov-branch --cov-report=term --cov-report=json:/tmp/coldsafe-b206-coverage-final.json --cov-fail-under=80 -o addopts='' -q --tb=short -rs",
+      "output": "........................................................................ [ 18%]\n........................................................................ [ 37%]\n........................................................................ [ 56%]\n.....................................s..ss......s....................... [ 75%]\n........................................................................ [ 94%]\n...................                                                      [100%]\n=============================== warnings summary ===============================\n../../../../tmp/coldsafe-b204-venv/lib/python3.13/site-packages/fastapi/testclient.py:1\n  /tmp/coldsafe-b204-venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n../../../../tmp/coldsafe-b204-venv/lib/python3.13/site-packages/starlette/testclient.py:53\n  /tmp/coldsafe-b204-venv/lib/python3.13/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.\n    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================ tests coverage ================================\n______________ coverage: platform darwin, python 3.13.15-final-0 _______________\n\nName                                           Stmts   Miss Branch BrPart  Cover\n--------------------------------------------------------------------------------\nbackend/app/__init__.py                            0      0      0      0   100%\nbackend/app/api/__init__.py                        0      0      0      0   100%\nbackend/app/api/app.py                           117      5     32      3    95%\nbackend/app/api/auth.py                          255      8     60      9    95%\nbackend/app/api/catalog.py                       156      3      6      0    98%\nbackend/app/api/commands.py                       59      7     10      5    83%\nbackend/app/api/events.py                        128      8     40      7    91%\nbackend/app/api/roles.py                          20      0      0      0   100%\nbackend/app/api/schemas.py                        66      0      0      0   100%\nbackend/app/config/__init__.py                     0      0      0      0   100%\nbackend/app/config/settings.py                    25      0      0      0   100%\nbackend/app/domain/__init__.py                     3      0      0      0   100%\nbackend/app/domain/commands.py                    24      1      6      1    93%\nbackend/app/domain/reading_classification.py      45      0     14      0   100%\nbackend/app/domain/telemetry.py                   20      0      4      0   100%\nbackend/app/errors.py                              2      0      0      0   100%\nbackend/app/main.py                                3      3      0      0     0%\nbackend/app/mqtt/__init__.py                       2      0      0      0   100%\nbackend/app/mqtt/subscriber.py                   118     11     36      2    90%\nbackend/app/repositories/__init__.py               3      0      0      0   100%\nbackend/app/repositories/aiot.py                  27      0      0      0   100%\nbackend/app/repositories/influxdb.py              57      0      6      0   100%\nbackend/app/repositories/influxdb_client.py       56      0     12      0   100%\nbackend/app/repositories/postgres.py              21      5      4      0    80%\nbackend/app/runtime.py                            85     12     12      3    80%\nbackend/app/security/tokens.py                    27      0      4      0   100%\nbackend/app/services/__init__.py                   0      0      0      0   100%\nbackend/app/services/alerts.py                    66      7     26      4    84%\nbackend/app/services/commands.py                 143     14     58     13    85%\nbackend/app/services/monitoring.py                48      3      6      2    91%\nbackend/app/services/telemetry_ingestion.py       28      0      2      0   100%\n--------------------------------------------------------------------------------\nTOTAL                                           1604     87    338     49    92%\nCoverage JSON written to file /tmp/coldsafe-b206-coverage-final.json\nRequired test coverage of 80% reached. Total coverage: 92.28%\n=========================== short test summary info ============================\nSKIPPED [1] backend/tests/integration/test_block5_isolation_integration.py:24: PostgreSQL and a dedicated InfluxDB test bucket are required\nSKIPPED [2] backend/tests/integration/test_influxdb_repository_integration.py:26: INFLUXDB_TEST_URL is required for the InfluxDB integration test\nSKIPPED [1] backend/tests/integration/test_runtime_pipeline_integration.py:48: API_TEST_DISPOSABLE=1 is required for an isolated test stack\n375 passed, 4 skipped, 2 warnings in 198.21s (0:03:18)\n"
+    },
+    "frontend_final": {
+      "passed": 102,
+      "test_files": 16,
+      "node": "24.20.0",
+      "vitest": "4.1.11",
+      "vite": "8.2.2",
+      "typecheck": "passed",
+      "build": "passed",
+      "coverage": {
+        "statements": 88.78,
+        "branches": 84.05,
+        "functions": 89.06,
+        "lines": 92.72
+      },
+      "method": "read-only snapshot source mounts into existing local frontend image; ephemeral root for coverage/dist output only",
+      "source_copy": "44 src/E2E files and five configs compared byte-for-byte to workspace",
+      "output": "\n> coldsafe-frontend@0.1.0 test:coverage\n> vitest run --coverage\n\n\n RUN  v4.1.11 /app\n      Coverage enabled with v8\n\n ✓ src/features/monitoring/temperature-chart.spec.ts (6 tests) 158ms\n ✓ src/features/monitoring/monitoring-history.spec.ts (2 tests) 42ms\n ✓ src/features/monitoring/actuators.spec.ts (2 tests) 87ms\n ✓ src/features/account/account.spec.ts (14 tests) 17ms\n ✓ src/features/monitoring/use-monitoring-summary.spec.ts (21 tests) 78ms\n ✓ src/features/monitoring/TemperatureHistoryChart.spec.ts (4 tests) 115ms\n ✓ src/features/monitoring/AlertsComparisonPanel.spec.ts (5 tests) 162ms\n ✓ src/features/monitoring/alerts-api.spec.ts (2 tests) 66ms\n ✓ src/features/monitoring/monitoring-summary.spec.ts (2 tests) 103ms\n ✓ src/views/ManageView.spec.ts (11 tests) 398ms\n ✓ src/features/monitoring/monitoring-state.spec.ts (8 tests) 12ms\n ✓ src/features/monitoring/monitoring-polling.spec.ts (2 tests) 7ms\n ✓ src/styles/tokens.spec.ts (1 test) 12ms\n ✓ src/views/FoundationView.spec.ts (23 tests) 727ms\n     ✓ permite monitorar sem emitir comando para papel viewer  320ms\n ✓ src/views/AccessView.spec.ts (1 test) 29ms\n ✓ src/views/LandingView.spec.ts (1 test) 29ms\n\n Test Files  16 passed (16)\n      Tests  105 passed (105)\n   Start at  22:22:06\n   Duration  3.01s (transform 3.08s, setup 0ms, import 5.06s, tests 2.04s, environment 5.35s)\n\n % Coverage report from v8\n-------------------|---------|----------|---------|---------|-------------------\nFile               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s \n-------------------|---------|----------|---------|---------|-------------------\nAll files          |   89.06 |    84.23 |   89.06 |   92.83 |                   \n features/account  |   87.06 |    78.48 |   95.23 |   89.47 |                   \n  catalog.ts       |     100 |       95 |     100 |     100 | 30                \n  session.ts       |    81.7 |    72.88 |    90.9 |   84.84 | ...-38,99,113,123 \n ...res/monitoring |   91.62 |    86.06 |   93.81 |   95.37 |                   \n  ...isonPanel.vue |   93.58 |    88.15 |   94.44 |   94.02 | 52-54,173         \n  ...toryChart.vue |   91.66 |    76.47 |   78.57 |      90 | 76-78,92          \n  actuators.ts     |    62.5 |    71.79 |   83.33 |   78.94 | 53,65-67          \n  alerts-api.ts    |     100 |       90 |     100 |     100 | 39-46             \n  ...ng-history.ts |   95.83 |    93.75 |     100 |   95.83 | 76                \n  ...ng-polling.ts |     100 |      100 |     100 |     100 |                   \n  ...ring-state.ts |     100 |      100 |     100 |     100 |                   \n  ...ng-summary.ts |      92 |     87.5 |     100 |      92 | 51,65             \n  ...ture-chart.ts |     100 |    94.11 |     100 |     100 | 38                \n  ...ng-summary.ts |   90.72 |    84.12 |   94.44 |   98.31 | 169-170           \n views             |   87.59 |    83.78 |   84.49 |   91.59 |                   \n  AccessView.vue   |      90 |    78.72 |      80 |    92.3 | 28,38             \n  ...ationView.vue |   84.17 |    82.68 |    80.7 |   89.28 | ...35,350,418,447 \n  LandingView.vue  |      88 |    82.85 |      70 |   86.36 | 31,39,53          \n  ManageView.vue   |   91.62 |    87.01 |   91.22 |      95 | ...39,249,251-252 \n-------------------|---------|----------|---------|---------|-------------------\nnpm notice\nnpm notice New major version of npm available! 11.19.0 -> 12.2.0\nnpm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0\nnpm notice To update run: npm install -g npm@12.2.0\nnpm notice\n\n> coldsafe-frontend@0.1.0 build\n> npm run typecheck && vite build\n\n\n> coldsafe-frontend@0.1.0 typecheck\n> vue-tsc --noEmit -p tsconfig.app.json\n\nvite v8.2.2 building client environment for production...\ntransforming...\n✓ 434 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                                      0.51 kB │ gzip:  0.32 kB\ndist/assets/AccessView-DvZDRGml.css                  1.97 kB │ gzip:  0.60 kB\ndist/assets/ManageView-JCUYp44k.css                  4.71 kB │ gzip:  1.11 kB\ndist/assets/FoundationView-BZozHv8g.css              6.71 kB │ gzip:  1.34 kB\ndist/assets/LandingView-C4T8avSy.css                 8.68 kB │ gzip:  1.68 kB\ndist/assets/index-Cc0fvY-b.css                      17.93 kB │ gzip:  4.89 kB\ndist/assets/_plugin-vue_export-helper-BDNMzG2s.js    0.08 kB │ gzip:  0.09 kB\ndist/assets/catalog-CBJxbMT3.js                      1.49 kB │ gzip:  0.70 kB\ndist/assets/AccessView-Dco_UJeA.js                   2.51 kB │ gzip:  1.31 kB\ndist/assets/ManageView-DdmW5eyx.js                  13.56 kB │ gzip:  4.52 kB\ndist/assets/index-KdPA6JeP.js                       94.39 kB │ gzip: 36.62 kB\ndist/assets/LandingView-DjFcfIE4.js                135.88 kB │ gzip: 44.24 kB\ndist/assets/FoundationView-J_wZiM-L.js             200.60 kB │ gzip: 68.47 kB\n\n✓ built in 726ms\n"
+    },
+    "browser_e2e": {
+      "passed": 31,
+      "seconds": 24.7,
+      "playwright": "1.63.0",
+      "browser": "Chromium",
+      "node_host": "24.19.0",
+      "port": 4178,
+      "api": "mocked responses, not proof of real API/broker; PostgreSQL/WS integration tested separately",
+      "output": "[WebServer] (node:89501) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)\n\nRunning 31 tests using 1 worker\n\n(node:89506) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ✓   1 [chromium] › e2e/dashboard-selection.spec.ts:5:1 › preserva seleção válida e período; revalida após gestão, recarga e troca de conta (2.2s)\n  ✓   2 [chromium] › e2e/dashboard.spec.ts:46:5 › dashboard operacional › exibe o fluxo normal (818ms)\n  ✓   3 [chromium] › e2e/dashboard.spec.ts:46:5 › dashboard operacional › exibe o fluxo atenção (450ms)\n  ✓   4 [chromium] › e2e/dashboard.spec.ts:46:5 › dashboard operacional › exibe o fluxo crítico (322ms)\n  ✓   5 [chromium] › e2e/dashboard.spec.ts:46:5 › dashboard operacional › exibe o fluxo leitura desatualizada (322ms)\n  ✓   6 [chromium] › e2e/dashboard.spec.ts:76:3 › dashboard operacional › abre a tabela de leituras pelo teclado sem criar rolagem horizontal no celular (412ms)\n  ✓   7 [chromium] › e2e/dashboard.spec.ts:94:3 › dashboard operacional › exibe o fluxo sem dados sem inventar medições (283ms)\n  ✓   8 [chromium] › e2e/dashboard.spec.ts:116:3 › dashboard operacional › exibe o fluxo de erro e permite tentar novamente (464ms)\n  ✓   9 [chromium] › e2e/dashboard.spec.ts:148:3 › mostra temperatura, estado e atualidade juntos na primeira tela móvel: normal (381ms)\n  ✓  10 [chromium] › e2e/dashboard.spec.ts:148:3 › mostra temperatura, estado e atualidade juntos na primeira tela móvel: stale (341ms)\n  ✓  11 [chromium] › e2e/dashboard.spec.ts:178:1 › mantém nomes longos e temperatura extrema legíveis em 320 px (401ms)\n  ✓  12 [chromium] › e2e/dashboard.spec.ts:202:1 › mostra carregamento até receber uma leitura válida (329ms)\n  ✓  13 [chromium] › e2e/dashboard.spec.ts:221:1 › recupera o catálogo sem clique quando a API volta (2.6s)\n  ✓  14 [chromium] › e2e/dashboard.spec.ts:241:1 › troca de dispositivo e só mostra LED ligado após confirmação (1.9s)\n  ✓  15 [chromium] › e2e/dashboard.spec.ts:288:1 › abre os atuadores por teclado sem enviar comandos (371ms)\n  ✓  16 [chromium] › e2e/dashboard.spec.ts:314:1 › troca o período do histórico sem perder a leitura atual (613ms)\n  ✓  17 [chromium] › e2e/dashboard.spec.ts:334:1 › preserva leitura válida quando apenas o histórico falha (253ms)\n  ✓  18 [chromium] › e2e/dashboard.spec.ts:351:1 › visualizador consulta diagnóstico e atuadores sem emitir comandos (399ms)\n  ✓  19 [chromium] › e2e/landing.spec.ts:5:1 › apresenta o projeto sem depender da API ou iniciar o monitoramento (524ms)\n  ✓  20 [chromium] › e2e/landing.spec.ts:26:1 › abre a demonstração por teclado e oferece vídeo simulado com controles nativos (403ms)\n  ✓  21 [chromium] › e2e/landing.spec.ts:56:1 › menu móvel abre por teclado e mantém acesso à demonstração, código e painel (290ms)\n  ✓  22 [chromium] › e2e/landing.spec.ts:79:3 › mantém apresentação e dashboard legíveis sem rolagem horizontal em 320px (468ms)\n  ✓  23 [chromium] › e2e/landing.spec.ts:79:3 › mantém apresentação e dashboard legíveis sem rolagem horizontal em 375px (437ms)\n  ✓  24 [chromium] › e2e/landing.spec.ts:79:3 › mantém apresentação e dashboard legíveis sem rolagem horizontal em 768px (471ms)\n  ✓  25 [chromium] › e2e/landing.spec.ts:79:3 › mantém apresentação e dashboard legíveis sem rolagem horizontal em 1440px (485ms)\n  ✓  26 [chromium] › e2e/landing.spec.ts:100:1 › redução de movimento deixa seções imediatamente visíveis e mantém foco perceptível (323ms)\n  ✓  27 [chromium] › e2e/landing.spec.ts:115:1 › ampliação de 200% preserva conteúdo e controles nas duas rotas (503ms)\n  ✓  28 [chromium] › e2e/landing.spec.ts:131:1 › texto ampliado não cria rolagem horizontal nas quatro rotas (543ms)\n  ✓  29 [chromium] › e2e/manage.spec.ts:5:1 › gestão mostra listas primeiro e mantém contexto e foco no celular e desktop (610ms)\n  ✓  30 [chromium] › e2e/manage.spec.ts:81:1 › limites mostram erros no campo, preservam rascunho e salvam apenas no ambiente selecionado (564ms)\n  ✓  31 [chromium] › e2e/navigation.spec.ts:3:1 › orienta o foco na navegação e preserva acesso e histórico (775ms)\n\n  31 passed (24.7s)\n"
+    },
+    "initial_regression": "3 failed/372 passed/4 skipped: update old fake session, model_construct key, old enum expectation; final run passed",
+    "targeted_after_fixes": "12 passed in48.50s"
+  },
+  "implemented": [
+    "JWT HS256 strict claims/signature/time/issuer/audience plus PostgreSQL hashed-token session ledger revocation",
+    "bcrypt new <=72UTF8 byte passwords; Argon2 legacy verification and valid-login rehash when <=72 bytes",
+    "opaque legacy sessions bounded to24h after migration006 and their own expiry/revocation",
+    "current DB roles and ownership on REST/writes/WS; audited admin role change",
+    "persistent atomic login limit10email/50IP per15min with Retry-After; untrusted forwarded header ignored",
+    "hashed WS ticket max60s tied to session/device, atomic single consumption and revocation revalidation",
+    "frontend ticket per connection/reconnect, race guards, 401 session clearing and readonly viewer/unknown"
+  ],
+  "cleanup": {
+    "container": "coldsafe-b206-17703b8f",
+    "removed": true,
+    "persistent_mounts": [],
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw"
+    },
+    "oom_killed": false,
+    "restart_count": 0,
+    "credentials_removed": true,
+    "existing_containers": [
+      "coldsafe-postgres-1 Exited (0) 2 weeks ago postgres:17.11-alpine3.24",
+      "coldsafe-influxdb-1 Exited (2) 2 weeks ago influxdb:2.7.12-alpine",
+      "coldsafe-backend-1 Exited (0) 2 weeks ago coldsafe-backend",
+      "coldsafe-frontend-1 Exited (143) 2 weeks ago coldsafe-frontend",
+      "coldsafe-mosquitto-1 Exited (0) 2 weeks ago eclipse-mosquitto:2.0.22",
+      "coldsafe-mosquitto-init-1 Exited (0) 2 weeks ago eclipse-mosquitto:2.0.22"
+    ],
+    "interrupted_attempt": "test infrastructure restarted and dynamically mapped port changed 52917->53979; 5 fixture connection errors excluded; final run used refreshed mapping"
+  },
+  "review": {
+    "self_security_review_completed": true,
+    "independent_final_review": false,
+    "reason": "implementation agents reached account usage limit; root finished review and ran final checks"
+  },
+  "limitations": [
+    "No personal volumes or credentials modified; set new AUTH_JWT_SECRET privately before product startup",
+    "4 full-stack/InfluxDB tests skipped; no security test skipped",
+    "browser E2E mocks API/broker",
+    "sessionStorage existing token persistence remains JS-accessible; no HttpOnly-cookie/refresh redesign",
+    "legacy Argon2 >72 bytes remains Argon2 to preserve full password",
+    "no hardware/Wokwi or final stack/load test",
+    "test infrastructure restarted once with port change; failed attempt excluded",
+    "cached unchanged public assets reused from local image for frontend build/browser tests",
+    "production image user unchanged; root used only by ephemeral frontend test container to write artifacts"
+  ],
+  "verification_sources": [
+    "https://github.com/pyca/bcrypt#maximum-password-length",
+    "https://github.com/frankie567/pwdlib/blob/main/docs/guide.md",
+    "https://github.com/jpadilla/pyjwt/blob/master/docs/usage.rst"
+  ],
+  "source_sha256": {
+    "backend/app/api/roles.py": "fb46f58e1a8c1ad0950af5d6ed419b3d4050558131d8cda1c3231f1502abc3b8",
+    "backend/app/security/tokens.py": "8b24ed1a78f951b53114b636a78948ad3b13d8919357d32ff93c7f98c8ea6199",
+    "backend/migrations/006_auth_security.sql": "8655b8414c193abda6670d40218ea86b899b1ebae65f8f48b0fbda3932054f1a",
+    "backend/tests/conftest.py": "f3bd58f138e3c83e92a4fedd78a83d3ac81a109b16602f8aff9218dc7edbcdc4",
+    "backend/tests/api/test_role_permissions.py": "ae83b59f4bc0e9105c9748b5e7a705868a80be1b735fb3c9c46a4e2017a99591",
+    "backend/tests/security/test_tokens.py": "3401522526d41f89e76dd2ec50dc543fc10ac28133bd65784298b8b06f6cbc84",
+    "backend/tests/integration/test_auth_security_integration.py": "bdffaf9b50d48d268c54a3e67d61b1d0871cd1abce718289891ab8781b62772c",
+    "backend/tests/integration/test_role_permissions_integration.py": "8eb28abc6d59cd2742afd15ad4fe2f57b9e5a1110faa6af6041dbc800e73e919",
+    "backend/tests/integration/test_ws_security_integration.py": "ba9c2265fbb6aec0704c01d89c1888e1eb684d04346707b960b946bc08c1c3a7",
+    ".env.example": "8b5d29f807d2cccae4f45db90500f54ba6c35df7378e619e1bba1ba6ac5d7211",
+    "compose.yaml": "cc78c919d2a2c294d09a68d985136db2a77862a0cebc786d6fcbcca3066786c6",
+    "backend/README.md": "7f5189b0286ec2c60f85fa85bb746ecc77c278183d9a7895ad60dfdb353d54be",
+    "backend/migrations/README.md": "cd5eddb8a13b58760b01104945306d8174087f3defbb9e8a1fa8ac881ed80540",
+    "backend/app/api/app.py": "d38895645d342105bbdcb100ee99578a2feb398232d410249a9361ca0013a003",
+    "backend/app/api/auth.py": "fb98fa18b07de071843169ccde7238f0d64b2feffda9c23aae68e531feaefe44",
+    "backend/app/api/catalog.py": "c907558952f20895cefcd313940e4e71f7fe917b5d3f5993f2510b5a2a48f2fa",
+    "backend/app/api/commands.py": "6cb917f7dbafef6e24ab078ba7820dee467b1df156afe55712f82a147c175a0f",
+    "backend/app/api/events.py": "d50a7db564bbee250f98b9b2160d162107911581026ae8044c4393800fdcf7a6",
+    "backend/app/api/schemas.py": "d7cda19c47988b6f5860787628ed7dbb402ed471fdd86631f6825d8fbe77b242",
+    "backend/app/config/settings.py": "1ccd81f8a77ffedf21593ada540e815c8b86221ec73d56110cede2e86dcb9f50",
+    "backend/app/repositories/postgres.py": "4cfc79adc600875f1c5f9dbce155a53ab357de94d226f93b0d0cf8e8a0c52502",
+    "backend/requirements.txt": "c4067f0ca85c876e1f9f04cf2248fea098db42bb4a79b662fa236f5ace75a512",
+    "backend/requirements.lock.txt": "8aafde39b072a1d2a3c3a1630f52e3debcb97b67db396487b118c810bd9c4b76",
+    "backend/requirements-dev.lock.txt": "41f7ceee92ac287da83eb6060dabaeb6968c736ae5eb405348dbbe490b2cd706",
+    "backend/tests/api/test_auth_api.py": "f805ac9af7ab22b6badde78ade321155ea0c714c29850fb574f11d6ca86c6137",
+    "backend/tests/api/test_block4_rest.py": "a1efa6f101288fd4b5ddb6104bf174fc6904ce1db897dacee53ed29a4adcfd01",
+    "backend/tests/api/test_catalog_api.py": "0ae5035933bbbfbf930dd3ff8d9537989be79ab301dd7b5bbd1794d4fd5841b6",
+    "backend/tests/api/test_commands_api.py": "2f192da2c92b0bd187d2ede53676a529db0e0e246a556383e3fc5adda305ea1f",
+    "backend/tests/api/test_events_api.py": "a2f3b286ea826bd10744060ae93503dc20306950bd6c6c5dae5b1c28c33f44bb",
+    "backend/tests/api/test_runtime_openapi.py": "5acd4043394d1ef8813718b9f24535013bcb60090cc28818e8c0ca7429c25c24",
+    "backend/tests/config/test_configuration_examples.py": "dc55e99f43c94875bb657ff04f3c7a793acb050338f8a5064e1f595506fa2fac",
+    "backend/tests/config/test_runtime_settings.py": "eb56d6be6be5df6c755408eab28a7c1b1c6ef2b6c2b1c668345edfc7fb0f80ea",
+    "backend/tests/contract/test_openapi_contract.py": "a2d035794519f27a3822c4db737e4a95f3424fab890515788d9e197bd8ec43aa",
+    "backend/tests/infra/test_compose_contract.py": "6f6ec893e2f10f549e607684c37ddf0e038be0ab9f281d3bc9302d01815106fc",
+    "backend/tests/integration/test_catalog_integration.py": "7e5eb1eba0a352820db6850162bf475d5aa2a2201702eba0f61cec4e04c9cd24",
+    "backend/tests/integration/test_postgres_schema_integration.py": "1bb686f52c8d5e3b7c7dc4e0264cefb976a29bedf8151790b446874014fbb2ae",
+    "backend/tests/integration/test_aiot_migrations_integration.py": "6dba959af684ddbf4dc44d25ad3f6be21d05cbc9036fffbf110bc986f6d99ec6",
+    "contracts/README.md": "2c2db263b9e773bfd4bb55a3f6a1a3494db911f36bc96876a7d98161e0c10c10",
+    "contracts/openapi.yaml": "3b99444e85417bb56f5a44ff6f758642a1e923bb98421785667c2b397d8a7d81",
+    "docs/configuration.md": "771913f6e9b7df25a0520955afb34d81befd29415e975fc1cb84d2f691c2509c",
+    "docs/version-matrix.md": "2b3b52c80fee989a004a88054a2d8d1d0ce8a0ecc56aff38102afe404e3b3c65",
+    "docs/aiot/README.md": "6ef2967e7ba21b887f1b97d503c7197b7b4d53b322b79f786d152b29694080ff",
+    "docs/aiot/tasks/README.md": "49ada2e3dbfb0aec4206fc73fea8245187a3265a1c0f0655a5f4a80a33f8833b",
+    "docs/aiot/tasks/B2-06.md": "459bcc093156b2531c91a3310fb2c36b2794261d36cd81af670be90df8dac7b4",
+    "frontend/src/features/account/session.ts": "d818d5951247270ac920b6497dbcb4e4c40fca20cb65a40963f2d1a577c55f4a",
+    "frontend/src/features/account/account.spec.ts": "f3eb654a5770ff63b70cf63c27bf6f214fad5ade8b60d91cf0c0fa403092bc3e",
+    "frontend/src/features/monitoring/use-monitoring-summary.ts": "e43fb2c8f20f566b532cb8b96f274e83825d26f1041704347810f5071804e752",
+    "frontend/src/features/monitoring/use-monitoring-summary.spec.ts": "ddb5bf1276e1305d354fc79c148ac5661b9216d87157e0540fe4c7c627f1fbf9",
+    "frontend/src/views/ManageView.vue": "af99ebc6b3a30f098f01de5398d8ae6178319da96a5f3ddd9926db44b7301407",
+    "frontend/src/views/ManageView.spec.ts": "ebd38a130f8da27a8f4d96b145e6c5107e4106fc15b4355f3b33946423bd6ed8",
+    "frontend/src/views/FoundationView.vue": "21903ab444ad25a99866975486d30bc10a8d8dbe02ae0f22b5cd937e1fc785f8",
+    "frontend/src/views/FoundationView.spec.ts": "dea5fa4f89f07df0bf2f864bec6db097bde6782fe2f0dc52d59e2ee544b08c04",
+    "frontend/e2e/dashboard.spec.ts": "7141d1ac74b9b25c21c79d7e553fa49cb9f087c019bdc249b165924ac0a880ae",
+    "frontend/e2e/monitoring-api.ts": "a0ac5590be9474856ad32b526c0afb2cd45c28beca3b9d2084c462259aeb8ce1",
+    "frontend/e2e/navigation.spec.ts": "eca01291d3afaf770538157c9baf93c2037ea792eec45fc37f6b275dc63678ed"
+  },
+  "checkpoint": "B2-06 complete. Await user choice before B2-07; no automatic next task.",
+  "checks": {
+    "git_diff_check": "failed: fatal mmap failed Operation canceled; not counted as passed",
+    "direct_whitespace": "passed for all55 source/document files",
+    "line_termination": "passed",
+    "evidence_hash_verification": "passed"
+  },
+  "post_delivery_configuration": {
+    "date": "2026-10-13",
+    "authorization": "explicit user request to configure JWT secret",
+    "file": ".env (private and Git-ignored)",
+    "generated_bytes": 48,
+    "existing_environment_values_preserved": true,
+    "file_mode": "0600",
+    "checks": {
+      "runtime_settings": "passed",
+      "jwt_issue_verify": "passed",
+      "docker_compose_config_quiet": "passed"
+    },
+    "services_started": false,
+    "personal_volumes_migrated": false,
+    "secret_value_recorded": false,
+    "prior_document_sha256": {
+      "docs/aiot/tasks/B2-06.md": "5b97c93ec78a7a08b7a1bcba80d79de8b7b6011609045f94f167c2b0fb932ef2",
+      "docs/configuration.md": "52e5fc7d66986a7a256163a84d4903f215b6cb3c0f4878efeb35038d1862aab7"
+    }
+  },
+  "post_delivery_commit": {
+    "date": "2026-10-13",
+    "evidence": "precommit-2026-10-13.json",
+    "implementation_commit": "7941ac473e05d13fb301663fab41bd36181eea93",
+    "documentation": "Separate local documentation commit",
+    "pushed": false,
+    "previous_source_sha256": {
+      "frontend/src/features/account/account.spec.ts": "9c58d27f70dc4081786729872018ff496bee32f7bc63a03c6d26b7c984626ea4",
+      "docs/aiot/tasks/B2-06.md": "c594e7878890b4566dfbe340f10436d129d3974e859f9b434efbf99fd04509be"
+    }
+  }
+}

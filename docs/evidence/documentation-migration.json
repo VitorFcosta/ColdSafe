@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-13",
+  "scope": "Documentation consolidation; no AIoT implementation advanced",
+  "tasks": 112,
+  "historical_tasks": 76,
+  "aiot_tasks": 36,
+  "retired_ux_tasks": 4,
+  "attachments": 15,
+  "notion_pages_updated": 130,
+  "notion_pages_refetched_and_verified": 130,
+  "notion_navigation_blocks_preserved": 25,
+  "notion_exception": {
+    "title": "Redesign para portfólio — entrega e commit",
+    "reason": "Ancestor in trash; Notion refuses updates",
+    "content_preserved_locally": true
+  },
+  "checks": [
+    "Local Markdown destinations exist",
+    "All attachment destinations exist",
+    "Copied binary media and B2-03 evidence match source SHA-256",
+    "Original Notion recovery ZIP passed CRC test",
+    "Task statuses/dependencies/acceptance preserved",
+    "No application/schema/test/dependency changes in this documentation task"
+  ],
+  "not_repeated": [
+    "Application startup",
+    "Backend unit/integration tests",
+    "Frontend/E2E",
+    "Real equipment"
+  ],
+  "committed": true,
+  "pushed": false,
+  "commit_preparation_evidence": "precommit-2026-10-13.json",
+  "implementation_commit": "7941ac473e05d13fb301663fab41bd36181eea93"
+}

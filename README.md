@@ -29,6 +29,15 @@ continuam consultáveis com luminosidade `null`.
 
 Os contratos versionados de MQTT, REST e eventos estão em [contracts/](contracts/README.md).
 
+## Documentação e evolução AIoT
+
+A documentação principal está em [docs/README.md](docs/README.md).
+Para retomar a evolução, leia o [guia AIoT](docs/aiot/README.md) e apenas a
+tarefa escolhida. Plano, requisitos, cartões e evidências foram consolidados
+na pasta do projeto; o Notion conserva referências legadas.
+
+O contrato AIoT v3 está definido; o runtime continua v1/v2.
+
 ## Executar localmente
 
 Pré-requisitos: Git, Docker com Compose v2 e portas `1883`, `8000` e `5173`
