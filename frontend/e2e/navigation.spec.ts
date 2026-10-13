@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test'
 
 test('orienta o foco na navegação e preserva acesso e histórico', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 })
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ json: {
+    success: true, data: { user_id: 'test-user', email: 'teste@example.com', role: 'operator' },
+  } }))
   await page.route('**/api/v1/auth/login', (route) => route.fulfill({
     status: 200, contentType: 'application/json',
     body: JSON.stringify({ success: true, data: { token: 'test-token', expires_at: '2099-01-01T00:00:00Z' } }),

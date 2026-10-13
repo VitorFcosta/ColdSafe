@@ -60,6 +60,10 @@ describe('useMonitoringSummary', () => {
     vi.clearAllMocks()
     FakeSocket.instances = []
     vi.stubGlobal('WebSocket', FakeSocket)
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => ({ success: true, data: { ticket: 'short-ticket', expires_at: '2099-01-01T00:00:00Z' } }),
+    }))
     vi.mocked(fetchMonitoringSummary).mockResolvedValue(summary)
   })
   afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
@@ -79,7 +83,11 @@ describe('useMonitoringSummary', () => {
     expect(String(FakeSocket.instances[0]?.url)).toContain('device_id=esp32-lab-01')
     expect(String(FakeSocket.instances[0]?.url)).not.toContain('private-token')
     FakeSocket.instances[0]?.open()
-    expect(FakeSocket.instances[0]?.sent).toEqual(['{"token":"private-token"}'])
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/auth/ws-ticket'), {
+      method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer private-token' },
+      body: JSON.stringify({ device_id: 'esp32-lab-01' }),
+    })
+    expect(FakeSocket.instances[0]?.sent).toEqual(['{"ticket":"short-ticket"}'])
     FakeSocket.instances[0]?.message('esp32-lab-02')
     expect(onEvent).not.toHaveBeenCalled()
     FakeSocket.instances[0]?.message('esp32-lab-01')
@@ -131,7 +139,9 @@ describe('useMonitoringSummary', () => {
     await nextTick()
     expect(wrapper.text()).toBe('offline')
     vi.advanceTimersByTime(2000)
+    await flushPromises()
     expect(FakeSocket.instances).toHaveLength(2)
+    expect(fetch).toHaveBeenCalledTimes(2)
     FakeSocket.instances[1]?.open()
     await flushPromises()
     expect(wrapper.text()).toBe('connected')
@@ -200,12 +210,109 @@ describe('useMonitoringSummary', () => {
     expect(wrapper.text()).toBe('normal:29')
     FakeSocket.instances[0]?.onclose?.({ code: 1006 })
     vi.advanceTimersByTime(2000)
-    await nextTick()
+    await flushPromises()
     expect(wrapper.text()).toBe('stale:31')
 
     FakeSocket.instances[1]?.open()
     await flushPromises()
     expect(wrapper.text()).toBe('stale:35')
+    wrapper.unmount()
+  })
+
+  it('descarta ticket atrasado ao trocar dispositivo ou desmontar', async () => {
+    let release: ((value: Response) => void) | undefined
+    vi.mocked(fetch).mockImplementationOnce(() => new Promise((resolve) => { release = resolve }))
+    const deviceId = ref<string | null>('esp32-lab-01')
+    const wrapper = mount(defineComponent({
+      setup() { return useMonitoringSummary(ref('token'), deviceId) }, template: '<p>{{ connectionState }}</p>',
+    }))
+    deviceId.value = 'esp32-lab-02'
+    await flushPromises()
+    expect(FakeSocket.instances).toHaveLength(1)
+    wrapper.unmount()
+    release?.({ ok: true, status: 200, json: async () => ({ success: true, data: { ticket: 'old-ticket', expires_at: '2099-01-01T00:00:00Z' } }) } as Response)
+    await flushPromises()
+    expect(FakeSocket.instances).toHaveLength(1)
+    expect(String(FakeSocket.instances[0]?.url)).toContain('device_id=esp32-lab-02')
+  })
+
+  it('limpa a autenticação rejeitada e não tenta obter outro ticket', async () => {
+    vi.useFakeTimers()
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 401 } as Response)
+    const token = ref<string | null>('revoked-token')
+    const wrapper = mount(defineComponent({
+      setup() { return useMonitoringSummary(token, ref('esp32-lab-01')) }, template: '<p>{{ connectionState }}</p>',
+    }))
+    await flushPromises()
+    expect(token.value).toBeNull()
+    vi.advanceTimersByTime(6000)
+    await flushPromises()
+    expect(fetch).toHaveBeenCalledOnce()
+    expect(FakeSocket.instances).toHaveLength(0)
+    wrapper.unmount()
+  })
+
+  it('recupera ticket após falha de rede sem abrir socket antes da resposta', async () => {
+    vi.useFakeTimers()
+    vi.mocked(fetch).mockRejectedValueOnce(new Error('offline'))
+    const wrapper = mount(defineComponent({
+      setup() { return useMonitoringSummary(ref('token'), ref('esp32-lab-01')) }, template: '<p>{{ connectionState }}</p>',
+    }))
+    await flushPromises()
+    expect(FakeSocket.instances).toHaveLength(0)
+    expect(wrapper.text()).toBe('offline')
+    vi.advanceTimersByTime(2000)
+    await flushPromises()
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(FakeSocket.instances).toHaveLength(1)
+    wrapper.unmount()
+  })
+
+  it('não usa ticket de um token antigo quando a conta muda durante a requisição', async () => {
+    let release: ((value: Response) => void) | undefined
+    vi.mocked(fetch).mockImplementationOnce(() => new Promise((resolve) => { release = resolve }))
+    const token = ref<string | null>('old-token')
+    const wrapper = mount(defineComponent({
+      setup() { return useMonitoringSummary(token, ref('esp32-lab-01')) }, template: '<p>{{ connectionState }}</p>',
+    }))
+    token.value = 'new-token'
+    await flushPromises()
+    release?.({ ok: false, status: 401 } as Response)
+    await flushPromises()
+    expect(token.value).toBe('new-token')
+    expect(FakeSocket.instances).toHaveLength(1)
+    FakeSocket.instances[0]?.open()
+    expect(FakeSocket.instances[0]?.sent).toEqual(['{"ticket":"short-ticket"}'])
+    wrapper.unmount()
+  })
+
+  it('não reconecta em dispositivo proibido e mantém a sessão', async () => {
+    vi.useFakeTimers()
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 403 } as Response)
+    const token = ref<string | null>('token')
+    const wrapper = mount(defineComponent({
+      setup() { return useMonitoringSummary(token, ref('esp32-lab-01')) }, template: '<p>{{ connectionState }}</p>',
+    }))
+    await flushPromises()
+    expect(wrapper.text()).toBe('forbidden')
+    expect(token.value).toBe('token')
+    vi.advanceTimersByTime(6000)
+    await flushPromises()
+    expect(fetch).toHaveBeenCalledOnce()
+    expect(FakeSocket.instances).toHaveLength(0)
+    wrapper.unmount()
+  })
+
+  it('recusa ticket expirado antes de abrir o socket', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({
+      success: true, data: { ticket: 'expired', expires_at: '2000-01-01T00:00:00Z' },
+    }) } as Response)
+    const wrapper = mount(defineComponent({
+      setup() { return useMonitoringSummary(ref('token'), ref('esp32-lab-01')) }, template: '<p>{{ connectionState }}</p>',
+    }))
+    await flushPromises()
+    expect(FakeSocket.instances).toHaveLength(0)
+    expect(wrapper.text()).toBe('offline')
     wrapper.unmount()
   })
 })

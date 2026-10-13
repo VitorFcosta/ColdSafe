@@ -5,16 +5,36 @@ import json
 import re
 from collections import defaultdict
 from contextlib import suppress
+from datetime import datetime
 from threading import Lock
-from typing import Any
+from typing import Annotated, Any, Literal
+from uuid import UUID
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.security import HTTPAuthorizationCredentials
+from pydantic import Field
 
-from backend.app.api.auth import AuthService
+from backend.app.api.auth import AuthService, _bearer
 from backend.app.api.catalog import CatalogService
+from backend.app.api.schemas import ApiModel, ErrorResponse, SuccessMeta
 
 
 DEVICE_ID_PATTERN = re.compile(r"[A-Za-z0-9._-]{1,64}")
+
+
+class WsTicketPayload(ApiModel):
+    device_id: str = Field(strict=True, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9._-]+$")
+
+
+class WsTicketData(ApiModel):
+    ticket: str
+    expires_at: datetime
+
+
+class WsTicketResponse(ApiModel):
+    success: Literal[True] = True
+    data: WsTicketData
+    meta: SuccessMeta = SuccessMeta()
 
 
 class EventHub:
@@ -54,31 +74,59 @@ class EventHub:
 
 
 def install_events(app: FastAPI, hub: EventHub, auth: AuthService, catalog: CatalogService) -> None:
+    @app.post(
+        "/api/v1/auth/ws-ticket", response_model=WsTicketResponse, tags=["Auth"],
+        responses={code: {"model": ErrorResponse} for code in (401, 403, 404, 422)},
+    )
+    def ws_ticket(
+        payload: WsTicketPayload,
+        user_id: Annotated[UUID, Depends(auth.require_user)],
+        credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+    ) -> WsTicketResponse:
+        device = catalog.device_for_user(user_id, payload.device_id)
+        if device is None:
+            raise HTTPException(status_code=404, detail="DEVICE_NOT_FOUND")
+        if not device["is_active"]:
+            raise HTTPException(status_code=403, detail="FORBIDDEN")
+        ticket, expires_at = auth.create_ws_ticket(credentials.credentials, UUID(str(device["id"])))
+        return WsTicketResponse(data=WsTicketData(ticket=ticket, expires_at=expires_at))
+
     @app.websocket("/api/v1/events")
     async def events(websocket: WebSocket) -> None:
         await websocket.accept()
         device_id = websocket.query_params.get("device_id", "")
-        if DEVICE_ID_PATTERN.fullmatch(device_id) is None:
+        if (list(websocket.query_params.multi_items()) != [("device_id", device_id)]
+                or DEVICE_ID_PATTERN.fullmatch(device_id) is None):
             await websocket.close(code=1008)
             return
         try:
-            first = await asyncio.wait_for(websocket.receive_text(), timeout=5)
+            first_message = await asyncio.wait_for(websocket.receive(), timeout=5)
+            if first_message["type"] == "websocket.disconnect":
+                return
+            first = first_message.get("text")
+            if not isinstance(first, str) or len(first.encode("utf-8")) > 2048:
+                await websocket.close(code=4401)
+                return
             credentials = json.loads(first)
-            token = credentials.get("token") if isinstance(credentials, dict) else None
-            if not isinstance(token, str) or not token:
+            ticket = credentials.get("ticket") if isinstance(credentials, dict) else None
+            if (not isinstance(credentials, dict) or set(credentials) != {"ticket"}
+                    or not isinstance(ticket, str) or not ticket):
                 await websocket.close(code=4401)
                 return
-            user_id = await asyncio.to_thread(auth.current_user, token)
-            if user_id is None:
+            principal = await asyncio.to_thread(auth.consume_ws_ticket, ticket, device_id)
+            if principal is None:
                 await websocket.close(code=4401)
                 return
+            user_id = principal.user_id
             device = await asyncio.to_thread(catalog.device_for_user, user_id, device_id)
-            if device is None or not device["is_active"]:
+            if (device is None or not device["is_active"]
+                    or principal.role not in {"viewer", "operator", "admin"}):
                 await websocket.close(code=4403)
                 return
 
             queue = hub.subscribe(device_id)
-            receive_task = asyncio.create_task(websocket.receive_text())
+            receive_task = asyncio.create_task(websocket.receive())
+            queued = None
             try:
                 while True:
                     queued = asyncio.create_task(queue.get())
@@ -90,24 +138,29 @@ def install_events(app: FastAPI, hub: EventHub, auth: AuthService, catalog: Cata
                         with suppress(asyncio.CancelledError):
                             await queued
                     if receive_task in done:
-                        await receive_task
-                        await websocket.close(code=1008)
+                        message = receive_task.result()
+                        if message["type"] != "websocket.disconnect":
+                            await websocket.close(code=1008)
                         return
-                    if await asyncio.to_thread(auth.current_user, token) != user_id:
+                    current_session = await asyncio.to_thread(auth.session_for_id, principal.session_id)
+                    if current_session is None or current_session.user_id != user_id:
                         await websocket.close(code=4401)
                         return
                     current = await asyncio.to_thread(catalog.device_for_user, user_id, device_id)
-                    if current is None or not current["is_active"]:
+                    if (current is None or not current["is_active"]
+                            or current_session.role not in {"viewer", "operator", "admin"}):
                         await websocket.close(code=4403)
                         return
                     if queued in done:
                         await websocket.send_json(queued.result())
             finally:
-                receive_task.cancel()
-                with suppress(asyncio.CancelledError, WebSocketDisconnect):
-                    await receive_task
+                for task in (queued, receive_task):
+                    if task is not None:
+                        task.cancel()
+                        with suppress(asyncio.CancelledError, WebSocketDisconnect):
+                            await task
                 hub.unsubscribe(device_id, queue)
-        except (asyncio.TimeoutError, json.JSONDecodeError):
+        except (asyncio.TimeoutError, json.JSONDecodeError, RecursionError):
             await websocket.close(code=4401)
         except WebSocketDisconnect:
             pass

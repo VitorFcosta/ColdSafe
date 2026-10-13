@@ -5,7 +5,7 @@ import { computed, ref } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { listDevices, listEnvironments } from '../features/account/catalog'
-import { sessionToken } from '../features/account/session'
+import { sessionToken, sessionRole } from '../features/account/session'
 import { fetchActuators, fetchCommand, requestLed, type ActuatorCommand } from '../features/monitoring/actuators'
 import { fetchMonitoringHistory } from '../features/monitoring/monitoring-history'
 import type { MonitoringSummary } from '../features/monitoring/monitoring-summary'
@@ -47,6 +47,7 @@ describe('FoundationView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     sessionToken.value = 'token'
+    sessionRole.value = 'operator'
     vi.mocked(listEnvironments).mockResolvedValue([{ id: 'lab-01', name: 'Laboratório Refrigerado' }])
     vi.mocked(listDevices).mockResolvedValue([
       { id: 'uuid-01', environment_id: 'lab-01', name: 'Um', mqtt_device_id: 'esp32-lab-01', is_active: true },
@@ -63,6 +64,19 @@ describe('FoundationView', () => {
       refreshRevision: ref(0), summary: ref(summary), connectionState: ref('connected'),
       ageSeconds: computed(() => summary.freshness?.age_seconds ?? null),
     })
+  })
+
+  it.each(['viewer', null] as const)('permite monitorar sem emitir comando para papel %s', async (role) => {
+    sessionRole.value = role
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    expect(wrapper.text()).toContain(role === 'viewer' ? 'Modo visualizador' : 'Permissões ainda não confirmadas')
+    const control = wrapper.findAll('button').find((button) => button.text() === 'Ligar Luz')!
+    expect(control.attributes('disabled')).toBeDefined()
+    await control.trigger('click')
+    expect(requestLed).not.toHaveBeenCalled()
+    expect(fetchActuators).toHaveBeenCalled()
+    wrapper.unmount()
   })
 
   it('seleciona dispositivo, mostra luminosidade e consulta o histórico autorizado', async () => {

@@ -346,3 +346,22 @@ test('preserva leitura válida quando apenas o histórico falha', async ({ page 
   await expect(page.getByRole('article').filter({ hasText: 'Temperatura' }).getByText('5 °C', { exact: true })).toBeVisible()
   await expect(page.getByText(/histórico de temperatura não pôde ser carregado/)).toBeVisible()
 })
+
+
+test('visualizador consulta diagnóstico e atuadores sem emitir comandos', async ({ page }) => {
+  await mockMonitoringApi(page, { status: 'normal' })
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ json: {
+    success: true, data: { user_id: 'viewer-user', email: 'viewer@example.com', role: 'viewer' },
+  } }))
+  let writes = 0
+  await page.route('**/api/v1/devices/*/led/commands', (route) => {
+    writes += 1
+    return route.abort()
+  })
+  await page.goto('/dashboard')
+  await expect(page.getByRole('heading', { name: 'Normal', exact: true })).toBeVisible()
+  await page.getByRole('group', { name: 'Estado dos atuadores' }).locator('summary').click()
+  await expect(page.getByText('Modo visualizador: você pode consultar o estado dos atuadores.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Ligar Luz' })).toBeDisabled()
+  expect(writes).toBe(0)
+})

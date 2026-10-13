@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/+$/, '')
 const storageKey = 'coldsafe-session'
@@ -21,6 +21,8 @@ function restoreSession(): StoredSession | null {
 
 let currentSession = restoreSession()
 export const sessionToken = ref<string | null>(currentSession?.token ?? null)
+export const sessionRole = ref<'viewer' | 'operator' | 'admin' | null>(null)
+export const canWrite = computed(() => Boolean(sessionToken.value) && (sessionRole.value === 'operator' || sessionRole.value === 'admin'))
 export const dashboardSelection = ref<DashboardSelection | null>(
   currentSession?.dashboard_selection &&
   typeof currentSession.dashboard_selection.environmentId === 'string' &&
@@ -39,6 +41,7 @@ export function saveDashboardSelection(selection: DashboardSelection): void {
 export function setSession(token: string, expiresAt: string): void {
   currentSession = { token, expires_at: expiresAt }
   sessionToken.value = token
+  sessionRole.value = null
   dashboardSelection.value = null
   try {
     sessionStorage.setItem(storageKey, JSON.stringify(currentSession))
@@ -50,6 +53,7 @@ export function setSession(token: string, expiresAt: string): void {
 export function clearSession(): void {
   currentSession = null
   sessionToken.value = null
+  sessionRole.value = null
   dashboardSelection.value = null
   try { sessionStorage.removeItem(storageKey) } catch { /* Storage unavailable. */ }
 }
@@ -76,10 +80,37 @@ export async function login(email: string, password: string): Promise<void> {
     throw new Error('A API retornou uma sessão inválida.')
   }
   setSession(data.token, data.expires_at)
+  await refreshSessionIdentity()
 }
 
 export async function register(email: string, password: string): Promise<void> {
+  if (new TextEncoder().encode(password).length > 72) throw new Error('A senha de cadastro deve ter até 72 bytes UTF-8.')
   await accountRequest('/auth/register', { email, password })
+}
+
+export async function refreshSessionIdentity(): Promise<void> {
+  const token = sessionToken.value
+  if (!token) return
+  sessionRole.value = null
+  let response: Response
+  try {
+    response = await fetch(`${baseUrl}/api/v1/auth/me`, { headers: { authorization: `Bearer ${token}` } })
+  } catch {
+    throw new Error('Não foi possível consultar as permissões da conta. Tente novamente.')
+  }
+  if (sessionToken.value !== token) return
+  if (response.status === 401) { clearSession(); throw new Error('Sessão inválida. Entre novamente.') }
+  const payload = await response.json()
+  if (sessionToken.value !== token) return
+  if (!response.ok || payload?.success !== true || typeof payload.data?.user_id !== 'string' ||
+    typeof payload.data.email !== 'string' || !['viewer', 'operator', 'admin'].includes(payload.data.role)) {
+    throw new Error('A API retornou uma identidade inválida.')
+  }
+  sessionRole.value = payload.data.role
+}
+
+if (sessionToken.value) {
+  void refreshSessionIdentity().catch(() => { /* Unknown permissions keep this tab read-only. */ })
 }
 
 async function accountRequest<T>(path: string, body: object): Promise<T> {

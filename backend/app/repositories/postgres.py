@@ -9,6 +9,9 @@ MIGRATIONS = (
     (1, Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"),
     (2, Path(__file__).resolve().parents[2] / "migrations" / "002_command_status.sql"),
     (3, Path(__file__).resolve().parents[2] / "migrations" / "003_environment_rules.sql"),
+    (4, Path(__file__).resolve().parents[2] / "migrations" / "004_user_roles.sql"),
+    (5, Path(__file__).resolve().parents[2] / "migrations" / "005_aiot_records.sql"),
+    (6, Path(__file__).resolve().parents[2] / "migrations" / "006_auth_security.sql"),
 )
 
 

@@ -193,6 +193,12 @@ paths:
               schema: {$ref: '#/components/schemas/CommandApiResponse'}
         '401': {$ref: '#/components/responses/Unauthorized'}
         '404': {$ref: '#/components/responses/DeviceNotFound'}
+        "403":
+          description: Papel sem permissao para escrever.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         '422':
           description: Validation Error
           content:
@@ -280,6 +286,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Muitas tentativas de login.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         '422':
           description: Validation Error
           content:
@@ -380,6 +397,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Papel sem permissao para escrever.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         '422':
           description: Validation Error
           content:
@@ -473,6 +496,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Not Found
+        "403":
+          description: Papel sem permissao para escrever.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         '422':
           description: Validation Error
           content:
@@ -528,6 +557,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Conflict
+        "403":
+          description: Papel sem permissao para escrever.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         '422':
           description: Validation Error
           content:
@@ -661,6 +696,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Not Found
+        "403":
+          description: Papel sem permissao para escrever.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         '422':
           description: Validation Error
           content:
@@ -703,6 +744,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Not Found
+        "403":
+          description: Papel sem permissao para escrever.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         '422':
           description: Validation Error
           content:
@@ -794,6 +841,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Not Found
+        "403":
+          description: Papel sem permissao para escrever.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         '422':
           description: Validation Error
           content:
@@ -826,11 +879,133 @@ paths:
                 $ref: "#/components/schemas/HealthResponse"
         "503":
           $ref: "#/components/responses/DependencyUnavailable"
+  /api/v1/auth/me:
+    get:
+      tags:
+      - Auth
+      summary: Me
+      operationId: me_api_v1_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '422':
+          description: Unprocessable Content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - HTTPBearer: []
+  /api/v1/auth/users/{user_id}/role:
+    patch:
+      tags:
+      - Auth
+      summary: Change Role
+      operationId: change_role_api_v1_auth_users__user_id__role_patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403': &id001
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not Found
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unprocessable Content
+  /api/v1/auth/ws-ticket:
+    post:
+      tags:
+      - Auth
+      summary: Ws Ticket
+      operationId: ws_ticket_api_v1_auth_ws_ticket_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WsTicketPayload'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WsTicketResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403': *id001
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - HTTPBearer: []
 components:
   securitySchemes:
     HTTPBearer:
       type: http
       scheme: bearer
+      bearerFormat: JWT
+      description: JWT assinado e revogavel; legado opaco limitado a 24h apos migracao006. Nunca enviar na URL WebSocket.
   responses:
     Unauthorized:
       description: Sessão ausente, expirada ou revogada.
@@ -1219,6 +1394,7 @@ components:
           minLength: 8
           format: password
           title: Password
+          description: Novo cadastro aceita ate 72 bytes UTF-8 sem truncar; login legado continua ate 128 caracteres.
           writeOnly: true
       additionalProperties: false
       type: object
@@ -1329,6 +1505,9 @@ components:
         - ENVIRONMENT_NOT_FOUND
         - DEVICE_ID_EXISTS
         - UNAUTHORIZED
+        - FORBIDDEN
+        - RATE_LIMITED
+        - USER_NOT_FOUND
         - EMAIL_ALREADY_REGISTERED
         - INVALID_CREDENTIALS
         - DEPENDENCY_UNAVAILABLE
@@ -1534,3 +1713,141 @@ components:
           $ref: "#/components/schemas/ErrorDetail"
         meta:
           $ref: "#/components/schemas/ErrorMeta"
+    RoleInput:
+      properties:
+        role:
+          type: string
+          enum:
+          - viewer
+          - operator
+          - admin
+          title: Role
+      additionalProperties: false
+      type: object
+      required:
+      - role
+      title: RoleInput
+    MeResponse:
+      properties:
+        success:
+          type: boolean
+          const: true
+          title: Success
+          default: true
+        data:
+          $ref: '#/components/schemas/MeData'
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+          default:
+            schema_version: 1
+      additionalProperties: false
+      type: object
+      required:
+      - data
+      title: MeResponse
+    RoleResponse:
+      properties:
+        success:
+          type: boolean
+          const: true
+          title: Success
+          default: true
+        data:
+          $ref: '#/components/schemas/RoleData'
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+          default:
+            schema_version: 1
+      additionalProperties: false
+      type: object
+      required:
+      - data
+      title: RoleResponse
+    WsTicketPayload:
+      properties:
+        device_id:
+          type: string
+          maxLength: 64
+          minLength: 1
+          pattern: ^[A-Za-z0-9._-]+$
+          title: Device Id
+      additionalProperties: false
+      type: object
+      required:
+      - device_id
+      title: WsTicketPayload
+    MeData:
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+        email:
+          type: string
+          title: Email
+        role:
+          type: string
+          enum:
+          - viewer
+          - operator
+          - admin
+          title: Role
+      additionalProperties: false
+      type: object
+      required:
+      - user_id
+      - email
+      - role
+      title: MeData
+    WsTicketResponse:
+      properties:
+        success:
+          type: boolean
+          const: true
+          title: Success
+          default: true
+        data:
+          $ref: '#/components/schemas/WsTicketData'
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+          default:
+            schema_version: 1
+      additionalProperties: false
+      type: object
+      required:
+      - data
+      title: WsTicketResponse
+    WsTicketData:
+      properties:
+        ticket:
+          type: string
+          title: Ticket
+        expires_at:
+          type: string
+          format: date-time
+          title: Expires At
+      additionalProperties: false
+      type: object
+      required:
+      - ticket
+      - expires_at
+      title: WsTicketData
+    RoleData:
+      properties:
+        role:
+          type: string
+          enum:
+          - viewer
+          - operator
+          - admin
+          title: Role
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+      additionalProperties: false
+      type: object
+      required:
+      - role
+      - user_id
+      title: RoleData

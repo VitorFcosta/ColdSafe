@@ -30,6 +30,7 @@ from backend.app.api.schemas import (
 from backend.app.api.auth import AuthService
 from backend.app.api.catalog import CatalogService, create_catalog_router
 from backend.app.api.commands import create_command_router
+from backend.app.api.roles import create_roles_router
 from backend.app.domain.reading_classification import TemperatureThresholds
 from backend.app.errors import DependencyUnavailableError, DeviceNotFoundError
 from backend.app.services.monitoring import (
@@ -52,6 +53,9 @@ ERRORS: dict[str, str] = {
     "ENVIRONMENT_NOT_FOUND": "O ambiente informado não foi encontrado.",
     "DEVICE_ID_EXISTS": "O identificador do dispositivo já está cadastrado.",
     "UNAUTHORIZED": "Autenticação necessária ou sessão inválida.",
+    "FORBIDDEN": "Seu papel não permite esta operação.",
+    "RATE_LIMITED": "Muitas tentativas. Aguarde antes de tentar novamente.",
+    "USER_NOT_FOUND": "O usuário informado não foi encontrado.",
     "DEPENDENCY_UNAVAILABLE": "Não foi possível consultar as leituras agora.",
     "INTERNAL_ERROR": "Ocorreu um erro interno.",
 }
@@ -100,8 +104,9 @@ def create_app(
         raise ValueError("auth and catalog must be configured together")
     if auth is not None and catalog is not None:
         app.include_router(auth.router)
-        app.include_router(create_catalog_router(catalog, auth.require_user))
-        app.include_router(create_command_router(catalog, commands, auth.require_user))
+        app.include_router(create_catalog_router(catalog, auth.require_user, require_operator=auth.require_operator))
+        app.include_router(create_command_router(catalog, commands, auth.require_user, require_operator=auth.require_operator))
+        app.include_router(create_roles_router(auth))
         auth.install_exception_handlers(app)
         if events is not None:
             install_events(app, events, auth, catalog)

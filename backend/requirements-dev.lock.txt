@@ -17,6 +17,10 @@ attrs==26.1.0
     #   jsonschema
     #   jsonschema-path
     #   referencing
+bcrypt==5.0.0
+    # via
+    #   -r backend/requirements.txt
+    #   pwdlib
 certifi==2026.7.22
     # via
     #   httpcore
@@ -103,6 +107,8 @@ pytest==9.1.1
     #   pytest-cov
 pytest-cov==7.1.0
     # via -r backend/requirements-dev.txt
+pyjwt==2.15.1
+    # via -r backend/requirements.txt
 python-dateutil==2.9.0.post0
     # via influxdb-client
 python-dotenv==1.2.3

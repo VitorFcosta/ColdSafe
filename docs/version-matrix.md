@@ -8,6 +8,7 @@ fonte exata; esta tabela facilita a conferência no computador da apresentação
 | Runtime backend | Python `3.13.15` | `.python-version`, `backend/Dockerfile` |
 | Runtime frontend | Node `24.20.0` | `.nvmrc`, `frontend/Dockerfile` |
 | Backend | FastAPI `0.141.1`, Pydantic `2.13.5`, psycopg `3.3.6`, pwdlib `0.3.1`, paho-mqtt `2.1.0`, influxdb-client `1.50.0`, websockets `17.1` | `backend/requirements.txt`, `backend/requirements.lock.txt` |
+| Autenticação B2-06 | PyJWT `2.15.1`, bcrypt `5.0.0`; pwdlib com extras Argon2/bcrypt | `backend/requirements.txt`, locks de produção/desenvolvimento |
 | Testes Python | pytest `9.1.1`, pytest-cov `7.1.0`, HTTPX `0.28.1`, jsonschema `4.26.0` | `backend/requirements-dev.txt`, `backend/requirements-dev.lock.txt` |
 | Frontend | Vue `3.5.42`, Vue Router `5.3.0`, Vite `8.2.2`, TypeScript `6.0.3`, Chart.js `4.5.1`, Playwright `1.63.0`, Vitest `4.1.11` | `frontend/package.json`, `frontend/package-lock.json` |
 | Firmware | espressif32 `7.0.1`, DHT sensor library for ESPx `1.19`, MQTT `2.5.3`, ArduinoJson `7.4.3` | `firmware/platformio.ini` |

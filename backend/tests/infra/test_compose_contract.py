@@ -179,6 +179,10 @@ def test_backend_receives_the_allowed_frontend_origins_from_environment():
     assert backend["environment"]["CORS_ORIGINS"] == "${CORS_ORIGINS:-http://localhost:5173}"
 
 
+def test_backend_requires_a_private_jwt_signing_key():
+    assert load_compose()["services"]["backend"]["environment"]["AUTH_JWT_SECRET"].startswith("${AUTH_JWT_SECRET:?")
+
+
 def test_frontend_uses_a_pinned_development_image_with_isolated_dependencies():
     frontend = load_compose()["services"]["frontend"]
 

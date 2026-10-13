@@ -16,7 +16,7 @@ class FakeCatalog:
 def test_catalog_route_accepts_trimmed_name_and_uses_authenticated_user() -> None:
     user_id = uuid4()
     app = FastAPI()
-    app.include_router(create_catalog_router(FakeCatalog(), lambda: user_id))
+    app.include_router(create_catalog_router(FakeCatalog(), lambda: user_id, require_operator=lambda: user_id))
 
     response = TestClient(app).post("/api/v1/environments", json={"name": "  Câmara A  "})
 

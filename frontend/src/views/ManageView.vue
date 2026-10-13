@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { sessionToken, logout } from '../features/account/session'
+import { sessionToken, sessionRole, canWrite, logout } from '../features/account/session'
 import {
   createDevice, createEnvironment, deactivateDevice, getRules, listDevices, listEnvironments,
   updateDevice, updateEnvironment, updateRules, type Device, type Environment, type Rules,
@@ -38,7 +38,7 @@ watch(sessionToken, (token) => { if (!token) void router.replace('/login') })
 onMounted(() => { void loadEnvironments() })
 
 async function run(action: () => Promise<unknown>, after: () => Promise<void>) {
-  if (busy.value) return
+  if (busy.value || !canWrite.value) return
   busy.value = true
   error.value = ''
   success.value = ''
@@ -207,7 +207,7 @@ function clearRuleError(field: keyof Rules) {
 async function saveRules() {
   const token = sessionToken.value
   const environmentId = selectedEnvironmentId.value
-  if (busy.value || !token || !environmentId || !rules.value) return
+  if (busy.value || !canWrite.value || !token || !environmentId || !rules.value) return
   const value = { ...rules.value }
   const nextErrors = validateRules(value)
   ruleErrors.value = nextErrors
@@ -258,6 +258,7 @@ async function signOut() {
         <h1 id="manage-title" tabindex="-1">Ambientes e dispositivos</h1>
         <p>Cadastre as unidades e ajuste a faixa de temperatura usada no monitoramento.</p>
       </section>
+      <p v-if="!canWrite" role="status">{{ sessionRole === 'viewer' ? 'Modo visualizador: você pode consultar seus ambientes, dispositivos e limites.' : 'Permissões ainda não confirmadas. As alterações estão indisponíveis.' }}</p>
       <p v-if="error" role="alert" class="feedback error">{{ error }}</p>
       <p v-if="success" role="status" class="feedback success">{{ success }}</p>
       <p v-if="loading" role="status" aria-live="polite">Carregando dados…</p>
@@ -269,19 +270,19 @@ async function signOut() {
           <ul class="item-list">
             <li v-for="environment in environments" :key="environment.id" :class="{ selected: selectedEnvironmentId === environment.id }">
               <template v-if="editingEnvironmentId === environment.id">
-                <form class="edit-form" @submit.prevent="saveEnvironment(environment.id)"><input v-model="environmentEditName" :aria-label="`Nome do ambiente ${environment.name}`" maxlength="120" required /><button type="submit" :aria-label="`Salvar ambiente ${environment.name}`" :disabled="busy">Salvar</button><button type="button" :aria-label="`Cancelar edição do ambiente ${environment.name}`" @click="editingEnvironmentId = ''">Cancelar</button></form>
+                <form class="edit-form" @submit.prevent="saveEnvironment(environment.id)"><input v-model="environmentEditName" :aria-label="`Nome do ambiente ${environment.name}`" maxlength="120" required /><button type="submit" :aria-label="`Salvar ambiente ${environment.name}`" :disabled="busy || !canWrite">Salvar</button><button type="button" :aria-label="`Cancelar edição do ambiente ${environment.name}`" @click="editingEnvironmentId = ''">Cancelar</button></form>
               </template>
               <template v-else>
                 <button type="button" class="item-name" :aria-pressed="selectedEnvironmentId === environment.id" :disabled="busy" @click="selectedEnvironmentId = environment.id; loadSelection()">{{ environment.name }}</button>
-                <button type="button" class="small-action" :aria-label="`Editar ambiente ${environment.name}`" @click="editingEnvironmentId = environment.id; environmentEditName = environment.name">Editar</button>
+                <button type="button" class="small-action" :disabled="!canWrite" :aria-label="`Editar ambiente ${environment.name}`" @click="editingEnvironmentId = environment.id; environmentEditName = environment.name">Editar</button>
               </template>
             </li>
           </ul>
-          <button v-if="!showEnvironmentForm" ref="environmentOpenButton" data-test="open-environment-form" class="primary add-action" type="button" @click="openEnvironmentForm">Adicionar ambiente</button>
+          <button v-if="!showEnvironmentForm" ref="environmentOpenButton" data-test="open-environment-form" :disabled="!canWrite" class="primary add-action" type="button" @click="openEnvironmentForm">Adicionar ambiente</button>
           <form v-else class="inline-form add-form" @submit.prevent="addEnvironment">
             <label for="environment-name">Nome do novo ambiente</label>
-            <input id="environment-name" ref="environmentNameInput" v-model="environmentName" maxlength="120" required placeholder="Ex.: Câmara fria 1" :disabled="busy" />
-            <div class="actions"><button class="primary" type="submit" :disabled="busy">Adicionar ambiente</button><button data-test="cancel-environment-form" type="button" aria-label="Cancelar inclusão de ambiente" :disabled="busy" @click="cancelEnvironmentForm">Cancelar</button></div>
+            <input id="environment-name" ref="environmentNameInput" v-model="environmentName" maxlength="120" required placeholder="Ex.: Câmara fria 1" :disabled="busy || !canWrite" />
+            <div class="actions"><button class="primary" type="submit" :disabled="busy || !canWrite">Adicionar ambiente</button><button data-test="cancel-environment-form" type="button" aria-label="Cancelar inclusão de ambiente" :disabled="busy || !canWrite" @click="cancelEnvironmentForm">Cancelar</button></div>
           </form>
         </section>
 
@@ -292,19 +293,19 @@ async function signOut() {
             <ul class="item-list">
               <li v-for="device in devices" :key="device.id">
                 <div class="device-info"><strong>{{ device.name }}</strong><span>{{ device.mqtt_device_id }} · {{ device.is_active ? 'Ativo' : 'Desativado' }}</span></div>
-                <form v-if="editingDeviceId === device.id" class="edit-form" @submit.prevent="saveDevice(device.id)"><input v-model="deviceEditName" :aria-label="`Nome do dispositivo ${device.name}`" maxlength="120" required /><button type="submit" :aria-label="`Salvar dispositivo ${device.name}`" :disabled="busy">Salvar</button><button type="button" :aria-label="`Cancelar edição do dispositivo ${device.name}`" @click="editingDeviceId = ''">Cancelar</button></form>
-                <div v-else class="actions"><button type="button" :aria-label="`Editar dispositivo ${device.name}`" @click="editingDeviceId = device.id; deviceEditName = device.name">Editar</button><button v-if="device.is_active" type="button" class="danger" :aria-label="`Desativar dispositivo ${device.name}`" :disabled="busy" @click="disableDevice(device)">Desativar</button></div>
+                <form v-if="editingDeviceId === device.id" class="edit-form" @submit.prevent="saveDevice(device.id)"><input v-model="deviceEditName" :aria-label="`Nome do dispositivo ${device.name}`" maxlength="120" required /><button type="submit" :aria-label="`Salvar dispositivo ${device.name}`" :disabled="busy || !canWrite">Salvar</button><button type="button" :aria-label="`Cancelar edição do dispositivo ${device.name}`" @click="editingDeviceId = ''">Cancelar</button></form>
+                <div v-else class="actions"><button type="button" :disabled="!canWrite" :aria-label="`Editar dispositivo ${device.name}`" @click="editingDeviceId = device.id; deviceEditName = device.name">Editar</button><button v-if="device.is_active" type="button" class="danger" :aria-label="`Desativar dispositivo ${device.name}`" :disabled="busy || !canWrite" @click="disableDevice(device)">Desativar</button></div>
               </li>
             </ul>
-            <button v-if="!showDeviceForm" ref="deviceOpenButton" data-test="open-device-form" class="primary add-action" type="button" @click="openDeviceForm">Adicionar dispositivo</button>
+            <button v-if="!showDeviceForm" ref="deviceOpenButton" data-test="open-device-form" :disabled="!canWrite" class="primary add-action" type="button" @click="openDeviceForm">Adicionar dispositivo</button>
             <form v-else class="fields add-form" @submit.prevent="addDevice">
               <h3>Adicionar dispositivo em {{ selectedEnvironment.name }}</h3>
               <label for="device-name">Nome do dispositivo</label>
-              <input id="device-name" ref="deviceNameInput" v-model="deviceName" maxlength="120" required placeholder="Ex.: Sensor principal" :disabled="busy" />
+              <input id="device-name" ref="deviceNameInput" v-model="deviceName" maxlength="120" required placeholder="Ex.: Sensor principal" :disabled="busy || !canWrite" />
               <label for="mqtt-id">Identificador MQTT</label>
-              <input id="mqtt-id" v-model="mqttDeviceId" maxlength="64" pattern="[A-Za-z0-9._-]+" required placeholder="Ex.: esp32-camara-1" :disabled="busy" />
+              <input id="mqtt-id" v-model="mqttDeviceId" maxlength="64" pattern="[A-Za-z0-9._-]+" required placeholder="Ex.: esp32-camara-1" :disabled="busy || !canWrite" />
               <p class="hint">Use o mesmo identificador configurado no ESP32. Ele não pode ser alterado depois.</p>
-              <div class="actions"><button class="primary" type="submit" :disabled="busy">Cadastrar dispositivo</button><button data-test="cancel-device-form" type="button" aria-label="Cancelar inclusão de dispositivo" :disabled="busy" @click="cancelDeviceForm">Cancelar</button></div>
+              <div class="actions"><button class="primary" type="submit" :disabled="busy || !canWrite">Cadastrar dispositivo</button><button data-test="cancel-device-form" type="button" aria-label="Cancelar inclusão de dispositivo" :disabled="busy || !canWrite" @click="cancelDeviceForm">Cancelar</button></div>
             </form>
           </section>
 
@@ -312,15 +313,15 @@ async function signOut() {
             <h2 id="rules-title">Limites de temperatura de {{ selectedEnvironment.name }}</h2>
             <form class="fields" novalidate @submit.prevent="saveRules">
               <p v-if="Object.values(ruleErrors).some(Boolean)" role="alert" class="error">Revise os limites destacados abaixo.</p>
-              <label for="min-c">Mínimo (°C)</label><input id="min-c" v-model.number="rules.min_c" type="number" step="0.01" required :disabled="busy" :aria-invalid="Boolean(ruleErrors.min_c)" :aria-describedby="ruleErrors.min_c ? 'min-c-error' : undefined" @input="clearRuleError('min_c')" />
+              <label for="min-c">Mínimo (°C)</label><input id="min-c" v-model.number="rules.min_c" type="number" step="0.01" required :disabled="busy || !canWrite" :aria-invalid="Boolean(ruleErrors.min_c)" :aria-describedby="ruleErrors.min_c ? 'min-c-error' : undefined" @input="clearRuleError('min_c')" />
               <p v-if="ruleErrors.min_c" id="min-c-error" class="field-error">{{ ruleErrors.min_c }}</p>
-              <label for="max-c">Máximo (°C)</label><input id="max-c" v-model.number="rules.max_c" type="number" step="0.01" required :disabled="busy" :aria-invalid="Boolean(ruleErrors.max_c)" :aria-describedby="ruleErrors.max_c ? 'max-c-error' : undefined" @input="clearRuleError('max_c')" />
+              <label for="max-c">Máximo (°C)</label><input id="max-c" v-model.number="rules.max_c" type="number" step="0.01" required :disabled="busy || !canWrite" :aria-invalid="Boolean(ruleErrors.max_c)" :aria-describedby="ruleErrors.max_c ? 'max-c-error' : undefined" @input="clearRuleError('max_c')" />
               <p v-if="ruleErrors.max_c" id="max-c-error" class="field-error">{{ ruleErrors.max_c }}</p>
-              <label for="margin-c">Margem de atenção (°C)</label><input id="margin-c" v-model.number="rules.attention_margin_c" type="number" step="0.01" min="0" required :disabled="busy" :aria-invalid="Boolean(ruleErrors.attention_margin_c)" :aria-describedby="`margin-c-hint${ruleErrors.attention_margin_c ? ' margin-c-error' : ''}`" @input="clearRuleError('attention_margin_c')" />
+              <label for="margin-c">Margem de atenção (°C)</label><input id="margin-c" v-model.number="rules.attention_margin_c" type="number" step="0.01" min="0" required :disabled="busy || !canWrite" :aria-invalid="Boolean(ruleErrors.attention_margin_c)" :aria-describedby="`margin-c-hint${ruleErrors.attention_margin_c ? ' margin-c-error' : ''}`" @input="clearRuleError('attention_margin_c')" />
               <p v-if="ruleErrors.attention_margin_c" id="margin-c-error" class="field-error">{{ ruleErrors.attention_margin_c }}</p>
               <p id="margin-c-hint" class="hint">Dentro da faixa, a leitura entra em Atenção quando está a até esta margem do mínimo ou do máximo. A margem deve ser menor que metade da faixa.</p>
               <p v-if="rulesSaveError" id="rules-save-error" role="alert" class="field-error">{{ rulesSaveError }}</p>
-              <button class="primary" type="submit" :disabled="busy">Salvar limites</button>
+              <button class="primary" type="submit" :disabled="busy || !canWrite">Salvar limites</button>
             </form>
           </section>
         </div>

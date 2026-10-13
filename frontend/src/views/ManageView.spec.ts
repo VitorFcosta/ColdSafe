@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { sessionToken } from '../features/account/session'
+import { sessionToken, sessionRole } from '../features/account/session'
 import {
   createDevice, createEnvironment, deactivateDevice, getRules, listDevices, listEnvironments,
   updateDevice, updateEnvironment, updateRules,
@@ -17,12 +17,28 @@ vi.mock('../features/account/catalog', () => ({
 beforeEach(() => {
   vi.clearAllMocks()
   sessionToken.value = 'token-1'
+  sessionRole.value = 'operator'
   vi.mocked(listEnvironments).mockResolvedValue([{ id: 'env-1', name: 'Câmara 1' }])
   vi.mocked(listDevices).mockResolvedValue([{ id: 'dev-1', environment_id: 'env-1', name: 'ESP32', mqtt_device_id: 'esp32-1', is_active: true }])
   vi.mocked(getRules).mockResolvedValue({ min_c: 2, max_c: 8, attention_margin_c: 0.5 })
   vi.mocked(createDevice).mockResolvedValue({ id: 'dev-2', environment_id: 'env-1', name: 'Novo sensor', mqtt_device_id: 'esp32-2', is_active: true })
   vi.mocked(updateRules).mockResolvedValue({ min_c: 3, max_c: 9, attention_margin_c: 0.5 })
   vi.mocked(deactivateDevice).mockResolvedValue({ id: 'dev-1', environment_id: 'env-1', name: 'ESP32', mqtt_device_id: 'esp32-1', is_active: false })
+})
+
+it.each(['viewer', null] as const)('mantém catálogo legível sem permitir alterações para papel %s', async (role) => {
+  sessionRole.value = role
+  const wrapper = mount(ManageView, { global: { stubs: ['RouterLink'] } })
+  await flushPromises()
+  expect(wrapper.text()).toContain(role === 'viewer' ? 'Modo visualizador' : 'Permissões ainda não confirmadas')
+  expect(wrapper.get('[data-test="open-environment-form"]').attributes('disabled')).toBeDefined()
+  expect(wrapper.get('[data-test="open-device-form"]').attributes('disabled')).toBeDefined()
+  await wrapper.get('form.fields').trigger('submit')
+  await flushPromises()
+  expect(updateRules).not.toHaveBeenCalled()
+  expect(createEnvironment).not.toHaveBeenCalled()
+  expect(wrapper.get('.item-name').attributes('disabled')).toBeUndefined()
+  wrapper.unmount()
 })
 
 it('carrega dados, cadastra dispositivo, altera limites e desativa com confirmação', async () => {

@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { listDevices, listEnvironments, type Device, type Environment } from '../features/account/catalog'
-import { clearSession, dashboardSelection, logout, saveDashboardSelection, sessionToken } from '../features/account/session'
+import { canWrite, clearSession, dashboardSelection, logout, saveDashboardSelection, sessionRole, sessionToken } from '../features/account/session'
 import AlertsComparisonPanel from '../features/monitoring/AlertsComparisonPanel.vue'
 import { fetchActuators, fetchCommand, isCommand, requestLed, type ActuatorCommand } from '../features/monitoring/actuators'
 import TemperatureHistoryChart from '../features/monitoring/TemperatureHistoryChart.vue'
@@ -234,7 +234,7 @@ async function loadActuators(deviceUuid: string) {
 async function toggleLed() {
   const token = sessionToken.value
   const deviceUuid = selectedDeviceUuid.value
-  if (!token || !deviceUuid || led.value?.status === 'pending') return
+  if (!canWrite.value || !token || !deviceUuid || led.value?.status === 'pending') return
   commandError.value = ''
   try {
     const result = await requestLed(token, deviceUuid, led.value?.confirmed_state !== true)
@@ -443,12 +443,13 @@ function formatDateTime(value: string | undefined) {
             <span v-if="commandError" class="actuator-summary-state text-status-critical" role="alert">{{ commandError }}</span>
           </summary>
           <div class="actuator-content">
+            <p v-if="!canWrite" role="status">{{ sessionRole === 'viewer' ? 'Modo visualizador: você pode consultar o estado dos atuadores.' : 'Permissões ainda não confirmadas. O controle da luz está indisponível.' }}</p>
             <button type="button" class="rounded-md border border-control-border px-4 py-3 text-sm hover:bg-surface-muted" @click="loadActuators(selectedDeviceUuid)">Atualizar estado</button>
             <div class="actuator-grid">
               <div>
                 <h3 class="font-medium">Luz manual</h3>
                 <p class="mt-2" aria-live="polite">{{ actuatorLabel(led) }}</p>
-                <button type="button" class="mt-3 rounded-md bg-accent px-4 py-3 font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-50" :disabled="actuatorPhase !== 'ready' || led?.status === 'pending'" @click="toggleLed">
+                <button type="button" class="mt-3 rounded-md bg-accent px-4 py-3 font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-50" :disabled="!canWrite || actuatorPhase !== 'ready' || led?.status === 'pending'" @click="toggleLed">
                   {{ led?.confirmed_state === true ? 'Desligar Luz' : 'Ligar Luz' }}
                 </button>
               </div>

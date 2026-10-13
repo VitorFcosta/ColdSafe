@@ -41,6 +41,12 @@ Resposta REST em `POST /api/v1/devices/{device_id}/led/commands`: envelope `{ "s
 
 ## WebSocket autenticado
 
+A B2-06 mantém os formatos dos eventos v2 e altera a autenticação: obter ticket
+por `POST /api/v1/auth/ws-ticket`, usando Bearer e corpo `{device_id}`. Conectar
+em `/api/v1/events?device_id=...` e enviar somente `{ticket}` no primeiro frame.
+Ticket dura no máximo 60 segundos, está vinculado a sessão/dispositivo e é
+consumido uma vez. Não enviar JWT na URL nem no frame WebSocket.
+
 O backend envia eventos `reading`, `alert` e `command_status` conforme `ws_event` em `evolution.schema.json`. Cada evento informa `environment_id`, `device_id`, `occurred_at` em UTC e o dado tipado. O backend envia uma leitura somente **após** validá-la e persistí-la. WebSocket serve para atualização em tempo real; ao conectar ou reconectar, o cliente usa REST autenticado para recuperar estado e histórico, pois pode ter perdido eventos. Não confiar em um ID vindo do cliente para autorizar a assinatura.
 
 ## Isolamento por usuário

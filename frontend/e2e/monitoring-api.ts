@@ -3,8 +3,24 @@ import { expect, type Page } from '@playwright/test'
 export type DashboardStatus = 'normal' | 'attention' | 'critical' | 'stale' | 'no_data'
 
 export async function mockDashboardAccount(page: Page, names: Readonly<{ environment?: string; device?: string }> = {}) {
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ json: {
+    success: true, data: { user_id: 'test-user', email: 'test@example.com', role: 'operator' },
+  } }))
+  let ticketId = 0
+  const issuedTickets = new Set<string>()
+  await page.route('**/api/v1/auth/ws-ticket', (route) => {
+    expect(route.request().headers().authorization).toMatch(/^Bearer /)
+    expect(route.request().postDataJSON()).toEqual({ device_id: expect.any(String) })
+    const ticket = `test-ticket-${++ticketId}`
+    issuedTickets.add(ticket)
+    return route.fulfill({ json: { success: true, data: { ticket, expires_at: '2099-01-01T00:00:00Z' } } })
+  })
   await page.routeWebSocket('**/api/v1/events?**', (socket) => {
-    socket.onMessage(() => {})
+    socket.onMessage((message) => {
+      const payload = JSON.parse(String(message))
+      expect(payload).toEqual({ ticket: expect.any(String) })
+      expect(issuedTickets.delete(payload.ticket)).toBe(true)
+    })
   })
   await page.addInitScript(() => {
     if (!sessionStorage.getItem('coldsafe-session')) {

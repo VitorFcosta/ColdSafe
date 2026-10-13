@@ -1,4 +1,5 @@
 import { computed, onMounted, onUnmounted, ref, watch, type Ref } from 'vue'
+import { clearSession, sessionToken } from '../account/session'
 
 import { resolveMonitoringState, STALE_AFTER_SECONDS, type SummaryState } from './monitoring-state'
 import { fetchMonitoringSummary, type MonitoringSummary } from './monitoring-summary'
@@ -105,11 +106,38 @@ export function useMonitoringSummary(
     }
   }
 
-  function connect(revision: number) {
+  async function connect(revision: number) {
     const currentToken = token.value
     const currentDevice = deviceId.value
     if (!currentToken || !currentDevice || disposed || revision !== selectionRevision) return
     connectionState.value = 'connecting'
+    let ticket: string
+    try {
+      const response = await fetch(`${apiBaseUrl.replace(/\/+$/, '')}/api/v1/auth/ws-ticket`, {
+        method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${currentToken}` },
+        body: JSON.stringify({ device_id: currentDevice }),
+      })
+      if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
+      if (response.status === 401) {
+        connectionState.value = 'unauthorized'
+        if (sessionToken.value === currentToken) clearSession()
+        token.value = null
+        return
+      }
+      if (response.status === 403) { connectionState.value = 'forbidden'; return }
+      const payload = await response.json()
+      if (!response.ok || payload?.success !== true || typeof payload.data?.ticket !== 'string' ||
+        !payload.data.ticket || !(Date.parse(payload.data.expires_at) > Date.now())) {
+        throw new Error('Ticket inválido.')
+      }
+      ticket = payload.data.ticket
+    } catch {
+      if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
+      connectionState.value = 'offline'
+      reconnectTimer = setTimeout(() => { void connect(revision) }, 2000)
+      return
+    }
+    if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
     const url = new URL(`${apiBaseUrl.replace(/\/+$/, '')}/api/v1/events`)
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
     url.searchParams.set('device_id', currentDevice)
@@ -117,8 +145,8 @@ export function useMonitoringSummary(
     socket = nextSocket
 
     nextSocket.onopen = () => {
-      if (revision !== selectionRevision) return
-      nextSocket.send(JSON.stringify({ token: currentToken }))
+      if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
+      nextSocket.send(JSON.stringify({ ticket }))
       connectionState.value = 'connected'
       void loadSummary()
     }
@@ -137,7 +165,10 @@ export function useMonitoringSummary(
       if (revision !== selectionRevision || disposed) return
       socket = null
       connectionState.value = event.code === 4401 ? 'unauthorized' : event.code === 4403 ? 'forbidden' : 'offline'
-      if (event.code !== 4401 && event.code !== 4403) reconnectTimer = setTimeout(() => connect(revision), 2000)
+      if (event.code === 4401) {
+        if (sessionToken.value === currentToken) clearSession()
+        token.value = null
+      } else if (event.code !== 4403) reconnectTimer = setTimeout(() => { void connect(revision) }, 2000)
     }
     nextSocket.onerror = () => nextSocket.close()
   }
@@ -153,7 +184,7 @@ export function useMonitoringSummary(
       connectionState.value = 'offline'
       if (token.value && deviceId.value) {
         void loadSummary()
-        connect(selectionRevision)
+        void connect(selectionRevision)
       }
     }, { immediate: true })
   })

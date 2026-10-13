@@ -4,25 +4,16 @@ Esta página separa configuração versionável de credenciais locais.
 
 ## Versões do projeto
 
-- Python: `3.13.15`, registrado em `.python-version`.
-- Node.js: `24.20.0`, registrado em `.nvmrc`.
-- Dependências Python diretas: `backend/requirements-dev.txt`.
-- Lock Python reproduzível: `backend/requirements-dev.lock.txt`.
-
-A matriz completa, incluindo dependências ainda não instaladas e imagens Docker planejadas, está em [`docs/version-matrix.md`](version-matrix.md).
+A fonte principal é a [matriz de versões](version-matrix.md), com runtimes,
+manifestos, locks e dependências previstas. Não repetir a matriz nesta página.
 
 O computador pode ter outra versão instalada, mas desenvolvimento, Docker e CI devem convergir para as versões registradas. Não use tags `latest`, intervalos abertos ou atualizações automáticas silenciosas nos manifestos finais.
 
 ## Criar a configuração local
 
-Na raiz do projeto:
-
-```bash
-cp .env.example .env
-cp firmware/include/secrets.example.h firmware/include/secrets.h
-```
-
-Depois, preencha somente os arquivos locais `.env` e `firmware/include/secrets.h`.
+O procedimento de criação está no [runbook](runbook.md#2-criar-a-configuração-local).
+Esta página explica valores e permissões. Preencha somente os arquivos locais
+`.env` e `firmware/include/secrets.h`.
 
 ## Valores que precisam ser definidos localmente
 
@@ -36,6 +27,15 @@ No `.env`:
 - `DOCKER_INFLUXDB_INIT_PASSWORD`
 - `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`
 - `POSTGRES_PASSWORD`
+- `AUTH_JWT_SECRET` (chave aleatória privada, no mínimo 32 caracteres)
+
+A chave JWT assina os novos tokens. Gere uma vez, fora do Git, e conserve o
+valor entre reinícios; não reutilize senhas dos bancos. O Compose exige esse
+campo e o backend recusa chave ausente/curta. `.env.example` contém apenas o
+campo vazio. Após a entrega B2-06, o usuário solicitou a configuração local:
+a chave JWT foi acrescentada ao `.env` privado, preservando as demais credenciais.
+Trocar a chave invalida os JWT emitidos anteriormente; revogação normal usa
+o registro de sessões no PostgreSQL, sem precisar trocar a chave.
 
 `POSTGRES_DB` e `POSTGRES_USER` têm valores locais padrão (`coldsafe`). O
 backend usa `POSTGRES_HOST=postgres` e a porta interna `5432`; no Compose,

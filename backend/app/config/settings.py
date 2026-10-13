@@ -19,6 +19,7 @@ class RuntimeSettings(BaseSettings):
     mqtt_backend_password: SecretStr = Field(min_length=1)
 
     cors_origins: str = ""
+    auth_jwt_secret: SecretStr = Field(min_length=32)
 
     influxdb_url: str = Field(min_length=1)
     influxdb_org: str = Field(min_length=1)

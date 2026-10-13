@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { clearSession, login, logout, register, sessionToken } from './session'
+import { clearSession, login, logout, register, sessionToken, sessionRole, canWrite, refreshSessionIdentity, setSession } from './session'
 import {
   createDevice, createEnvironment, deactivateDevice, getRules, listDevices, listEnvironments,
   updateDevice, updateEnvironment, updateRules,
@@ -10,18 +10,21 @@ const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
 
 const ok = (data: unknown) => ({ ok: true, status: 200, json: async () => ({ success: true, data }) })
+const identity = { user_id: 'user-1', email: 'a@b.com', role: 'operator' }
 
 describe('conta e catálogo', () => {
   beforeEach(() => { fetchMock.mockReset(); clearSession() })
 
   it('entra com token e revoga a sessão ao sair', async () => {
     fetchMock.mockResolvedValueOnce(ok({ token: 'token-1', expires_at: '2099-01-01T00:00:00Z' }))
+      .mockResolvedValueOnce(ok(identity))
       .mockResolvedValueOnce(ok({ revoked: true }))
     await login('a@b.com', 'password123')
     expect(sessionToken.value).toBe('token-1')
     await logout()
     expect(sessionToken.value).toBeNull()
-    expect(fetchMock.mock.calls[1]?.[1]?.headers.authorization).toBe('Bearer token-1')
+    expect(fetchMock.mock.calls[1]?.[0]).toContain('/auth/me')
+    expect(fetchMock.mock.calls[2]?.[1]?.headers.authorization).toBe('Bearer token-1')
   })
 
   it('mostra erro de credenciais sem criar sessão', async () => {
@@ -44,6 +47,7 @@ describe('conta e catálogo', () => {
 
   it('limpa sessão rejeitada pela API', async () => {
     fetchMock.mockResolvedValueOnce(ok({ token: 'token-1', expires_at: '2099-01-01T00:00:00Z' }))
+      .mockResolvedValueOnce(ok(identity))
       .mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({ success: false, error: { message: 'Sessão inválida.' } }) })
     await login('a@b.com', 'password123')
     await expect(listEnvironments('token-1')).rejects.toThrow('Sessão inválida.')
@@ -84,6 +88,7 @@ describe('conta e catálogo', () => {
   it('recusa sessão malformada e mantém a sessão se o logout não foi confirmado', async () => {
     fetchMock.mockResolvedValueOnce(ok({ token: '', expires_at: 'invalid' }))
       .mockResolvedValueOnce(ok({ token: 'token-1', expires_at: '2099-01-01T00:00:00Z' }))
+      .mockResolvedValueOnce(ok(identity))
       .mockRejectedValueOnce(new Error('offline'))
       .mockResolvedValueOnce({ ok: false, status: 500 })
       .mockResolvedValueOnce({ ok: false, status: 401 })
@@ -103,5 +108,47 @@ describe('conta e catálogo', () => {
     await register('a@b.com', 'password123')
     expect(fetchMock.mock.calls[0]?.[0]).toContain('/auth/register')
     await expect(register('a@b.com', 'password123')).rejects.toThrow('Conta já existe.')
+  })
+
+  it.each(['viewer', 'operator', 'admin'] as const)('usa o papel %s informado pela API, sem extrair claims locais', async (role) => {
+    fetchMock.mockResolvedValueOnce(ok({ token: 'fake-token', expires_at: '2099-01-01T00:00:00Z' }))
+      .mockResolvedValueOnce(ok({ ...identity, role }))
+    await login('a@b.com', 'password123')
+    expect(sessionRole.value).toBe(role)
+    expect(canWrite.value).toBe(role !== 'viewer')
+    clearSession()
+    expect(sessionRole.value).toBeNull()
+    expect(canWrite.value).toBe(false)
+  })
+
+  it('não permite escrita até a identidade ser resolvida, nem aceita resposta da sessão anterior', async () => {
+    let release: ((value: unknown) => void) | undefined
+    setSession('old-token', '2099-01-01T00:00:00Z')
+    fetchMock.mockImplementationOnce(() => new Promise((resolve) => { release = resolve }))
+    const loading = refreshSessionIdentity()
+    expect(canWrite.value).toBe(false)
+    setSession('new-token', '2099-01-01T00:00:00Z')
+    release?.(ok(identity))
+    await loading
+    expect(sessionRole.value).toBeNull()
+  })
+
+  it('limpa identidade revogada e recusa papel desconhecido', async () => {
+    setSession('token', '2099-01-01T00:00:00Z')
+    fetchMock.mockResolvedValueOnce(ok({ ...identity, role: 'super-admin' }))
+      .mockResolvedValueOnce({ ok: false, status: 401 })
+    await expect(refreshSessionIdentity()).rejects.toThrow('identidade inválida')
+    expect(canWrite.value).toBe(false)
+    await expect(refreshSessionIdentity()).rejects.toThrow('Sessão inválida')
+    expect(sessionToken.value).toBeNull()
+  })
+
+  it('limita só o cadastro a 72 bytes UTF-8, preservando login legado longo', async () => {
+    await expect(register('a@b.com', 'é'.repeat(37))).rejects.toThrow('72 bytes')
+    expect(fetchMock).not.toHaveBeenCalled()
+    fetchMock.mockResolvedValueOnce(ok({ token: 'token', expires_at: '2099-01-01T00:00:00Z' }))
+      .mockResolvedValueOnce(ok(identity))
+    await login('a@b.com', 'é'.repeat(37))
+    expect(JSON.parse(fetchMock.mock.calls[0]?.[1]?.body).password).toHaveLength(37)
   })
 })
