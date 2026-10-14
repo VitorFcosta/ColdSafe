@@ -1,8 +1,8 @@
 # Contrato AIoT v3 — B2-04
 
-**Estado:** contrato definido em 12/10/2026 e revalidado em 13/10/2026; produtores e consumidores v3 ainda
-não implementados. O runtime continua v1/v2. Este documento fecha as fronteiras
-do plano aprovado; não comprova funcionamento de RabbitMQ, simulador, IA ou 3D.
+**Estado:** contrato definido em 12/10/2026 e revalidado em 13/10/2026; simulador MQTT v3 implementado na B2-09; gateway e consumidores de negócio v3
+ainda não implementados. A aplicação continua v1/v2. Este documento fecha as fronteiras
+do plano aprovado; não comprova integração completa, IA ou 3D. Evidências por tarefa ficam nos cartões.
 
 Fonte estrutural: [aiot.schema.json](aiot.schema.json), JSON Schema Draft 2020-12,
 com referências locais. Regras relacionais deste documento são obrigatórias:
@@ -101,6 +101,17 @@ payload; só o gateway publica comandos no fluxo v3.
 | `coldsafe/v3/devices/{device_id}/commands` | Gateway após autorização da API | Equipamento/simulador |
 | `coldsafe/v3/devices/{device_id}/acks` | Equipamento/simulador | Gateway |
 
+Simulador B2-09: implementação e cadastro local de comissionamento em
+[`simulator/README.md`](../simulator/README.md). A ACL provisiona `sim-lab-01`
+com credencial própria para telemetria/ACK e leitura de comandos implementados
+na B2-10; gateway e consumidores continuam nas tarefas posteriores. Iniciar/parar **a simulação** e injetar falha usam o tópico
+operacional separado `coldsafe/simulator/devices/sim-lab-01/control`, fora do
+envelope v3: somente a credencial confiável `coldsafe-simulator-operator` publica.
+Formato fechado e prazo de 30 s estão no README do simulador. Não é comando
+manual do ventilador, não entra em AMQP e não substitui autorização da API.
+O cadastro local valida IDs/funções; vínculo PostgreSQL/proprietário ainda deverá
+ser conferido pelo gateway, nunca inferido de IDs recebidos.
+
 RabbitMQ: exchange topic durável `coldsafe.events`, mensagens persistentes,
 confirmação de publicação, ACK manual após efeito durável/idempotente.
 
@@ -118,8 +129,12 @@ Usar UUID na routing key evita que o ponto permitido em `device_id` vire um
 segmento RabbitMQ. O consumidor valida routing key e catálogo, além do schema.
 Gravação persiste leituras no InfluxDB; metadados, comandos, alertas, auditoria,
 jobs e registro de modelos ficam no PostgreSQL; datasets ficam separados.
-Nomes físicos, bindings, credenciais e código das filas serão implementados na
-tarefa de infraestrutura, sem criar uma segunda fonte para o formato de evento.
+Nomes físicos, bindings e credenciais foram implementados na B2-07;
+[infra RabbitMQ](../infra/rabbitmq/README.md) descreve a topologia executável.
+Produtores/consumidores de negócio v3 continuam planejados. Para separar geração
+de treino sem alterar a routing key, o publicador de `job_requested` copia
+`data.job_type` para o header AMQP `job_type`; o consumidor exige igualdade.
+Esse header é metadado de transporte, fora do envelope JSON.
 
 O backend verifica sessão revogável e propriedade antes de consulta, comando,
 assinatura e cada envio. O navegador não acessa MQTT, AMQP ou bancos.
@@ -202,6 +217,17 @@ Para justificar `confirmed`, o ACK precisa ser recebido entre o aceite do comand
 e `deadline_at`, inclusive; o status não pode ser emitido antes desse recebimento.
 Processar um ACK recebido no prazo depois do deadline não autoriza reverter um
 timeout já persistido; essa transição dependerá do estado durável no runtime.
+
+A B2-10 implementa a borda no [simulador](../simulator/README.md): LED/manual
+altera luminosidade, buzzer/automatic altera estado, comandos explícitos validam
+cadastro local/prazo/identidades e geram ACK por MQTT. Só `coldsafe-gateway`
+publica comandos; `sim-lab-01` publica ACK. A credencial MQTT do gateway é
+separada da AMQP e não significa que o serviço B2-11 já existe.
+Duplicata idêntica no prazo reutiliza o ACK sem reaplicar; expirado recebe
+rejeição. JSON/IDs/escopo sem identidade segura não geram ACK inventado.
+Cache e estados são em memória, limitados a 256 comandos por processo; restart
+reinicia ambos. Persistência de status/timeout/deduplicação, autorização HTTP e
+validação de propriedade continuam nos futuros gateway/API/consumidores.
 
 ## Jobs e ativação de modelos
 

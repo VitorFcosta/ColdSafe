@@ -1,0 +1,209 @@
+{
+  "task": "B2-10",
+  "date": "2026-10-14",
+  "timezone": "America/Sao_Paulo",
+  "status": "Concluída",
+  "scope": "LED/manual, buzzer/automatic e ACK MQTT no simulador; sem gateway de negócio/autorização HTTP/status durável.",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "9a837c2b0255c35c93dd222a2d82f9b4fe23d551",
+    "commit_created": false,
+    "push_performed": false,
+    "initial": {
+      "head": "9a837c2b0255c35c93dd222a2d82f9b4fe23d551",
+      "status": " M .dockerignore\n M .env.example\n M .gitignore\n M README.md\n M backend/requirements-dev.lock.txt\n M backend/requirements-dev.txt\n M backend/tests/infra/test_compose_contract.py\n M compose.yaml\n M contracts/aiot.md\n M docs/aiot/README.md\n M docs/aiot/tasks/B2-07.md\n M docs/aiot/tasks/B2-08.md\n M docs/aiot/tasks/B2-09.md\n M docs/aiot/tasks/README.md\n M docs/configuration.md\n M docs/runbook.md\n M docs/version-matrix.md\n M frontend/Dockerfile\n M frontend/README.md\n M frontend/src/features/monitoring/use-monitoring-summary.ts\n M frontend/src/views/FoundationView.vue\n M infra/README.md\n M infra/mosquitto/config/acl\n?? backend/tests/infra/test_broker_images.py\n?? backend/tests/infra/test_generate_secrets.py\n?? backend/tests/infra/test_proxy_contract.py\n?? backend/tests/infra/test_proxy_integration.py\n?? backend/tests/infra/test_rabbitmq_bootstrap.py\n?? backend/tests/infra/test_rabbitmq_integration.py\n?? backend/tests/infra/test_simulator.py\n?? backend/tests/infra/test_simulator_integration.py\n?? compose.debug.yaml\n?? docs/evidence/b2-07.json\n?? docs/evidence/b2-08-bootstrap-fix.json\n?? docs/evidence/b2-08.json\n?? docs/evidence/b2-09.json\n?? frontend/nginx.conf\n?? frontend/src/features/monitoring/use-monitoring-summary-proxy.spec.ts\n?? infra/mosquitto/.dockerignore\n?? infra/mosquitto/Dockerfile\n?? infra/rabbitmq/\n?? scripts/\n?? simulator/\n",
+      "files": {
+        "simulator/model.py": "9d3e5974a5e33873142aff9fb2869b227618d9b28df8c0275a4abdab11512363",
+        "simulator/runtime.py": "d0d0ec4a63ffd8c8e34008f23dd2c331a7dea1a16868801c57f2e4039a34296a",
+        "simulator/README.md": "fd44a00b2b2a4e212aedac02f0d4c0b2bb6be77a50ae564686b96a607af731e0",
+        "compose.yaml": "b1248654dca5583890c1cc5e89df6c9491a914152e93ec52ea8b24b8df52a98c",
+        ".env.example": "1f3316102e7048fad750d9470a2e258834639a6a98a5df0f19e79036e90baae4",
+        "scripts/generate-secrets.py": "bd7a6b2d5203edae1b15981f4b7b0eeba164a032c4ac03e1c654854b06bfffe6",
+        "infra/mosquitto/config/acl": "f43eef4c898b08921e0fbb6bbaf462524b09c2286679f85568aa47b161ddbe3b",
+        "backend/tests/infra/test_generate_secrets.py": "d2bd55ed84ca1608b630b10f1c90032d68e9b0a6c58aa9050a9ad524ecfdffc3",
+        "backend/tests/infra/test_simulator.py": "b9a040f7766f0db4854a9814f1448e7f3eeb77b2d386955b3f85cfef7d243558",
+        "backend/tests/infra/test_simulator_integration.py": "23952435ef49cea81f6435d67fec4072ded41d90bee5c0e0f6ab5d981b46d30d",
+        "contracts/aiot.md": "d8deb1c2d0d81af1592888ab70908761373d2eaf76b461eac979290a2a4cac31",
+        "docs/configuration.md": "7d29753437e3e83713bfce75ca4580e2440c5162663f218ed9027890410ab706",
+        "docs/aiot/README.md": "d7fcf1279cb719b9ca22ba2e1fa797cefda66b6960e3a815a2d7531ba413b837",
+        "docs/aiot/tasks/README.md": "c036a23b0ed6e5a00159871696cce15a78cfc15cc831f43cb04671971545b0d8",
+        "docs/aiot/tasks/B2-10.md": "c101aac5a9d5174ca832971ea3fbc41c0fa9d9c05f60d779a4adc590dc555638"
+      }
+    },
+    "initial_changes_still_present": true
+  },
+  "files": {
+    "created": [
+      "backend/tests/infra/test_simulator_actuators.py",
+      "docs/evidence/b2-10.json"
+    ],
+    "modified": [
+      "simulator/runtime.py",
+      "simulator/control.py",
+      "simulator/README.md",
+      "infra/mosquitto/config/acl",
+      "compose.yaml",
+      ".env.example",
+      "scripts/generate-secrets.py",
+      "backend/tests/infra/test_generate_secrets.py",
+      "backend/tests/infra/test_simulator.py",
+      "backend/tests/infra/test_simulator_integration.py",
+      "contracts/aiot.md",
+      "docs/configuration.md",
+      "docs/aiot/tasks/B2-10.md",
+      "docs/aiot/tasks/README.md",
+      "docs/aiot/README.md"
+    ],
+    "sha256": {
+      "backend/tests/infra/test_simulator_actuators.py": "8e8d6dd30ea0d3b2e50d04dce2ba8513acc19c99fecb7570bd1c79c290183ad8",
+      "simulator/runtime.py": "11faab026351444b3a2b4926e70251b45506252826d08b5403eaafef73d1a8ca",
+      "simulator/control.py": "f627a8cc1ef5cb1e057cd5c2f440c2c62f6db875a0b99d4146f212a96443df62",
+      "simulator/README.md": "45ada79f7b6b4d4189b16256db36fe7b3c2e7554ab07bb461f6ae284df46c980",
+      "infra/mosquitto/config/acl": "bc40c079653b3367a0d70ebc95a66a43a8345099e61e3d95861f20f19e7d1637",
+      "compose.yaml": "df64fde7fb3ec3790ba6a3769232f2562db06aa75cfc09619c668da2cb6a254d",
+      ".env.example": "59f654d3e403f9a551e0f017fea411fffc547d0c43dc98418db9c579338f20fb",
+      "scripts/generate-secrets.py": "a841ade2084efaef39be2a4b6eb37f865b86543d0bbe28c4eedba87e92e20a9b",
+      "backend/tests/infra/test_generate_secrets.py": "2340561a2b6ee7a9dc558e00c788e05d8ad604d599481e2264113d3a58697cd6",
+      "backend/tests/infra/test_simulator.py": "2a9e616353489acb468a5482c00c67c3614fda4681d4e7cba441b904c3226392",
+      "backend/tests/infra/test_simulator_integration.py": "ed375c73dc627be6fc2b0c8993cf63fe3a6d872768cf89fa5563c327a65304e5",
+      "contracts/aiot.md": "29b3541fd520e4cb2a68796c60bd88fbc6ed36b80d9caf47585b6e10a60a4412",
+      "docs/configuration.md": "221167cf2580466838ce023dccb56321857b0b5e7b1572f901f4363a7fefacc3",
+      "docs/aiot/tasks/B2-10.md": "993b6a9696c5cf77fa47dd27aac5669ff68d4d2e4218a7937b358ff78074788c",
+      "docs/aiot/tasks/README.md": "3e23d15106cfeb68eb25d219f709432047b3f3e2b587830daac49be9d463ba81",
+      "docs/aiot/README.md": "6a4f29cc46a2f81880a3ea9d7208ec655cc7586e2d39b14e8c8954e90434403d"
+    },
+    "unchanged_model_and_requirements": true
+  },
+  "dependencies_added": [],
+  "new_identity": {
+    "username": "coldsafe-gateway",
+    "password_key": "MQTT_GATEWAY_PASSWORD",
+    "scope": "write command/read ACK/telemetry for sim-lab-01 only; no AMQP credential reuse"
+  },
+  "environment": {
+    "python": "3.13.15",
+    "pytest": "9.1.1",
+    "venv": "/tmp/coldsafe-b204-venv",
+    "runtime_image": "python:3.13.15-slim",
+    "mqtt_image": "eclipse-mosquitto:2.0.22",
+    "production_env_accessed": false
+  },
+  "tests": [
+    {
+      "kind": "RED_new_actuator_unit",
+      "passed": 0,
+      "failed": 30,
+      "seconds": 0.27,
+      "cause": "apply_command/command_topic not implemented"
+    },
+    {
+      "kind": "first_GREEN_unit_static",
+      "passed": 120,
+      "seconds": 1.22,
+      "new_actuator_cases": 30,
+      "new_acl_cases": 1,
+      "prior_reexecuted": 89
+    },
+    {
+      "kind": "regression_before_temporal_adjustment",
+      "passed": 198,
+      "seconds": 2.04
+    },
+    {
+      "kind": "regression_final",
+      "command": "/tmp/coldsafe-b204-venv/bin/python -m pytest backend/tests/contract backend/tests/infra/test_simulator.py backend/tests/infra/test_simulator_actuators.py backend/tests/infra/test_compose_contract.py backend/tests/infra/test_generate_secrets.py backend/tests/infra/test_broker_images.py backend/tests/infra/test_proxy_contract.py backend/tests/infra/test_rabbitmq_bootstrap.py -q --no-cov -o addopts='' --tb=short",
+      "passed": 198,
+      "seconds": 2.55,
+      "new_cases": 31,
+      "existing_reexecuted": 167
+    },
+    {
+      "kind": "real_integration_first",
+      "passed": 25,
+      "failed": 2,
+      "seconds": 68.27,
+      "failed_tests": [
+        "real_operator_pause_resume_failure_and_retained_rejection",
+        "real_broker_restart_reconnects_and_resubscribes"
+      ]
+    },
+    {
+      "kind": "real_integration_second",
+      "passed": 26,
+      "failed": 1,
+      "seconds": 29.16,
+      "failed_tests": [
+        "real_operator_pause_resume_failure_and_retained_rejection"
+      ]
+    },
+    {
+      "kind": "real_integration_diagnostic",
+      "passed": 25,
+      "failed": 2,
+      "seconds": 43.14,
+      "sanitized_log": "Simulation control is future-dated or expired"
+    },
+    {
+      "kind": "control_isolated_diagnostics",
+      "runs": [
+        {
+          "passed": 1,
+          "deselected": 26,
+          "seconds": 19.15
+        },
+        {
+          "passed": 1,
+          "deselected": 26,
+          "seconds": 19.61
+        }
+      ]
+    },
+    {
+      "kind": "real_integration_final",
+      "command": "COLDSAFE_SIMULATOR_INTEGRATION=1 /tmp/coldsafe-b204-venv/bin/python -m pytest backend/tests/infra/test_simulator_integration.py -q -s --no-cov -o addopts='' --tb=short",
+      "passed": 27,
+      "failed": 0,
+      "seconds": 51.46,
+      "previous_B209_reexecuted": 15,
+      "new_B210_cases": 12,
+      "scope": [
+        "real LED state/light",
+        "real buzzer state",
+        "command/actuator/scope correlation in v3 ACK",
+        "duplicate ACK preserved/no reapply after newer off",
+        "invalid actuator and expired rejection",
+        "malformed UUID/retained/wrong scope no invented ACK",
+        "stopped simulator gets broker PUBACK without device ACK; late retry rejected",
+        "gateway/device/operator/legacy publish ACL denials",
+        "all prior B209 MQTT recovery/control/ACL tests"
+      ],
+      "fixture": "isolated generated credentials, demonstration local catalog, random loopback port and dedicated Compose volumes"
+    }
+  ],
+  "failure_resolution": {
+    "observed": "Operational controls were intermittently rejected by time-window validation; fixed-delay assertions also assumed callback completion after PUBACK.",
+    "probable_cause": "Sub-second host/VM clock difference; magnitude not conclusively measured.",
+    "change": "Operational emitter uses whole-second UTC precision; strict receiver validation unchanged. Integration uses bounded wait for silence and latest off ACK timestamp.",
+    "historical_reference": "https://github.com/docker/for-mac/issues/4347",
+    "reference_limit": "Historical issue supports possibility, not diagnosis of this exact Docker version/host."
+  },
+  "checks": {
+    "normal_compose_config_quiet": 0,
+    "simulator_profile_config_quiet": 0,
+    "git_diff_check": 0,
+    "new_modified_python_ast_and_whitespace": "passed",
+    "test_containers_volumes_after_cleanup": [],
+    "personal_containers": "Six original product services Up 9 hours and healthy; not restarted by task",
+    "review": "self-review with Ponytail and ECC security-review; no independent review claimed"
+  },
+  "limits": [
+    "In-memory cache retains at most 256 applied commands per process; refuses overflow with ACTUATOR_FAILURE.",
+    "Actuator state/cache reset on process restart; no durable exactly-once claim.",
+    "Outgoing MQTT queue shared, max 16; actuation without delivered ACK is not confirmation.",
+    "No HTTP authorization, trusted PostgreSQL catalog or MQTT/AMQP business gateway implemented.",
+    "No durable command_status/timeout; future consumer must validate received_at and refuse late success after terminal timeout.",
+    "UTC synchronization still required; second precision does not solve large clock drift.",
+    "No physical actuators/sound, full backend/frontend/E2E/load/dependency audit performed."
+  ],
+  "checkpoint": "B2-10 concluída na borda; changes preserved, no commit/push/dependencies. B2-11 only after user chooses."
+}

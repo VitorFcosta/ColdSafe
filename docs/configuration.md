@@ -15,6 +15,13 @@ O procedimento de criação está no [runbook](runbook.md#2-criar-a-configuraç�
 Esta página explica valores e permissões. Preencha somente os arquivos locais
 `.env` e `firmware/include/secrets.h`.
 
+Use `python3 scripts/generate-secrets.py` para criar/completar o `.env` com
+segredos aleatórios distintos, sem imprimir valores ou sobrescrever credenciais
+existentes. O arquivo fica com `0600`; o script versionado não contém segredos.
+`INFLUXDB_TOKEN` continua dependendo da autorização restrita criada pelo banco.
+O build Docker do frontend usa a mesma origem; `VITE_API_BASE_URL` é apenas uma
+opção do Vite local. Alterar uma variável no container não recompila o JavaScript.
+
 ## Valores que precisam ser definidos localmente
 
 No `.env`:
@@ -28,6 +35,14 @@ No `.env`:
 - `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`
 - `POSTGRES_PASSWORD`
 - `AUTH_JWT_SECRET` (chave aleatória privada, no mínimo 32 caracteres)
+
+A B2-07 exige também as dez senhas `RABBITMQ_*_PASSWORD` listadas em
+`.env.example`, aleatórias, distintas e com pelo menos 32 caracteres.
+São identidades próprias por serviço, sem `guest` ou administrador de aplicação.
+O bootstrap gera hashes num volume privado; não escreva senhas/definições
+geradas no Git. Consulte [infra RabbitMQ](../infra/rabbitmq/README.md) para
+permissões e inicialização. A entrega não alterou o `.env` pessoal; os testes
+criam credenciais exclusivamente temporárias.
 
 A chave JWT assina os novos tokens. Gere uma vez, fora do Git, e conserve o
 valor entre reinícios; não reutilize senhas dos bancos. O Compose exige esse
@@ -54,6 +69,26 @@ testes em conjunto.
 
 O SSID `Wokwi-GUEST`, o host `host.wokwi.internal` e os identificadores
 `esp32-lab-01`/`esp32-lab-02` são configurações demonstrativas, não credenciais.
+
+## Simulador opcional B2-09/10
+
+O perfil `simulator` usa `MQTT_SIMULATOR_PASSWORD` e
+`MQTT_SIMULATOR_OPERATOR_PASSWORD`, geradas pelo mesmo script idempotente.
+Campos vazios não criam essas contas no broker e não impedem a pilha v1/v2.
+Para habilitar o simulador, forneça a senha do dispositivo e um `catalog.json`
+válido em `SIMULATOR_CATALOG_DIR` (padrão `simulator/local`, fora do Git/build).
+O arquivo é cadastro local de borda; use IDs reais de ambiente/dispositivo do
+PostgreSQL quando integrar ao produto. Equipamento/sensores/atuadores ainda
+são registrados localmente, sem API/tabelas. A futura validação do gateway não
+pode confiar na propriedade apenas por esses IDs.
+A B2-10 usa também `MQTT_GATEWAY_PASSWORD` para a conta `coldsafe-gateway`,
+com publicação apenas dos comandos v3 do simulador e leitura de seus ACKs e
+telemetria. O gerador cria a senha quando ausente, sem rotacionar valores.
+É uma credencial distinta de `RABBITMQ_GATEWAY_PASSWORD`; o serviço de tradução
+MQTT/AMQP pertence à B2-11. Campos vazios não provisionam a nova conta.
+Preparação, permissões, ritmo de simulação e comandos do operador estão em
+[`simulator/README.md`](../simulator/README.md). Nenhum segredo pessoal foi
+alterado na execução B2-09; integração usa credenciais descartáveis.
 
 ## Permissões do token InfluxDB
 

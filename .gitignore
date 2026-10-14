@@ -21,3 +21,6 @@ frontend/dist/
 frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
+
+# Private commissioned simulator catalog
+simulator/local/

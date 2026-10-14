@@ -1,0 +1,181 @@
+{
+  "task": "B2-09",
+  "date": "2026-10-14",
+  "timezone": "America/Sao_Paulo",
+  "status": "Concluída",
+  "scope": "Simulador de borda, catálogo local de comissionamento e controles por credencial MQTT operacional; sem ingestão Web v3 nem prova de catálogo/propriedade PostgreSQL.",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "9a837c2b0255c35c93dd222a2d82f9b4fe23d551",
+    "commit_created": false,
+    "push_performed": false,
+    "initial": {
+      "head": "9a837c2b0255c35c93dd222a2d82f9b4fe23d551",
+      "status": " M .env.example\n M README.md\n M backend/requirements-dev.lock.txt\n M backend/requirements-dev.txt\n M backend/tests/infra/test_compose_contract.py\n M compose.yaml\n M contracts/aiot.md\n M docs/aiot/README.md\n M docs/aiot/tasks/B2-07.md\n M docs/aiot/tasks/B2-08.md\n M docs/aiot/tasks/README.md\n M docs/configuration.md\n M docs/runbook.md\n M docs/version-matrix.md\n M frontend/Dockerfile\n M frontend/README.md\n M frontend/src/features/monitoring/use-monitoring-summary.ts\n M frontend/src/views/FoundationView.vue\n M infra/README.md\n?? backend/tests/infra/test_broker_images.py\n?? backend/tests/infra/test_generate_secrets.py\n?? backend/tests/infra/test_proxy_contract.py\n?? backend/tests/infra/test_proxy_integration.py\n?? backend/tests/infra/test_rabbitmq_bootstrap.py\n?? backend/tests/infra/test_rabbitmq_integration.py\n?? compose.debug.yaml\n?? docs/evidence/b2-07.json\n?? docs/evidence/b2-08-bootstrap-fix.json\n?? docs/evidence/b2-08.json\n?? frontend/nginx.conf\n?? frontend/src/features/monitoring/use-monitoring-summary-proxy.spec.ts\n?? infra/mosquitto/.dockerignore\n?? infra/mosquitto/Dockerfile\n?? infra/rabbitmq/\n?? scripts/\n",
+      "files": {
+        "compose.yaml": "440607d342f8c8fb911a9dc7be6230892ec6c04d183b6cc7bcf97e9b6a73c188",
+        ".env.example": "5706b81357dab086202a8794484ca456a0f295fea2719efc17f16706d63d1109",
+        "scripts/generate-secrets.py": "c3add2ee2405c3371d791b554355a7fef15cdeb5c2f3e493f19e0c77e709af7c",
+        "backend/tests/infra/test_compose_contract.py": "90879f88bd900070d631886546628a5d5a43c9981a2f9f196c33c7cdcb2a532f",
+        "backend/tests/infra/test_generate_secrets.py": "2f892e4b9b5121ab7ecc6195eb10d0e4c7a65f130b76412d463fcf441e9558bb",
+        "infra/mosquitto/config/acl": "c732488910c3157c635525b0f0bc4238b510e2dda39dff19168b022d986b4117",
+        "contracts/aiot.md": "d25d85a7307dd2a99055c8d0766ba070feb29fc19c19e7f5adc2a39880b0e2f3",
+        "docs/aiot/README.md": "3c959be8939367c58ada0a8e5ac69f51b1f9395012cce104676ee8414ebda923",
+        "docs/aiot/tasks/README.md": "c8993c103b3ddba0528ad3288ad1cb1e7d56069507129eb3a06686a9a4232e53",
+        "docs/aiot/tasks/B2-09.md": "80ba052349be82989be7e1d6113f8d2ed0c50ea6a9db3e89373eb50093400824",
+        "docs/configuration.md": "02a6260d9780aa0d4ffb72fcd03cfd9dd165a885516bd9be950745fd8770d035",
+        "docs/version-matrix.md": "f1ddcc9439dc2c29f6ec1ed3d7f8fc664716e77f855d3dcd19770dcb1788641a",
+        "infra/README.md": "e5442b374246e097aa29f13cd6caea46708cb4fc2e329612f9e3b387eea08b70"
+      }
+    }
+  },
+  "files": {
+    "created": [
+      "simulator/model.py",
+      "simulator/runtime.py",
+      "simulator/control.py",
+      "simulator/catalog.example.json",
+      "simulator/requirements.txt",
+      "simulator/Dockerfile",
+      "simulator/README.md",
+      "backend/tests/infra/test_simulator.py",
+      "backend/tests/infra/test_simulator_integration.py",
+      "docs/evidence/b2-09.json"
+    ],
+    "modified_this_session": [
+      "compose.yaml",
+      "infra/mosquitto/config/acl",
+      ".env.example",
+      "scripts/generate-secrets.py",
+      ".gitignore",
+      ".dockerignore",
+      "backend/tests/infra/test_compose_contract.py",
+      "backend/tests/infra/test_generate_secrets.py",
+      "contracts/aiot.md",
+      "docs/configuration.md",
+      "docs/version-matrix.md",
+      "infra/README.md",
+      "docs/aiot/tasks/B2-09.md",
+      "docs/aiot/tasks/README.md",
+      "docs/aiot/README.md"
+    ],
+    "sha256": {
+      "simulator/model.py": "9d3e5974a5e33873142aff9fb2869b227618d9b28df8c0275a4abdab11512363",
+      "simulator/runtime.py": "d0d0ec4a63ffd8c8e34008f23dd2c331a7dea1a16868801c57f2e4039a34296a",
+      "simulator/control.py": "64e4d53b47ffc7c574f9f11fc64f6db0caf9b35c9806541d641d928efb8e6623",
+      "simulator/catalog.example.json": "370f95c56bce3981140fe141360be91cd62f91d4ae7e8600c85cb248603571f5",
+      "simulator/requirements.txt": "cd610993670e204396d4f8f7c78fee2956c21cb6154266f468d64dffd4defedd",
+      "simulator/Dockerfile": "69f6861f4c60252b8559085166a16340f2de46408706f90ddeac40bb8da428a5",
+      "simulator/README.md": "fd44a00b2b2a4e212aedac02f0d4c0b2bb6be77a50ae564686b96a607af731e0",
+      "backend/tests/infra/test_simulator.py": "b9a040f7766f0db4854a9814f1448e7f3eeb77b2d386955b3f85cfef7d243558",
+      "backend/tests/infra/test_simulator_integration.py": "23952435ef49cea81f6435d67fec4072ded41d90bee5c0e0f6ab5d981b46d30d",
+      "compose.yaml": "b1248654dca5583890c1cc5e89df6c9491a914152e93ec52ea8b24b8df52a98c",
+      "infra/mosquitto/config/acl": "f43eef4c898b08921e0fbb6bbaf462524b09c2286679f85568aa47b161ddbe3b",
+      ".env.example": "1f3316102e7048fad750d9470a2e258834639a6a98a5df0f19e79036e90baae4",
+      "scripts/generate-secrets.py": "bd7a6b2d5203edae1b15981f4b7b0eeba164a032c4ac03e1c654854b06bfffe6",
+      ".gitignore": "c31d586c0bd53371fd227625c0f2146413e614d40617f79e4a26436d4615f6c8",
+      ".dockerignore": "483091f8da91a472699be004885726f6e74574105a3ab5334d0fd6538644c5f8",
+      "backend/tests/infra/test_compose_contract.py": "b0e4e66d6c03304e01ff9ce3062af11f64fad2077063264321782528a13ca37a",
+      "backend/tests/infra/test_generate_secrets.py": "d2bd55ed84ca1608b630b10f1c90032d68e9b0a6c58aa9050a9ad524ecfdffc3",
+      "contracts/aiot.md": "d8deb1c2d0d81af1592888ab70908761373d2eaf76b461eac979290a2a4cac31",
+      "docs/configuration.md": "7d29753437e3e83713bfce75ca4580e2440c5162663f218ed9027890410ab706",
+      "docs/version-matrix.md": "2efd397b806af0d5bdbb7c352961cfef293fa66cc7934053172cc49f50bc29fa",
+      "infra/README.md": "26e8ed7941259fa4b22f1b814c11d6e62c044a56ed717fd7a0627f98ccab82b1",
+      "docs/aiot/tasks/B2-09.md": "5598c3a0c45fe0800785f331d9f24e921ee89b69fb87c9e8498f181a66eb594e",
+      "docs/aiot/tasks/README.md": "c036a23b0ed6e5a00159871696cce15a78cfc15cc831f43cb04671971545b0d8",
+      "docs/aiot/README.md": "d7fcf1279cb719b9ca22ba2e1fa797cefda66b6960e3a815a2d7531ba413b837"
+    }
+  },
+  "dependencies": {
+    "new_libraries_in_project": [],
+    "new_simulator_runtime_dependencies": {
+      "paho-mqtt": "2.1.0",
+      "jsonschema": "4.26.0"
+    },
+    "transitive_reused": {
+      "attrs": "26.1.0",
+      "jsonschema-specifications": "2025.9.1",
+      "referencing": "0.37.0",
+      "rpds-py": "2026.6.3"
+    },
+    "base_image": "python:3.13.15-slim"
+  },
+  "environment": {
+    "python": "3.13.15",
+    "pytest": "9.1.1",
+    "test_python": "/tmp/coldsafe-b204-venv/bin/python",
+    "existing_virtualenv_reused": true
+  },
+  "tests": [
+    {
+      "kind": "unit_static_first",
+      "command": "/tmp/coldsafe-b204-venv/bin/python -m pytest backend/tests/infra/test_simulator.py backend/tests/infra/test_compose_contract.py backend/tests/infra/test_generate_secrets.py -q --no-cov -o addopts='' --tb=short",
+      "passed": 89,
+      "new_simulator_cases": 45,
+      "existing_reexecuted": 44,
+      "seconds": 4.4
+    },
+    {
+      "kind": "regression_final",
+      "command": "/tmp/coldsafe-b204-venv/bin/python -m pytest backend/tests/contract backend/tests/infra/test_simulator.py backend/tests/infra/test_compose_contract.py backend/tests/infra/test_generate_secrets.py backend/tests/infra/test_broker_images.py backend/tests/infra/test_proxy_contract.py backend/tests/infra/test_rabbitmq_bootstrap.py -q --no-cov -o addopts='' --tb=short",
+      "passed": 167,
+      "new_simulator_cases": 45,
+      "existing_reexecuted": 122,
+      "seconds": 2.09
+    },
+    {
+      "kind": "real_mqtt_first",
+      "passed": 11,
+      "seconds": 29.99
+    },
+    {
+      "kind": "real_mqtt_final",
+      "command": "COLDSAFE_SIMULATOR_INTEGRATION=1 /tmp/coldsafe-b204-venv/bin/python -m pytest backend/tests/infra/test_simulator_integration.py -q --no-cov -o addopts='' --tb=short",
+      "passed": 15,
+      "seconds": 28.32,
+      "real_services": [
+        "mosquitto-init",
+        "mosquitto",
+        "simulator"
+      ],
+      "fixtures": "IDs fictícios registrados no catálogo local; credenciais geradas em diretório temporário; perfil derivado do Compose com volumes próprios e porta loopback aleatória.",
+      "checks": [
+        "schema v3/6 sensores/IDs/unidades/sem labels",
+        "QoS 1/no retain/received_at null/correlation",
+        "desgaste rolamento e desbalanceamento alteram motor/ambiente",
+        "controle stop/start/fault e rejeição de RETAIN live",
+        "ACL denies publish: legado, próprio dispositivo/controle, dispositivo alheio, operador/telemetria, operador/atuador",
+        "ACL filters private reads for backend and both legacy devices",
+        "anonymous/wrong password denied",
+        "broker restart and simulator resubscription/control",
+        "operator CLI in actual container",
+        "non-root/read-only/64MiB/no OOM at snapshot"
+      ]
+    }
+  ],
+  "other_checks": {
+    "compose_normal_config_quiet": 0,
+    "compose_simulator_profile_config_quiet": 0,
+    "normal_services_exclude_simulator": true,
+    "git_diff_check": 0,
+    "new_and_modified_whitespace_and_python_ast": "passed",
+    "residual_test_containers_or_volumes": [],
+    "personal_containers": "six original services remained Up 8 hours (healthy), no restart/mutation performed",
+    "independent_review": "not performed; scoped self-review with ECC security-review"
+  },
+  "limits": [
+    "Single live identity sim-lab-01; other devices require own credentials/ACL.",
+    "Local commissioning catalog only; not authoritative PostgreSQL ownership verification.",
+    "No API control authorization or business v3 gateway/consumers/dashboard yet.",
+    "Demonstrative model without physical calibration or RUL claims.",
+    "In-memory wear/control state resets on process restart; bounded MQTT queue of one permits pending duplicate.",
+    "Stop/disconnect pause generation; no lossless buffering.",
+    "Actuator LED/buzzer and ACK deferred to B2-10.",
+    "No full backend/frontend/E2E/hardware/long-duration capacity tests or dependency vulnerability scan in this session."
+  ],
+  "sources_verified": [
+    "https://eclipse.dev/paho/files/paho.mqtt.python/html/client.html",
+    "https://mosquitto.org/man/mosquitto-conf-5.html"
+  ],
+  "checkpoint": "B2-09 concluída no escopo; fontes/testes/evidência locais, alterações anteriores preservadas. B2-10 somente após escolha do usuário."
+}

@@ -15,3 +15,18 @@ topic read coldsafe/v2/devices/+/telemetry
 topic write coldsafe/v2/devices/+/commands
 topic read coldsafe/v2/devices/+/acks
 topic read $SYS/#
+
+user sim-lab-01
+topic read coldsafe/v3/devices/sim-lab-01/commands
+topic write coldsafe/v3/devices/sim-lab-01/acks
+topic write coldsafe/v3/devices/sim-lab-01/telemetry
+topic read coldsafe/simulator/devices/sim-lab-01/control
+
+user coldsafe-simulator-operator
+topic write coldsafe/simulator/devices/sim-lab-01/control
+topic read coldsafe/v3/devices/sim-lab-01/telemetry
+
+user coldsafe-gateway
+topic write coldsafe/v3/devices/sim-lab-01/commands
+topic read coldsafe/v3/devices/sim-lab-01/acks
+topic read coldsafe/v3/devices/sim-lab-01/telemetry

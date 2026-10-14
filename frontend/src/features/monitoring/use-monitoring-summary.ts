@@ -138,7 +138,7 @@ export function useMonitoringSummary(
       return
     }
     if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
-    const url = new URL(`${apiBaseUrl.replace(/\/+$/, '')}/api/v1/events`)
+    const url = new URL(`${apiBaseUrl.replace(/\/+$/, '')}/api/v1/events`, window.location.origin)
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
     url.searchParams.set('device_id', currentDevice)
     const nextSocket = new WebSocket(url)

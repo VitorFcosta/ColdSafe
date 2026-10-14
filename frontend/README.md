@@ -17,6 +17,14 @@ operacionais: atualidade explícita, estados com texto e falhas parciais.
 
 ## Como executar
 
+No Compose normal, a B2-08 serve o build estático com Nginx sem root na porta
+`5173`; REST, `/docs`, `/openapi.json` e WebSocket passam pelo mesmo endereço.
+Não há Vite, npm ou fontes montados no container final. O build usa base REST
+relativa e resolve WebSocket pela origem da página. `compose.debug.yaml` habilita
+portas locais de diagnóstico e um link RabbitMQ no dashboard; `/docs` tem link
+permanente. Preparação e segredos estão no [runbook](../docs/runbook.md).
+As instruções a seguir são para o desenvolvimento local com Vite.
+
 - Referência de runtime: Node.js `24.20.0`.
 - Instalar dependências fixadas: `npm ci`.
 - Iniciar o ambiente local: `npm run dev`.

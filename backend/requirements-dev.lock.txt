@@ -73,6 +73,8 @@ paho-mqtt==2.1.0
     # via -r backend/requirements.txt
 pathable==0.6.0
     # via jsonschema-path
+pika==1.4.4
+    # via -r backend/requirements-dev.txt
 pluggy==1.6.0
     # via
     #   pytest
@@ -153,4 +155,6 @@ typing-inspection==0.4.4
 urllib3==2.7.0
     # via influxdb-client
 uvicorn==0.52.4
+    # via -r backend/requirements.txt
+websockets==17.1
     # via -r backend/requirements.txt

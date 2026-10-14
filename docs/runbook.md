@@ -11,7 +11,7 @@ repositório.
 
 - Git para obter o repositório.
 - Docker Desktop no macOS ou Docker Engine no Linux, com Docker Compose v2.
-- Portas `1883`, `8000` e `5173` livres no host.
+- Porta `5173` livre no host. API, MQTT e bancos ficam internos por padrão.
 - Para simular o dispositivo: VS Code, PlatformIO IDE, Wokwi Simulator e uma
   licença Wokwi válida. Esse passo é opcional para verificar apenas a aplicação.
 
@@ -29,27 +29,22 @@ versões fixadas das imagens e dos runtimes estão em
 
 ## 2. Criar a configuração local
 
-Copie os exemplos versionados:
+Gere somente os segredos ausentes, preservando configuração já existente:
 
 ```bash
-cp .env.example .env
-cp firmware/include/secrets.example.h firmware/include/secrets.h
+python3 scripts/generate-secrets.py
+test -e firmware/include/secrets.h || cp firmware/include/secrets.example.h firmware/include/secrets.h
 ```
 
-Edite o `.env` e defina valores locais, fortes e diferentes para:
-
-- `MQTT_BACKEND_PASSWORD`;
-- `MQTT_DEVICE_PASSWORD`;
-- `MQTT_DEVICE_02_PASSWORD` (diferente da senha do primeiro dispositivo);
-- `DOCKER_INFLUXDB_INIT_USERNAME`;
-- `DOCKER_INFLUXDB_INIT_PASSWORD`;
-- `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`;
-- `POSTGRES_PASSWORD`.
-
-Use um gerenciador de senhas ou outro gerador seguro. Não coloque os valores
-no histórico do terminal, não altere `.env.example` e não envie o `.env` para o
-Git. As credenciais de inicialização do InfluxDB são administrativas e devem
-ser exclusivas deste ambiente local.
+O script cria `.env` a partir do exemplo quando necessário e preenche campos
+vazios/ausentes: JWT, PostgreSQL, MQTT, administração inicial do InfluxDB e as
+dez identidades RabbitMQ. Gera valores distintos com 32 bytes aleatórios e
+grava atomicamente com permissão `0600`, sem imprimir segredos. Valores existentes
+não são rotacionados; uma segunda execução conserva o conteúdo. O usuário inicial
+do InfluxDB recebe `coldsafe-admin` somente se estiver vazio/ausente.
+Revise configurações não secretas antes da primeira subida. O script exige
+arquivo UTF-8 com uma atribuição por linha, recusa duplicatas/links simbólicos e
+deve ser executado uma instância de cada vez. `.env` continua ignorado pelo Git.
 
 Deixe `INFLUXDB_TOKEN` vazio por enquanto. O Compose exige um valor mesmo
 quando somente o InfluxDB é iniciado, então a próxima seção usa um marcador
@@ -65,6 +60,9 @@ as configurações locais existentes. Mais detalhes estão em
 ## 3. Inicializar o InfluxDB e criar o token do backend
 
 Antes de subir a aplicação completa, inicie **somente** o InfluxDB:
+
+Se `INFLUXDB_TOKEN` já contém a autorização restrita válida do volume existente,
+vá à seção 4; não crie nem substitua tokens sem necessidade.
 
 ```bash
 INFLUXDB_TOKEN=bootstrap-not-used docker compose config --quiet
@@ -127,9 +125,9 @@ docker compose ps -a
 
 O resultado esperado é:
 
-- `mosquitto`, `influxdb`, `postgres`, `backend` e `frontend` em execução e `healthy`;
-- `mosquitto-init` encerrado com código `0` (`Exited (0)`). Ele é uma tarefa de
-  inicialização, não um sexto serviço persistente.
+- `mosquitto`, `influxdb`, `postgres`, `rabbitmq`, `backend` e `frontend` em execução e `healthy`;
+- `mosquitto-init` e `rabbitmq-init` encerrados com código `0` (`Exited (0)`).
+  São tarefas de inicialização, não serviços persistentes.
 
 Na primeira inicialização, o backend aplica as migrações relacionais. O volume
 `postgres-data` preserva cadastros e configurações entre reinícios; não o apague
@@ -144,8 +142,8 @@ O `mosquitto-init` gera automaticamente o arquivo de senhas no volume
 Teste liveness, readiness e frontend:
 
 ```bash
-curl -fsS http://127.0.0.1:8000/health/live
-curl -fsS http://127.0.0.1:8000/health/ready
+curl -fsS http://127.0.0.1:5173/health/live
+curl -fsS http://127.0.0.1:5173/health/ready
 curl -fsS -o /dev/null http://127.0.0.1:5173/dashboard
 ```
 
@@ -156,6 +154,23 @@ local e entre. No dashboard, crie dois ambientes e associe
 cadastrado exige sessão Bearer do proprietário: uma consulta anônima ou de
 outra conta deve ser recusada. Antes de chegar telemetria, o resumo autenticado
 pode representar ausência de leitura sem que a API esteja indisponível.
+
+REST, WebSocket, `/docs`, `/redoc` e `/openapi.json` usam a mesma porta do
+frontend. O container serve o build Vue por Nginx sem root; não executa Vite
+nem monta os fontes. A documentação HTTP tem link no dashboard.
+
+Para Wokwi ou diagnóstico opcional, habilite explicitamente o override:
+
+```bash
+docker compose -f compose.yaml -f compose.debug.yaml up -d --build --wait
+```
+
+Ele publica API `127.0.0.1:8000`, MQTT `127.0.0.1:1883` e management RabbitMQ
+`127.0.0.1:15672`, além do frontend. O build de diagnóstico inclui link para o
+RabbitMQ no dashboard. Isso não concede privilégios de management às identidades
+de transporte; a autorização operacional do painel pertence à B2-15.
+No Wokwi, MQTT usa `host.wokwi.internal`. Ao voltar ao modo normal, recrie com
+`docker compose up -d --build --force-recreate --wait`, sem apagar volumes.
 
 Para validar o fluxo completo, compile os dois alvos e abra as duas simulações
 seguindo [`firmware/README.md`](../firmware/README.md). Cada ESP32 usa sua
@@ -222,6 +237,12 @@ docker inspect "$(docker compose ps -q backend)" \
 
 Erros comuns:
 
+- `Resource deadlock would occur` ou `edeadlk` ao ler configuração dos brokers:
+  a versão anterior montava arquivos do host durante a execução. As imagens
+  atuais incluem configuração e ACL no build. Execute
+  `docker compose up -d --build --wait --wait-timeout 180` para aplicar a correção,
+  preservando os volumes e o `.env`. Reconstrua também após editar arquivos em
+  `infra/mosquitto` ou `infra/rabbitmq`. Não apague volumes para corrigir esse erro.
 - `mosquitto-init` falha: confirme que as três senhas MQTT estão preenchidas no
   `.env`; depois recrie o inicializador e o broker com
   `docker compose up -d --force-recreate mosquitto-init mosquitto`.
@@ -235,24 +256,20 @@ Erros comuns:
   estado já persistido. O mesmo vale para as credenciais do PostgreSQL.
   Não apague volumes com histórico sem decidir e fazer o
   backup necessário.
-- frontend abre, mas não acessa a API: verifique se readiness retorna `200`, se
-  `http://localhost:8000` corresponde a `VITE_API_BASE_URL` e se
-  `http://localhost:5173` está permitido em `CORS_ORIGINS`.
+- frontend abre, mas não acessa a API: verifique `/health/ready` pela porta
+  `5173` e os logs de `frontend`/`backend`. O build Docker usa URLs relativas;
+  variáveis Vite no ambiente do container não alteram uma build já pronta.
 
 ### Dependências do frontend desatualizadas
 
-Se os logs do frontend mostrarem módulos ausentes depois de uma alteração em
-`package.json` ou `package-lock.json`, atualize somente o volume de dependências
-do frontend e recrie esse serviço:
+Depois de alterar fontes, `package.json` ou lock, reconstrua a imagem estática:
 
 ```bash
-docker compose stop frontend
-docker compose run --rm --no-deps frontend npm ci
-docker compose up -d --no-deps --force-recreate --wait frontend
+docker compose up -d --build --no-deps --force-recreate --wait frontend
 ```
 
-Essa sequência não apaga nem recria os volumes de dados do InfluxDB, do
-PostgreSQL ou do Mosquitto. Ela foi validada com o frontend saudável e acessível na porta `5173`.
+O runtime frontend não tem npm ou volume de dependências. Reconstruir sua imagem
+preserva os volumes dos bancos e brokers. A porta do frontend continua `5173`.
 
 ## 7. Encerrar sem apagar dados
 

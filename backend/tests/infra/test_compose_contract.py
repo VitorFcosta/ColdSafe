@@ -28,8 +28,11 @@ def test_compose_contains_the_relational_database():
     compose = load_compose()
 
     assert set(compose["services"]) == {
+        "rabbitmq-init",
+        "rabbitmq",
         "mosquitto-init",
         "mosquitto",
+        "simulator",
         "influxdb",
         "postgres",
         "backend",
@@ -40,8 +43,8 @@ def test_compose_contains_the_relational_database():
 def test_runtime_images_are_pinned_and_have_healthchecks():
     services = load_compose()["services"]
 
-    assert services["mosquitto-init"]["image"] == "eclipse-mosquitto:2.0.22"
-    assert services["mosquitto"]["image"] == "eclipse-mosquitto:2.0.22"
+    assert services["mosquitto-init"]["image"] == "coldsafe-mosquitto:2.0.22"
+    assert services["mosquitto"]["image"] == "coldsafe-mosquitto:2.0.22"
     assert services["influxdb"]["image"] == "influxdb:2.7.12-alpine"
     assert services["postgres"]["image"] == "postgres:17.11-alpine3.24"
     assert all(
@@ -85,8 +88,8 @@ def test_mosquitto_security_files_are_private_and_owned_by_the_runtime_user():
         in initializer_command
     )
     assert (
-        "./infra/mosquitto/config/acl:/bootstrap/acl:ro"
-        in initializer["volumes"]
+        "COPY config/acl /bootstrap/acl"
+        in (REPOSITORY_ROOT / "infra/mosquitto/Dockerfile").read_text()
     )
     assert mosquitto["user"] == "1883:1883"
     assert "./infra/mosquitto/config/acl:/mosquitto/config/acl:ro" not in mosquitto[
@@ -114,9 +117,9 @@ def test_mqtt_backend_role_name_is_not_overridable_without_changing_the_acl():
 def test_published_runtime_ports_are_loopback_only():
     services = load_compose()["services"]
 
-    assert services["mosquitto"]["ports"] == ["127.0.0.1:1883:1883"]
-    assert services["backend"]["ports"] == ["127.0.0.1:8000:8000"]
-    assert services["frontend"]["ports"] == ["127.0.0.1:5173:5173"]
+    assert "ports" not in services["mosquitto"]
+    assert "ports" not in services["backend"]
+    assert services["frontend"]["ports"] == ["127.0.0.1:5173:8080"]
     assert "ports" not in services["influxdb"]
 
 
@@ -144,20 +147,18 @@ def test_services_share_an_internal_network():
     )
 
 
-def test_only_mosquitto_uses_the_edge_network_needed_for_host_access():
+def test_only_frontend_uses_the_edge_network_needed_for_host_access():
     compose = load_compose()
 
     assert "coldsafe-edge" in compose["networks"]
-    assert compose["services"]["mosquitto"]["networks"] == [
+    assert compose["services"]["frontend"]["networks"] == [
         "coldsafe-internal",
         "coldsafe-edge",
     ]
     assert compose["services"]["influxdb"]["networks"] == ["coldsafe-internal"]
     assert compose["services"]["postgres"]["networks"] == ["coldsafe-internal"]
-    assert compose["services"]["backend"]["networks"] == [
-        "coldsafe-internal",
-        "coldsafe-edge",
-    ]
+    assert compose["services"]["backend"]["networks"] == ["coldsafe-internal"]
+    assert compose["services"]["mosquitto"]["networks"] == ["coldsafe-internal"]
 
 
 def test_backend_waits_for_healthy_dependencies_and_uses_hardened_image():
@@ -183,18 +184,15 @@ def test_backend_requires_a_private_jwt_signing_key():
     assert load_compose()["services"]["backend"]["environment"]["AUTH_JWT_SECRET"].startswith("${AUTH_JWT_SECRET:?")
 
 
-def test_frontend_uses_a_pinned_development_image_with_isolated_dependencies():
+def test_frontend_uses_a_pinned_static_image_with_isolated_dependencies():
     frontend = load_compose()["services"]["frontend"]
 
     assert frontend["build"] == {"context": "./frontend", "dockerfile": "Dockerfile"}
     assert frontend["depends_on"] == {
         "backend": {"condition": "service_healthy"},
     }
-    assert frontend["volumes"] == [
-        "./frontend:/app",
-        "frontend-node-modules:/app/node_modules",
-    ]
-    assert frontend["networks"] == ["coldsafe-frontend"]
+    assert "volumes" not in frontend
+    assert frontend["networks"] == ["coldsafe-internal", "coldsafe-edge"]
     assert frontend["security_opt"] == ["no-new-privileges:true"]
     assert "healthcheck" in frontend
 
@@ -207,9 +205,9 @@ def test_frontend_network_allows_loopback_port_publication():
     compose = load_compose()
     frontend = compose["services"]["frontend"]
 
-    assert frontend["ports"] == ["127.0.0.1:5173:5173"]
-    assert frontend["networks"] == ["coldsafe-frontend"]
-    assert compose["networks"]["coldsafe-frontend"].get("internal", False) is False
+    assert frontend["ports"] == ["127.0.0.1:5173:8080"]
+    assert frontend["networks"] == ["coldsafe-internal", "coldsafe-edge"]
+    assert (compose["networks"]["coldsafe-edge"] or {}).get("internal", False) is False
 
 
 def test_docker_build_context_excludes_local_secrets_and_environments():
@@ -237,19 +235,20 @@ def test_postgres_uses_a_private_persistent_volume():
     assert postgres["environment"]["POSTGRES_PASSWORD"].startswith("${POSTGRES_PASSWORD:?")
 
 
-def test_mosquitto_mounts_versioned_security_configuration_read_only():
+def test_mosquitto_uses_static_configuration_and_private_read_only_credentials():
     services = load_compose()["services"]
-    initializer_volumes = services["mosquitto-init"]["volumes"]
     mosquitto_volumes = services["mosquitto"]["volumes"]
 
     assert (
-        "./infra/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"
-        in mosquitto_volumes
+        "COPY config/mosquitto.conf /mosquitto/config/mosquitto.conf"
+        in (REPOSITORY_ROOT / "infra/mosquitto/Dockerfile").read_text()
     )
     assert (
-        "./infra/mosquitto/config/acl:/bootstrap/acl:ro" in initializer_volumes
+        "COPY config/acl /bootstrap/acl"
+        in (REPOSITORY_ROOT / "infra/mosquitto/Dockerfile").read_text()
     )
     assert "mosquitto-auth:/mosquitto/auth:ro" in mosquitto_volumes
+    assert services["mosquitto"]["read_only"] is True
 
 
 def test_mosquitto_rejects_anonymous_clients_and_uses_passwords_and_acl():

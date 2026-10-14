@@ -1,14 +1,81 @@
 name: coldsafe
 
 services:
+  rabbitmq-init:
+    image: coldsafe-rabbitmq-init:3.13.15
+    build:
+      context: ./infra/rabbitmq
+      dockerfile: Bootstrap.Dockerfile
+    restart: "no"
+    network_mode: none
+    environment:
+      RABBITMQ_GATEWAY_PASSWORD: "${RABBITMQ_GATEWAY_PASSWORD:?Preencha RABBITMQ_GATEWAY_PASSWORD}"
+      RABBITMQ_WRITER_PASSWORD: "${RABBITMQ_WRITER_PASSWORD:?Preencha RABBITMQ_WRITER_PASSWORD}"
+      RABBITMQ_INFERENCE_PASSWORD: "${RABBITMQ_INFERENCE_PASSWORD:?Preencha RABBITMQ_INFERENCE_PASSWORD}"
+      RABBITMQ_DELIVERY_PASSWORD: "${RABBITMQ_DELIVERY_PASSWORD:?Preencha RABBITMQ_DELIVERY_PASSWORD}"
+      RABBITMQ_COMMANDS_PASSWORD: "${RABBITMQ_COMMANDS_PASSWORD:?Preencha RABBITMQ_COMMANDS_PASSWORD}"
+      RABBITMQ_GENERATION_PASSWORD: "${RABBITMQ_GENERATION_PASSWORD:?Preencha RABBITMQ_GENERATION_PASSWORD}"
+      RABBITMQ_TRAINING_PASSWORD: "${RABBITMQ_TRAINING_PASSWORD:?Preencha RABBITMQ_TRAINING_PASSWORD}"
+      RABBITMQ_OBSERVABILITY_PASSWORD: "${RABBITMQ_OBSERVABILITY_PASSWORD:?Preencha RABBITMQ_OBSERVABILITY_PASSWORD}"
+      RABBITMQ_API_PASSWORD: "${RABBITMQ_API_PASSWORD:?Preencha RABBITMQ_API_PASSWORD}"
+      RABBITMQ_AUDIT_PASSWORD: "${RABBITMQ_AUDIT_PASSWORD:?Preencha RABBITMQ_AUDIT_PASSWORD}"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        chown 0:0 /output
+        python /bootstrap/bootstrap.py /output/definitions.json
+        chown -R 100:101 /output
+        chmod 0750 /output
+    volumes:
+      - "rabbitmq-definitions:/output"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+    mem_limit: 64m
+
+  rabbitmq:
+    image: coldsafe-rabbitmq:4.3.6-management-alpine
+    build:
+      context: ./infra/rabbitmq
+    hostname: rabbitmq
+    restart: unless-stopped
+    depends_on:
+      rabbitmq-init:
+        condition: service_completed_successfully
+    volumes:
+      - "rabbitmq-definitions:/etc/rabbitmq/bootstrap:ro"
+      - "rabbitmq-data:/var/lib/rabbitmq"
+    networks:
+      - coldsafe-internal
+    mem_limit: 512m
+    cpus: 1
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"]
+      interval: 10s
+      timeout: 8s
+      retries: 10
+      start_period: 20s
+
   mosquitto-init:
-    image: eclipse-mosquitto:2.0.22
+    image: coldsafe-mosquitto:2.0.22
+    build:
+      context: ./infra/mosquitto
     restart: "no"
     network_mode: none
     environment:
       MQTT_BACKEND_PASSWORD: "${MQTT_BACKEND_PASSWORD:?Preencha MQTT_BACKEND_PASSWORD no arquivo .env}"
       MQTT_DEVICE_PASSWORD: "${MQTT_DEVICE_PASSWORD:?Preencha MQTT_DEVICE_PASSWORD no arquivo .env}"
       MQTT_DEVICE_02_PASSWORD: "${MQTT_DEVICE_02_PASSWORD:?Preencha MQTT_DEVICE_02_PASSWORD no arquivo .env}"
+      MQTT_GATEWAY_PASSWORD: "${MQTT_GATEWAY_PASSWORD:-}"
+      MQTT_SIMULATOR_PASSWORD: "${MQTT_SIMULATOR_PASSWORD:-}"
+      MQTT_SIMULATOR_OPERATOR_PASSWORD: "${MQTT_SIMULATOR_OPERATOR_PASSWORD:-}"
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
@@ -17,12 +84,20 @@ services:
         mosquitto_passwd -b -c /tmp/passwords coldsafe-backend "$${MQTT_BACKEND_PASSWORD}"
         mosquitto_passwd -b /tmp/passwords coldsafe-device "$${MQTT_DEVICE_PASSWORD}"
         mosquitto_passwd -b /tmp/passwords coldsafe-device-02 "$${MQTT_DEVICE_02_PASSWORD}"
+        if [ -n "$${MQTT_GATEWAY_PASSWORD}" ]; then
+          mosquitto_passwd -b /tmp/passwords coldsafe-gateway "$${MQTT_GATEWAY_PASSWORD}"
+        fi
+        if [ -n "$${MQTT_SIMULATOR_PASSWORD}" ]; then
+          mosquitto_passwd -b /tmp/passwords sim-lab-01 "$${MQTT_SIMULATOR_PASSWORD}"
+        fi
+        if [ -n "$${MQTT_SIMULATOR_OPERATOR_PASSWORD}" ]; then
+          mosquitto_passwd -b /tmp/passwords coldsafe-simulator-operator "$${MQTT_SIMULATOR_OPERATOR_PASSWORD}"
+        fi
         install -m 0600 /tmp/passwords /mosquitto/auth/passwords
         install -m 0600 /bootstrap/acl /mosquitto/auth/acl
         chown 1883:1883 /mosquitto/auth/passwords /mosquitto/auth/acl
     volumes:
       - "mosquitto-auth:/mosquitto/auth"
-      - "./infra/mosquitto/config/acl:/bootstrap/acl:ro"
     read_only: true
     tmpfs:
       - "/tmp:rw,noexec,nosuid,size=1m"
@@ -34,24 +109,23 @@ services:
       - CHOWN
 
   mosquitto:
-    image: eclipse-mosquitto:2.0.22
+    image: coldsafe-mosquitto:2.0.22
+    build:
+      context: ./infra/mosquitto
     user: "1883:1883"
+    read_only: true
     restart: unless-stopped
     depends_on:
       mosquitto-init:
         condition: service_completed_successfully
-    ports:
-      - "127.0.0.1:1883:1883"
     environment:
       MQTT_BACKEND_USERNAME: coldsafe-backend
       MQTT_BACKEND_PASSWORD: "${MQTT_BACKEND_PASSWORD:?Preencha MQTT_BACKEND_PASSWORD no arquivo .env}"
     volumes:
-      - "./infra/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"
       - "mosquitto-auth:/mosquitto/auth:ro"
       - "mosquitto-data:/mosquitto/data"
     networks:
       - coldsafe-internal
-      - coldsafe-edge
     security_opt:
       - no-new-privileges:true
     healthcheck:
@@ -65,6 +139,40 @@ services:
       timeout: 6s
       retries: 5
       start_period: 5s
+
+  simulator:
+    build:
+      context: .
+      dockerfile: simulator/Dockerfile
+    profiles: ["simulator"]
+    restart: unless-stopped
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_SIMULATOR_PASSWORD: "${MQTT_SIMULATOR_PASSWORD:-}"
+      SIMULATOR_INTERVAL_SECONDS: "${SIMULATOR_INTERVAL_SECONDS:-1}"
+      SIMULATOR_STEP_SECONDS: "${SIMULATOR_STEP_SECONDS:-1}"
+    volumes:
+      - type: bind
+        source: "${SIMULATOR_CATALOG_DIR:-./simulator/local}"
+        target: /catalog
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      - coldsafe-internal
+    user: "65532:65532"
+    read_only: true
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 64m
+    cpus: 0.25
 
   influxdb:
     image: influxdb:2.7.12-alpine
@@ -122,8 +230,6 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    ports:
-      - "127.0.0.1:8000:8000"
     environment:
       MQTT_HOST: mosquitto
       MQTT_PORT: 1883
@@ -145,7 +251,6 @@ services:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Preencha POSTGRES_PASSWORD no arquivo .env}"
     networks:
       - coldsafe-internal
-      - coldsafe-edge
     read_only: true
     tmpfs:
       - "/tmp:rw,noexec,nosuid,size=16m"
@@ -175,22 +280,21 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "127.0.0.1:5173:5173"
-    environment:
-      VITE_API_BASE_URL: http://localhost:8000
-      VITE_POLL_INTERVAL_MS: "5000"
-    volumes:
-      - "./frontend:/app"
-      - "frontend-node-modules:/app/node_modules"
+      - "127.0.0.1:5173:8080"
     networks:
-      - coldsafe-frontend
+      - coldsafe-internal
+      - coldsafe-edge
+    user: "101:101"
+    read_only: true
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=16m,uid=101,gid=101"
     init: true
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -T 2 -O /dev/null http://127.0.0.1:5173/ || exit 1"]
+      test: ["CMD-SHELL", "wget -q -T 2 -O /dev/null http://127.0.0.1:8080/ || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -204,6 +308,8 @@ networks:
     internal: false
 
 volumes:
+  rabbitmq-definitions:
+  rabbitmq-data:
   mosquitto-auth:
   mosquitto-data:
   influxdb-data:

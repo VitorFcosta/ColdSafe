@@ -1,0 +1,197 @@
+{
+  "task": "B2-08",
+  "status": "Concluída",
+  "started_local_date": "2026-10-13",
+  "completed_local_date": "2026-10-14",
+  "timezone": "America/Sao_Paulo",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "9a837c2b0255c35c93dd222a2d82f9b4fe23d551",
+    "commit": false,
+    "push": false,
+    "staged": false,
+    "preserved_existing_delta": "B2-07",
+    "diff_check": "exit 0"
+  },
+  "created": [
+    "frontend/nginx.conf",
+    "compose.debug.yaml",
+    "scripts/generate-secrets.py",
+    "backend/tests/infra/test_generate_secrets.py",
+    "backend/tests/infra/test_proxy_contract.py",
+    "backend/tests/infra/test_proxy_integration.py",
+    "frontend/src/features/monitoring/use-monitoring-summary-proxy.spec.ts",
+    "docs/evidence/b2-08.json"
+  ],
+  "changed": [
+    "README.md",
+    "frontend/Dockerfile",
+    "compose.yaml",
+    ".env.example",
+    "frontend/src/features/monitoring/use-monitoring-summary.ts",
+    "frontend/src/views/FoundationView.vue",
+    "backend/tests/infra/test_compose_contract.py",
+    "docs/runbook.md",
+    "docs/configuration.md",
+    "docs/version-matrix.md",
+    "infra/README.md",
+    "frontend/README.md",
+    "docs/aiot/tasks/B2-08.md",
+    "docs/aiot/tasks/README.md",
+    "docs/aiot/README.md"
+  ],
+  "dependencies": {
+    "new_python_or_npm": [],
+    "new_runtime_image": "nginxinc/nginx-unprivileged:1.31-alpine3.24@sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434",
+    "nginx_runtime_version": "1.31.6",
+    "docker_build_node": "24.20.0",
+    "host_test_node": "24.19.0",
+    "python": "3.13.15",
+    "pytest": "9.1.1"
+  },
+  "verification": {
+    "proxy_red": 4,
+    "regression": {
+      "passed": 119,
+      "new_b208": 26,
+      "existing_reexecuted": 93,
+      "seconds": 40.6
+    },
+    "secrets": {
+      "passed": 22,
+      "coverage_percent": 89.26,
+      "scope": "scripts/generate-secrets.py with branches"
+    },
+    "frontend": {
+      "passed": 106,
+      "new_proxy_test": 1
+    },
+    "playwright": {
+      "passed": 31,
+      "uses_mock_api": true,
+      "real_proxy": false
+    },
+    "integration": {
+      "passed": 2,
+      "seconds": 62.25,
+      "real_services": [
+        "frontend-nginx",
+        "backend-fastapi",
+        "mosquitto",
+        "postgres",
+        "influxdb",
+        "rabbitmq"
+      ],
+      "mock_boundaries": false,
+      "rest_docs_health_spa": true,
+      "mqtt_v2_to_authenticated_ws": true,
+      "restart_preserves_account_device_reading": true,
+      "existing_jwt_survives_restart": true,
+      "new_login_works_after_restart": true,
+      "env_file_and_runtime_jwt_key_unchanged": true,
+      "app_user_ids_nonzero": true,
+      "only_frontend_port_published": true,
+      "influx_application_token": "created by InfluxDB, limited to read/write telemetry bucket"
+    },
+    "compose_config": {
+      "normal": 0,
+      "debug": 0,
+      "private_env_used": false
+    },
+    "snapshot": {
+      "matched": 78,
+      "different": [],
+      "missing": []
+    },
+    "whitespace_files_checked": 22,
+    "logs": {
+      "integration": "..                                                                       [100%]\n2 passed in 62.25s (0:01:02)\n",
+      "regression": "........................................................................ [ 60%]\n...............................................                          [100%]\n119 passed in 40.60s\n",
+      "frontend": "\n RUN  v4.1.11 /private/tmp/coldsafe-b208-frontend\n\n\n Test Files  17 passed (17)\n      Tests  106 passed (106)\n   Start at  21:12:06\n   Duration  2.52s (transform 2.80s, setup 0ms, import 6.54s, tests 1.78s, environment 4.95s)\n\n",
+      "e2e": "[WebServer] (node:51877) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)\n\nRunning 31 tests using 1 worker\n\n(node:51889) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ✓   1 [chromium] › e2e/dashboard-selection.spec.ts:5:1 › preserva seleção válida e período; revalida após gestão, recarga e troca de conta (3.2s)\n  ✓   2 [chromium] › e2e/dashboard.spec.ts:46:5 › dashboard operacional › exibe o fluxo normal (1.0s)\n  ✓   3 [chromium] › e2e/dashboard.spec.ts:46:5 › dashboard operacional › exibe o fluxo atenção (354ms)\n  ✓   4 [chromium] › e2e/dashboard.spec.ts:46:5 › dashboard operacional › exibe o fluxo crítico (302ms)\n  ✓   5 [chromium] › e2e/dashboard.spec.ts:46:5 › dashboard operacional › exibe o fluxo leitura desatualizada (323ms)\n  ✓   6 [chromium] › e2e/dashboard.spec.ts:76:3 › dashboard operacional › abre a tabela de leituras pelo teclado sem criar rolagem horizontal no celular (414ms)\n  ✓   7 [chromium] › e2e/dashboard.spec.ts:94:3 › dashboard operacional › exibe o fluxo sem dados sem inventar medições (375ms)\n  ✓   8 [chromium] › e2e/dashboard.spec.ts:116:3 › dashboard operacional › exibe o fluxo de erro e permite tentar novamente (457ms)\n  ✓   9 [chromium] › e2e/dashboard.spec.ts:148:3 › mostra temperatura, estado e atualidade juntos na primeira tela móvel: normal (419ms)\n  ✓  10 [chromium] › e2e/dashboard.spec.ts:148:3 › mostra temperatura, estado e atualidade juntos na primeira tela móvel: stale (385ms)\n  ✓  11 [chromium] › e2e/dashboard.spec.ts:178:1 › mantém nomes longos e temperatura extrema legíveis em 320 px (345ms)\n  ✓  12 [chromium] › e2e/dashboard.spec.ts:202:1 › mostra carregamento até receber uma leitura válida (308ms)\n  ✓  13 [chromium] › e2e/dashboard.spec.ts:221:1 › recupera o catálogo sem clique quando a API volta (2.5s)\n  ✓  14 [chromium] › e2e/dashboard.spec.ts:241:1 › troca de dispositivo e só mostra LED ligado após confirmação (2.0s)\n  ✓  15 [chromium] › e2e/dashboard.spec.ts:288:1 › abre os atuadores por teclado sem enviar comandos (514ms)\n  ✓  16 [chromium] › e2e/dashboard.spec.ts:314:1 › troca o período do histórico sem perder a leitura atual (560ms)\n  ✓  17 [chromium] › e2e/dashboard.spec.ts:334:1 › preserva leitura válida quando apenas o histórico falha (286ms)\n  ✓  18 [chromium] › e2e/dashboard.spec.ts:351:1 › visualizador consulta diagnóstico e atuadores sem emitir comandos (357ms)\n  ✓  19 [chromium] › e2e/landing.spec.ts:5:1 › apresenta o projeto sem depender da API ou iniciar o monitoramento (596ms)\n  ✓  20 [chromium] › e2e/landing.spec.ts:26:1 › abre a demonstração por teclado e oferece vídeo simulado com controles nativos (452ms)\n  ✓  21 [chromium] › e2e/landing.spec.ts:56:1 › menu móvel abre por teclado e mantém acesso à demonstração, código e painel (295ms)\n  ✓  22 [chromium] › e2e/landing.spec.ts:79:3 › mantém apresentação e dashboard legíveis sem rolagem horizontal em 320px (596ms)\n  ✓  23 [chromium] › e2e/landing.spec.ts:79:3 › mantém apresentação e dashboard legíveis sem rolagem horizontal em 375px (466ms)\n  ✓  24 [chromium] › e2e/landing.spec.ts:79:3 › mantém apresentação e dashboard legíveis sem rolagem horizontal em 768px (594ms)\n  ✓  25 [chromium] › e2e/landing.spec.ts:79:3 › mantém apresentação e dashboard legíveis sem rolagem horizontal em 1440px (518ms)\n  ✓  26 [chromium] › e2e/landing.spec.ts:100:1 › redução de movimento deixa seções imediatamente visíveis e mantém foco perceptível (292ms)\n  ✓  27 [chromium] › e2e/landing.spec.ts:115:1 › ampliação de 200% preserva conteúdo e controles nas duas rotas (489ms)\n  ✓  28 [chromium] › e2e/landing.spec.ts:131:1 › texto ampliado não cria rolagem horizontal nas quatro rotas (621ms)\n  ✓  29 [chromium] › e2e/manage.spec.ts:5:1 › gestão mostra listas primeiro e mantém contexto e foco no celular e desktop (643ms)\n  ✓  30 [chromium] › e2e/manage.spec.ts:81:1 › limites mostram erros no campo, preservam rascunho e salvam apenas no ambiente selecionado (563ms)\n  ✓  31 [chromium] › e2e/navigation.spec.ts:3:1 › orienta o foco na navegação e preserva acesso e histórico (864ms)\n\n  31 passed (24.1s)\n",
+      "coverage": "......................                                                   [100%]\n================================ tests coverage ================================\n______________ coverage: platform darwin, python 3.13.15-final-0 _______________\n\nName                          Stmts   Miss Branch BrPart  Cover   Missing\n-------------------------------------------------------------------------\nscripts/generate-secrets.py     109     14     40      2    89%   115, 124-135, 139\n-------------------------------------------------------------------------\nTOTAL                           109     14     40      2    89%\nRequired test coverage of 80% reached. Total coverage: 89.26%\n22 passed in 0.37s\n"
+    }
+  },
+  "review": {
+    "local_review_completed": true,
+    "independent_review": "attempted; reviewer hit account usage limit; no independent approval or test result claimed"
+  },
+  "failures_resolved": [
+    "Frontend build EACCES mkdir /app/dist: chown /app before USER node",
+    "Fixture v1 persisted but did not emit reading WS; changed fixture to v2 plus luminosity and matching topic, runtime unchanged",
+    "pytest global autouse fixture shadowed env-file JWT key across tests; Compose subprocess environment now excludes template keys",
+    "Old infra tests expected Vite, API/MQTT published, different networks; updated contract assertions"
+  ],
+  "cleanup": {
+    "remaining_test_containers": [],
+    "remaining_test_volumes": [],
+    "original_containers": [
+      "coldsafe-postgres-1 Exited (0) 2 weeks ago",
+      "coldsafe-influxdb-1 Exited (2) 2 weeks ago",
+      "coldsafe-backend-1 Exited (0) 2 weeks ago",
+      "coldsafe-frontend-1 Exited (143) 2 weeks ago",
+      "coldsafe-mosquitto-1 Exited (0) 2 weeks ago",
+      "coldsafe-mosquitto-init-1 Exited (0) 2 weeks ago"
+    ],
+    "personal_volumes_mounted": false,
+    "personal_env_read_or_changed": false,
+    "images_kept_as_cache": true
+  },
+  "baseline": {
+    "compose.yaml": "d29bae15dad68d4bb1c420f8a9e76336d5f56c4f6b08f2deb862ca07fcf3f66a",
+    ".env.example": "605677dc00f199ec27bfe37acd3a09e61ce7eb4f02318a23f8f981dc2a5dcfd2",
+    "backend/tests/infra/test_compose_contract.py": "b49e2978590f43a5cf6cbaf27ac0a015eb7bc7ddd6fa6d524deaa4ba4f825440",
+    "frontend/Dockerfile": "e56b3c9f7a40f2d926257289338b1afcfad1ca094f58d5b84168b9d80766eeb4",
+    "frontend/src/features/monitoring/use-monitoring-summary.ts": "e43fb2c8f20f566b532cb8b96f274e83825d26f1041704347810f5071804e752",
+    "frontend/src/features/monitoring/use-monitoring-summary.spec.ts": "ddb5bf1276e1305d354fc79c148ac5661b9216d87157e0540fe4c7c627f1fbf9",
+    "frontend/vite.config.ts": "1513aca6cefb9c71b562a081e228b7e15f96c2ca06cf666a440b3eeb5af683e3",
+    "frontend/src/views/FoundationView.vue": "21903ab444ad25a99866975486d30bc10a8d8dbe02ae0f22b5cd937e1fc785f8",
+    "docs/aiot/README.md": "322af81cbd1685cf8052140da0000717a3b3d1a0e065fc15393c316326aefcbe",
+    "docs/aiot/tasks/README.md": "2faa7ac29337f857f89d71ffc95546d217e48d0e73705c99f1ff040a43049947",
+    "docs/aiot/tasks/B2-08.md": "07c6d73f9f8ea126f9992a5bcbe40f1fbf84f886e38efed4d289847f76efe8dc",
+    "docs/runbook.md": "4217b012589d9ce3ded2a86d45eba5c533baa8fef5c04c81664deabe991c2994",
+    "infra/README.md": "dc07323d20c4bccb022452b355f0e0011799cb4805e03edc6685603fdbf53c01",
+    "frontend/README.md": "e3a8a24ebe69e1a4b368fa8ebb827e8c548f136066c85b4032fa9f4dd5208561",
+    "docs/version-matrix.md": "71fb3cc04198fc63f0df478f94b5a7b8e003a6eef94829016d826ac101388488",
+    "docs/configuration.md": "347c96577631df81458deef9e2ebf3d06e710c6a585cc11babbb4fccb9f48a00",
+    "README.md": "5d26c0a6d83cb5e51a5f9a7a53402602202b9ead2806a8d6519223a9c87d4527"
+  },
+  "sha256": {
+    "frontend/nginx.conf": "c72c38d763a7547b82594f2e3f820c128cb682399e805ba8253751de779bc40a",
+    "compose.debug.yaml": "c01c84afbe0ebf1ee13038ed28f2996f6bfcf66b85dbdc5ce5ae74214b366f68",
+    "scripts/generate-secrets.py": "c3add2ee2405c3371d791b554355a7fef15cdeb5c2f3e493f19e0c77e709af7c",
+    "backend/tests/infra/test_generate_secrets.py": "2f892e4b9b5121ab7ecc6195eb10d0e4c7a65f130b76412d463fcf441e9558bb",
+    "backend/tests/infra/test_proxy_contract.py": "6d87e56e770f2ba4843ded5fc9769a48e7c667c24d7a291460505c6b82b6e36d",
+    "backend/tests/infra/test_proxy_integration.py": "10bbb573aa3434ce8a4be0030d362fdf233cf6d731d5ae8607c929d38f08f86b",
+    "frontend/src/features/monitoring/use-monitoring-summary-proxy.spec.ts": "c5852071e803774476178c3aa54b3a42af8ebd7bb3a3b71b836027407fa7e332",
+    "README.md": "61e87d07b922ccbe656d795c1bbefd22771f856b22f14f5bee6f0fb9030beee9",
+    "frontend/Dockerfile": "9ec87e211f1dfe507d3388d10cfe07d43ac44514f9daf6294c641fd1b24079bc",
+    "compose.yaml": "df01a6367182ed163b8c83dd8076fbeb487f6fdb68e5aac7c4b44d8d2b1aa597",
+    ".env.example": "5706b81357dab086202a8794484ca456a0f295fea2719efc17f16706d63d1109",
+    "frontend/src/features/monitoring/use-monitoring-summary.ts": "b3fd8990cafca49acce061bd205f048c8f3f1f6b7d3d92c8e670277eea92ae7d",
+    "frontend/src/views/FoundationView.vue": "21159a2a77722e6b315cd6e09aa1f04b089596fb5e27840d02752a763454d196",
+    "backend/tests/infra/test_compose_contract.py": "730670ac6e186559aacdd20c172a51f260f9c7ec4be066e861a17a4e6c7c9ae6",
+    "docs/runbook.md": "ac60d70a470625cedac86cc0126ba48bb583ed3a73134a54f7ab1e45829ecf1a",
+    "docs/configuration.md": "02a6260d9780aa0d4ffb72fcd03cfd9dd165a885516bd9be950745fd8770d035",
+    "docs/version-matrix.md": "f1ddcc9439dc2c29f6ec1ed3d7f8fc664716e77f855d3dcd19770dcb1788641a",
+    "infra/README.md": "2992525476b9ebf6be07777786bce1827d0b4c7213a7684416d770466f28e564",
+    "frontend/README.md": "50c2a41e1d23b0535107ae88f5e88780a499897558ec0e37db5ba15f5ab14a62",
+    "docs/aiot/tasks/B2-08.md": "b47f4b0ab93bbc539af08e85cc9b1e8dfd6f59e8a7c3b1343dc2da48ec5ac11f",
+    "docs/aiot/tasks/README.md": "c8993c103b3ddba0528ad3288ad1cb1e7d56069507129eb3a06686a9a4232e53",
+    "docs/aiot/README.md": "3c959be8939367c58ada0a8e5ac69f51b1f9395012cce104676ee8414ebda923"
+  },
+  "limits": [
+    "No personal stack start or hardware/Wokwi test",
+    "No final AIoT capacity, long load, or business v3 consumers",
+    "No independent reviewer approval due account limit",
+    "Generator expects UTF-8 single-line assignments and one invocation at a time; existing credentials remain unchanged",
+    "InfluxDB restricted token must be provisioned by the database",
+    "RabbitMQ operational management authorization remains B2-15"
+  ],
+  "official_sources": [
+    "https://nginx.org/en/docs/http/websocket.html",
+    "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+    "https://github.com/nginx/docker-nginx-unprivileged"
+  ],
+  "checkpoint": "B2-08 complete; await user selection for B2-09; no later task started"
+}

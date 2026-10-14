@@ -10,6 +10,9 @@ fonte exata; esta tabela facilita a conferência no computador da apresentação
 | Backend | FastAPI `0.141.1`, Pydantic `2.13.5`, psycopg `3.3.6`, pwdlib `0.3.1`, paho-mqtt `2.1.0`, influxdb-client `1.50.0`, websockets `17.1` | `backend/requirements.txt`, `backend/requirements.lock.txt` |
 | Autenticação B2-06 | PyJWT `2.15.1`, bcrypt `5.0.0`; pwdlib com extras Argon2/bcrypt | `backend/requirements.txt`, locks de produção/desenvolvimento |
 | Testes Python | pytest `9.1.1`, pytest-cov `7.1.0`, HTTPX `0.28.1`, jsonschema `4.26.0` | `backend/requirements-dev.txt`, `backend/requirements-dev.lock.txt` |
+| Transporte AMQP B2-07 | RabbitMQ `4.3.6-management-alpine`; Pika `1.4.4` somente nos testes | `compose.yaml`, `infra/rabbitmq/`, manifesto/lock dev |
+| Simulador B2-09 | Python `3.13.15-slim`, paho-mqtt `2.1.0`, jsonschema `4.26.0`; quatro transitivas nas versões existentes do lock dev | `simulator/Dockerfile`, `simulator/requirements.txt` |
+| Frontend estático B2-08 | Nginx unprivileged `1.31.6`, base `1.31-alpine3.24` fixada pelo digest `sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434` | `frontend/Dockerfile`, `frontend/nginx.conf` |
 | Frontend | Vue `3.5.42`, Vue Router `5.3.0`, Vite `8.2.2`, TypeScript `6.0.3`, Chart.js `4.5.1`, Playwright `1.63.0`, Vitest `4.1.11` | `frontend/package.json`, `frontend/package-lock.json` |
 | Firmware | espressif32 `7.0.1`, DHT sensor library for ESPx `1.19`, MQTT `2.5.3`, ArduinoJson `7.4.3` | `firmware/platformio.ini` |
 | Containers | Mosquitto `2.0.22`, InfluxDB `2.7.12-alpine`, PostgreSQL `17.11-alpine3.24`, Python `3.13.15-slim`, Node `24.20.0-alpine3.24` | `compose.yaml`, Dockerfiles |

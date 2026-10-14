@@ -40,15 +40,15 @@ O contrato AIoT v3 está definido; o runtime continua v1/v2.
 
 ## Executar localmente
 
-Pré-requisitos: Git, Docker com Compose v2 e portas `1883`, `8000` e `5173`
-livres. Para os dois simuladores: VS Code, PlatformIO, Wokwi Simulator e licença
+Pré-requisitos: Git, Python 3 para gerar a configuração, Docker com Compose v2
+e porta `5173` livre. Para os dois simuladores: VS Code, PlatformIO, Wokwi Simulator e licença
 local válida.
 
 ```bash
 git clone https://github.com/VitorFcosta/ColdSafe.git
 cd ColdSafe
-cp .env.example .env
-cp firmware/include/secrets.example.h firmware/include/secrets.h
+python3 scripts/generate-secrets.py
+test -e firmware/include/secrets.h || cp firmware/include/secrets.example.h firmware/include/secrets.h
 ```
 
 Configure as credenciais locais, incluindo as **duas senhas MQTT distintas** dos
@@ -66,9 +66,10 @@ docker compose ps -a
 
 Abra [aplicação](http://localhost:5173/) e crie uma conta local. Em
 `/dashboard`, selecione ou cadastre ambiente e dispositivo, ajuste os limites,
-acompanhe sensores/alertas e solicite o LED. A API está em
-[http://localhost:8000](http://localhost:8000). Consulte
-[firmware/README.md](firmware/README.md) para compilar e abrir os dois Wokwi.
+acompanhe sensores/alertas e solicite o LED. REST e WebSocket passam pelo proxy
+do frontend; a documentação fica em [localhost:5173/docs](http://localhost:5173/docs).
+Para Wokwi e portas locais de diagnóstico, habilite `compose.debug.yaml` conforme
+o [runbook](docs/runbook.md), depois siga [firmware/README.md](firmware/README.md).
 
 Para parar, use `docker compose down`. **Não use `--volumes`**: os volumes
 guardam leituras, cadastros e configuração do broker.

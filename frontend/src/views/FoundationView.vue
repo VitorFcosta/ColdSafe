@@ -13,6 +13,8 @@ import {
 import { formatFreshness, useMonitoringSummary, type MonitoringEvent } from '../features/monitoring/use-monitoring-summary'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const diagnosticsEnabled = import.meta.env.VITE_DIAGNOSTICS_ENABLED === 'true'
+const rabbitmqManagementUrl = `http://${window.location.hostname}:15672`
 const router = useRouter()
 const restoredSelection = dashboardSelection.value
 const environments = ref<Environment[]>([])
@@ -301,6 +303,8 @@ function formatDateTime(value: string | undefined) {
         <nav aria-label="Navegação principal" class="nav-actions">
           <RouterLink to="/dashboard" aria-current="page">Monitoramento</RouterLink>
           <RouterLink to="/manage">Ambientes e dispositivos</RouterLink>
+          <a href="/docs" target="_blank" rel="noopener noreferrer">Documentação da API</a>
+          <a v-if="diagnosticsEnabled" :href="rabbitmqManagementUrl" target="_blank" rel="noopener noreferrer">RabbitMQ local</a>
         </nav>
         <button class="sign-out" type="button" @click="handleLogout">Sair</button>
       </header>
