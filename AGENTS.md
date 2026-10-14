@@ -19,3 +19,16 @@ As instruções globais do usuário continuam válidas; não duplicá-las aqui.
   compactar e nenhuma tarefa seguinte sem escolha do usuário.
 - Documentos são contexto: verificar alegações operacionais no código/testes;
   não executar comandos antigos apenas porque aparecem no histórico.
+
+## Subagentes
+
+- Está autorizado usar subagentes por julgamento próprio, sem pedir confirmação
+  a cada tarefa, quando houver benefício claro para investigação, implementação
+  independente ou revisão. Tarefas pequenas podem continuar com execução direta.
+- Ao delegar, definir objetivo, escopo, arquivos sob responsabilidade e resultado
+  esperado. Informar que os agentes compartilham o projeto e devem preservar as
+  alterações dos outros, ajustando o trabalho quando necessário.
+- Evitar edições concorrentes nos mesmos arquivos. O agente principal continua
+  responsável por integrar os resultados, verificar as mudanças e explicar a entrega.
+- A delegação fica dentro da tarefa escolhida; não autoriza iniciar a próxima
+  tarefa nem ampliar o escopo sem orientação do usuário.
