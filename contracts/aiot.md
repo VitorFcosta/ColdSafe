@@ -1,7 +1,7 @@
 # Contrato AIoT v3 — B2-04
 
-**Estado:** contrato definido em 12/10/2026 e revalidado em 13/10/2026; simulador MQTT v3 implementado na B2-09/10 e gateway MQTT/AMQP na B2-11; consumidores de negócio v3
-ainda não implementados. A aplicação continua v1/v2. Este documento fecha as fronteiras
+**Estado:** contrato definido em 12/10/2026 e revalidado em 13/10/2026; simulador MQTT v3 implementado na B2-09/10, gateway MQTT/AMQP na B2-11 e gravador InfluxDB na B2-12;
+API e demais consumidores de negócio v3 ainda não implementados. A aplicação continua v1/v2. Este documento fecha as fronteiras
 do plano aprovado; não comprova integração completa, IA ou 3D. Evidências por tarefa ficam nos cartões.
 
 Fonte estrutural: [aiot.schema.json](aiot.schema.json), JSON Schema Draft 2020-12,
@@ -133,7 +133,9 @@ Gravação persiste leituras no InfluxDB; metadados, comandos, alertas, auditori
 jobs e registro de modelos ficam no PostgreSQL; datasets ficam separados.
 Nomes físicos, bindings e credenciais foram implementados na B2-07;
 [infra RabbitMQ](../infra/rabbitmq/README.md) descreve a topologia executável.
-Gateway já produz telemetria/ACK e consome comandos; demais produtores/consumidores v3 continuam planejados. Para separar geração
+Gateway já produz telemetria/ACK e consome comandos; o [gravador B2-12](../writer/README.md)
+consome sua fila de telemetria e persiste seis sensores/estados no bucket `telemetry_live`,
+sem modificar o histórico legado. Demais produtores/consumidores v3 continuam planejados. Para separar geração
 de treino sem alterar a routing key, o publicador de `job_requested` copia
 `data.job_type` para o header AMQP `job_type`; o consumidor exige igualdade.
 Esse header é metadado de transporte, fora do envelope JSON.

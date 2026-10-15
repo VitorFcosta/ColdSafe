@@ -34,6 +34,7 @@ def test_compose_contains_the_relational_database():
         "mosquitto",
         "simulator",
         "gateway",
+        "writer",
         "influxdb",
         "postgres",
         "backend",
@@ -52,6 +53,21 @@ def test_runtime_images_are_pinned_and_have_healthchecks():
         "healthcheck" in services[name]
         for name in ("mosquitto", "influxdb", "postgres", "backend")
     )
+
+
+def test_writer_is_optional_private_and_receives_only_its_influx_token():
+    writer = load_compose()['services']['writer']
+    assert writer['profiles'] == ['aiot']
+    assert writer['build']['dockerfile'] == 'writer/Dockerfile'
+    assert writer['read_only'] is True
+    assert writer['user'] == '65532:65532'
+    assert writer['networks'] == ['coldsafe-internal']
+    assert 'ports' not in writer
+    assert writer['environment']['INFLUXDB_LIVE_BUCKET'] == 'telemetry_live'
+    assert 'INFLUXDB_WRITER_TOKEN' in writer['environment']
+    assert 'INFLUXDB_TOKEN' not in writer['environment']
+    assert 'DOCKER_INFLUXDB_INIT_ADMIN_TOKEN' not in writer['environment']
+    assert 'RABBITMQ_GATEWAY_PASSWORD' not in writer['environment']
 
 
 def test_mosquitto_password_file_is_generated_in_a_private_volume():

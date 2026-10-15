@@ -4,23 +4,25 @@
 
 O código continua na base v1/v2 descrita no [README](../../README.md).
 O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
-O simulador MQTT v3 e gateway MQTT/AMQP estão implementados; consumidores de
-negócio ainda não existem.
+O simulador MQTT v3, gateway MQTT/AMQP e gravador InfluxDB estão implementados;
+API e demais consumidores de negócio v3 ainda não existem.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-11](tasks/B2-11.md): gateway valida catálogo/escopo
-PostgreSQL e transporta telemetria/ACK MQTT → RabbitMQ e comandos no sentido
-inverso. Diário SQLite privado preserva primeiro aceite, duplicatas, saídas e
-erros entre reinícios; confirmações e retry/DLQ foram exercitados nos dois brokers.
-Integração final: 11 casos reais aprovados, incluindo revogação do dispositivo,
-queda dos brokers e ausência de ACK inventado com simulador parado.
-Operação e limite aproximado de 64 MiB sem expurgo estão no [gateway](../../gateway/README.md).
+A última entrega foi [B2-12](tasks/B2-12.md): gravador consome fila própria e grava
+seis sensores, IDs e estados no InfluxDB antes de confirmar. Identidade estável
+preserva um ponto no redelivery/restart; histórico v1/v2 permanece no bucket legado.
+Live usa `telemetry_live` e token exclusivo write-only; sintéticos ficam separados.
+Integração final: seis casos reais aprovados, incluindo acúmulo/retomada, duplicatas,
+legado, permissões e queda do InfluxDB com três tentativas/DLQ/recuperação.
+Operação, campos e custo de cardinalidade estão no [writer](../../writer/README.md).
+Gateway B2-11 conserva diário SQLite de aproximadamente 64 MiB sem expurgo;
+operação em [gateway](../../gateway/README.md).
 Sensores/atuadores/equipamento continuam no catálogo privado de comissionamento;
 dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache do
 simulador ainda são em memória. Não há máquina durável de status/timeout, API
-HTTP v3, gravador ou entrega Web v3. A B2-09 conserva sensores/desgaste; B2-08,
+HTTP v3 ou entrega Web v3. A B2-09 conserva sensores/desgaste; B2-08,
 frontend estático/proxy. Não há outra tarefa autorizada em execução.
-O próximo cartão na sequência é [B2-12](tasks/B2-12.md); não iniciá-lo automaticamente.
+O próximo cartão na sequência é [B2-13](tasks/B2-13.md); não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final
 com todos os serviços de negócio continua pertencendo à B2-33.

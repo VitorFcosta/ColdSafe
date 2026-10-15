@@ -1,0 +1,275 @@
+{
+  "task": "B2-12",
+  "status": "Concluída",
+  "recorded_at": "2026-10-14",
+  "repository": "/Users/vitorhugofernandescosta/Documents/ColdSafe",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "head_base": "8512b27a3526f84e74501071deda1048a8480d54",
+    "initial_worktree": "clean",
+    "delivery": "Commit and push authorized by user for B2-12 on codex/block-5-validation; verify Git history and origin equality for publication result."
+  },
+  "scope": "Telemetry writer only: live v3 persistence, stable point redelivery identity, legacy preservation, queue recovery and restricted token. No HTTP/Web v3.",
+  "dependencies": {
+    "new_project_libraries": [],
+    "new_versions": [],
+    "new_service": "writer",
+    "manifest": "writer/requirements.txt",
+    "note": "Reuses gateway and backend lock pins; Pydantic required by shared legacy model import. Personal venv not modified."
+  },
+  "tests": [
+    {
+      "name": "repository RED",
+      "passed": 13,
+      "failed": 2,
+      "reason": "save_event absent"
+    },
+    {
+      "name": "runtime RED",
+      "result": "collection error; writer module absent"
+    },
+    {
+      "name": "native AMQP counter RED",
+      "command": "/tmp/coldsafe-urllib3-venv/bin/python -m pytest backend/tests/infra/test_writer_runtime.py -k broker_amqp_long --no-cov -o addopts='' -q",
+      "failed": 2,
+      "deselected": 52,
+      "reason": "pika.compat.long rejected by exact int type guard"
+    },
+    {
+      "name": "focused final",
+      "command": "/tmp/coldsafe-urllib3-venv/bin/python -m pytest backend/tests/infra/test_writer_runtime.py backend/tests/repositories/test_influxdb_repository.py backend/tests/repositories/test_influxdb_client.py --cov=writer --cov=backend.app.repositories.influxdb --cov=backend.app.repositories.influxdb_client --cov-branch --cov-fail-under=80 --cov-report=term-missing -o addopts='' -q",
+      "exit": 0,
+      "passed": 86,
+      "seconds": 1.29,
+      "branch_coverage_percent": 99.02
+    },
+    {
+      "name": "full regression final",
+      "command": "/tmp/coldsafe-urllib3-venv/bin/python -m pytest backend/tests --cov=backend/app --cov=writer --cov-branch --cov-fail-under=80 --cov-report=term -o addopts='' -q",
+      "exit": 0,
+      "passed": 570,
+      "skipped": 120,
+      "seconds": 40.87,
+      "branch_coverage_percent": 82.11,
+      "warnings": [
+        "Starlette/httpx deprecation",
+        "AnyIO BlockingPortal alias deprecation"
+      ],
+      "skipped_note": "Optional integration opt-ins absent; not real integration evidence."
+    },
+    {
+      "name": "real integration final",
+      "command": "COLDSAFE_WRITER_INTEGRATION=1 /tmp/coldsafe-urllib3-venv/bin/python -m pytest backend/tests/infra/test_writer_integration.py -q --no-cov",
+      "exit": 0,
+      "passed": 6,
+      "seconds": 67.25,
+      "cases": [
+        "MQTT/AMQP/Influx six sensors IDs timestamps and states",
+        "Stop writer, accumulate real MQTT queue and drain",
+        "Same-event replay before/after restart; separate equal-time events; DLQ empty",
+        "Legacy v1/v2 queries preserved and synthetic bucket isolated",
+        "Write-only live token denies all reads and non-live writes",
+        "Influx stop; PROCESSING_FAILED attempts 1/2; RETRY_EXHAUSTED3; original DLQ; restore and replay one point"
+      ]
+    },
+    {
+      "name": "Compose default and aiot+simulator config",
+      "exit": 0,
+      "environment": "Temporary generated credentials; unused placeholder legacy Influx token; personal env not loaded"
+    },
+    {
+      "name": "compileall and diff whitespace",
+      "exit": 0
+    }
+  ],
+  "intermediate_real_failures": [
+    {
+      "round": 1,
+      "errors": 5,
+      "seconds": 51.12,
+      "cause": "Stale ephemeral ports after dependency recreation",
+      "fix": "Refresh published endpoints after second up"
+    },
+    {
+      "round": 2,
+      "passed": 2,
+      "failed": 1,
+      "seconds": 44.25,
+      "cause": "Compared Flux query window metadata as point data",
+      "fix": "Exclude result/table/_start/_stop"
+    },
+    {
+      "round": 3,
+      "passed": 3,
+      "failed": 1,
+      "seconds": 50.17,
+      "cause": "Legacy fixture wrote future timestamps outside get_latest range",
+      "fix": "Use timestamps in past"
+    },
+    {
+      "round": 4,
+      "passed": 4,
+      "failed": 1,
+      "seconds": 45.49,
+      "cause": "Unauthorized query returned404; fixture expected401/403",
+      "fix": "Allow observed query denial404; non-live writes still401/403 and admin proves no marker persisted"
+    },
+    {
+      "round": 5,
+      "passed": 5,
+      "failed": 1,
+      "seconds": 72.04,
+      "cause": "Real retry rejected as INVALID_BINDING before third processing failure"
+    },
+    {
+      "round": 6,
+      "scope": "focused outage diagnostic",
+      "result": "failed waiting for expected terminal retry error"
+    },
+    {
+      "round": 7,
+      "scope": "focused outage diagnostic",
+      "failed": 1,
+      "deselected": 5,
+      "seconds": 43.66,
+      "observed_errors": [
+        [
+          "PROCESSING_FAILED",
+          1
+        ],
+        [
+          "INVALID_BINDING",
+          1
+        ]
+      ],
+      "cause": "type(count) is int rejects pika.compat.long AMQP64 subclass",
+      "fix": "isinstance(count,int), exclude bool/negative; actual Pika decoder regression added",
+      "discarded_hypothesis": "DNS/heartbeat was not supported by observed INVALID_BINDING"
+    }
+  ],
+  "versions": {
+    "pytest": "9.1.1",
+    "pika": "1.4.4",
+    "influxdb-client": "1.50.0",
+    "urllib3": "2.8.0",
+    "pydantic": "2.13.5",
+    "psycopg": "3.3.6",
+    "jsonschema": "4.26.0"
+  },
+  "images": [
+    "python:3.13.15-slim",
+    "rabbitmq:4.3.6-management-alpine",
+    "influxdb:2.7.12-alpine",
+    "postgres:17.11-alpine3.24",
+    "mosquitto:2.0.22"
+  ],
+  "review": {
+    "independent": true,
+    "final_runtime_tests_passed": 54,
+    "findings_fixed": [
+      "Pydantic import missing from isolated image manifest",
+      "Invalid InfluxDBError test constructor",
+      "Native AMQP int subclass on retry"
+    ],
+    "limits": "Initial mocks/static review missed native AMQP type; real integration and actual decoder regression caught it."
+  },
+  "environment": {
+    "python": "3.13.15",
+    "personal_env_or_credentials_changed": false,
+    "personal_containers": "Six original containers remained Up/healthy",
+    "cleanup": "No coldsafe-b212 containers or volumes remain",
+    "synthetic_data": "Fictitious catalog/accounts; disposable isolated buckets and authorizations"
+  },
+  "limitations": [
+    "One commissioned device/catalog; equipment/sensor/actuator SQL API not implemented",
+    "Existing PostgreSQL credentials with read-only connection; no dedicated SQL role",
+    "event_id tag increases series cardinality; suggested live retention7days; no capacity/soak claim",
+    "Client point timestamp uses microseconds; original UTC strings also persisted",
+    "Identity depends on immutable accepted event/first received_at from gateway; no consumer journal/distributed transaction",
+    "Transport failures count toward broker retry budget; administrative DLQ replay explicit",
+    "Restricted token and live bucket not provisioned in personal stack",
+    "No frontend/E2E, hardware/Wokwi or other optional integrations executed together"
+  ],
+  "pending_within_acceptance": [],
+  "checkpoint": "B2-12 complete and publication authorized. Find feat(aiot): adiciona gravador de telemetria no InfluxDB in Git history and compare HEAD to origin. B2-13 awaits explicit choice, not started.",
+  "files_created": [
+    "backend/tests/infra/test_writer_integration.py",
+    "backend/tests/infra/test_writer_runtime.py",
+    "docs/evidence/b2-12.json",
+    "writer/Dockerfile",
+    "writer/README.md",
+    "writer/requirements.txt",
+    "writer/runtime.py"
+  ],
+  "files_modified": [
+    ".env.example",
+    "backend/app/repositories/influxdb.py",
+    "backend/tests/config/test_configuration_examples.py",
+    "backend/tests/infra/test_compose_contract.py",
+    "backend/tests/repositories/test_influxdb_repository.py",
+    "compose.yaml",
+    "contracts/README.md",
+    "contracts/aiot.md",
+    "docs/aiot/README.md",
+    "docs/aiot/architecture.md",
+    "docs/aiot/tasks/B2-12.md",
+    "docs/aiot/tasks/README.md",
+    "docs/configuration.md",
+    "docs/version-matrix.md",
+    "gateway/README.md",
+    "infra/README.md",
+    "infra/rabbitmq/README.md"
+  ],
+  "sha256": {
+    ".env.example": "6d74c1f9a36987d6ed3f7a6e1a49d511af1fdb46bd48d47990c91cd58dcb2a74",
+    "backend/app/repositories/influxdb.py": "2ffa4c80eeda5b19d12e97275029d34e3608e5f5d9216cc79d72b7ea0a277f9a",
+    "backend/tests/config/test_configuration_examples.py": "01a79dc388a9373b1fe6f46dfac64130ae3c8f0d7c28c471857faffff53f9198",
+    "backend/tests/infra/test_compose_contract.py": "8fb8a5f64b09f60e761af0b81b10701645eb557e5ea0e5f00b7db5f7bb39c462",
+    "backend/tests/infra/test_writer_integration.py": "5ba00199f0d594e6c93a0b6fa2639e1dc623cc09c3e4427d664f7e5a2791d88a",
+    "backend/tests/infra/test_writer_runtime.py": "45eede50b9754cd1049e76651d4aec9c48ea11ec6de1ad5d0e1ac5d44613fd59",
+    "backend/tests/repositories/test_influxdb_repository.py": "a57af445d896068433ce99a79fdf3bf4384a990c05e76dd629407a917553b47d",
+    "compose.yaml": "6bb8ccc751d62618bed4f58f6b77041fa6b79c36ccd20ca849050cfb0239941b",
+    "contracts/README.md": "ebdf4fd5858d0cb390758d609d7dbc65c7003d1ebd3a8c84c132c6dda91bf24a",
+    "contracts/aiot.md": "4cd9a306b2bab8a2cb1753ec3a1f4cef94bb74b6d44fb7953eae94df0fe5924b",
+    "docs/aiot/README.md": "37717ec88cc6fcf4b64d00093ee8346e9af1b0f7db10a16a89962895de2693db",
+    "docs/aiot/architecture.md": "781554265149d3e031c8a862b2e06f2a2df66b39a048d86c14c4e00fb4ecd1b5",
+    "docs/aiot/tasks/B2-12.md": "ac78988da61882a49a1a74bb3df18dfa682aa466929e2e62740d2c2d311a2810",
+    "docs/aiot/tasks/README.md": "822955209ecc759b228e9fe5a98d1ac16d9b10c117a5bb41f878c2a757700105",
+    "docs/configuration.md": "173f97b5ed7dcf6a211067c85af105e16a9a0004b2fd24053277c622c42c1647",
+    "docs/version-matrix.md": "7dc72a87659082ac42ee3948c7ba274797fbc078c54b9a3d5c81194e0908a04b",
+    "gateway/README.md": "5283a658265f0ec030b3a0af626f184718868a1d3e96777cbfd6144669402b72",
+    "infra/README.md": "71ed4b8348a0e040618e582b9b5de3dd54b3564c43524b190ee02b35ae02a035",
+    "infra/rabbitmq/README.md": "fbc3197e4f657acea4b465457460958b9fec997470b95791525b6cc6204ccd89",
+    "writer/Dockerfile": "23b950af3d8ab50c349053f0171da2103ab05db71d7768d6cdca05b421fa84f2",
+    "writer/README.md": "d1ed7b5065ae9757b41d67f7246423b696ce97a45b896cae2472d95bb5e4b4e0",
+    "writer/requirements.txt": "d8464f624374a331fd543aa87f048ca4946c824a1c233b5b2f01bc8ea0a25fb8",
+    "writer/runtime.py": "617297d598a0cd88aab189a606f91673fcc08d47845f8b0cd207d0bc0a29d2a4"
+  },
+  "primary_api_references": [
+    "https://docs.influxdata.com/influxdb/v2/reference/syntax/line-protocol/",
+    "https://influxdb-client.readthedocs.io/en/stable/api.html",
+    "Installed Pika1.4.4 pika.data.decode_value and pika.compat.long source"
+  ],
+  "publication_checks": {
+    "commit_subject": "feat(aiot): adiciona gravador de telemetria no InfluxDB",
+    "initial_remote_divergence": {
+      "ahead": 0,
+      "behind": 0
+    },
+    "independent_composition_review": "24 files match manifest; conventional message55 characters; no unrelated change or breaking contract",
+    "dependency_audit": {
+      "tool": "pip-audit2.10.1",
+      "resolved_packages": 20,
+      "known_vulnerabilities": 0,
+      "resolution": "uv pip compile writer/requirements.txt using Python3.13.15; includes gateway/simulator/transitives"
+    },
+    "secret_scan": {
+      "tool": "Gitleaks8.29.0",
+      "files_scanned": 24,
+      "detected": 1,
+      "new_secret_findings_after_review": 0,
+      "existing_false_positive": "Empty VITE_API_BASE_URL followed by public VITE_POLL_INTERVAL_MS5000; identical redacted match reproduced from HEAD:.env.example"
+    },
+    "project_dependencies_changed_for_checks": false
+  }
+}

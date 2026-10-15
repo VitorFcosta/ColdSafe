@@ -220,6 +220,52 @@ services:
     mem_limit: 128m
     cpus: 0.25
 
+  writer:
+    build:
+      context: .
+      dockerfile: writer/Dockerfile
+    profiles: ["aiot"]
+    restart: unless-stopped
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_WRITER_PASSWORD: "${RABBITMQ_WRITER_PASSWORD}"
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_ORG: "${DOCKER_INFLUXDB_INIT_ORG:-coldsafe}"
+      INFLUXDB_LIVE_BUCKET: telemetry_live
+      INFLUXDB_WRITER_TOKEN: "${INFLUXDB_WRITER_TOKEN:-}"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: "${POSTGRES_DB:-coldsafe}"
+      POSTGRES_USER: "${POSTGRES_USER:-coldsafe}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      WRITER_OWNER_USER_ID: "${WRITER_OWNER_USER_ID:-}"
+    volumes:
+      - type: bind
+        source: "${SIMULATOR_CATALOG_DIR:-./simulator/local}"
+        target: /catalog
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      - coldsafe-internal
+    user: "65532:65532"
+    read_only: true
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 128m
+    cpus: 0.25
+
   influxdb:
     image: influxdb:2.7.12-alpine
     restart: unless-stopped

@@ -7,7 +7,7 @@ Mosquitto iniciar.
 A B2-07 acrescenta RabbitMQ interno e inicializador offline, filas duráveis,
 credenciais por serviço, retry limitado e DLQ privada. Preparação, topologia e
 testes estão em [`rabbitmq/README.md`](rabbitmq/README.md). O backend v1/v2
-continua no MQTT; os consumidores de negócio v3 serão implementados depois.
+continua no MQTT; o gravador v3 foi acrescentado na B2-12 e os demais consumidores são posteriores.
 
 A B2-09 acrescenta o perfil opcional `simulator`, produtor MQTT v3 com seis
 sensores e desgaste progressivo. Usa duas credenciais exclusivas, cadastro local
@@ -18,7 +18,10 @@ consome essas leituras; a entrega não comprova integração MQTT→RabbitMQ→W
 A B2-11 acrescenta o perfil `aiot`, gateway MQTT/AMQP bidirecional com diário
 SQLite no volume privado `gateway-state`, validação PostgreSQL de propriedade e
 deduplicação entre reinícios. Veja [`gateway/README.md`](../gateway/README.md).
-O dashboard/gravador v3 continuam posteriores; a API v1/v2 conserva seu transporte.
+A B2-12 acrescenta `writer` ao mesmo perfil, com fila própria, token InfluxDB
+write-only e bucket `telemetry_live` separado do legado/sintéticos. Preparação e
+testes em [`writer/README.md`](../writer/README.md).
+O dashboard v3 continua posterior; a API v1/v2 conserva seu transporte.
 
 O procedimento canônico para preparar outro computador, criar o token restrito
 do InfluxDB, subir os serviços, validar o sistema e diagnosticar falhas está em

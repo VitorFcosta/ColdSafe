@@ -91,25 +91,50 @@ class InfluxReadingRepository:
         """Persist one reading already validated and classified by the backend."""
 
         normalized_received_at = _as_utc(received_at, name="received_at")
+        self._write({
+            "measurement": "environment_reading",
+            "tags": {
+                "device_id": payload.device_id,
+                "status": status.value,
+            },
+            "fields": {
+                "schema_version": payload.schema_version,
+                "temperature_c": payload.temperature_c,
+                "humidity_percent": payload.humidity_percent,
+            } | ({"light_percent": payload.light_percent}
+                 if payload.light_percent is not None else {}),
+            "time": normalized_received_at,
+        })
+
+    def save_event(self, *, event: dict[str, Any]) -> None:
+        """Persist bus telemetry already validated by the v3 consumer."""
+        data = event['data']
+        fields = {key: event[key] for key in
+                  ('schema_version', 'occurred_at', 'received_at', 'correlation_id')}
+        for role, field in (
+            ('ambient_temperature', 'ambient_temperature_c'), ('humidity', 'humidity_percent'),
+            ('light', 'light_percent'), ('vibration', 'vibration_rms_mm_s'),
+            ('motor_current', 'motor_current_a'), ('motor_temperature', 'motor_temperature_c'),
+        ):
+            fields[field] = float(data['measurements'][role]['value'])
+            fields[role + '_sensor_id'] = data['measurements'][role]['sensor_id']
+        fields['running'] = data['equipment']['running']
+        for role, actuator in data['actuators'].items():
+            fields[role + '_actual_state'] = actuator['actual_state']
+            fields[role + '_actuator_id'] = actuator['actuator_id']
+        self._write({
+            'measurement': 'equipment_reading_v3',
+            # shortcut: event tags create one series per reading; revisit identity after B2-33 load tests.
+            'tags': {key: event[key] for key in
+                     ('device_id', 'device_record_id', 'environment_id', 'event_id')} | {
+                         'equipment_id': data['equipment']['equipment_id']},
+            'fields': fields,
+            'time': event['received_at'],
+        })
+
+    def _write(self, record: dict[str, Any]) -> None:
         try:
-            self._write_api.write(
-                bucket=self._bucket,
-                org=self._org,
-                record={
-                    "measurement": "environment_reading",
-                    "tags": {
-                        "device_id": payload.device_id,
-                        "status": status.value,
-                    },
-                    "fields": {
-                        "schema_version": payload.schema_version,
-                        "temperature_c": payload.temperature_c,
-                        "humidity_percent": payload.humidity_percent,
-                    } | ({"light_percent": payload.light_percent}
-                         if payload.light_percent is not None else {}),
-                    "time": normalized_received_at,
-                },
-            )
+            self._write_api.write(bucket=self._bucket, org=self._org, record=record)
         except (InfluxDBError, HTTPError, OSError) as exc:
             raise DependencyUnavailableError("InfluxDB write failed") from exc
 

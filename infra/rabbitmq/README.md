@@ -3,7 +3,8 @@
 O Compose prepara o broker interno `rabbitmq:5672`, vhost `coldsafe`, com
 RabbitMQ `4.3.6-management-alpine`. Não publica AMQP nem management no host.
 O backend v1/v2 continua no MQTT. O [gateway B2-11](../../gateway/README.md) já
-consome comandos e produz telemetria/ACK/erros; demais serviços v3 são posteriores.
+consome comandos e produz telemetria/ACK/erros; o [gravador B2-12](../../writer/README.md)
+consome `coldsafe.writer`, grava InfluxDB e só então confirma. Demais serviços v3 são posteriores.
 Estas filas prontas não provam os consumidores de negócio.
 
 ## Preparação e segredos
@@ -72,8 +73,8 @@ Publicadores devem usar `delivery_mode=2`, `message_id=event_id`,
 `correlation_id`, `content_type=application/json`, publisher confirms e
 `mandatory=True`; confirmação do broker não significa efeito de negócio concluído.
 Consumidores usam `auto_ack=False`, prefetch 1 e ACK somente após efeito durável
-e idempotente. Integração com bancos, deduplicação e eventos sanitizados de erro
-ainda pertencem aos serviços futuros; não confirmar uma leitura para WebSocket
+e idempotente. Gateway e gravador implementam seus efeitos duráveis e erros
+sanitizados; os demais pertencem aos serviços futuros. Não confirmar uma leitura para WebSocket
 antes de sua persistência comprovada.
 
 - Sucesso: `basic_ack(delivery_tag)` após concluir o efeito.

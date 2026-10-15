@@ -19,6 +19,8 @@ Use `python3 scripts/generate-secrets.py` para criar/completar o `.env` com
 segredos aleatórios distintos, sem imprimir valores ou sobrescrever credenciais
 existentes. O arquivo fica com `0600`; o script versionado não contém segredos.
 `INFLUXDB_TOKEN` continua dependendo da autorização restrita criada pelo banco.
+`INFLUXDB_WRITER_TOKEN` também fica vazio até criar autorização InfluxDB:
+somente escrita no bucket `telemetry_live`, exclusiva do gravador B2-12.
 O build Docker do frontend usa a mesma origem; `VITE_API_BASE_URL` é apenas uma
 opção do Vite local. Alterar uma variável no container não recompila o JavaScript.
 
@@ -95,6 +97,12 @@ Preparação, permissões, ritmo de simulação e comandos do operador estão em
 alterado na execução B2-09; integração usa credenciais descartáveis.
 
 ## Permissões do token InfluxDB
+
+O gravador v3 usa `INFLUXDB_WRITER_TOKEN`, distinto dos tokens abaixo, sem leitura
+e sem acesso a `telemetry` ou a dados sintéticos. Configure `WRITER_OWNER_USER_ID`
+com o proprietário esperado do cadastro compartilhado com o gateway.
+Criação do bucket live, retenção, autorização e execução opcional estão em
+[`writer/README.md`](../writer/README.md). A tarefa não provisiona credenciais na pilha pessoal.
 
 `INFLUXDB_TOKEN` deve ser um token exclusivo do backend, com leitura e escrita
 somente no bucket `telemetry`. Não reutilize `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`:

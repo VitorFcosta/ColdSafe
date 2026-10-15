@@ -4,7 +4,7 @@
 Status importados em 13/10/2026; cada cartão é o registro de execução.
 Este índice resume os cartões e deve acompanhar futuras mudanças de status.
 Ler só o cartão escolhido e suas dependências.
-B2-01–11 concluídas nos seus escopos; B2-12–36 não iniciadas.
+B2-01–12 concluídas nos seus escopos; B2-13–36 não iniciadas.
 A migração documental não executou tarefas técnicas.
 
 | Tarefa | Status atual | Dependências | Meta original |
@@ -20,7 +20,7 @@ A migração documental não executou tarefas técnicas.
 | [B2-09 — Simulador de sensores e degradação](B2-09.md) | Concluída | B2-04, B2-07 | 2026-10-19 a 2026-10-20 |
 | [B2-10 — LED, buzzer e confirmações no simulador](B2-10.md) | Concluída | B2-09 | 2026-10-20 |
 | [B2-11 — Gateway MQTT e AMQP bidirecional](B2-11.md) | Concluída | B2-07, B2-10 | 2026-10-21 |
-| [B2-12 — Gravador de telemetria no InfluxDB](B2-12.md) | Não iniciada | B2-11 | 2026-10-21 a 2026-10-22 |
+| [B2-12 — Gravador de telemetria no InfluxDB](B2-12.md) | Concluída | B2-11 | 2026-10-21 a 2026-10-22 |
 | [B2-13 — Consumidor da API, regras e WebSocket](B2-13.md) | Não iniciada | B2-06, B2-11, B2-12 | 2026-10-22 a 2026-10-23 |
 | [B2-14 — Integrar dashboard e novos sensores](B2-14.md) | Não iniciada | B2-10, B2-13 | 2026-10-23 |
 | [B2-15 — Painel de filas, taxas e consumidores](B2-15.md) | Não iniciada | B2-07, B2-13, B2-14 | 2026-10-24 |

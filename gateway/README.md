@@ -3,7 +3,8 @@
 Serviço Python opcional do perfil `aiot`. Transporta somente v3: telemetria e ACK
 do Mosquitto para RabbitMQ; comandos da fila `coldsafe.gateway` para Mosquitto.
 Não declara topologia nem conecta a API ao MQTT neste fluxo. A API v1/v2 conserva
-seu transporte anterior. Gravador e entrega Web v3 ainda não existem.
+seu transporte anterior. O [gravador B2-12](../writer/README.md) persiste telemetria
+em fila própria; entrega Web v3 continua posterior.
 
 ## Preparar e iniciar
 
@@ -102,7 +103,8 @@ e antes do PUBACK permite reenviar o mesmo comando válido. O simulador usa esta
 explícito e deduplica em memória; seu restart perde o cache. Não há garantia de
 atuação exatamente uma vez entre falhas. Sessão MQTT vencida, volume perdido ou
 queda antes do primeiro aceite podem perder dados da borda.
-Autorização HTTP v3, InfluxDB, status/timeout durável, regras e dashboard são posteriores.
+Autorização HTTP v3, status/timeout durável, regras e dashboard são posteriores.
+Persistência InfluxDB está no [gravador B2-12](../writer/README.md).
 
 APIs conferidas nas fontes primárias: [ACK manual/sessão Paho](https://eclipse.dev/paho/files/paho.mqtt.python/html/client.html),
 [confirms Pika](https://pika.readthedocs.io/en/stable/modules/adapters/blocking.html).
