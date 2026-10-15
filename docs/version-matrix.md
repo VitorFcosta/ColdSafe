@@ -8,6 +8,7 @@ fonte exata; esta tabela facilita a conferência no computador da apresentação
 | Runtime backend | Python `3.13.15` | `.python-version`, `backend/Dockerfile` |
 | Runtime frontend | Node `24.20.0` | `.nvmrc`, `frontend/Dockerfile` |
 | Backend | FastAPI `0.141.1`, Pydantic `2.13.5`, psycopg `3.3.6`, pwdlib `0.3.1`, paho-mqtt `2.1.0`, influxdb-client `1.50.0`, websockets `17.1` | `backend/requirements.txt`, `backend/requirements.lock.txt` |
+| Transporte HTTP do InfluxDB | urllib3 `2.8.0`; correção das três vulnerabilidades identificadas em `2.7.0` em 14/10/2026 | `backend/requirements.txt`, locks de produção/desenvolvimento; [evidência](evidence/urllib3-security-fix.json) |
 | Autenticação B2-06 | PyJWT `2.15.1`, bcrypt `5.0.0`; pwdlib com extras Argon2/bcrypt | `backend/requirements.txt`, locks de produção/desenvolvimento |
 | Testes Python | pytest `9.1.1`, pytest-cov `7.1.0`, HTTPX `0.28.1`, jsonschema `4.26.0` | `backend/requirements-dev.txt`, `backend/requirements-dev.lock.txt` |
 | Transporte AMQP B2-07 | RabbitMQ `4.3.6-management-alpine`; Pika `1.4.4` somente nos testes | `compose.yaml`, `infra/rabbitmq/`, manifesto/lock dev |

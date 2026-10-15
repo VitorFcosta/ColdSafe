@@ -1,5 +1,7 @@
 fastapi==0.141.1
 influxdb-client==1.50.0
+# Security floor for the HTTP transport used by influxdb-client.
+urllib3==2.8.0
 paho-mqtt==2.1.0
 pydantic==2.13.5
 pydantic-settings==2.15.0

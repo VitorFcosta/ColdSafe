@@ -135,6 +135,49 @@ base de vulnerabilidades conhecida na data da execução e devem ser repetidos
 antes de futuras entregas. A troca das credenciais continua sendo uma operação
 local e não é versionada.
 
+## Correção de segurança do urllib3 — 14 de outubro de 2026
+
+Concluída localmente: `urllib3 2.7.0` foi atualizado para `2.8.0`, versão que
+corrige os avisos [GHSA-vxq7-64xx-v4gw](https://github.com/urllib3/urllib3/security/advisories/GHSA-vxq7-64xx-v4gw),
+[GHSA-gh4c-6fx4-qh6g](https://github.com/urllib3/urllib3/security/advisories/GHSA-gh4c-6fx4-qh6g)
+e [GHSA-8988-9cw3-xx77](https://github.com/urllib3/urllib3/security/advisories/GHSA-8988-9cw3-xx77).
+A dependência já era utilizada pelo `influxdb-client`; passou a ser fixada
+explicitamente no manifesto, além dos dois locks, para conservar a versão
+validada em instalações futuras. Nenhuma biblioteca nova foi adicionada;
+nenhuma outra versão dos locks mudou.
+
+Resultado desta execução (separado da evidência histórica da CS-36):
+
+- `pip-audit`: três vulnerabilidades antes; zero conhecidas depois, auditando
+  separadamente produção e desenvolvimento.
+- Suíte backend: **450 passaram, 103 ignorados, cobertura de 80,64%** com
+  medição de ramos. Os testes ignorados dependem de ambientes/serviços opcionais.
+- Integração Docker descartável: **dois testes passaram**, incluindo gravação
+  MQTT/InfluxDB, consulta histórica, autenticação, WebSocket e reinício.
+- O teste do `.env.example` tinha uma lista antiga de campos; a falha também
+  ocorreu com `urllib3 2.7.0`. A expectativa agora inclui os 16 campos existentes
+  de RabbitMQ/simulador/gateway e verifica que suas senhas e a do PostgreSQL
+  continuam vazias no exemplo. O arquivo `.env.example` não foi alterado.
+- Imagem backend reconstruída e somente seu container recriado; `urllib3 2.8.0`
+  confirmado em execução. Configuração e credenciais mantidas, volumes
+  preservados e os outros cinco containers ativos sem recriação.
+- `.venv` local atualizada somente em `urllib3`; verificação de compatibilidade
+  das dependências passou. Readiness, docs e OpenAPI pelo frontend retornaram `200`.
+
+Arquivos, comandos, versão Git de base, hashes, revisão estática por subagente,
+limitações e checkpoint estão na [evidência da correção](evidence/urllib3-security-fix.json).
+O aceite local é atualização aplicada, auditorias sem os três avisos e testes
+de compatibilidade aprovados; todos foram atendidos. O resultado não certifica
+ausência de todas as falhas da aplicação: a auditoria consulta os avisos conhecidos
+na data. Os ataques dos avisos não foram reproduzidos, e os 103 testes opcionais
+não foram habilitados em conjunto.
+
+Checkpoint da validação anterior à publicação: base
+`a7f6ea4e41c8d35699dd29855a9d037724907117`, branch
+`codex/block-5-validation`; correção local validada, com commit/push autorizados
+pelo usuário. Para retomar, consultar o histórico Git e comparar `HEAD` com a
+branch remota para confirmar a publicação. A B2-11 não foi iniciada.
+
 ## Regras obrigatórias
 
 1. Nunca colocar valores reais em `.env.example` ou `secrets.example.h`.

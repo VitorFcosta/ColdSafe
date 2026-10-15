@@ -1,0 +1,207 @@
+{
+  "scope": "Resolve the three known urllib3 vulnerabilities reported after the B2-07 through B2-10 push; no new AIoT task.",
+  "local_date": "2026-10-14",
+  "timezone": "America/Sao_Paulo",
+  "status": "local_fix_complete",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "a7f6ea4e41c8d35699dd29855a9d037724907117",
+    "initial_worktree": "clean",
+    "snapshot_phase": "Validation before commit and push; publication outcome belongs to Git history and remote branch comparison.",
+    "commit_and_push_authorized_by_user": true
+  },
+  "dependency": {
+    "name": "urllib3",
+    "before": "2.7.0",
+    "after": "2.8.0",
+    "new_library_dependencies": [],
+    "reason": "Explicit manifest pin and both lock updates preserve the tested security fix used by influxdb-client.",
+    "compatibility": "influxdb-client 1.50.0 declares urllib3>=1.26.0 without an upper bound; real InfluxDB integration passed."
+  },
+  "sources": [
+    "https://github.com/urllib3/urllib3/security/advisories/GHSA-vxq7-64xx-v4gw",
+    "https://github.com/urllib3/urllib3/security/advisories/GHSA-gh4c-6fx4-qh6g",
+    "https://github.com/urllib3/urllib3/security/advisories/GHSA-8988-9cw3-xx77",
+    "https://github.com/urllib3/urllib3/releases/tag/2.8.0",
+    "https://raw.githubusercontent.com/influxdata/influxdb-client-python/v1.50.0/setup.py"
+  ],
+  "changed": [
+    "backend/requirements.txt",
+    "backend/requirements.lock.txt",
+    "backend/requirements-dev.lock.txt",
+    "backend/tests/config/test_configuration_examples.py",
+    "docs/version-matrix.md",
+    "docs/configuration.md"
+  ],
+  "created": [
+    "docs/evidence/urllib3-security-fix.json"
+  ],
+  "sha256": {
+    "backend/requirements.txt": "0b7c0d7aaaed3723aa2d5ef4e63bc1f6f0c75937ee2693e03adba837ff0ecb67",
+    "backend/requirements.lock.txt": "2e2c76ead17eae339ba6ff2bdadcf6fa7aafe8c7571b3359ef2b34e94f3fc08a",
+    "backend/requirements-dev.lock.txt": "cc3f6ad8034c4e16252199c86ddf962c475f59d96dd79317969c63dc03c4127e",
+    "backend/tests/config/test_configuration_examples.py": "d94eade03166eb8b2ac53d687f3272f6a36848e2a5fcea27e100736a09fa344e",
+    "docs/version-matrix.md": "65b1cae609cccaa9b93ded7ca6ec078898752b639c1daffd02e8559abba56a8b",
+    "docs/configuration.md": "9d2c7d76967b5d9e3d4602cea1a06b33e8d9982596f828ad034ebb754a8f85de"
+  },
+  "resolution": {
+    "production_pins": 32,
+    "development_pins": 54,
+    "only_changed_package_version": "urllib3",
+    "frozen_resolution_matches_locks": true,
+    "commands": [
+      "uv pip compile --python /tmp/coldsafe-b204-venv/bin/python backend/requirements.txt --constraint backend/requirements.lock.txt --output-file /tmp/coldsafe-urllib3-production-resolved.txt --quiet",
+      "uv pip compile --python /tmp/coldsafe-b204-venv/bin/python backend/requirements-dev.txt --constraint backend/requirements-dev.lock.txt --output-file /tmp/coldsafe-urllib3-development-resolved.txt --quiet"
+    ]
+  },
+  "audits": {
+    "before": {
+      "packages": 54,
+      "vulnerabilities": [
+        {
+          "package": "urllib3",
+          "version": "2.7.0",
+          "id": "PYSEC-2026-4177",
+          "aliases": [
+            "CVE-2026-97689",
+            "GHSA-vxq7-64xx-v4gw"
+          ],
+          "fix_versions": [
+            "2.8.0"
+          ]
+        },
+        {
+          "package": "urllib3",
+          "version": "2.7.0",
+          "id": "PYSEC-2026-4176",
+          "aliases": [
+            "GHSA-gh4c-6fx4-qh6g",
+            "CVE-2026-97688"
+          ],
+          "fix_versions": [
+            "2.8.0"
+          ]
+        },
+        {
+          "package": "urllib3",
+          "version": "2.7.0",
+          "id": "PYSEC-2026-4175",
+          "aliases": [
+            "GHSA-8988-9cw3-xx77",
+            "CVE-2026-97687"
+          ],
+          "fix_versions": [
+            "2.8.0"
+          ]
+        }
+      ]
+    },
+    "production_after": {
+      "packages": 32,
+      "vulnerabilities": []
+    },
+    "development_after": {
+      "packages": 54,
+      "vulnerabilities": []
+    },
+    "commands": [
+      "uvx --from pip-audit pip-audit -r backend/requirements.lock.txt -r backend/requirements-dev.lock.txt --no-deps --disable-pip --format json",
+      "uvx --from pip-audit pip-audit -r backend/requirements.lock.txt --no-deps --disable-pip --format json",
+      "uvx --from pip-audit pip-audit -r backend/requirements-dev.lock.txt --no-deps --disable-pip --format json"
+    ],
+    "exit_codes": {
+      "before": 1,
+      "production_after": 0,
+      "development_after": 0
+    },
+    "limitation": "Snapshot of known advisories; locks retain existing version pins without hashes. This does not certify all application security."
+  },
+  "tests": {
+    "environment": "Fresh /tmp/coldsafe-urllib3-venv, Python 3.13.15, synced from development lock; uv pip check passed.",
+    "full_suite_command": "/tmp/coldsafe-urllib3-venv/bin/python -m pytest backend/tests -q --tb=short",
+    "initial": {
+      "passed": 449,
+      "skipped": 103,
+      "failed": 1,
+      "warnings": 2,
+      "seconds": 172.15
+    },
+    "preexisting_failure": {
+      "test": "test_environment_example_contains_exactly_the_planned_keys",
+      "old_version_reproduction": "One failure with urllib3 2.7.0, five deselected; 0.02 seconds.",
+      "cause": "Expected .env.example keys predated 16 RabbitMQ/simulator/gateway fields already in the committed template.",
+      "fix": "Add those exact expected keys, retaining exact set equality; require the 13 associated passwords plus POSTGRES_PASSWORD to remain empty.",
+      "template_modified": false
+    },
+    "final": {
+      "passed": 450,
+      "skipped": 103,
+      "failed": 0,
+      "warnings": 2,
+      "seconds": 34.9,
+      "coverage_percent_with_branches": 80.64,
+      "influx_repository_modules_coverage_percent": 100
+    },
+    "warnings": [
+      "Existing Starlette deprecation about httpx test client.",
+      "Existing AnyIO deprecation about BlockingPortal alias."
+    ],
+    "real_docker_integration": {
+      "command": "COLDSAFE_PROXY_INTEGRATION=1 /tmp/coldsafe-urllib3-venv/bin/python -m pytest backend/tests/infra/test_proxy_integration.py -q --no-cov -o addopts='' --tb=short",
+      "passed": 2,
+      "seconds": 66.14,
+      "covered": [
+        "static SPA, health, docs, OpenAPI via frontend proxy",
+        "account, login, private environment/device API",
+        "REST, ticket, WebSocket",
+        "MQTT to InfluxDB write and history read",
+        "second start preserves data, JWT and secrets"
+      ],
+      "isolation": "Disposable coldsafe-b208 project, separate volumes, generated temporary credentials and restricted InfluxDB token.",
+      "cleanup": "No disposable project containers or volumes remained."
+    }
+  },
+  "runtime": {
+    "build_command": "docker compose build backend",
+    "recreate_command": "docker compose up -d --no-deps --wait --wait-timeout 60 backend",
+    "exit_codes": [
+      0,
+      0
+    ],
+    "backend_urllib3": "2.8.0",
+    "backend_health": "healthy",
+    "other_five_container_ids_and_start_times_unchanged": true,
+    "mounts_preserved": true,
+    "mount_comparison": "Compared after normalization by destination because Docker mount enumeration order is not stable.",
+    "configuration_and_credentials_unchanged": true,
+    "http_via_frontend": {
+      "/health/ready": 200,
+      "/docs": 200,
+      "/openapi.json": 200
+    },
+    "local_venv": {
+      "command": "uv pip install --python .venv/bin/python --no-deps urllib3==2.8.0",
+      "only_package_changed": "urllib3",
+      "pip_check": "Compatible, 50 packages checked."
+    }
+  },
+  "review": {
+    "agent": "/root/review_urllib3_update",
+    "type": "static read-only review",
+    "result": "No blocking issues in dependency pins or exact configuration test update; real Influx compatibility test requested and completed by primary agent.",
+    "independent_test_execution": false
+  },
+  "acceptance": {
+    "corrected_version_in_manifest_and_both_locks": true,
+    "three_original_advisories_removed_in_current_audits": true,
+    "dependency_resolution_and_real_influx_integration_pass": true,
+    "local_venv_and_running_backend_updated": true
+  },
+  "limitations": [
+    "103 optional integration tests skipped in the default full suite; proxy integration separately enabled and passed.",
+    "Did not reproduce malicious responses or HTTPS proxy exploits.",
+    "Frontend unit/Playwright tests and firmware build not rerun; their source was not changed."
+  ],
+  "pending": [],
+  "resume_checkpoint": "Validation completed on codex/block-5-validation, based on a7f6ea4e41c8d35699dd29855a9d037724907117. Commit and push authorized by user. Consult Git history and compare HEAD with the remote branch to confirm publication; this evidence records the preceding validation. No B2-11 work started."
+}
