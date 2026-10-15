@@ -2,8 +2,8 @@
 
 Produtor MQTT v3 independente do backend v1/v2. Publica seis medições por leitura,
 com IDs/unidades do [contrato](../contracts/aiot.md). O perfil Compose `simulator`
-é opcional: o dashboard atual ainda não recebe v3. Gateway, gravador e entrega
-pertencem às tarefas posteriores; RabbitMQ não é usado diretamente pelo simulador.
+é opcional: o dashboard atual ainda não recebe v3. O [gateway B2-11](../gateway/README.md)
+liga MQTT ao RabbitMQ; gravador e entrega continuam posteriores. O simulador não usa AMQP diretamente.
 
 ## Cadastro e execução
 
@@ -17,7 +17,7 @@ Para uso com o catálogo da aplicação, cadastre `sim-lab-01` em um ambiente pr
 pela API/tela existente. Preencha `device_record_id` e `environment_id` com os IDs
 retornados pelo cadastro. Registre equipamento/sensores/atuadores no arquivo local;
 essas entidades ainda não têm tabelas/API no produto. O simulador não consulta
-PostgreSQL nem comprova propriedade: o gateway B2-11 deverá verificar o vínculo
+PostgreSQL nem comprova propriedade: o gateway B2-11 verifica o vínculo
 confiável antes de aceitar telemetria na aplicação. Não use UUIDs de outro ambiente.
 
 1. Execute `python3 scripts/generate-secrets.py`: acrescenta duas senhas ausentes,
@@ -121,8 +121,8 @@ O simulador assina também `coldsafe/v3/devices/sim-lab-01/commands` e publica
 para validar o resultado. O operador da simulação e o backend v1/v2 não ganham
 essas permissões. `MQTT_GATEWAY_PASSWORD` é uma senha própria, diferente da
 senha AMQP `RABBITMQ_GATEWAY_PASSWORD`, gerada pelo mesmo script idempotente.
-A conta só é criada quando preenchida; o serviço gateway será implementado na
-B2-11. Esta tarefa não cria API nem comprova autorização por usuário/proprietário.
+A conta só é criada quando preenchida; o serviço gateway é implementado na
+B2-11. Esta borda não cria API nem comprova autorização por usuário/proprietário.
 
 Os comandos seguem o schema v3 existente: `desired_state` booleano explícito,
 `led/manual` ou `buzzer/automatic`. Dispositivo, registro e ambiente devem
@@ -155,7 +155,8 @@ atual; gateway precisa tratar duplicatas e verificar o horário confiável de ch
 Cache mantém no máximo **256 comandos aceitos por processo**, sem expulsar IDs
 antigos: capacidade esgotada recusa novos com `ACTUATOR_FAILURE`. Estado e cache
 não sobrevivem a restart. Antes de escalar/usar em produção, persistir ambos e
-implementar deduplicação/estado duráveis no gateway/serviço de comandos. Restart
+completar estado durável no serviço de comandos. Gateway B2-11 já conserva
+deduplicação/transporte em SQLite; isso não persiste o estado físico do simulador. Restart
 reinicia LED/buzzer em false e desgaste. Há limite explícito, sem promessa de
 atuação exatamente uma vez entre falhas de processo.
 

@@ -2,8 +2,9 @@
 
 O Compose prepara o broker interno `rabbitmq:5672`, vhost `coldsafe`, com
 RabbitMQ `4.3.6-management-alpine`. Não publica AMQP nem management no host.
-O backend v1/v2 continua no MQTT; consumidores/produtores de negócio v3 serão
-implementados nos cartões seguintes. Estas filas prontas não provam esses serviços.
+O backend v1/v2 continua no MQTT. O [gateway B2-11](../../gateway/README.md) já
+consome comandos e produz telemetria/ACK/erros; demais serviços v3 são posteriores.
+Estas filas prontas não provam os consumidores de negócio.
 
 ## Preparação e segredos
 

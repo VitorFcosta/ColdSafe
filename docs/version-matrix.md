@@ -11,7 +11,8 @@ fonte exata; esta tabela facilita a conferência no computador da apresentação
 | Transporte HTTP do InfluxDB | urllib3 `2.8.0`; correção das três vulnerabilidades identificadas em `2.7.0` em 14/10/2026 | `backend/requirements.txt`, locks de produção/desenvolvimento; [evidência](evidence/urllib3-security-fix.json) |
 | Autenticação B2-06 | PyJWT `2.15.1`, bcrypt `5.0.0`; pwdlib com extras Argon2/bcrypt | `backend/requirements.txt`, locks de produção/desenvolvimento |
 | Testes Python | pytest `9.1.1`, pytest-cov `7.1.0`, HTTPX `0.28.1`, jsonschema `4.26.0` | `backend/requirements-dev.txt`, `backend/requirements-dev.lock.txt` |
-| Transporte AMQP B2-07 | RabbitMQ `4.3.6-management-alpine`; Pika `1.4.4` somente nos testes | `compose.yaml`, `infra/rabbitmq/`, manifesto/lock dev |
+| Transporte AMQP B2-07/11 | RabbitMQ `4.3.6-management-alpine`; Pika `1.4.4` nos testes e no gateway | `compose.yaml`, `infra/rabbitmq/`, manifesto/lock dev, `gateway/requirements.txt` |
+| Gateway B2-11 | Python `3.13.15-slim`, Pika `1.4.4`, psycopg/binary `3.3.6`, paho-mqtt `2.1.0`, jsonschema `4.26.0`; SQLite da biblioteca padrão | `gateway/Dockerfile`, `gateway/requirements.txt`, `simulator/requirements.txt` |
 | Simulador B2-09 | Python `3.13.15-slim`, paho-mqtt `2.1.0`, jsonschema `4.26.0`; quatro transitivas nas versões existentes do lock dev | `simulator/Dockerfile`, `simulator/requirements.txt` |
 | Frontend estático B2-08 | Nginx unprivileged `1.31.6`, base `1.31-alpine3.24` fixada pelo digest `sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434` | `frontend/Dockerfile`, `frontend/nginx.conf` |
 | Frontend | Vue `3.5.42`, Vue Router `5.3.0`, Vite `8.2.2`, TypeScript `6.0.3`, Chart.js `4.5.1`, Playwright `1.63.0`, Vitest `4.1.11` | `frontend/package.json`, `frontend/package-lock.json` |

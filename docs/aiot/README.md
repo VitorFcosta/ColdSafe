@@ -4,20 +4,23 @@
 
 O código continua na base v1/v2 descrita no [README](../../README.md).
 O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
-O simulador MQTT v3 está implementado; gateway e consumidores de negócio ainda
-não existem.
+O simulador MQTT v3 e gateway MQTT/AMQP estão implementados; consumidores de
+negócio ainda não existem.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-10](tasks/B2-10.md): LED/manual altera luminosidade,
-buzzer/automatic altera estado e o simulador publica ACK v3 correlacionado.
-Comandos explícitos têm validação de escopo/atuador/prazo, repetição idempotente
-e rejeição de expirados. MQTT real comprovou atuação, ACK, ACLs e ausência de
-confirmação com dispositivo parado. Estado/cache da borda ainda são em memória;
-não há máquina durável de status/timeout nem autorização HTTP nova.
-A B2-09 conserva seis sensores/desgaste e cadastro local; a B2-08 conserva
-frontend estático/proxy. Gateway, vínculos PostgreSQL e entrega Web v3 continuam
-nas tarefas posteriores. Não há outra tarefa autorizada em execução.
-O próximo cartão na sequência é [B2-11](tasks/B2-11.md); não iniciá-lo automaticamente.
+A última entrega foi [B2-11](tasks/B2-11.md): gateway valida catálogo/escopo
+PostgreSQL e transporta telemetria/ACK MQTT → RabbitMQ e comandos no sentido
+inverso. Diário SQLite privado preserva primeiro aceite, duplicatas, saídas e
+erros entre reinícios; confirmações e retry/DLQ foram exercitados nos dois brokers.
+Integração final: 11 casos reais aprovados, incluindo revogação do dispositivo,
+queda dos brokers e ausência de ACK inventado com simulador parado.
+Operação e limite aproximado de 64 MiB sem expurgo estão no [gateway](../../gateway/README.md).
+Sensores/atuadores/equipamento continuam no catálogo privado de comissionamento;
+dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache do
+simulador ainda são em memória. Não há máquina durável de status/timeout, API
+HTTP v3, gravador ou entrega Web v3. A B2-09 conserva sensores/desgaste; B2-08,
+frontend estático/proxy. Não há outra tarefa autorizada em execução.
+O próximo cartão na sequência é [B2-12](tasks/B2-12.md); não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final
 com todos os serviços de negócio continua pertencendo à B2-33.

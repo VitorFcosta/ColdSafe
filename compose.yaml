@@ -174,6 +174,52 @@ services:
     mem_limit: 64m
     cpus: 0.25
 
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    profiles: ["aiot"]
+    restart: unless-stopped
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_GATEWAY_PASSWORD: "${MQTT_GATEWAY_PASSWORD:-}"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_GATEWAY_PASSWORD: "${RABBITMQ_GATEWAY_PASSWORD}"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: "${POSTGRES_DB:-coldsafe}"
+      POSTGRES_USER: "${POSTGRES_USER:-coldsafe}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      GATEWAY_OWNER_USER_ID: "${GATEWAY_OWNER_USER_ID:-}"
+    volumes:
+      - type: bind
+        source: "${SIMULATOR_CATALOG_DIR:-./simulator/local}"
+        target: /catalog
+        read_only: true
+        bind:
+          create_host_path: false
+      - "gateway-state:/state"
+    networks:
+      - coldsafe-internal
+    user: "65532:65532"
+    read_only: true
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 128m
+    cpus: 0.25
+
   influxdb:
     image: influxdb:2.7.12-alpine
     restart: unless-stopped
@@ -308,6 +354,7 @@ networks:
     internal: false
 
 volumes:
+  gateway-state:
   rabbitmq-definitions:
   rabbitmq-data:
   mosquitto-auth:

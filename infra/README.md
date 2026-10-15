@@ -15,6 +15,11 @@ montado em leitura e controles operacionais separados dos comandos de atuadores.
 Veja [`simulator/README.md`](../simulator/README.md). A aplicação v1/v2 ainda não
 consome essas leituras; a entrega não comprova integração MQTT→RabbitMQ→Web.
 
+A B2-11 acrescenta o perfil `aiot`, gateway MQTT/AMQP bidirecional com diário
+SQLite no volume privado `gateway-state`, validação PostgreSQL de propriedade e
+deduplicação entre reinícios. Veja [`gateway/README.md`](../gateway/README.md).
+O dashboard/gravador v3 continuam posteriores; a API v1/v2 conserva seu transporte.
+
 O procedimento canônico para preparar outro computador, criar o token restrito
 do InfluxDB, subir os serviços, validar o sistema e diagnosticar falhas está em
 [`../docs/runbook.md`](../docs/runbook.md).

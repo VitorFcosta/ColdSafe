@@ -33,6 +33,7 @@ def test_compose_contains_the_relational_database():
         "mosquitto-init",
         "mosquitto",
         "simulator",
+        "gateway",
         "influxdb",
         "postgres",
         "backend",

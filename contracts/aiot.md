@@ -1,6 +1,6 @@
 # Contrato AIoT v3 — B2-04
 
-**Estado:** contrato definido em 12/10/2026 e revalidado em 13/10/2026; simulador MQTT v3 implementado na B2-09; gateway e consumidores de negócio v3
+**Estado:** contrato definido em 12/10/2026 e revalidado em 13/10/2026; simulador MQTT v3 implementado na B2-09/10 e gateway MQTT/AMQP na B2-11; consumidores de negócio v3
 ainda não implementados. A aplicação continua v1/v2. Este documento fecha as fronteiras
 do plano aprovado; não comprova integração completa, IA ou 3D. Evidências por tarefa ficam nos cartões.
 
@@ -22,6 +22,8 @@ minúsculas. `device_id` é a identidade MQTT existente, até 64 caracteres
 `A–Z a–z 0–9 . _ -`; não é o UUID do dispositivo. Exemplo válido: `esp32.lab-01`.
 O cadastro deve vincular dispositivo → ambiente privado → proprietário e
 equipamento → sensores/atuadores; o gateway verifica todos esses vínculos.
+Na B2-11, os primeiros vêm do PostgreSQL; equipamento/sensores/atuadores são
+conferidos no catálogo privado de comissionamento, sem tabelas/API dessas entidades.
 IDs enviados pelo equipamento nunca são autoridade de propriedade.
 
 As seis funções são chaves fixas em `data.measurements`; cada valor contém
@@ -104,13 +106,13 @@ payload; só o gateway publica comandos no fluxo v3.
 Simulador B2-09: implementação e cadastro local de comissionamento em
 [`simulator/README.md`](../simulator/README.md). A ACL provisiona `sim-lab-01`
 com credencial própria para telemetria/ACK e leitura de comandos implementados
-na B2-10; gateway e consumidores continuam nas tarefas posteriores. Iniciar/parar **a simulação** e injetar falha usam o tópico
+na B2-10; o [gateway B2-11](../gateway/README.md) liga MQTT ao AMQP, e consumidores de negócio continuam posteriores. Iniciar/parar **a simulação** e injetar falha usam o tópico
 operacional separado `coldsafe/simulator/devices/sim-lab-01/control`, fora do
 envelope v3: somente a credencial confiável `coldsafe-simulator-operator` publica.
 Formato fechado e prazo de 30 s estão no README do simulador. Não é comando
 manual do ventilador, não entra em AMQP e não substitui autorização da API.
-O cadastro local valida IDs/funções; vínculo PostgreSQL/proprietário ainda deverá
-ser conferido pelo gateway, nunca inferido de IDs recebidos.
+O cadastro local valida IDs/funções; o gateway confere dispositivo ativo, ambiente
+e proprietário esperado no PostgreSQL, sem inferir propriedade de IDs recebidos.
 
 RabbitMQ: exchange topic durável `coldsafe.events`, mensagens persistentes,
 confirmação de publicação, ACK manual após efeito durável/idempotente.
@@ -131,7 +133,7 @@ Gravação persiste leituras no InfluxDB; metadados, comandos, alertas, auditori
 jobs e registro de modelos ficam no PostgreSQL; datasets ficam separados.
 Nomes físicos, bindings e credenciais foram implementados na B2-07;
 [infra RabbitMQ](../infra/rabbitmq/README.md) descreve a topologia executável.
-Produtores/consumidores de negócio v3 continuam planejados. Para separar geração
+Gateway já produz telemetria/ACK e consome comandos; demais produtores/consumidores v3 continuam planejados. Para separar geração
 de treino sem alterar a routing key, o publicador de `job_requested` copia
 `data.job_type` para o header AMQP `job_type`; o consumidor exige igualdade.
 Esse header é metadado de transporte, fora do envelope JSON.
@@ -222,12 +224,13 @@ A B2-10 implementa a borda no [simulador](../simulator/README.md): LED/manual
 altera luminosidade, buzzer/automatic altera estado, comandos explícitos validam
 cadastro local/prazo/identidades e geram ACK por MQTT. Só `coldsafe-gateway`
 publica comandos; `sim-lab-01` publica ACK. A credencial MQTT do gateway é
-separada da AMQP e não significa que o serviço B2-11 já existe.
+separada da AMQP; a B2-11 implementa a ponte em serviço próprio.
 Duplicata idêntica no prazo reutiliza o ACK sem reaplicar; expirado recebe
 rejeição. JSON/IDs/escopo sem identidade segura não geram ACK inventado.
 Cache e estados são em memória, limitados a 256 comandos por processo; restart
-reinicia ambos. Persistência de status/timeout/deduplicação, autorização HTTP e
-validação de propriedade continuam nos futuros gateway/API/consumidores.
+reinicia ambos. Gateway B2-11 mantém deduplicação/saídas/erros no diário SQLite e
+valida propriedade PostgreSQL. Status/timeout durável, autorização HTTP v3 e
+consumidores de negócio continuam posteriores; cache do simulador segue em memória.
 
 ## Jobs e ativação de modelos
 

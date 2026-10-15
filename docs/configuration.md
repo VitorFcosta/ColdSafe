@@ -79,13 +79,17 @@ Para habilitar o simulador, forneça a senha do dispositivo e um `catalog.json`
 válido em `SIMULATOR_CATALOG_DIR` (padrão `simulator/local`, fora do Git/build).
 O arquivo é cadastro local de borda; use IDs reais de ambiente/dispositivo do
 PostgreSQL quando integrar ao produto. Equipamento/sensores/atuadores ainda
-são registrados localmente, sem API/tabelas. A futura validação do gateway não
-pode confiar na propriedade apenas por esses IDs.
+são registrados localmente, sem API/tabelas. O gateway B2-11 cruza dispositivo
+ativo, ambiente e proprietário esperado no PostgreSQL; não confia só nesses IDs.
 A B2-10 usa também `MQTT_GATEWAY_PASSWORD` para a conta `coldsafe-gateway`,
 com publicação apenas dos comandos v3 do simulador e leitura de seus ACKs e
 telemetria. O gerador cria a senha quando ausente, sem rotacionar valores.
-É uma credencial distinta de `RABBITMQ_GATEWAY_PASSWORD`; o serviço de tradução
-MQTT/AMQP pertence à B2-11. Campos vazios não provisionam a nova conta.
+É uma credencial distinta de `RABBITMQ_GATEWAY_PASSWORD`. O perfil `aiot` inicia o
+serviço da B2-11 e exige `GATEWAY_OWNER_USER_ID`, UUID do dono cadastrado no PostgreSQL,
+além das senhas dos dois brokers e do mesmo catálogo privado. Seu diário persistente
+fica no volume `gateway-state`; não o apague em reinícios. Operação, teste isolado
+e limite do diário estão em [`gateway/README.md`](../gateway/README.md).
+Campos MQTT vazios não provisionam a conta nem habilitam o gateway.
 Preparação, permissões, ritmo de simulação e comandos do operador estão em
 [`simulator/README.md`](../simulator/README.md). Nenhum segredo pessoal foi
 alterado na execução B2-09; integração usa credenciais descartáveis.

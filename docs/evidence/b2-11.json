@@ -1,0 +1,208 @@
+{
+  "task": "B2-11",
+  "status": "Concluída",
+  "recorded_at": "2026-10-14T21:21:53.206914-03:00",
+  "repository": "/Users/vitorhugofernandescosta/Documents/ColdSafe",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "2cfaeb85f66f320bfc1953b428b0337959087073",
+    "initial_state": "clean",
+    "final_state": "uncommitted working tree; no staged, commit, push or branch change"
+  },
+  "scope": "MQTT v3 to AMQP telemetry/ACK and AMQP to MQTT commands, durable journal, scope/catalog validation, confirms, recovery, bounded command retries, private originals and sanitized errors",
+  "dependencies": {
+    "new_to_project": [],
+    "new_production_usage": [
+      "pika==1.4.4 (previously dev only)"
+    ],
+    "reused": [
+      "python:3.13.15-slim",
+      "psycopg[binary]==3.3.6",
+      "paho-mqtt==2.1.0",
+      "jsonschema==4.26.0",
+      "typing_extensions==4.16.0"
+    ],
+    "stdlib": [
+      "sqlite3"
+    ]
+  },
+  "tests": [
+    {
+      "stage": "RED",
+      "command": "python -m pytest backend/tests/infra/test_gateway.py --no-cov -o addopts= -q",
+      "result": "collection failed: gateway module did not exist"
+    },
+    {
+      "stage": "unit initial",
+      "result": "33 passed, 1 test fixture failed (Mock context manager); fixed with MagicMock"
+    },
+    {
+      "stage": "unit/runtime first",
+      "result": "61 passed, 92.78% gateway coverage; SQLite test connection warning corrected with closing"
+    },
+    {
+      "stage": "unit/runtime second",
+      "result": "62 passed, 92.93% gateway coverage"
+    },
+    {
+      "stage": "final regression",
+      "command": "python -m pytest backend/tests/infra backend/tests/contract --cov=gateway --cov-branch --cov-fail-under=80 -o addopts= -q",
+      "exit_code": 0,
+      "passed": 271,
+      "skipped": 61,
+      "seconds": 16.63,
+      "coverage_scope": "gateway, including branches",
+      "coverage_percent": 93.02,
+      "skips": "opt-in infrastructure integrations not enabled in this command"
+    },
+    {
+      "stage": "integration initial",
+      "command": "COLDSAFE_GATEWAY_INTEGRATION=1 python -m pytest backend/tests/infra/test_gateway_integration.py --no-cov -o addopts= -q",
+      "exit_code": 0,
+      "passed": 8,
+      "seconds": 74.0
+    },
+    {
+      "stage": "integration expanded intermediate",
+      "passed": 10,
+      "failed": 1,
+      "seconds": 94.21,
+      "failure": "first command ACK after simulator start without MQTT readiness; test now waits for new telemetry and same event delivered to RabbitMQ"
+    },
+    {
+      "stage": "integration final",
+      "command": "COLDSAFE_GATEWAY_INTEGRATION=1 python -m pytest backend/tests/infra/test_gateway_integration.py --no-cov -o addopts= -q",
+      "exit_code": 0,
+      "passed": 11,
+      "seconds": 71.62,
+      "project": "coldsafe-b211-0b3783ff",
+      "cases": [
+        "LED round trip and telemetry effect",
+        "buzzer round trip and telemetry effect",
+        "duplicate input received_at stable across gateway restart",
+        "invalid MQTT original preserved plus sanitized processing_error",
+        "invalid AMQP original/properties preserved in DLQ",
+        "RabbitMQ unavailable journal spool and drain",
+        "Mosquitto restart restores round trip",
+        "stopped simulator does not invent ACK during 1.5s observation",
+        "PostgreSQL inactive device rejected and restored device accepted",
+        "duplicate AMQP command not republished or reapplied",
+        "MQTT unavailable exhausts 3 retries and preserves original in DLQ"
+      ]
+    },
+    {
+      "stage": "compose",
+      "commands": [
+        "docker compose --env-file <temporary> config --quiet",
+        "docker compose --env-file <temporary> --profile aiot --profile simulator config --quiet"
+      ],
+      "exit_code": 0,
+      "note": "generator intentionally leaves INFLUXDB_TOKEN empty; initial config rejected it, then fictional value used in temporary file only"
+    },
+    {
+      "stage": "static",
+      "commands": [
+        "python -m compileall -q gateway backend/tests/infra/test_gateway.py backend/tests/infra/test_gateway_runtime.py backend/tests/infra/test_gateway_integration.py",
+        "git diff --check",
+        "local Markdown links and whitespace validation including untracked files"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "versions": {
+    "python": "3.13.15",
+    "pytest": "9.1.1",
+    "docker": "29.3.0",
+    "pika": "1.4.4",
+    "mosquitto": "2.0.22",
+    "rabbitmq": "4.3.6-management-alpine",
+    "postgresql": "17.11-alpine3.24"
+  },
+  "review": {
+    "independent": "security review, read-only",
+    "fixes": [
+      "cross-table event_id collision rejected",
+      "late identical already-delivered duplicate recognized without republication",
+      "AMQP metadata validated before command identity persisted",
+      "delivery-count defensive parsing"
+    ],
+    "reviewer_tests": "34 passed; command exit 1 due default coverage target backend/app; not counted as gateway coverage"
+  },
+  "environment": {
+    "personal_env_read_or_modified": false,
+    "personal_venv_modified": false,
+    "test_venv": "/Users/vitorhugofernandescosta/Documents/Codex/2026-10-14/vamos-executar-a-tarefa-a-ultima/work/venv",
+    "dependencies_installed_from": "backend/requirements-dev.lock.txt (54 packages)",
+    "personal_containers": "six remained Up/healthy",
+    "test_containers_or_volumes_remaining": false
+  },
+  "limitations": [
+    "only sim-lab-01 MQTT ACL",
+    "equipment/sensors/actuators authoritative commissioned private file, not PostgreSQL tables",
+    "PostgreSQL uses existing Compose credentials, per-connection read-only does not provision a restricted SQL role",
+    "real revocation test covers is_active, not owner transfer",
+    "SQLite retains identities and originals up to approx64MiB and may fill in hours at1Hz; no archival/expiry",
+    "MQTT session expiry24h and bounded queues",
+    "at-least-once with no distributed transaction; simulator state/dedup in memory",
+    "no HTTP v3 authorization or durable business status/timeout",
+    "no InfluxDB writer/rules/Web delivery v3",
+    "no full backend/frontend/E2E/Wokwi/hardware/soak/final capacity test"
+  ],
+  "pending_within_acceptance": [],
+  "checkpoint": "B2-11 complete in working tree. Read local card and Git to resume; B2-12 not started, await user choice.",
+  "files_created": [
+    "backend/tests/infra/test_gateway.py",
+    "backend/tests/infra/test_gateway_integration.py",
+    "backend/tests/infra/test_gateway_runtime.py",
+    "gateway/Dockerfile",
+    "gateway/README.md",
+    "gateway/bridge.py",
+    "gateway/requirements.txt",
+    "gateway/runtime.py",
+    "docs/evidence/b2-11.json"
+  ],
+  "files_modified": [
+    ".env.example",
+    "backend/tests/infra/test_compose_contract.py",
+    "compose.yaml",
+    "contracts/README.md",
+    "contracts/aiot.md",
+    "docs/aiot/README.md",
+    "docs/aiot/architecture.md",
+    "docs/aiot/tasks/B2-11.md",
+    "docs/aiot/tasks/README.md",
+    "docs/configuration.md",
+    "docs/version-matrix.md",
+    "infra/README.md",
+    "infra/rabbitmq/README.md",
+    "simulator/README.md"
+  ],
+  "sha256": {
+    ".env.example": "b664d99796b177591501f69c11848d8d1181290d7342e595776b552e6a50f2c9",
+    "backend/tests/infra/test_compose_contract.py": "fc94fb3fdc0bf3ebca059bed9ee6f910bd65be6aa8fe5c6778606fe4096f23c3",
+    "backend/tests/infra/test_gateway.py": "3e043f61eeb54d0a0d11cfe305f566fc4fbddc65fd43e3d699af6733067a35fa",
+    "backend/tests/infra/test_gateway_integration.py": "2e3ba150f2e3bb4a14f417d96c55597dc9c42ba69de93f86574a8a72bac42c72",
+    "backend/tests/infra/test_gateway_runtime.py": "f584f6d9e801a1de7d20674b85e768be65cc35d8b27c125e84fedb3cff0657c8",
+    "compose.yaml": "ee7c4a11e357161212633c511566e12c8b8e5013eed5a5f0dc0c02bbcb665924",
+    "contracts/README.md": "2779e5dadbe182db2b53b058842ace7e05077ddf1982b9048ba7503eea65e0bb",
+    "contracts/aiot.md": "41cd6d4554cffd75c220f38edb3a1ede1099c06032ecde4923e2496d4d6dc7d3",
+    "docs/aiot/README.md": "3c764a8175621df45c06019ba97debbaafacce4d757ad02b8166a2ffb9d938e5",
+    "docs/aiot/architecture.md": "757acc11b8c917048043106954a6980ada9714b2e35d62cfbe51215c8751ab36",
+    "docs/aiot/tasks/B2-11.md": "acbbd7a695fc94a4b0987054bbea8fadee27b2d75e523fd6fa8287c3ec185789",
+    "docs/aiot/tasks/README.md": "98094293cdb35d9c2ef243341ecd7f39f8927529722be37529ae09fa39c46cd4",
+    "docs/configuration.md": "7701e0fae5999ebf581a756dc1c145c3208b0e39e5a7d207f36b7a7e46501cee",
+    "docs/version-matrix.md": "66c3eec1afe2197764c8526a1b4d789a2b920b7b3abd533350cecacc395d0f9e",
+    "gateway/Dockerfile": "efce59b3a5224f13a745144d6890dbcb73f0f7b9eae817ec4a9c23dad09d9adc",
+    "gateway/README.md": "2afe9a78e21fedfefa5563047835e99c616f86fa3801b823e61ae966838a4c77",
+    "gateway/bridge.py": "e084e116b3343ce04906785a3da2ffd6aba2e758e104b61757ff98aaea924c29",
+    "gateway/requirements.txt": "820937533feb92eea77a6f64ce2a44a8e460219426c7ebcbf024fd53c96c9ab0",
+    "gateway/runtime.py": "9c04415fbfb1f55da3a0c03bfde55a6ab08e6cffed0db37f53514152a2620a51",
+    "infra/README.md": "e581506e0494e9abac9d71a5a45a815874bb6f81803c96ad3d46cef1f8915782",
+    "infra/rabbitmq/README.md": "2c3d34b155559beb55f4efcbf3b836723662f4198e6ff5374dcff33accfb7da5",
+    "simulator/README.md": "f9e68e077572509eeaa6672d38c47c958da2bb8525507f0fee99277d0fdfe444"
+  },
+  "primary_api_references": [
+    "https://eclipse.dev/paho/files/paho.mqtt.python/html/client.html",
+    "https://pika.readthedocs.io/en/stable/modules/adapters/blocking.html"
+  ]
+}

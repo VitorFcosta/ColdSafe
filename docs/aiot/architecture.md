@@ -2,6 +2,10 @@
 
 **Arquitetura alvo, ainda não implementada.** Setas mostram protocolos e responsabilidades. Mosquitto é a borda IoT; RabbitMQ distribui eventos internos; REST consulta os bancos pela API.
 
+B2-11 implementa o trecho simulador ↔ Mosquitto ↔ gateway ↔ RabbitMQ, incluindo
+diário privado e validação de propriedade PostgreSQL. Os demais fluxos abaixo
+continuam como alvo; o gravador, consumidores de negócio e API v3 são posteriores.
+
 ## Visão geral
 
 ```mermaid
