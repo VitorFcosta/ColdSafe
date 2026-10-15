@@ -1,15 +1,15 @@
 import type { ReadingStatus } from './monitoring-state'
+import { calculateReadingStatus, isRecord, isThresholds, isUtcTime, parseAiotEvent } from './aiot-api'
+import { aiotEnabled } from './monitoring-version'
+import type { MonitoringSummary } from './monitoring-summary'
 
 export const historyPeriods = ['15m', '1h', '6h', '24h'] as const
 
 export type HistoryPeriod = (typeof historyPeriods)[number]
 
-export type HistoricalReading = Readonly<{
-  temperature_c: number
-  humidity_percent: number
-  light_percent?: number | null
-  received_at: string
+export type HistoricalReading = NonNullable<MonitoringSummary['reading']> & Readonly<{
   status: ReadingStatus
+  persistence?: 'pending' | 'persisted'
 }>
 
 export type MonitoringHistory = Readonly<{
@@ -55,7 +55,7 @@ export async function fetchMonitoringHistory({
     limit: '300',
   })
   const response = await fetcher(
-    `${baseUrl.replace(/\/+$/, '')}/api/v1/readings?${query.toString()}`,
+    `${baseUrl.replace(/\/+$/, '')}/api/${aiotEnabled ? 'v3' : 'v1'}/readings?${query.toString()}`,
     { headers: { accept: 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) } },
   )
 
@@ -63,7 +63,8 @@ export async function fetchMonitoringHistory({
     throw new Error('Não foi possível consultar o histórico de temperatura.')
   }
 
-  const history = parseMonitoringHistory(await response.json())
+  const body: unknown = await response.json()
+  const history = aiotEnabled ? parseAiotHistory(body, deviceId) : parseMonitoringHistory(body)
   if (history === null) {
     throw new Error('A API retornou um histórico inválido.')
   }
@@ -110,8 +111,21 @@ function isHistoricalReading(value: unknown): value is HistoricalReading {
   )
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
+function parseAiotHistory(value: unknown, deviceId: string): MonitoringHistory | null {
+  if (!isRecord(value) || value.success !== true || !Array.isArray(value.data) || !isRecord(value.meta)) return null
+  const { meta, data } = value
+  if (meta.device_id !== deviceId || !isUtcTime(meta.start) || !isUtcTime(meta.end) ||
+    Date.parse(meta.start) > Date.parse(meta.end) || !isNonNegativeInteger(meta.count) || meta.count !== data.length ||
+    !isPositiveInteger(meta.limit) || meta.limit > 1000 || data.length > meta.limit || !isThresholds(meta.thresholds)) return null
+  const readings: HistoricalReading[] = []
+  for (const row of data) {
+    if (!isRecord(row) || (row.persistence !== 'pending' && row.persistence !== 'persisted')) return null
+    const event = parseAiotEvent(row.telemetry, deviceId)
+    if (event?.type !== 'telemetry' || Date.parse(event.received_at) < Date.parse(meta.start) || Date.parse(event.received_at) > Date.parse(meta.end)) return null
+    readings.push({ ...event.data.reading, status: calculateReadingStatus(event.data.reading.temperature_c, meta.thresholds), persistence: row.persistence })
+  }
+  readings.sort((a, b) => Date.parse(a.received_at) - Date.parse(b.received_at) || (a.event_id ?? '').localeCompare(b.event_id ?? ''))
+  return { deviceId, readings, start: meta.start, end: meta.end, limit: meta.limit }
 }
 
 function isReadingStatus(value: unknown): value is ReadingStatus {

@@ -73,11 +73,10 @@ class EventHub:
                 pass
 
 
-def install_events(app: FastAPI, hub: EventHub, auth: AuthService, catalog: CatalogService) -> None:
-    @app.post(
-        "/api/v1/auth/ws-ticket", response_model=WsTicketResponse, tags=["Auth"],
-        responses={code: {"model": ErrorResponse} for code in (401, 403, 404, 422)},
-    )
+def install_events(
+    app: FastAPI, hub: EventHub, auth: AuthService, catalog: CatalogService,
+    *, stream_path: str = "/api/v1/events", include_ticket: bool = True,
+) -> None:
     def ws_ticket(
         payload: WsTicketPayload,
         user_id: Annotated[UUID, Depends(auth.require_user)],
@@ -91,7 +90,14 @@ def install_events(app: FastAPI, hub: EventHub, auth: AuthService, catalog: Cata
         ticket, expires_at = auth.create_ws_ticket(credentials.credentials, UUID(str(device["id"])))
         return WsTicketResponse(data=WsTicketData(ticket=ticket, expires_at=expires_at))
 
-    @app.websocket("/api/v1/events")
+    if include_ticket:
+        app.add_api_route(
+            "/api/v1/auth/ws-ticket", ws_ticket, methods=["POST"],
+            response_model=WsTicketResponse, tags=["Auth"],
+            responses={code: {"model": ErrorResponse} for code in (401, 403, 404, 422)},
+        )
+
+    @app.websocket(stream_path)
     async def events(websocket: WebSocket) -> None:
         await websocket.accept()
         device_id = websocket.query_params.get("device_id", "")

@@ -1,0 +1,25 @@
+# Explicit opt-in for the API's v3 consumers; use together with compose.yaml.
+services:
+  frontend:
+    build:
+      args:
+        VITE_AIOT_ENABLED: "true"
+  backend:
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      AIOT_ENABLED: "true"
+      AIOT_CATALOG_PATH: /catalog/catalog.json
+      AIOT_OWNER_USER_ID: "${GATEWAY_OWNER_USER_ID:?Preencha o proprietario do catalogo AIoT}"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_COMMANDS_PASSWORD: "${RABBITMQ_COMMANDS_PASSWORD}"
+      RABBITMQ_DELIVERY_PASSWORD: "${RABBITMQ_DELIVERY_PASSWORD}"
+    volumes:
+      - type: bind
+        source: "${SIMULATOR_CATALOG_DIR:-./simulator/local}"
+        target: /catalog
+        read_only: true
+        bind:
+          create_host_path: false

@@ -667,4 +667,27 @@
   {"name": "led_ack_late_auditable", "schema": "bus_event", "payload": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000145", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": "2026-10-12T18:00:30.001Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}}, "routing_key": "v3.ack.00000000-0000-4000-8000-000000000001", "reference": "manual_led_command"},
   {"name": "led_ack_divergent_auditable", "schema": "bus_event", "payload": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000146", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": "2026-10-12T18:00:00.100Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": false, "reason": null}}, "routing_key": "v3.ack.00000000-0000-4000-8000-000000000001", "reference": "manual_led_command"},
   {"name": "led_status_confirmed_ack_at_deadline", "schema": "bus_event", "payload": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000154", "type": "command_status", "occurred_at": "2026-10-12T18:00:31Z", "received_at": "2026-10-12T18:00:31Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "desired_state": true, "status": "confirmed", "confirmed_state": true}}, "routing_key": "v3.command_status.00000000-0000-4000-8000-000000000001", "reference": "manual_led_command", "ack_reference": "led_ack_at_deadline"}
+,
+{
+  "name": "telemetry_persisted",
+  "schema": "bus_event",
+  "payload": {
+    "schema_version": 3,
+    "event_id": "00000000-0000-4000-8000-000000000199",
+    "type": "telemetry_persisted",
+    "occurred_at": "2026-10-12T18:00:02Z",
+    "received_at": "2026-10-12T18:00:02Z",
+    "device_id": "esp32.lab-01",
+    "device_record_id": "00000000-0000-4000-8000-000000000001",
+    "environment_id": "00000000-0000-4000-8000-000000000002",
+    "correlation_id": "00000000-0000-4000-8000-000000000100",
+    "data": {
+      "source_event_id": "00000000-0000-4000-8000-000000000100",
+      "equipment_id": "00000000-0000-4000-8000-000000000003",
+      "input_received_at": "2026-10-12T18:00:00.100Z"
+    }
+  },
+  "reference": "telemetry_received",
+  "routing_key": "v3.telemetry_persisted.00000000-0000-4000-8000-000000000001"
+}
 ]

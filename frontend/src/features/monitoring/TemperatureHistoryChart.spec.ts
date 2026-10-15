@@ -127,4 +127,38 @@ describe('TemperatureHistoryChart', () => {
     expect(wrapper.getComponent({ name: 'Line' }).props('data').datasets).toHaveLength(1)
     expect(wrapper.text()).toContain('Limites atuais indisponíveis')
   })
+
+  it('troca a grandeza no mesmo gráfico, tabela e recursos acessíveis sem aplicar limites ambientais', async () => {
+    const wrapper = mount(TemperatureHistoryChart, {
+      props: { ...chartProps, readings: [
+        { ...readings[0], vibration_rms_mm_s: 1.25, motor_current_a: 0.123 },
+        { ...readings[1], vibration_rms_mm_s: null, motor_current_a: 0 },
+      ] },
+    })
+    await wrapper.setProps({ metric: 'vibration_rms_mm_s' })
+    const chart = wrapper.getComponent({ name: 'Line' })
+    expect(chart.props('data').datasets).toHaveLength(1)
+    expect(chart.props('data').datasets[0].label).toBe('Vibração RMS (mm/s)')
+    expect(chart.props('options').scales.y.title.text).toBe('Vibração RMS (mm/s)')
+    expect(wrapper.get('[role="img"]').attributes('aria-label')).toContain('vibração RMS')
+    expect(wrapper.get('[role="region"]').attributes('aria-label')).toContain('vibração RMS')
+    expect(wrapper.get('thead').text()).toContain('Vibração RMS')
+    expect(wrapper.findAll('tbody tr')[0]?.findAll('td')[1]?.text()).toBe('1,25 mm/s')
+    expect(wrapper.findAll('tbody tr')[1]?.findAll('td')[1]?.text()).toBe('Indisponível')
+    expect(wrapper.text()).not.toContain('Linhas tracejadas')
+    expect(chart.props('options').plugins.tooltip.callbacks.label({ parsed: { y: 1.25 } })).toBe('Vibração RMS: 1,25 mm/s')
+    await wrapper.setProps({ metric: 'motor_current_a' })
+    expect(wrapper.findAll('tbody tr')[0]?.findAll('td')[1]?.text()).toBe('0,123 A')
+    expect(wrapper.findAll('tbody tr')[1]?.findAll('td')[1]?.text()).toBe('0 A')
+    await wrapper.setProps({ metric: 'temperature_c' })
+    expect(chart.props('data').datasets).toHaveLength(3)
+  })
+
+  it('explica o histórico legado sem desenhar uma linha artificial em zero', () => {
+    const wrapper = mount(TemperatureHistoryChart, { props: { ...chartProps, metric: 'motor_temperature_c' } })
+    expect(wrapper.text()).toContain('Temperatura do motor indisponível')
+    expect(wrapper.text()).toContain('histórico legado')
+    expect(wrapper.getComponent({ name: 'Line' }).props('data').datasets[0].data.every((point: { y: number | null }) => point.y === null)).toBe(true)
+    expect(wrapper.findAll('tbody tr').every((row) => row.findAll('td')[1]?.text() === 'Indisponível')).toBe(true)
+  })
 })

@@ -1,6 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { fetchAlerts } from './alerts-api'
+
+afterEach(() => { vi.unstubAllEnvs(); vi.resetModules() })
 
 const alert = {
   alert_id: 'alert-1', device_id: 'esp32-1', kind: 'temperature_high',
@@ -13,6 +15,17 @@ const options = {
 }
 
 describe('fetchAlerts', () => {
+  it('consulta alertas v3 somente quando habilitado e rejeita IDs inválidos', async () => {
+    vi.stubEnv('VITE_AIOT_ENABLED', 'true')
+    vi.resetModules()
+    const { fetchAlerts: fetchV3 } = await import('./alerts-api')
+    const body = { success: true, data: { alerts: [{ ...alert, alert_id: '00000000-0000-4000-8000-000000000001' }] }, meta: { device_id: 'esp32-1', count: 1 } }
+    const fetcher = vi.fn().mockImplementation(async () => new Response(JSON.stringify(body)))
+    await expect(fetchV3({ ...options, fetcher })).resolves.toHaveLength(1)
+    expect(fetcher.mock.calls[0]?.[0]).toContain('/api/v3/alerts?')
+    body.data.alerts[0]!.alert_id = 'invalid'
+    await expect(fetchV3({ ...options, fetcher })).rejects.toThrow('alertas inválidos')
+  })
   it('envia dispositivo, intervalo e sessão e valida o resultado', async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({
       success: true, data: { alerts: [alert] }, meta: { device_id: 'esp32-1', count: 1 },

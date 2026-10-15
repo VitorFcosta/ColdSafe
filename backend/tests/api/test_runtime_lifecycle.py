@@ -153,3 +153,29 @@ def test_notification_failure_does_not_abort_committed_command_or_alert(
     alerts.call_args.kwargs["on_transition"](
         "owned", uuid4(), "opened", datetime.now(UTC)
     )
+
+
+def test_v3_runtime_starts_consumer_and_closes_it(tmp_path):
+    from pathlib import Path
+    from threading import Event
+    configured = settings().model_copy(update={
+        'aiot_enabled': True, 'aiot_catalog_path': tmp_path / 'catalog.json',
+        'aiot_owner_user_id': uuid4(),
+    })
+    from pydantic import SecretStr
+    configured = configured.model_copy(update={
+        'rabbitmq_commands_password': SecretStr('private-commands'),
+        'rabbitmq_delivery_password': SecretStr('private-delivery'),
+    })
+    configured.aiot_catalog_path.write_text((Path(__file__).resolve().parents[3] / 'simulator/catalog.example.json').read_text())
+    with patch('backend.app.runtime.MqttSubscriber'), patch('backend.app.runtime.create_influx_repository'), \
+            patch('backend.app.runtime.initialize_schema'), patch('backend.app.runtime.postgres_is_ready', return_value=True), \
+            patch('backend.app.services.commands.CommandService.expire_pending'), \
+            patch('backend.app.amqp.consumer.ApiAmqpConsumer') as factory:
+        started = Event()
+        factory.return_value.run.side_effect = lambda stop: (started.set(), stop.wait(5))
+        application = build_runtime_app(configured)
+        with TestClient(application) as client:
+            assert started.wait(2)
+            assert '/api/v3/readings' in client.get('/openapi.json').json()['paths']
+        factory.return_value.close.assert_called_once()

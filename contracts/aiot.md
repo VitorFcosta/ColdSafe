@@ -1,7 +1,8 @@
 # Contrato AIoT v3 — B2-04
 
 **Estado:** contrato definido em 12/10/2026 e revalidado em 13/10/2026; simulador MQTT v3 implementado na B2-09/10, gateway MQTT/AMQP na B2-11 e gravador InfluxDB na B2-12;
-API e demais consumidores de negócio v3 ainda não implementados. A aplicação continua v1/v2. Este documento fecha as fronteiras
+API, regras de temperatura e entrega privada v3 implementadas na B2-13;
+dashboard e inferência continuam posteriores. O fluxo v1/v2 é preservado. Este documento fecha as fronteiras
 do plano aprovado; não comprova integração completa, IA ou 3D. Evidências por tarefa ficam nos cartões.
 
 Fonte estrutural: [aiot.schema.json](aiot.schema.json), JSON Schema Draft 2020-12,
@@ -106,7 +107,8 @@ payload; só o gateway publica comandos no fluxo v3.
 Simulador B2-09: implementação e cadastro local de comissionamento em
 [`simulator/README.md`](../simulator/README.md). A ACL provisiona `sim-lab-01`
 com credencial própria para telemetria/ACK e leitura de comandos implementados
-na B2-10; o [gateway B2-11](../gateway/README.md) liga MQTT ao AMQP, e consumidores de negócio continuam posteriores. Iniciar/parar **a simulação** e injetar falha usam o tópico
+na B2-10; o [gateway B2-11](../gateway/README.md) liga MQTT ao AMQP, e a API B2-13
+processa regras/entrega. Iniciar/parar **a simulação** e injetar falha usam o tópico
 operacional separado `coldsafe/simulator/devices/sim-lab-01/control`, fora do
 envelope v3: somente a credencial confiável `coldsafe-simulator-operator` publica.
 Formato fechado e prazo de 30 s estão no README do simulador. Não é comando
@@ -120,6 +122,7 @@ confirmação de publicação, ACK manual após efeito durável/idempotente.
 | Tipos | Routing key | Quem origina / responsabilidade |
 | --- | --- | --- |
 | `telemetry`, `ack` | `v3.{type}.{device_record_id}` | Gateway após validação; gravação/inferência/comandos recebem |
+| `telemetry_persisted` | `v3.telemetry_persisted.{device_record_id}` | Gravador após escrita; regras/entrega recebem prova da gravação |
 | `command` | `v3.command.{device_record_id}` | API/regra autorizada; gateway traduz para MQTT |
 | `command_status`, `alert`, `freshness` | `v3.{type}.{device_record_id}` | Serviço de comandos/regras/estado; entrega autorizada |
 | `prediction` | `v3.prediction.{device_record_id}` | Inferência; regras e entrega recebem |
@@ -135,7 +138,9 @@ Nomes físicos, bindings e credenciais foram implementados na B2-07;
 [infra RabbitMQ](../infra/rabbitmq/README.md) descreve a topologia executável.
 Gateway já produz telemetria/ACK e consome comandos; o [gravador B2-12](../writer/README.md)
 consome sua fila de telemetria e persiste seis sensores/estados no bucket `telemetry_live`,
-sem modificar o histórico legado. Demais produtores/consumidores v3 continuam planejados. Para separar geração
+sem modificar o histórico legado. A API B2-13 usa `commands`/`delivery`, com
+credenciais distintas; comando v3 sai somente por AMQP. Demais consumidores
+continuam planejados. Para separar geração
 de treino sem alterar a routing key, o publicador de `job_requested` copia
 `data.job_type` para o header AMQP `job_type`; o consumidor exige igualdade.
 Esse header é metadado de transporte, fora do envelope JSON.
@@ -147,7 +152,63 @@ REST recupera estado/histórico ao conectar e reconectar; WebSocket entrega
 eventos já processados, respeitando a ordenação/persistência necessária de cada
 consumidor. O stream v3 deverá ser separado ou negociado explicitamente; não
 enviar v3 no stream atual `/api/v1/events`, cujo cliente aceita v2.
-Endpoints e tipos Pydantic/TypeScript serão implementados junto dos consumidores.
+As rotas v3 da B2-13 estão abaixo; integração TypeScript pertence à B2-14.
+
+### Persistência e recuperação HTTP v3 — B2-13
+
+`telemetry_persisted.data` contém `source_event_id`, `equipment_id` e
+`input_received_at`, iguais à fonte gravada; escopo e correlação coincidem.
+Writer publica com confirmação após escrita síncrona e antes do ACK da fonte.
+Cada gravação/regravação concluída gera recibo com UUID próprio e horários reais;
+a telemetria conserva identidade e primeiro aceite. Recibos repetidos não geram
+novas leituras nem repetem regras.
+
+Fonte, recibo e previsão são guardados independentemente da ordem de chegada.
+WebSocket exige fonte persistida e vínculos validados. Regras deduplicadas,
+comandos, auditoria e outbox são confirmados numa transação PostgreSQL.
+Saídas próprias entregues correspondem ao envelope durável da outbox.
+Publicar comando no broker não comprova atuação: somente ACK válido confirma.
+
+| Rota | Comportamento |
+| --- | --- |
+| `GET /api/v3/monitoring/summary?device_id=...` | Estado processado da conta, inclusive com gravador atrasado |
+| `GET /api/v3/readings?device_id=...&period=1h&limit=300` | Histórico processado, mais recente primeiro, limite 1–1000 |
+| `GET /api/v3/alerts?device_id=...` | Intervalos de alertas privados, limite 1–1000 |
+| `GET /api/v3/commands/{command_id}` | Status durável do próprio comando, inclusive após reconexão |
+| `POST /api/v3/devices/{device_id}/led/commands` | ID MQTT; corpo estrito `{desired_state: boolean}`; operador/admin proprietário; retorna envelope `command_status` |
+| `WS /api/v3/events?device_id=...` | Envelopes v3 completos; ticket de `/api/v1/auth/ws-ticket` no primeiro frame |
+
+REST exige Bearer e retorna `{success:true,data:...,meta:{schema_version:3}}`.
+Resumo contém `environment`, `device` e `thresholds` consultados no PostgreSQL
+(inclusive sem telemetria), além de `telemetry`, `prediction`, `prediction_unavailable_reason`,
+`persistence`, `freshness`, `commands` e `alerts`. Antes da primeira leitura,
+telemetria/previsão/persistência são nulas e freshness é `no_data`.
+`persistence` passa de `pending` a `persisted` após recibo vinculado. A projeção
+durável PostgreSQL pode aparecer antes do ponto InfluxDB, sem depender da ordem
+das filas. `commands` traz o último status de LED/buzzer ou nulo; `alerts`, até
+100 últimos estados. Histórico contém telemetria, previsão original vinculada
+ou nula e persistência. Não consulta nem transforma o bucket legado.
+
+Extensão B2-14: histórico aceita `period=15m|1h|6h|24h` (padrão `1h`) ou par
+`start/end` com fuso explícito, normalizado para UTC. O par explícito prevalece;
+intervalo é `[start,end)`, filtrado no PostgreSQL antes de `LIMIT`. Metadados
+incluem `device_id`, `start`, `end`, `count`, `limit` e limites atuais `thresholds`.
+O frontend ordena os pontos cronologicamente; a classificação usa os limites
+atuais, sem alegar que eram os limites vigentes no passado. Alertas aceitam o
+mesmo par opcional e retornam intervalos que o intersectam, com abertura/fechamento
+reais (`data.alerts`), sem inferir datas do último envelope. IDs de comando são
+UUIDs; o caminho de solicitação LED continua usando a identidade MQTT.
+
+Previsão antiga não é promovida para a leitura mais nova. Se uma previsão válida
+envelhecer, resumo retorna `prediction=null` e motivo `stale_input`; histórico
+conserva o envelope original. Timeout/freshness continuam com broker indisponível.
+WS admite reentregas: deduplica últimos 1024 IDs em memória; cliente usa
+`event_id` e REST na reconexão. Não há replay durável do stream.
+O comissionamento atual usa um catálogo/equipamento e dono por runtime;
+o PostgreSQL revalida propriedade, inclusive antes de cada envio WS.
+Dependências antes da fonte ficam sem vínculo até sua chegada. Se a fonte
+revelar divergência, são excluídas da projeção/entrega e auditadas como
+`aiot_link_rejected`; o ACK antigo não é desfeito para encaminhá-las à DLQ.
 
 ## Telemetria, previsão e freshness
 
@@ -173,7 +234,9 @@ Apenas janelas passadas; nada de labels ou dados futuros como features.
 A interface correlaciona por `source_event_id` e escopo. Previsão atrasada pode
 ficar no histórico, mas não se torna previsão da leitura mais nova.
 Uma previsão não renova o horário da telemetria. Validar freshness também no
-consumidor; emitir `stale_input` quando a entrada já expirou.
+consumidor. Inferência produz `stale_input` para entrada vencida; entrega B2-13
+suprime previsão disponível envelhecida, informa `stale_input` no resumo REST
+e emite freshness, preservando o evento histórico.
 No relógio confiável do serviço, a previsão não pode preceder o aceite da entrada;
 `available` exige idade de entrada até 30 segundos, e `stale_input` exige mais de
 30 segundos. Alertas preditivos também verificam essa idade ao avaliar a previsão.
@@ -231,8 +294,8 @@ Duplicata idêntica no prazo reutiliza o ACK sem reaplicar; expirado recebe
 rejeição. JSON/IDs/escopo sem identidade segura não geram ACK inventado.
 Cache e estados são em memória, limitados a 256 comandos por processo; restart
 reinicia ambos. Gateway B2-11 mantém deduplicação/saídas/erros no diário SQLite e
-valida propriedade PostgreSQL. Status/timeout durável, autorização HTTP v3 e
-consumidores de negócio continuam posteriores; cache do simulador segue em memória.
+valida propriedade PostgreSQL. Status/timeout durável e autorização HTTP v3 são
+implementados na B2-13; cache do simulador segue em memória.
 
 ## Jobs e ativação de modelos
 

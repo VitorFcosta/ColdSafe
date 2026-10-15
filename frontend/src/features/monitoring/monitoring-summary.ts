@@ -1,4 +1,6 @@
 import type { ReadingStatus } from './monitoring-state'
+import { parseAiotSnapshot, isRecord as isAiotRecord, type MonitoringEquipment } from './aiot-api'
+import { aiotEnabled } from './monitoring-version'
 
 export type MonitoringSummary = Readonly<{
   environment: Readonly<{ id: string; name: string }>
@@ -7,8 +9,19 @@ export type MonitoringSummary = Readonly<{
     temperature_c: number
     humidity_percent: number
     light_percent?: number | null
+    vibration_rms_mm_s?: number | null
+    motor_current_a?: number | null
+    motor_temperature_c?: number | null
+    event_id?: string
+    device_record_id?: string
+    environment_id?: string
+    equipment_id?: string
+    occurred_at?: string
+    sensor_ids?: Readonly<Record<string, string>>
     received_at: string
   }> | null
+  equipment?: MonitoringEquipment
+  persistence?: 'pending' | 'persisted' | null
   status: ReadingStatus
   freshness: Readonly<{ is_stale: boolean; age_seconds: number }> | null
   thresholds: Readonly<{
@@ -43,7 +56,7 @@ export async function fetchMonitoringSummary({
 }: FetchMonitoringSummaryOptions): Promise<MonitoringSummary> {
   const query = deviceId ? `?${new URLSearchParams({ device_id: deviceId })}` : ''
   const response = await fetcher(
-    `${baseUrl.replace(/\/+$/, '')}/api/v1/monitoring/summary${query}`,
+    `${baseUrl.replace(/\/+$/, '')}/api/${aiotEnabled ? 'v3' : 'v1'}/monitoring/summary${query}`,
     { headers: { accept: 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) } },
   )
 
@@ -52,7 +65,9 @@ export async function fetchMonitoringSummary({
   }
 
   const body: unknown = await response.json()
-  const summary = parseMonitoringSummary(body)
+  const summary = aiotEnabled
+    ? (isAiotRecord(body) && body.success === true ? parseAiotSnapshot(body.data, deviceId) : null)
+    : parseMonitoringSummary(body)
   if (summary === null) {
     throw new Error('A API retornou um diagnóstico inválido.')
   }

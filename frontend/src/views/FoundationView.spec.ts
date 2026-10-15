@@ -46,6 +46,9 @@ const pending: ActuatorCommand = {
 describe('FoundationView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(fetchActuators).mockReset()
+    vi.mocked(fetchCommand).mockReset()
+    vi.mocked(requestLed).mockReset()
     sessionToken.value = 'token'
     sessionRole.value = 'operator'
     vi.mocked(listEnvironments).mockResolvedValue([{ id: 'lab-01', name: 'Laboratório Refrigerado' }])
@@ -64,6 +67,84 @@ describe('FoundationView', () => {
       refreshRevision: ref(0), summary: ref(summary), connectionState: ref('connected'),
       ageSeconds: computed(() => summary.freshness?.age_seconds ?? null),
     })
+  })
+
+  it('mostra seis medições, persistência e estado observado sem inventar confirmação', async () => {
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    const state = vi.mocked(useMonitoringSummary).mock.results[0]!.value as ReturnType<typeof useMonitoringSummary>
+    state.summary.value = {
+      ...summary, persistence: 'pending',
+      reading: { ...summary.reading!, vibration_rms_mm_s: 0.123, motor_current_a: 1.456, motor_temperature_c: 38 },
+      equipment: { equipment_id: 'equipment', running: true,
+        led: { actuator_id: 'led', actual_state: true }, buzzer: { actuator_id: 'buzzer', actual_state: false } },
+    }
+    await flushPromises()
+    expect(wrapper.text()).toContain('Vibração RMS')
+    expect(wrapper.text()).toContain('0,123 mm/s')
+    expect(wrapper.text()).toContain('1,456 A')
+    expect(wrapper.text()).toContain('38 °C')
+    expect(wrapper.text()).toContain('Gravação em andamento')
+    expect(wrapper.text()).toContain('Luz observada na última leitura: Ligado')
+    expect(wrapper.text()).toContain('Sem confirmação registrada')
+    const metric = wrapper.get('select[aria-label="Medição do gráfico"]')
+    await metric.setValue('vibration_rms_mm_s')
+    expect(wrapper.getComponent({ name: 'TemperatureHistoryChart' }).props('metric')).toBe('vibration_rms_mm_s')
+    wrapper.unmount()
+  })
+
+  it('bloqueia reenvio enquanto o POST LED ainda aguarda resposta', async () => {
+    let resolve: ((value: ActuatorCommand) => void) | undefined
+    vi.mocked(requestLed).mockImplementation(() => new Promise((done) => { resolve = done }))
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    const button = wrapper.findAll('button').find((element) => element.text() === 'Ligar Luz')!
+    await button.trigger('click')
+    await button.trigger('click')
+    expect(requestLed).toHaveBeenCalledOnce()
+    expect(button.attributes('disabled')).toBeDefined()
+    resolve?.(pending)
+    await flushPromises()
+    expect(wrapper.text()).toContain('Aguardando confirmação')
+    wrapper.unmount()
+  })
+
+  it('uma consulta durante o envio não apaga a nova pendência LED', async () => {
+    let resolvePost: ((value: ActuatorCommand) => void) | undefined
+    let resolveSnapshot: ((value: { led: null; buzzer: null }) => void) | undefined
+    vi.mocked(requestLed).mockImplementation(() => new Promise((done) => { resolvePost = done }))
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    await flushPromises()
+    vi.mocked(fetchActuators).mockImplementationOnce(() => new Promise((done) => { resolveSnapshot = done }))
+    await wrapper.findAll('button').find((button) => button.text() === 'Ligar Luz')!.trigger('click')
+    await wrapper.findAll('button').find((button) => button.text() === 'Atualizar estado')!.trigger('click')
+    resolvePost?.(pending)
+    await flushPromises()
+    resolveSnapshot?.({ led: null, buzzer: null })
+    await flushPromises()
+    expect(wrapper.text()).toContain('Aguardando confirmação')
+    expect(wrapper.findAll('button').find((button) => button.text() === 'Ligar Luz')!.attributes('disabled')).toBeDefined()
+    wrapper.unmount()
+  })
+
+  it('resposta atrasada do polling não reverte ACK confirmado para pending', async () => {
+    vi.useFakeTimers()
+    const responses: Array<(value: ActuatorCommand) => void> = []
+    vi.mocked(fetchActuators).mockResolvedValue({ led: pending, buzzer: null })
+    vi.mocked(fetchCommand).mockImplementation(() => new Promise((resolve) => { responses.push(resolve) }))
+    const wrapper = shallowMount(FoundationView, { global: { stubs: { RouterLink: true } } })
+    try {
+      await flushPromises()
+      vi.advanceTimersByTime(2000)
+      responses[1]?.({ ...pending, status: 'confirmed', confirmed_state: true })
+      await flushPromises()
+      responses[0]?.(pending)
+      await flushPromises()
+      expect(wrapper.text()).not.toContain('Aguardando confirmação')
+      expect(wrapper.text()).toContain('Desligar Luz')
+    } finally {
+      wrapper.unmount()
+      vi.useRealTimers()
+    }
   })
 
   it.each(['viewer', null] as const)('permite monitorar sem emitir comando para papel %s', async (role) => {

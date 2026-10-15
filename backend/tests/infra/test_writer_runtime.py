@@ -61,7 +61,34 @@ def test_ack_only_after_sync_write_and_duplicate_is_written_idempotently(runtime
     runtime.channel.basic_ack.reset_mock()
     runtime.consume()
     assert runtime.repository.save_event.call_count == 2
-    runtime.channel.basic_publish.assert_not_called()
+    assert runtime.channel.basic_publish.call_count == 2
+    receipts = [json.loads(call.args[2]) for call in runtime.channel.basic_publish.call_args_list]
+    assert receipts[0]['event_id'] != receipts[1]['event_id']
+    assert receipts[0]['data'] == receipts[1]['data']
+    assert receipts[0]['type'] == 'telemetry_persisted'
+    assert receipts[0]['correlation_id'] == event['event_id']
+    assert receipts[0]['data'] == {
+        'source_event_id': event['event_id'], 'equipment_id': catalog['equipment_id'],
+        'input_received_at': event['received_at']}
+
+
+def test_receipt_is_confirmed_after_write_before_ack(runtime, catalog):
+    event, _, _ = delivery(runtime, catalog)
+    runtime.channel.basic_publish.side_effect = lambda *_, **__: (
+        runtime.repository.save_event.assert_called_once_with(event=event),
+        runtime.channel.basic_ack.assert_not_called())
+    runtime.consume()
+    runtime.channel.basic_ack.assert_called_once_with(123)
+
+
+def test_unconfirmed_receipt_leaves_saved_reading_unacknowledged(runtime, catalog):
+    delivery(runtime, catalog)
+    runtime.channel.basic_publish.side_effect = pika.exceptions.NackError([])
+    with pytest.raises(pika.exceptions.NackError):
+        runtime.consume()
+    runtime.repository.save_event.assert_called_once()
+    runtime.channel.basic_ack.assert_not_called()
+    runtime.channel.basic_reject.assert_not_called()
 
 
 @pytest.mark.parametrize('failure', [DependencyUnavailableError('private token'), psycopg.OperationalError('private password')])

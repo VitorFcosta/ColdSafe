@@ -1,4 +1,8 @@
-from pydantic import Field, SecretStr
+from pathlib import Path
+from typing import Self
+from uuid import UUID
+
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,6 +35,23 @@ class RuntimeSettings(BaseSettings):
     postgres_db: str = Field(min_length=1)
     postgres_user: str = Field(min_length=1)
     postgres_password: SecretStr = Field(min_length=1)
+
+    aiot_enabled: bool = False
+    aiot_catalog_path: Path | None = None
+    aiot_owner_user_id: UUID | None = None
+    rabbitmq_host: str = Field(default="rabbitmq", min_length=1)
+    rabbitmq_port: int = Field(default=5672, ge=1, le=65_535)
+    rabbitmq_commands_password: SecretStr | None = Field(default=None, min_length=1)
+    rabbitmq_delivery_password: SecretStr | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def require_aiot_configuration(self) -> Self:
+        if self.aiot_enabled and any(value is None for value in (
+            self.aiot_catalog_path, self.aiot_owner_user_id,
+            self.rabbitmq_commands_password, self.rabbitmq_delivery_password,
+        )):
+            raise ValueError("AIoT requires catalog, owner and private AMQP credentials")
+        return self
 
     @property
     def allowed_cors_origins(self) -> tuple[str, ...]:

@@ -76,6 +76,16 @@ def test_queues_limit_failed_deliveries_and_preserve_dead_letters():
     assert policy["definition"]["delayed-retry-max"] == 2000
 
 
+def test_only_writer_can_publish_persistence_proof_and_both_api_roles_receive_it():
+    definitions = build_definitions(passwords())
+    route = 'v3.telemetry_persisted.00000000-0000-4000-8000-000000000001'
+    for permissions in definitions['topic_permissions']:
+        assert bool(re.fullmatch(permissions['write'], route)) == (permissions['user'] == 'coldsafe-writer')
+    destinations = {item['destination'] for item in definitions['bindings']
+                    if item['routing_key'] == 'v3.telemetry_persisted.*'}
+    assert destinations == {'coldsafe.commands', 'coldsafe.delivery'}
+
+
 def test_bootstrap_writes_private_hashes_atomically(tmp_path):
     import os
     env = {**os.environ, **{f"RABBITMQ_{role.upper()}_PASSWORD": value

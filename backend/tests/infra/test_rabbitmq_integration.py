@@ -20,6 +20,7 @@ pytestmark = pytest.mark.integration
 CONSUMERS = ("gateway", "writer", "inference", "delivery", "commands",
              "generation", "training", "observability", "audit")
 ROUTES = {
+    "telemetry_persisted": ("writer", {"delivery", "commands", "observability"}),
     "telemetry": ("gateway", {"writer", "inference", "delivery", "commands", "observability"}),
     "ack": ("gateway", {"commands", "delivery", "observability"}),
     "command": ("api", {"gateway", "observability"}),

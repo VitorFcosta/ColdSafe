@@ -3,6 +3,8 @@ import { clearSession, sessionToken } from '../account/session'
 
 import { resolveMonitoringState, STALE_AFTER_SECONDS, type SummaryState } from './monitoring-state'
 import { fetchMonitoringSummary, type MonitoringSummary } from './monitoring-summary'
+import { parseAiotEvent, type AiotEvent } from './aiot-api'
+import { aiotEnabled } from './monitoring-version'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
@@ -16,7 +18,7 @@ export function formatFreshness(ageSeconds: number | undefined) {
   return `Há ${days} ${days === 1 ? 'dia' : 'dias'}`
 }
 
-export type MonitoringEvent = Readonly<{
+type LegacyMonitoringEvent = Readonly<{
   schema_version: 2
   type: 'reading' | 'command_status' | 'alert'
   device_id: string
@@ -24,8 +26,9 @@ export type MonitoringEvent = Readonly<{
   occurred_at: string
   data: unknown
 }>
+export type MonitoringEvent = LegacyMonitoringEvent | AiotEvent
 
-function isMonitoringEvent(value: unknown, deviceId: string): value is MonitoringEvent {
+function isMonitoringEvent(value: unknown, deviceId: string): value is LegacyMonitoringEvent {
   if (typeof value !== 'object' || value === null) return false
   const event = value as Record<string, unknown>
   return event.schema_version === 2 &&
@@ -51,6 +54,7 @@ export function useMonitoringSummary(
   let selectionRevision = 0
   let latestSummaryRequest = 0
   let disposed = false
+  const recentEvents = new Set<string>()
 
   const ageSeconds = computed(() => !summary.value?.freshness
     ? null
@@ -138,7 +142,7 @@ export function useMonitoringSummary(
       return
     }
     if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
-    const url = new URL(`${apiBaseUrl.replace(/\/+$/, '')}/api/v1/events`, window.location.origin)
+    const url = new URL(`${apiBaseUrl.replace(/\/+$/, '')}/api/${aiotEnabled ? 'v3' : 'v1'}/events`, window.location.origin)
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
     url.searchParams.set('device_id', currentDevice)
     const nextSocket = new WebSocket(url)
@@ -154,8 +158,17 @@ export function useMonitoringSummary(
       if (revision !== selectionRevision) return
       try {
         const value: unknown = JSON.parse(String(message.data))
-        if (!isMonitoringEvent(value, currentDevice)) return
-        onEvent?.(value)
+        if (aiotEnabled) {
+          const event = parseAiotEvent(value, currentDevice, summary.value?.environment.id)
+          if (event === null || recentEvents.has(event.event_id)) return
+          recentEvents.add(event.event_id)
+          // shortcut: bounded live dedup; REST recovers authoritative state after reconnect.
+          if (recentEvents.size > 256) recentEvents.delete(recentEvents.values().next().value!)
+          onEvent?.(event)
+        } else {
+          if (!isMonitoringEvent(value, currentDevice)) return
+          onEvent?.(value)
+        }
         void loadSummary()
       } catch {
         // A malformed event cannot replace the last REST-verified state.
@@ -178,6 +191,7 @@ export function useMonitoringSummary(
     watch([token, deviceId], () => {
       selectionRevision += 1
       latestSummaryRequest += 1
+      recentEvents.clear()
       disconnect()
       summary.value = null
       summaryState.value = { phase: 'loading' }

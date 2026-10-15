@@ -470,4 +470,37 @@
   {"name": "confirmed_rejects_ack_from_other_scope", "base": "led_status_confirmed", "ack_reference": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000142", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": "2026-10-12T18:00:00.100Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000999", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}}, "expected": "semantic"},
   {"name": "confirmed_rejects_ack_before_command_receipt", "base": "led_status_confirmed", "ack_reference": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000142", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": "2026-10-12T18:00:00Z", "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}}, "expected": "semantic"},
   {"name": "confirmed_rejects_ack_without_trusted_receipt", "base": "led_status_confirmed", "ack_reference": {"schema_version": 3, "event_id": "00000000-0000-4000-8000-000000000142", "type": "ack", "occurred_at": "2026-10-12T18:00:00Z", "received_at": null, "device_id": "esp32.lab-01", "device_record_id": "00000000-0000-4000-8000-000000000001", "environment_id": "00000000-0000-4000-8000-000000000002", "correlation_id": "00000000-0000-4000-8000-000000000400", "data": {"command_id": "00000000-0000-4000-8000-000000000400", "actuator_id": "00000000-0000-4000-8000-000000000020", "actuator": "led", "result": "applied", "applied_state": true, "reason": null}}, "expected": "semantic"}
+,
+{
+  "name": "persistence_wrong_source",
+  "base": "telemetry_persisted",
+  "set": {
+    "data.source_event_id": "00000000-0000-4000-8000-000000000198"
+  },
+  "expected": "semantic"
+},
+{
+  "name": "persistence_missing_input_time",
+  "base": "telemetry_persisted",
+  "remove": [
+    "data.input_received_at"
+  ],
+  "expected": "schema"
+},
+{
+  "name": "persistence_wrong_input_time",
+  "base": "telemetry_persisted",
+  "set": {
+    "data.input_received_at": "2026-10-12T17:00:00Z"
+  },
+  "expected": "semantic"
+},
+{
+  "name": "persistence_wrong_equipment",
+  "base": "telemetry_persisted",
+  "set": {
+    "data.equipment_id": "00000000-0000-4000-8000-000000000198"
+  },
+  "expected": "semantic"
+}
 ]

@@ -96,6 +96,35 @@ Preparação, permissões, ritmo de simulação e comandos do operador estão em
 [`simulator/README.md`](../simulator/README.md). Nenhum segredo pessoal foi
 alterado na execução B2-09; integração usa credenciais descartáveis.
 
+## API AIoT opcional B2-13
+
+Depois de preparar catálogo, proprietário, brokers e token exclusivo do writer,
+habilite a API com o overlay explícito:
+
+```sh
+docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot --profile simulator config --quiet
+docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot --profile simulator up -d --build frontend backend gateway writer simulator
+```
+
+O overlay define `AIOT_ENABLED=true`, `AIOT_CATALOG_PATH=/catalog/catalog.json`,
+`AIOT_OWNER_USER_ID` a partir de `GATEWAY_OWNER_USER_ID`, e injeta somente as
+senhas AMQP `commands`/`delivery` no backend. Monte o mesmo catálogo privado do
+gateway/writer; `WRITER_OWNER_USER_ID` deve ser o mesmo dono. Fora do Docker,
+informe esses campos e `RABBITMQ_HOST/PORT`. Configuração incompleta é recusada.
+Sem overlay a API v3 permanece desabilitada e o backend conserva v1/v2.
+
+Na B2-14, o overlay também passa `VITE_AIOT_ENABLED=true` ao build do frontend.
+Reconstrua `frontend` com o mesmo overlay para conectar a tela ao stream/REST v3.
+A variável não altera um JavaScript já compilado. Em desenvolvimento local,
+defina `VITE_AIOT_ENABLED=true` e `VITE_API_BASE_URL` antes de iniciar Vite.
+
+Não há token InfluxDB adicional na API: seu estado/histórico processado v3 é
+consultado no PostgreSQL; `telemetry_persisted` comprova a gravação pelo writer.
+O token legado conserva as permissões anteriores. Na instalação RabbitMQ já
+existente, as novas ACLs/bindings de recibos precisam ser importadas pelo bootstrap;
+não apague volumes. Consulte [infra RabbitMQ](../infra/rabbitmq/README.md).
+Esta entrega valida uma pilha descartável, sem modificar as credenciais pessoais.
+
 ## Permissões do token InfluxDB
 
 O gravador v3 usa `INFLUXDB_WRITER_TOKEN`, distinto dos tokens abaixo, sem leitura

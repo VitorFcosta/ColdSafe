@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from threading import Event, Thread
 from uuid import UUID
 
 from fastapi import FastAPI
@@ -127,13 +128,40 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         ack_handler=commands.handle_ack,
     )
 
+    aiot = consumer = None
+    aiot_events = EventHub()
+    if settings.aiot_enabled:
+        from backend.app.amqp.consumer import ApiAmqpConsumer
+        from backend.app.services.aiot_events import AiotEventService
+        from gateway.bridge import PostgresScope
+        from simulator.model import strict_json
+
+        aiot_catalog = strict_json(settings.aiot_catalog_path.read_bytes())
+        owner = str(settings.aiot_owner_user_id)
+        aiot = AiotEventService(settings, aiot_catalog, owner)
+        scope = PostgresScope({
+            'host': settings.postgres_host, 'port': settings.postgres_port,
+            'dbname': settings.postgres_db, 'user': settings.postgres_user,
+            'password': settings.postgres_password.get_secret_value(),
+        }, owner)
+        consumer = ApiAmqpConsumer(
+            aiot, aiot_catalog, scope,
+            lambda event: aiot_events.publish(event['device_id'], event),
+            amqp_host=settings.rabbitmq_host, amqp_port=settings.rabbitmq_port,
+            password_commands=settings.rabbitmq_commands_password.get_secret_value(),
+            password_delivery=settings.rabbitmq_delivery_password.get_secret_value(),
+        )
+
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        shutdown, consumer_thread = Event(), None
         async def expire_commands() -> None:
             while True:
                 await asyncio.sleep(1)
                 try:
                     await asyncio.to_thread(commands.expire_pending)
+                    if aiot is not None:
+                        await asyncio.to_thread(aiot.expire_pending)
                 except Exception as error:  # noqa: BLE001 - keep live events running
                     LOGGER.error("Command expiry failed: error_type=%s", type(error).__name__)
 
@@ -141,6 +169,9 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             initialize_schema(settings)
             commands.expire_pending()
             subscriber.start()
+            if consumer is not None:
+                consumer_thread = Thread(target=consumer.run, args=(shutdown,), daemon=True)
+                consumer_thread.start()
         except Exception:
             resources.close()
             raise
@@ -154,15 +185,22 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             except asyncio.CancelledError:
                 pass
             try:
+                if consumer is not None:
+                    shutdown.set()
+                    consumer.close()
+                    await asyncio.to_thread(consumer_thread.join, 10)
+                    if consumer_thread.is_alive():
+                        LOGGER.error('AMQP consumer did not stop within 10 seconds')
                 subscriber.stop()
             finally:
                 resources.close()
 
-    return create_app(
+    app = create_app(
         repository=resources.repository,
         readiness_check=lambda: resources.is_ready()
         and postgres_is_ready(settings)
-        and subscriber.is_connected(),
+        and subscriber.is_connected()
+        and (consumer is None or consumer.is_connected),
         lifespan=lifespan,
         cors_origins=settings.allowed_cors_origins,
         auth=auth,
@@ -171,3 +209,7 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         alerts=alerts,
         events=events,
     )
+    if aiot is not None:
+        from backend.app.api.aiot import install_aiot
+        install_aiot(app, aiot, aiot_events, auth, catalog)
+    return app

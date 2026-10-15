@@ -4,7 +4,9 @@ O Compose prepara o broker interno `rabbitmq:5672`, vhost `coldsafe`, com
 RabbitMQ `4.3.6-management-alpine`. Não publica AMQP nem management no host.
 O backend v1/v2 continua no MQTT. O [gateway B2-11](../../gateway/README.md) já
 consome comandos e produz telemetria/ACK/erros; o [gravador B2-12](../../writer/README.md)
-consome `coldsafe.writer`, grava InfluxDB e só então confirma. Demais serviços v3 são posteriores.
+consome `coldsafe.writer`, grava InfluxDB, publica recibo e só então confirma.
+A API B2-13 consome `commands`/`delivery`, com transações e entrega privada.
+Demais consumidores v3 continuam posteriores.
 Estas filas prontas não provam os consumidores de negócio.
 
 ## Preparação e segredos
@@ -44,10 +46,10 @@ Publicação direta pela exchange padrão e escrita na DLX são proibidas.
 | Identidade `coldsafe-…` | Fila | Tipos recebidos | Tipos publicáveis |
 | --- | --- | --- | --- |
 | gateway | `coldsafe.gateway` | command | telemetry, ack, processing_error |
-| writer | `coldsafe.writer` | telemetry | processing_error |
+| writer | `coldsafe.writer` | telemetry | telemetry_persisted, processing_error |
 | inference | `coldsafe.inference` | telemetry, model_activation | prediction, model_status, processing_error |
-| delivery | `coldsafe.delivery` | telemetry, ack, prediction, command_status, alert, freshness, job_progress, model_status, processing_error | processing_error |
-| commands | `coldsafe.commands` | telemetry, ack, prediction, freshness | command, command_status, alert, freshness, processing_error |
+| delivery | `coldsafe.delivery` | telemetry, telemetry_persisted, ack, prediction, command_status, alert, freshness, job_progress, model_status, processing_error | processing_error |
+| commands | `coldsafe.commands` | telemetry, telemetry_persisted, ack, prediction, freshness | command, command_status, alert, freshness, processing_error |
 | generation | `coldsafe.generation` | job_requested com header generation | job_progress, processing_error |
 | training | `coldsafe.training` | job_requested com header training | job_progress, model_status, processing_error |
 | observability | `coldsafe.observability` | `v3.#`, cópia própria | nenhum |
@@ -56,7 +58,7 @@ Publicação direta pela exchange padrão e escrita na DLX são proibidas.
 
 A observabilidade consome sua cópia; não tira mensagens das filas de negócio e
 não acessa a DLQ. `audit` é uma identidade de transporte reservada à auditoria,
-sem conceder acesso a usuários HTTP. A API futura precisa autorizar cada consulta
+sem conceder acesso a usuários HTTP. A API autoriza cada consulta
 antes de revelar qualquer dado. O broker limita serviços/tipos, não propriedade
 de usuário ou catálogo de dispositivos: essa validação continua no consumidor.
 

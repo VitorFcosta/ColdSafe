@@ -1,12 +1,16 @@
 import type { HistoricalReading, HistoryPeriod } from './monitoring-history'
 import { STALE_AFTER_SECONDS } from './monitoring-state'
+import { sensorMetricByKey, type SensorMetricKey } from './sensor-metrics'
 
 export type TemperatureChartData = Readonly<{
   points: readonly Readonly<{ x: number; y: number | null }>[]
   gaps: number
 }>
 
-export function buildTemperatureChart(readings: readonly HistoricalReading[]): TemperatureChartData {
+export function buildTemperatureChart(
+  readings: readonly HistoricalReading[],
+  metric: SensorMetricKey = 'temperature_c',
+): TemperatureChartData {
   const sorted = [...readings].sort((a, b) => Date.parse(a.received_at) - Date.parse(b.received_at))
   const points: { x: number; y: number | null }[] = []
   let gaps = 0
@@ -17,7 +21,7 @@ export function buildTemperatureChart(readings: readonly HistoricalReading[]): T
       points.push({ x: previous.x + (x - previous.x) / 2, y: null })
       gaps++
     }
-    points.push({ x, y: reading.temperature_c })
+    points.push({ x, y: reading[metric] ?? null })
   }
   return { points, gaps }
 }
@@ -25,19 +29,27 @@ export function buildTemperatureChart(readings: readonly HistoricalReading[]): T
 export function describeTemperatureRange(
   readings: readonly HistoricalReading[],
   period: HistoryPeriod,
+  metric: SensorMetricKey = 'temperature_c',
 ): string {
   const label = periodLabel(period)
+  const sensor = sensorMetricByKey[metric]
+  const metricLabel = metric === 'temperature_c' ? 'Temperatura' : sensor.label
   if (readings.length === 0) {
-    return `Não há leituras de temperatura nas últimas ${label}.`
+    return `Não há leituras de ${metricLabel.charAt(0).toLowerCase() + metricLabel.slice(1)} nas últimas ${label}.`
   }
 
-  const temperatures = readings.map((reading) => reading.temperature_c)
-  const minimum = Math.min(...temperatures)
-  const maximum = Math.max(...temperatures)
+  const values = readings.map((reading) => reading[metric]).filter((value): value is number => value != null)
+  if (values.length === 0) {
+    return `${metricLabel} indisponível nas ${readings.length} leituras retornadas no período de ${label}. Sensores novos podem estar ausentes no histórico legado.`
+  }
+  const minimum = Math.min(...values)
+  const maximum = Math.max(...values)
   const count = readings.length
   const readingLabel = count === 1 ? 'leitura' : 'leituras'
+  const missing = readings.length - values.length
 
-  return `No período de ${label}, foram retornadas ${count} ${readingLabel}: mínima de ${formatTemperature(minimum)} °C e máxima de ${formatTemperature(maximum)} °C.`
+  return `No período de ${label}, foram retornadas ${count} ${readingLabel}: ${metric === 'temperature_c' ? '' : `${metricLabel}: `}mínima de ${formatMetricValue(minimum, metric)} ${sensor.unit} e máxima de ${formatMetricValue(maximum, metric)} ${sensor.unit}.` +
+    (missing ? ` ${missing} ${missing === 1 ? 'registro sem essa medição' : 'registros sem essa medição'}; a linha é interrompida nesses pontos.` : '')
 }
 
 export function formatHistoryTick(timestamp: number, timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone): string {
@@ -70,8 +82,8 @@ export function describeHistoryCoverage(
       : 'A contagem não comprova coleta contínua entre esses horários.')
 }
 
-function formatTemperature(value: number): string {
-  return value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
+export function formatMetricValue(value: number, metric: SensorMetricKey): string {
+  return value.toLocaleString('pt-BR', { maximumFractionDigits: metric === 'motor_current_a' || metric === 'vibration_rms_mm_s' ? 3 : 1 })
 }
 
 function periodLabel(period: HistoryPeriod): string {

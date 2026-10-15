@@ -62,7 +62,7 @@ serviços futuros. Labels de treino não são acrescentados à telemetria ao viv
    python -c 'from backend.app.config.settings import RuntimeSettings; from backend.app.repositories.postgres import initialize_schema; initialize_schema(RuntimeSettings())'
    ```
 
-3. Conferir `SELECT version FROM schema_migrations ORDER BY version` (1–6).
+3. Conferir `SELECT version FROM schema_migrations ORDER BY version` (1–7).
    Repetir o runner é seguro. Se falhar, toda a rodada de migrações pendentes
    volta ao estado anterior; corrigir a causa e tentar novamente. A versão 003
    continua recusando regras legadas conflitantes.
@@ -81,6 +81,14 @@ da versão 6 e à expiração/revogação própria; novas sessões são `jwt`.
 prazo máximo de 60 segundos; o serviço limita também à expiração da sessão.
 
 ## Verificação reproduzível
+
+A versão 007 da B2-13 acrescenta inbox, eventos, comandos, alertas, freshness e
+outbox `aiot_*`. Comandos v3 ficam separados dos comandos MQTT legados, para
+que seu scheduler não altere nem notifique estados da outra versão. Migração
+aditiva, sem apagar dados; consultas privadas continuam verificando proprietário
+no PostgreSQL. Inbox/efeitos/outbox usam a mesma transação. Não apagar essas
+tabelas para reiniciar consumidores: isso elimina deduplicação e comandos pendentes.
+O histórico processado ainda não tem expurgo; medir capacidade/retenção na B2-33.
 
 Usar PostgreSQL **descartável** com permissão de criar/apagar bancos. Nunca
 fornecer credenciais da base pessoal: os testes criam bancos `b205_<uuid>` e os

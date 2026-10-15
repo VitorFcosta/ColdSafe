@@ -7,6 +7,20 @@ autenticado. A leitura atual, os alertas e o estado do LED acompanham o
 dispositivo selecionado. Eventos WebSocket atualizam a tela; após reconexão,
 REST recupera o estado atual e o histórico.
 
+Na B2-14, `VITE_AIOT_ENABLED=true` seleciona explicitamente HTTP/WS v3. O
+dashboard mostra as seis medições, equipamento e estados observados dos atuadores;
+o seletor de grandeza reutiliza gráfico, tooltip e tabela. Zero é valor válido;
+ausência de sensor em histórico legado é indisponibilidade. Estado observado
+na telemetria e confirmação de comando são informações separadas. Só ACK válido
+confirma o pedido; timeout/rejeição permanecem explícitos. Nenhuma biblioteca nova.
+
+No Compose, use `compose.aiot.yaml`: ele habilita o backend e passa o argumento
+de build do frontend. É necessário reconstruir `frontend` ao alterar esse modo.
+No Vite local, defina a variável antes de iniciar o processo e configure
+`VITE_API_BASE_URL` para o backend v3. Sem a flag, preserva-se o fluxo v1/v2;
+falhas/403/404 não causam fallback silencioso entre versões. Login e catálogo
+continuam nas rotas v1 em ambos os modos.
+
 - [Definição do produto](PRODUCT.md).
 - [Figma editável](https://www.figma.com/design/EIn6llJ5Fc3uIFlIDdokZu).
 - [Relatório: arquivos, decisões, mídia e validação](../docs/testing/redesign-portfolio.md).
@@ -36,6 +50,20 @@ As instruções a seguir são para o desenvolvimento local com Vite.
 Os testes E2E sobem o Vite automaticamente e simulam as fronteiras HTTP e
 WebSocket da API. Assim, estados normais, alertas, reconexão e falhas são
 reproduzíveis sem depender do InfluxDB ou do MQTT.
+
+A suíte real opt-in `backend/tests/infra/test_dashboard_integration.py` sobe
+brokers/bancos/gateway/writer/simulador descartáveis, backend Uvicorn e Vite
+locais, e executa `e2e/aiot-real.spec.ts`. Não usa mocks de HTTP/WS. Requer Docker,
+Python/lock dev, Node 24.20.0, dependências frontend e Chromium instalados:
+
+```sh
+COLDSAFE_WRITER_INTEGRATION=1 .venv/bin/python -m pytest backend/tests/infra/test_dashboard_integration.py -q --no-cov -o addopts=''
+```
+
+Execute da raiz do projeto. `COLDSAFE_NODE_BINARY` pode indicar o executável Node;
+`COLDSAFE_FRONTEND_NODE_MODULES`, uma instalação temporária feita com o mesmo lock.
+O teste copia fontes/configuração e usa credenciais/volumes próprios, removidos
+ao terminar. Fora do harness, os quatro casos reais ficam explicitamente pulados.
 
 ### Compatibilidade de versões
 

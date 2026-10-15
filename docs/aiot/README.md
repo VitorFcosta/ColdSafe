@@ -1,14 +1,22 @@
 # Retomar a evolução AIoT
 
-## Situação em 14/10/2026
+## Situação em 15/10/2026
 
 O código continua na base v1/v2 descrita no [README](../../README.md).
 O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
 O simulador MQTT v3, gateway MQTT/AMQP e gravador InfluxDB estão implementados;
-API e demais consumidores de negócio v3 ainda não existem.
+API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
+dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-12](tasks/B2-12.md): gravador consome fila própria e grava
+A última entrega foi [B2-14](tasks/B2-14.md): dashboard com seis medições,
+gráfico/tabela por grandeza, histórico e recuperação REST v3, LED com confirmação
+separada do estado observado e buzzer automático. Quatro cenários Chromium
+passaram com brokers/bancos/gateway/writer/simulador reais descartáveis a 1 Hz,
+incluindo mobile/teclado, reconexão e visualizador sem comando. Habilitação
+explícita, testes e limites estão no cartão e na configuração.
+
+A B2-12 conserva gravador que consome fila própria e grava
 seis sensores, IDs e estados no InfluxDB antes de confirmar. Identidade estável
 preserva um ponto no redelivery/restart; histórico v1/v2 permanece no bucket legado.
 Live usa `telemetry_live` e token exclusivo write-only; sintéticos ficam separados.
@@ -19,10 +27,11 @@ Gateway B2-11 conserva diário SQLite de aproximadamente 64 MiB sem expurgo;
 operação em [gateway](../../gateway/README.md).
 Sensores/atuadores/equipamento continuam no catálogo privado de comissionamento;
 dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache do
-simulador ainda são em memória. Não há máquina durável de status/timeout, API
-HTTP v3 ou entrega Web v3. A B2-09 conserva sensores/desgaste; B2-08,
-frontend estático/proxy. Não há outra tarefa autorizada em execução.
-O próximo cartão na sequência é [B2-13](tasks/B2-13.md); não iniciá-lo automaticamente.
+simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
+mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
+sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-15](tasks/B2-15.md), somente após
+escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final
 com todos os serviços de negócio continua pertencendo à B2-33.

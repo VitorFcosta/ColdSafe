@@ -14,11 +14,11 @@ UUID_KEY = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 # One transport identity per future service; no business consumers start here.
 SERVICE_ROLES = {
     "gateway": (("command",), ("telemetry", "ack", "processing_error")),
-    "writer": (("telemetry",), ("processing_error",)),
+    "writer": (("telemetry",), ("telemetry_persisted", "processing_error")),
     "inference": (("telemetry", "model_activation"), ("prediction", "model_status", "processing_error")),
-    "delivery": (("telemetry", "ack", "prediction", "command_status", "alert", "freshness",
+    "delivery": (("telemetry", "telemetry_persisted", "ack", "prediction", "command_status", "alert", "freshness",
                   "job_progress", "model_status", "processing_error"), ("processing_error",)),
-    "commands": (("telemetry", "ack", "prediction", "freshness"),
+    "commands": (("telemetry", "telemetry_persisted", "ack", "prediction", "freshness"),
                  ("command", "command_status", "alert", "freshness", "processing_error")),
     "generation": ((), ("job_progress", "processing_error")),
     "training": ((), ("job_progress", "model_status", "processing_error")),

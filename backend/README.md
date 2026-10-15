@@ -1,5 +1,21 @@
 # Backend
 
+A B2-13 acrescenta consumidor e entrega privada AIoT v3, habilitados explicitamente
+por `compose.aiot.yaml`. Regras, comandos e auditoria são transacionais no PostgreSQL;
+inbox deduplica eventos e outbox conserva saídas até confirmação AMQP. LED manual
+e buzzer automático usam RabbitMQ → gateway; a API não publica MQTT no fluxo v3.
+O fluxo legado MQTT v1/v2 continua separado.
+
+Rotas e semântica estão em [contratos AIoT](../contracts/aiot.md#persistência-e-recuperação-http-v3--b2-13).
+Operação no [guia de configuração](../docs/configuration.md#api-aiot-opcional-b2-13).
+Com AIoT habilitado, readiness também exige as duas conexões AMQP. O histórico
+HTTP v3 recupera eventos processados no PostgreSQL e informa `pending/persisted`;
+WebSocket só entrega leituras com prova de gravação InfluxDB.
+
+A B2-14 acrescenta contexto/limites ao resumo, períodos ou janela UTC no histórico,
+consulta de alertas por intervalo e consulta privada de comando por UUID para o
+dashboard. São extensões das rotas v3; nenhuma migração ou dependência nova.
+
 Esta área contém a ingestão MQTT, a classificação das leituras, a persistência no
 InfluxDB, a estrutura relacional PostgreSQL e a API FastAPI.
 

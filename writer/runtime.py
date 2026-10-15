@@ -9,7 +9,7 @@ import signal
 from threading import Event
 from uuid import uuid4
 
-from jsonschema import ValidationError
+from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 from influxdb_client.client.exceptions import InfluxDBError
 import pika
 import psycopg
@@ -18,10 +18,12 @@ from urllib3.exceptions import HTTPError
 from backend.app.errors import DependencyUnavailableError
 from backend.app.repositories.influxdb import InfluxReadingRepository
 from backend.app.repositories.influxdb_client import InfluxSettings, create_influx_repository
-from gateway.bridge import PermanentError, PostgresScope, VALIDATORS, encode
-from simulator.model import strict_json, utc, validate_catalog
+from gateway.bridge import PermanentError, PostgresScope, VALIDATORS as GATEWAY_VALIDATORS, encode
+from simulator.model import SCHEMA, strict_json, utc, validate_catalog
 
 LOGGER = logging.getLogger(__name__)
+VALIDATORS = {**GATEWAY_VALIDATORS, 'telemetry_persisted': Draft202012Validator(
+    {**SCHEMA, '$ref': '#/$defs/telemetry_persisted_event'}, format_checker=FormatChecker())}
 
 
 class Writer:
@@ -78,6 +80,21 @@ class Writer:
             pika.BasicProperties(content_type='application/json', delivery_mode=2,
                                  message_id=identifier, correlation_id=identifier), mandatory=True)
 
+    def publish_persisted(self, source: dict) -> None:
+        now = utc(datetime.now(timezone.utc))
+        identifier = str(uuid4())
+        event = {**source, 'event_id': identifier, 'type': 'telemetry_persisted',
+                 'occurred_at': now, 'received_at': now,
+                 'correlation_id': source['event_id'],
+                 'data': {'source_event_id': source['event_id'],
+                          'equipment_id': source['data']['equipment']['equipment_id'],
+                          'input_received_at': source['received_at']}}
+        VALIDATORS['telemetry_persisted'].validate(event)
+        self.channel.basic_publish(
+            'coldsafe.events', f"v3.telemetry_persisted.{event['device_record_id']}", encode(event),
+            pika.BasicProperties(content_type='application/json', delivery_mode=2,
+                                 message_id=identifier, correlation_id=source['event_id']), mandatory=True)
+
     def consume(self) -> None:
         method, properties, raw = self.channel.basic_get('coldsafe.writer', auto_ack=False)
         if method is None:
@@ -90,6 +107,7 @@ class Writer:
             attempt = min(3, count + 1)
             event = self.validate(method.routing_key, properties, raw)
             self.repository.save_event(event=event)
+            self.publish_persisted(event)
         except PermanentError as error:
             self.publish_error(str(error), attempt)
             self.channel.basic_reject(method.delivery_tag, requeue=False)

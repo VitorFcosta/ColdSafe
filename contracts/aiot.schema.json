@@ -268,6 +268,74 @@
         "labels": {"$ref":"#/$defs/offline_labels"}
       }
     },
+    "telemetry_persisted_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_event_id",
+        "equipment_id",
+        "input_received_at"
+      ],
+      "properties": {
+        "source_event_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "equipment_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "input_received_at": {
+          "$ref": "#/$defs/utc_time"
+        }
+      }
+    },
+    "telemetry_persisted_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "type",
+        "occurred_at",
+        "received_at",
+        "device_id",
+        "device_record_id",
+        "environment_id",
+        "correlation_id",
+        "data"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 3
+        },
+        "event_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "type": {
+          "const": "telemetry_persisted"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/utc_time"
+        },
+        "received_at": {
+          "$ref": "#/$defs/utc_time"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "device_record_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "environment_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "correlation_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "data": {
+          "$ref": "#/$defs/telemetry_persisted_data"
+        }
+      }
+    },
     "telemetry_event": {
       "type": "object",
       "additionalProperties": false,
@@ -474,7 +542,7 @@
       "oneOf": [{"properties":{"device_id":{"$ref":"#/$defs/device_id"},"device_record_id":{"$ref":"#/$defs/uuid"},"environment_id":{"$ref":"#/$defs/uuid"}}},{"properties":{"device_id":{"type":"null"},"device_record_id":{"type":"null"},"environment_id":{"type":"null"}}}]
     },
     "event": {
-      "oneOf": [{"$ref":"#/$defs/telemetry_event"},{"$ref":"#/$defs/command_event"},{"$ref":"#/$defs/ack_event"},{"$ref":"#/$defs/command_status_event"},{"$ref":"#/$defs/prediction_event"},{"$ref":"#/$defs/alert_event"},{"$ref":"#/$defs/freshness_event"},{"$ref":"#/$defs/job_requested_event"},{"$ref":"#/$defs/job_progress_event"},{"$ref":"#/$defs/model_activation_event"},{"$ref":"#/$defs/model_status_event"},{"$ref":"#/$defs/processing_error_event"}]
+      "oneOf": [{"$ref":"#/$defs/telemetry_persisted_event"},{"$ref":"#/$defs/telemetry_event"},{"$ref":"#/$defs/command_event"},{"$ref":"#/$defs/ack_event"},{"$ref":"#/$defs/command_status_event"},{"$ref":"#/$defs/prediction_event"},{"$ref":"#/$defs/alert_event"},{"$ref":"#/$defs/freshness_event"},{"$ref":"#/$defs/job_requested_event"},{"$ref":"#/$defs/job_progress_event"},{"$ref":"#/$defs/model_activation_event"},{"$ref":"#/$defs/model_status_event"},{"$ref":"#/$defs/processing_error_event"}]
     },
     "mqtt_event": {
       "oneOf": [{"allOf":[{"$ref":"#/$defs/telemetry_event"},{"properties":{"received_at":{"type":"null"}}}]},{"allOf":[{"$ref":"#/$defs/command_event"},{"properties":{"received_at":{"$ref":"#/$defs/utc_time"}}}]},{"allOf":[{"$ref":"#/$defs/ack_event"},{"properties":{"received_at":{"type":"null"}}}]}]

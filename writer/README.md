@@ -3,7 +3,7 @@
 Worker Python opcional do perfil `aiot`: consome somente `coldsafe.writer`,
 valida telemetria v3 e grava no InfluxDB antes de confirmar ao RabbitMQ.
 Não consome a fila da API nem entrega WebSocket. A API/dashboard v1/v2 continuam
-consultando o histórico legado; a consulta HTTP v3 pertence às próximas tarefas.
+consultando o histórico legado; recuperação HTTP v3 está na B2-13.
 
 ## Preparar
 
@@ -75,7 +75,11 @@ parametrizada verifica dispositivo ativo → ambiente → proprietário; catálo
 comissionado continua sendo a fonte de equipamentos/sensores/atuadores.
 São reutilizadas as fronteiras existentes, sem banco/catálogo novo.
 
-ACK manual somente depois de retorno bem-sucedido da escrita síncrona. Uma queda
+Depois da escrita síncrona, publica `telemetry_persisted` com publisher confirms
+e `mandatory`, e só então confirma a telemetria. O recibo referencia fonte,
+equipamento e aceite; cada gravação/regravação usa UUID próprio e horário real.
+A API B2-13 vincula recibo e fonte antes de entregar a leitura por WebSocket.
+Falha de publicação do recibo deixa a fonte sem ACK para reentrega. Uma queda
 entre escrita e ACK pode repetir a entrega, sem criar outra leitura lógica.
 Falha permanente gera `processing_error` sanitizado e rejeição sem requeue.
 Falha transitória tenta até três vezes usando `x-delivery-count` e backoff quorum

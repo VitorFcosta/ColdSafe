@@ -1,5 +1,24 @@
 # ColdSafe — definição do produto frontend
 
+## Integração AIoT B2-14 — 15/10/2026
+
+O modo AIoT explícito conserva o dashboard e os seletores de conta, ambiente,
+dispositivo e período. Acrescenta vibração RMS (`mm/s`), corrente do motor (`A`)
+e temperatura do motor (`°C`) à temperatura ambiente, umidade e luz. Gráfico,
+resumo textual e tabela acompanham a grandeza selecionada; os limites ambientais
+somente aparecem na temperatura ambiente. Dados antigos não recebem sensores
+inventados nem zeros para valores ausentes.
+
+O estado observado de LED/buzzer pertence à última telemetria e à sua idade.
+O estado do pedido permanece `pending`, `confirmed`, `rejected` ou `unconfirmed`;
+um envio ao broker não confirma atuação. Visualizador lê, sem controle manual;
+operador/admin comanda somente LED próprio. Buzzer continua automático. Reentrega
+WS v3 invalida REST e não aplica status antigo diretamente. Na reconexão,
+resumo, atuadores, histórico e alertas/comparação são recuperados.
+
+Essa integração usa o catálogo comissionado de um equipamento/dono por runtime,
+conforme B2-13. Não inclui IA, cena 3D nem novos painéis de filas.
+
 ## Propósito
 
 O frontend do ColdSafe é um dashboard operacional acadêmico para reconhecer,

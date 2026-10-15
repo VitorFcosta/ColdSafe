@@ -12,6 +12,7 @@ MIGRATIONS = (
     (4, Path(__file__).resolve().parents[2] / "migrations" / "004_user_roles.sql"),
     (5, Path(__file__).resolve().parents[2] / "migrations" / "005_aiot_records.sql"),
     (6, Path(__file__).resolve().parents[2] / "migrations" / "006_auth_security.sql"),
+    (7, Path(__file__).resolve().parents[2] / "migrations" / "007_aiot_events.sql"),
 )
 
 

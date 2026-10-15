@@ -13,24 +13,30 @@ import { computed, onMounted, shallowRef, useTemplateRef } from 'vue'
 import { Line } from 'vue-chartjs'
 
 import type { HistoricalReading, HistoryPeriod } from './monitoring-history'
-import { buildTemperatureChart, describeHistoryCoverage, describeTemperatureRange, formatHistoryTick, formatReadingTime } from './temperature-chart'
+import { sensorMetricByKey, type SensorMetricKey } from './sensor-metrics'
+import { buildTemperatureChart, describeHistoryCoverage, describeTemperatureRange, formatHistoryTick, formatMetricValue, formatReadingTime } from './temperature-chart'
 
 ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend)
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   readings: readonly HistoricalReading[]
   period: HistoryPeriod
   start: string
   end: string
   limit: number
   thresholds: Readonly<{ min_c: number; max_c: number }> | null
-}>()
+  metric?: SensorMetricKey
+}>(), { metric: 'temperature_c' })
 
 const chartElement = useTemplateRef<HTMLElement>('chartElement')
 const colors = shallowRef<{ accent?: string; muted?: string; line?: string; threshold?: string }>({})
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 const orderedReadings = computed(() => [...props.readings].sort((a, b) => Date.parse(a.received_at) - Date.parse(b.received_at)))
-const series = computed(() => buildTemperatureChart(orderedReadings.value))
+const sensor = computed(() => sensorMetricByKey[props.metric])
+const metricLabel = computed(() => props.metric === 'temperature_c' ? 'Temperatura' : sensor.value.label)
+const accessibleMetricLabel = computed(() => metricLabel.value.charAt(0).toLowerCase() + metricLabel.value.slice(1))
+const temperatureThresholds = computed(() => props.metric === 'temperature_c' ? props.thresholds : null)
+const series = computed(() => buildTemperatureChart(orderedReadings.value, props.metric))
 
 onMounted(() => {
   const style = getComputedStyle(chartElement.value!)
@@ -48,7 +54,7 @@ const chartData = computed<ChartData<'line', { x: number; y: number | null }[]>>
   return {
     datasets: [
       {
-        label: 'Temperatura (°C)',
+        label: `${metricLabel.value} (${sensor.value.unit})`,
         data: [...series.value.points],
         borderColor: colors.value.accent,
         backgroundColor: colors.value.accent,
@@ -57,9 +63,9 @@ const chartData = computed<ChartData<'line', { x: number; y: number | null }[]>>
         pointHoverRadius: 5,
         spanGaps: false,
       },
-      ...props.thresholds ? ([
-        { label: `Mínimo atual: ${props.thresholds.min_c} °C`, data: [{ x: start, y: props.thresholds.min_c }, { x: end, y: props.thresholds.min_c }] },
-        { label: `Máximo atual: ${props.thresholds.max_c} °C`, data: [{ x: start, y: props.thresholds.max_c }, { x: end, y: props.thresholds.max_c }] },
+      ...temperatureThresholds.value ? ([
+        { label: `Mínimo atual: ${temperatureThresholds.value.min_c} °C`, data: [{ x: start, y: temperatureThresholds.value.min_c }, { x: end, y: temperatureThresholds.value.min_c }] },
+        { label: `Máximo atual: ${temperatureThresholds.value.max_c} °C`, data: [{ x: start, y: temperatureThresholds.value.max_c }, { x: end, y: temperatureThresholds.value.max_c }] },
       ].map((dataset) => ({ ...dataset, borderColor: colors.value.threshold, borderDash: [6, 4], borderWidth: 1, pointRadius: 0, pointHoverRadius: 0 }))) : [],
     ],
   }
@@ -77,10 +83,10 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
       callbacks: {
         title: (items) => items[0]?.parsed.x != null ? formatHistoryTick(items[0].parsed.x, timeZone) : '',
         label: (context) => {
-          const temperature = context.parsed.y
-          return temperature === null
-            ? 'Temperatura indisponível'
-            : `Temperatura: ${temperature.toLocaleString('pt-BR')} °C`
+          const value = context.parsed.y
+          return value === null
+            ? `${metricLabel.value} indisponível`
+            : `${metricLabel.value}: ${value.toLocaleString('pt-BR')} ${sensor.value.unit}`
         },
       },
     },
@@ -94,14 +100,19 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
     },
     y: {
       grid: { color: colors.value.line },
-      title: { display: true, text: 'Temperatura (°C)', color: colors.value.muted },
+      title: { display: true, text: `${metricLabel.value} (${sensor.value.unit})`, color: colors.value.muted },
       ticks: { color: colors.value.muted },
     },
   },
 }))
 
-const textualSummary = computed(() => describeTemperatureRange(orderedReadings.value, props.period))
+const textualSummary = computed(() => describeTemperatureRange(orderedReadings.value, props.period, props.metric))
 const coverage = computed(() => describeHistoryCoverage(orderedReadings.value, props.limit, timeZone))
+
+function formatReadingValue(reading: HistoricalReading): string {
+  const value = reading[props.metric]
+  return value == null ? 'Indisponível' : `${formatMetricValue(value, props.metric)} ${sensor.value.unit}`
+}
 </script>
 
 <template>
@@ -112,8 +123,8 @@ const coverage = computed(() => describeHistoryCoverage(orderedReadings.value, p
       Horários no fuso deste navegador ({{ timeZone }}).
     </p>
     <p id="temperature-history-note" class="mt-2 text-sm leading-6 text-ink-muted">
-      <template v-if="thresholds">Linhas tracejadas: limites atuais do ambiente, {{ thresholds.min_c }}–{{ thresholds.max_c }} °C. O histórico não informa quais limites valiam em cada leitura.</template>
-      <template v-else>Limites atuais indisponíveis para este ambiente.</template>
+      <template v-if="temperatureThresholds">Linhas tracejadas: limites atuais do ambiente, {{ temperatureThresholds.min_c }}–{{ temperatureThresholds.max_c }} °C. O histórico não informa quais limites valiam em cada leitura.</template>
+      <template v-else-if="metric === 'temperature_c'">Limites atuais indisponíveis para este ambiente.</template>
       A consulta retorna até {{ limit }} leituras mais recentes do período.
     </p>
     <p id="temperature-history-coverage" class="mt-2 text-sm leading-6 text-ink-muted">{{ coverage }}</p>
@@ -121,7 +132,7 @@ const coverage = computed(() => describeHistoryCoverage(orderedReadings.value, p
     <div
       v-if="readings.length > 0"
       role="img"
-      aria-label="Gráfico de linha da temperatura no período selecionado"
+      :aria-label="metric === 'temperature_c' ? 'Gráfico de linha da temperatura no período selecionado' : `Gráfico de linha de ${accessibleMetricLabel} no período selecionado`"
       aria-describedby="temperature-history-summary temperature-history-note temperature-history-coverage"
       class="mt-5 h-72"
     >
@@ -129,14 +140,14 @@ const coverage = computed(() => describeHistoryCoverage(orderedReadings.value, p
     </div>
     <details v-if="orderedReadings.length" class="mt-5 border-t border-line pt-4">
       <summary class="min-h-11 cursor-pointer py-2 font-medium text-accent">Ver {{ orderedReadings.length }} {{ orderedReadings.length === 1 ? 'leitura' : 'leituras' }} em tabela</summary>
-      <div role="region" aria-label="Leituras individuais de temperatura" tabindex="0" class="mt-3 max-h-80 overflow-auto">
+      <div role="region" :aria-label="`Leituras individuais de ${accessibleMetricLabel}`" tabindex="0" class="mt-3 max-h-80 overflow-auto">
         <table class="w-full border-collapse text-left text-sm">
           <caption class="mb-2 text-left text-ink-muted">Leituras individuais do período selecionado, no fuso {{ timeZone }}</caption>
-          <thead><tr class="border-b border-line"><th scope="col" class="py-2 pr-4">Horário</th><th scope="col" class="py-2">Temperatura</th></tr></thead>
+          <thead><tr class="border-b border-line"><th scope="col" class="py-2 pr-4">Horário</th><th scope="col" class="py-2">{{ metricLabel }}</th></tr></thead>
           <tbody>
             <tr v-for="(reading, index) in orderedReadings" :key="`${reading.received_at}-${index}`" class="border-b border-line">
               <td class="py-2 pr-4"><time :datetime="reading.received_at">{{ formatReadingTime(reading.received_at, timeZone) }}</time></td>
-              <td class="py-2">{{ reading.temperature_c.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) }} °C</td>
+              <td class="py-2">{{ formatReadingValue(reading) }}</td>
             </tr>
           </tbody>
         </table>

@@ -1,0 +1,345 @@
+{
+  "task": "B2-13",
+  "status": "Concluída",
+  "date": "2026-10-15",
+  "timezone": "America/Sao_Paulo",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "e97afc70913ecc3152fb810984fb11c2bdd12d02",
+    "initial_worktree": "clean",
+    "changes": "uncommitted",
+    "commit_or_push": false
+  },
+  "test_environment": {
+    "python": "3.13.15",
+    "executable": "/private/tmp/coldsafe-b213-venv/bin/python",
+    "dependencies": "backend/requirements-dev.lock.txt",
+    "sources": "workspace; no source snapshot",
+    "reason": "workspace .venv import stalled; temporary venv uses same locked versions"
+  },
+  "validation": {
+    "tdd_red": [
+      "new API/service/AMQP modules absent",
+      "receipt missing after synchronous writer save",
+      "AIoT settings absent",
+      "AIoT lifecycle did not start consumer"
+    ],
+    "focused": {
+      "passed": 61,
+      "skipped": 0,
+      "warnings": 2,
+      "seconds": 55.39,
+      "coverage_totals": {
+        "covered_lines": 427,
+        "num_statements": 466,
+        "percent_covered": 88.88888888888889,
+        "percent_covered_display": "89",
+        "missing_lines": 39,
+        "excluded_lines": 2,
+        "percent_statements_covered": 91.63090128755364,
+        "percent_statements_covered_display": "92",
+        "num_branches": 182,
+        "num_partial_branches": 31,
+        "covered_branches": 149,
+        "missing_branches": 33,
+        "percent_branches_covered": 81.86813186813187,
+        "percent_branches_covered_display": "82"
+      },
+      "command": "COLDSAFE_WRITER_INTEGRATION=1 <python> -m pytest backend/tests/infra/test_api_events_integration.py backend/tests/services/test_aiot_events.py backend/tests/infra/test_api_amqp.py backend/tests/api/test_aiot_api.py -o addopts='' --cov=backend.app.services.aiot_events --cov=backend.app.amqp --cov=backend.app.api.aiot --cov-branch --cov-fail-under=80 -q"
+    },
+    "final_regression": {
+      "passed": 642,
+      "skipped": 114,
+      "warnings": 2,
+      "seconds": 141.17,
+      "coverage_totals": {
+        "covered_lines": 1872,
+        "num_statements": 2128,
+        "percent_covered": 85.56971514242879,
+        "percent_covered_display": "86",
+        "missing_lines": 256,
+        "excluded_lines": 31,
+        "percent_statements_covered": 87.96992481203007,
+        "percent_statements_covered_display": "88",
+        "num_branches": 540,
+        "num_partial_branches": 81,
+        "covered_branches": 411,
+        "missing_branches": 129,
+        "percent_branches_covered": 76.11111111111111,
+        "percent_branches_covered_display": "76"
+      },
+      "command": "COLDSAFE_WRITER_INTEGRATION=1 <python> -m pytest backend/tests -q -o addopts='' --cov=backend/app --cov-branch --cov-fail-under=80",
+      "real_integrations": {
+        "B2-13": 4,
+        "writer": 6
+      }
+    },
+    "docker": {
+      "build": "passed",
+      "runtime_import_without_network": "passed",
+      "four_v3_modules_match_image_sha256": true,
+      "image_id": "sha256:72b5af57668b7edf30f9f1686ab2cb9365b940e2a8a7c510f210a15c17baf41b",
+      "compose_overlay_with_disposable_config": "passed",
+      "disposable_test_containers_removed": true
+    },
+    "security": {
+      "review": "specialist read-only review; prediction lineage, immutable envelopes and outbox proof corrected and retested",
+      "pip_audit_known_vulnerabilities": 0,
+      "audited_runtime_packages": 38
+    },
+    "diff_check": "passed"
+  },
+  "new_runtime_dependencies": {
+    "pika": "1.4.4",
+    "jsonschema": "4.26.0",
+    "note": "promoted from existing development lock; all previous locked versions preserved",
+    "transitive_promotions": [
+      "attrs==26.1.0",
+      "jsonschema-specifications==2025.9.1",
+      "referencing==0.37.0",
+      "rpds-py==2026.6.3"
+    ]
+  },
+  "acceptance": [
+    "AMQP telemetry/ACK/receipt/prediction consumption",
+    "transactional deduplication, rules, commands, audit and outbox",
+    "writer proof before Web delivery",
+    "REST recovery independent of writer order",
+    "two real accounts isolated in REST/tickets/WS",
+    "automatic buzzer and manual LED confirmed through real AMQP/MQTT/simulator pipeline",
+    "durable timeout and audited late ACK"
+  ],
+  "limitations": [
+    "one commissioned catalog/equipment/owner per runtime",
+    "Web delivery deduplicates last 1024 event IDs in memory; reconnect uses REST; at-least-once delivery",
+    "no retention/compaction of PostgreSQL inbox/events/outbox yet",
+    "HTTP/WS integration through real ASGI TestClient, not complete deployed backend stack",
+    "frontend v3, physical hardware and production credentials not exercised",
+    "prediction inputs controlled; real inference and predictive hysteresis belong to later tasks",
+    "114 other integration/environment tests explicitly skipped",
+    "invalid deferred links are privately audited after source arrival rather than retroactively moved to DLQ"
+  ],
+  "checkpoint": {
+    "blocking_items": [],
+    "next_task": "B2-14",
+    "next_action": "await user choice; not started"
+  },
+  "files": [
+    {
+      "path": "backend/Dockerfile",
+      "status": "modified",
+      "sha256": "c2d5d14d8317f12f383e4549da87c6195afde77a48ca538b0ed43c1fd66666dd"
+    },
+    {
+      "path": "backend/README.md",
+      "status": "modified",
+      "sha256": "807546ffea356be7193cf10427fcc16c1f940ec011844a67e1f80125ac332f2b"
+    },
+    {
+      "path": "backend/app/amqp/__init__.py",
+      "status": "created",
+      "sha256": "7e784af24179980621e268be6b659bbcb4bf42c8f5ed76523e2a53d07f5a5645"
+    },
+    {
+      "path": "backend/app/amqp/consumer.py",
+      "status": "created",
+      "sha256": "4ddba3b1e3b79d0d6a16dcfd92e44d18db6542df577844c661dae803db4a2660"
+    },
+    {
+      "path": "backend/app/api/aiot.py",
+      "status": "created",
+      "sha256": "8a164afcc4dc7afcdc30bc45ddfd64c8ffb20dbde9e1186246aa7d5de50f0462"
+    },
+    {
+      "path": "backend/app/api/events.py",
+      "status": "modified",
+      "sha256": "87b98de5d977a4ebc61da4e5c22268e294efe8a004f69b381b529382da1478f9"
+    },
+    {
+      "path": "backend/app/config/settings.py",
+      "status": "modified",
+      "sha256": "c5fb34e1445b7e625ae6fd389f7baa2c73f3974f8fa7115e5dc158e3af6e459e"
+    },
+    {
+      "path": "backend/app/repositories/postgres.py",
+      "status": "modified",
+      "sha256": "5e7b04ff30c67bef7e6b377f31491b56515a4d440551a57f8e0ff030aa8ba363"
+    },
+    {
+      "path": "backend/app/runtime.py",
+      "status": "modified",
+      "sha256": "55ad85e2819c5ba3356f0687cd4f90625e3c10995fb4e6358d2de62ad55b4ca5"
+    },
+    {
+      "path": "backend/app/services/aiot_events.py",
+      "status": "created",
+      "sha256": "ce8b96b37fe7cfffa1f3e73479cd853118c277a98ec1711be33502b08315a54c"
+    },
+    {
+      "path": "backend/migrations/007_aiot_events.sql",
+      "status": "created",
+      "sha256": "5c458849eb7427b5766addd41e6a4a6be9d4d8d534757461d5efe3f96c63a656"
+    },
+    {
+      "path": "backend/migrations/README.md",
+      "status": "modified",
+      "sha256": "f12d0e174dd5229a1c071b5cf0db7407cc266b859f0c42e049ae62bae8dfd8b9"
+    },
+    {
+      "path": "backend/requirements-dev.lock.txt",
+      "status": "modified",
+      "sha256": "1b258d8afb03cd625cb2c1a3736ed9785a7cce24aaeacc9d01907b45d306ceb6"
+    },
+    {
+      "path": "backend/requirements-dev.txt",
+      "status": "modified",
+      "sha256": "158aecbf03642bde21a9d7dd108ef8daabc5d653ef31680003b49f5939ea46f5"
+    },
+    {
+      "path": "backend/requirements.lock.txt",
+      "status": "modified",
+      "sha256": "addd3d1944717c975040ad74be40060824ecc696b634943da5ba393ed4117fbb"
+    },
+    {
+      "path": "backend/requirements.txt",
+      "status": "modified",
+      "sha256": "a6424a94686c2e723d543eb90ea212948d40df3717ab402d41fca1d9729046f0"
+    },
+    {
+      "path": "backend/tests/api/test_aiot_api.py",
+      "status": "created",
+      "sha256": "d2761c4e7a9b27e144ded19f87a8c6adf136ee7fcb9727af8d03b3afc7ed2c8d"
+    },
+    {
+      "path": "backend/tests/api/test_runtime_lifecycle.py",
+      "status": "modified",
+      "sha256": "f889a068c3feb237f08774d7fe43abe1c3d7f65f82fb5c1efa7e8670f439cfaf"
+    },
+    {
+      "path": "backend/tests/config/test_aiot_settings.py",
+      "status": "created",
+      "sha256": "f7a37fd1e5f952310bde78225c99ee39a214d8f102a251b007fb4f8a4685c122"
+    },
+    {
+      "path": "backend/tests/contract/test_aiot_contract.py",
+      "status": "modified",
+      "sha256": "eb8ac83aebc4ba70167ffd76716ce9b217d97f8097cf833dd757411a14069071"
+    },
+    {
+      "path": "backend/tests/infra/test_api_amqp.py",
+      "status": "created",
+      "sha256": "3ad409e8c016034b9ec09fe46db905b8f9cc1e232cb079569e424d6a87d61c28"
+    },
+    {
+      "path": "backend/tests/infra/test_api_events_integration.py",
+      "status": "created",
+      "sha256": "2f4163530e37eb469065e62bc073b5c28319945519ea3c1b89c894528db83f18"
+    },
+    {
+      "path": "backend/tests/infra/test_rabbitmq_bootstrap.py",
+      "status": "modified",
+      "sha256": "8611a2a9089394f5379d01b1ca0732f073b48aa753ad675db66abb5c685e2449"
+    },
+    {
+      "path": "backend/tests/infra/test_rabbitmq_integration.py",
+      "status": "modified",
+      "sha256": "af3134e1054c6df1d16735eb29fda250009e37d9ea5f8086fb5d1863c951f0bc"
+    },
+    {
+      "path": "backend/tests/infra/test_writer_runtime.py",
+      "status": "modified",
+      "sha256": "86bcb83f5ac1341f5dbef4bcb5dddebba12e881f438f79bfe9a3a3f54cc51d48"
+    },
+    {
+      "path": "backend/tests/integration/test_aiot_migrations_integration.py",
+      "status": "modified",
+      "sha256": "2e75657e0804556fe1ff2aba942446a6c7378be78398f15be5c2d07219970b2c"
+    },
+    {
+      "path": "backend/tests/integration/test_postgres_schema_integration.py",
+      "status": "modified",
+      "sha256": "0e262129dd9678a6b6c0d0736aab3a54a6f20a494c68f4d623c0870ca912b076"
+    },
+    {
+      "path": "backend/tests/services/test_aiot_events.py",
+      "status": "created",
+      "sha256": "baefdf6cd553cf3fed65fad763e29cc4c3ab0bd82ca6c196ebf83d03d271e445"
+    },
+    {
+      "path": "compose.aiot.yaml",
+      "status": "created",
+      "sha256": "fa7b8364bed4932dcfc4ce4fa8fc80acd97a319e3ba459a349ff839507c936be"
+    },
+    {
+      "path": "contracts/README.md",
+      "status": "modified",
+      "sha256": "648154875587f0bb8aab2fe03df5b67d8dae17bd8af82ddfc5ddfb0c7e062afc"
+    },
+    {
+      "path": "contracts/aiot.md",
+      "status": "modified",
+      "sha256": "6a6d6e27ddec595d82943c12423877e50ff4a48419ad1575ed8f224f6ef57bdc"
+    },
+    {
+      "path": "contracts/aiot.schema.json",
+      "status": "modified",
+      "sha256": "07ad99d2ef263d9c321f0851f8aed42c848a56770635bd98e3623bf85e760eaf"
+    },
+    {
+      "path": "contracts/examples/aiot.invalid.json",
+      "status": "modified",
+      "sha256": "1de6684fa3d91583fd77051c1bfad9a1ef6e72c01a4344167b48ff8299f6b1b8"
+    },
+    {
+      "path": "contracts/examples/aiot.valid.json",
+      "status": "modified",
+      "sha256": "b614defa46da6076c3235413639a0d25c03f7993ba552fbec954f70e4e13f7ed"
+    },
+    {
+      "path": "docs/aiot/README.md",
+      "status": "modified",
+      "sha256": "f58e7488ffa865689cf767bb516af0c5961680b6058cce064ebd70e1062e67b2"
+    },
+    {
+      "path": "docs/aiot/tasks/B2-13.md",
+      "status": "modified",
+      "sha256": "f02456221c21792687e0d19969d93629f446a96d3db0b57c28b39758a70cea5f"
+    },
+    {
+      "path": "docs/aiot/tasks/README.md",
+      "status": "modified",
+      "sha256": "657817a66bc7c287312d7191eb5c0205b3bd1d2e95915dbaba6450efa209cb0e"
+    },
+    {
+      "path": "docs/configuration.md",
+      "status": "modified",
+      "sha256": "2db32901a46dedaa15bd7461baf0311f32a235f0910eb21617e75f5969ee8753"
+    },
+    {
+      "path": "docs/version-matrix.md",
+      "status": "modified",
+      "sha256": "a6a916c693b19a09f2c3bcfbd9cf24aa1ac54a024168952668e1256121e5ccad"
+    },
+    {
+      "path": "infra/rabbitmq/README.md",
+      "status": "modified",
+      "sha256": "016aa600de259d58df33f1fb309ae21c54091defbbd3f4c8635f118fd812d8ba"
+    },
+    {
+      "path": "infra/rabbitmq/bootstrap.py",
+      "status": "modified",
+      "sha256": "5fb03935252dbf84d73754bfd5978f8ac7ed0b721cd436c9dca840d2e2c1d700"
+    },
+    {
+      "path": "writer/README.md",
+      "status": "modified",
+      "sha256": "5d8a019d331ba132dca3e1083a3ce426f7813907f15f0789ee6bb629ec1d2108"
+    },
+    {
+      "path": "writer/runtime.py",
+      "status": "modified",
+      "sha256": "274579e3484f18afbe7f634315ec4033cbb84731ff6842c96ff15ba9359873fc"
+    }
+  ],
+  "inventory_note": "this evidence file is created by this task and excluded from its own hash inventory"
+}

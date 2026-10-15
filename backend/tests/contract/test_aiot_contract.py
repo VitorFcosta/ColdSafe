@@ -139,11 +139,12 @@ def check_source_semantics(payload, reference):
     check_reference_scope(payload, reference)
     assert payload["correlation_id"] == reference["correlation_id"]
     assert payload["data"]["source_event_id"] == reference["event_id"]
-    if payload["type"] == "prediction":
+    if payload["type"] in {"prediction", "telemetry_persisted"}:
         assert reference["type"] == "telemetry" and reference["received_at"] is not None
         assert payload["data"]["input_received_at"] == reference["received_at"]
         age = (timestamp(payload["occurred_at"]) - timestamp(reference["received_at"])).total_seconds()
         assert age >= 0
+    if payload["type"] == "prediction":
         if payload["data"]["status"] == "available":
             assert age <= 30
         if payload["data"]["reason"] == "stale_input":
@@ -208,7 +209,7 @@ def check_semantics(case, reference, ack=None):
         check_job_semantics(payload, reference)
     elif event_type == "telemetry":
         assert payload["correlation_id"] == payload["event_id"]
-    elif event_type in {"prediction", "alert"}:
+    elif event_type in {"prediction", "alert", "telemetry_persisted"}:
         check_source_semantics(payload, reference)
     elif event_type in {"model_activation", "model_status"}:
         check_model_semantics(payload, reference)
