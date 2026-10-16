@@ -1,6 +1,8 @@
-# Explicit opt-in for B2-17 infrastructure. No generation/ML executor is installed yet.
+# Explicit opt-in for private jobs; generation B2-18 is offline, ML comes later.
 services:
   backend:
+    volumes:
+      - "job-artifacts:/app/artifacts:ro"
     environment:
       RABBITMQ_API_PASSWORD: "${RABBITMQ_API_PASSWORD:?Preencha a credencial privada da API}"
       RABBITMQ_HOST: rabbitmq
@@ -12,6 +14,10 @@ services:
       file: compose.yaml
       service: backend
     command: [python, -m, backend.app.job_worker, --role, generation]
+    volumes:
+      - "job-artifacts:/app/artifacts"
+    mem_limit: 512m
+    cpus: 1.0
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_GENERATION_PASSWORD: "${RABBITMQ_GENERATION_PASSWORD:?Preencha a credencial privada de geracao}"
@@ -25,6 +31,8 @@ services:
       file: compose.yaml
       service: backend
     command: [python, -m, backend.app.job_worker, --role, training]
+    volumes:
+      - "job-artifacts:/app/artifacts:ro"
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_TRAINING_PASSWORD: "${RABBITMQ_TRAINING_PASSWORD:?Preencha a credencial privada de treino}"
@@ -33,3 +41,6 @@ services:
         condition: service_healthy
     healthcheck:
       disable: true
+
+volumes:
+  job-artifacts:

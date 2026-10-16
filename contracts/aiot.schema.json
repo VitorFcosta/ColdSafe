@@ -251,7 +251,8 @@
       "properties": {
         "health_score_true": {"type":"number","minimum":0,"maximum":100},
         "rul_hours_true": {"anyOf":[{"type":"number","minimum":0},{"type":"null"}]},
-        "rul_observed": {"type":"boolean"}
+        "rul_observed": {"type":"boolean"},
+        "degradation_true": {"type":"number","minimum":0,"maximum":1}
       },
       "oneOf": [{"properties":{"rul_observed":{"const":true},"rul_hours_true":{"type":"number","minimum":0}}},{"properties":{"rul_observed":{"const":false},"rul_hours_true":{"type":"null"}}}]
     },

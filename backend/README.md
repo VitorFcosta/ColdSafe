@@ -40,8 +40,74 @@ AMQP confirma publicação e execução antes do ACK. Workers de geração e tre
 compartilham um advisory lock PostgreSQL e retomam contadores duráveis.
 Configuração em [jobs](../docs/configuration.md#jobs-assíncronos-b2-17),
 contrato em [HTTP de jobs](../contracts/aiot.md#jobs-http-e-progresso-sse--b2-17).
-Executores de geração massiva/ML ainda pertencem às próximas tarefas: ausência
-de executor produz `failed`, nunca um resultado fictício.
+O worker de geração B2-18 já produz datasets offline; treino/ML continuam
+posteriores e sem executor produzem `failed`.
+
+## Geração offline B2-18
+
+O mesmo POST de jobs aceita os parâmetros documentados no
+[contrato](../contracts/aiot.md#jobs-http-e-progresso-sse--b2-17).
+`total_units` conta linhas de equipamento: uma linha contém até seis medições,
+não seis leituras contadas separadamente. `equipment_count` distribui essas linhas
+entre equipamentos sintéticos; quantidade de sensores = equipamentos × tipos
+selecionados. IDs sintéticos não são o catálogo de dispositivos live.
+
+O gerador NumPy vetorizado escreve blocos de **50 mil linhas** no volume
+`job-artifacts`. Não conecta a MQTT/InfluxDB nem publica amostras/labels no AMQP.
+Somente metadados do job e progresso seguem pelas filas existentes. Usa memória
+proporcional ao bloco e ao catálogo sintético, sem DataFrame nem concatenação
+do dataset inteiro. NumPy `2.5.4` é a única dependência nova.
+
+Cada tentativa cria diretório privado exclusivo e publica `manifest.json` apenas
+depois de todos os blocos. Arquivos temporários, rename e fsync protegem a gravação;
+só depois o dataset é registrado com dono/job no PostgreSQL. Em falha de escrita
+não há resultado concluído. Depois de interrupção, a mesma seed **regera desde o
+primeiro bloco**, em novo diretório; checkpoints usam o máximo entre contador
+anterior e atual, conferindo a conexão PostgreSQL a cada bloco. UUID do dataset
+é estável por job, com um registro atualizado após replay completo.
+
+Tentativas interrompidas podem deixar diretórios órfãos. Não há expurgo automático:
+com workers parados, preserve as chaves referenciadas em `datasets.artifact_key`
+antes de remover órfãos. Nunca apague volumes pessoais para refazer uma geração.
+O lock continua limitado à sessão PostgreSQL viva: se ela cair, o cálculo só para
+no próximo checkpoint; diretórios exclusivos impedem mistura de arquivos, sem
+prometer exclusão de CPU durante essa janela.
+
+O manifesto registra seed/configuração completa, versão do armazenamento/NumPy,
+unidades, UUIDs e modos de cada equipamento, contagem/nome/SHA-256 dos blocos.
+Formato `offline-numpy-v1`: NPY estruturado little-endian, `equipment_index:int32`
+referencia a lista do manifesto, `observed_at:datetime64[ms]` UTC a partir de
+2026-01-01, seis medições float64 e labels float64/bool conforme schema offline.
+Sempre carregar com `np.load(..., allow_pickle=False)` e iterar bloco a bloco;
+`mmap_mode='r'` permite inspeção sem carregar o arquivo todo. Na linha lógica,
+NaN vira JSON `null`; dataset_id vem do manifesto e equipment_id da lista.
+
+Há ciclo diário, variação de baseline/fase por equipamento, modos normal/heavy/
+cycling, rolamento/desbalanceamento progressivos, ruído, faltantes e outliers.
+Direções físicas seguem o simulador (desgaste aumenta corrente, vibração,
+temperatura do motor e perda térmica), mas o modelo massivo é vetorizado, sem
+equivalência exata com a recorrência térmica da borda. Equipamentos observados
+terminam na falha; os censurados param no fim da janela sem inventar sua RUL.
+`degradation_true` vai de 0 a 1; saúde = `100*(1-degradation_true)`.
+Medições têm heterogeneidade e ruído com sobreposição. Sensores não selecionados
+ficam NaN; outliers offline podem exceder limites live. Não são dados calibrados
+nem validação de precisão industrial. A seleção `failure_fraction` é probabilística
+por equipamento; não promete percentual exato em catálogos pequenos.
+
+Para reproduzir a medição em um processo novo, na raiz e com o lock dev instalado:
+
+```sh
+python -m scripts.benchmark_generation --output /tmp/coldsafe-dataset-1m --total 1000000 --seed 42
+python -m pytest backend/tests/services/test_generation.py --no-cov -o addopts='' -q
+```
+
+O diretório de saída precisa ser novo. O script verifica hashes, contagem,
+censura/saúde e relata pico RSS do processo inteiro (não só arrays), tempo e
+bytes em disco. Troque `--total` por `2000000` para o teto. Duas execuções com
+mesma seed/configuração/versão reproduzem bytes dos blocos; UUIDs/metadados de
+datasets diferentes podem mudar. Evidência medida em [B2-18](../docs/aiot/tasks/B2-18.md).
+Os testes de integração requerem PostgreSQL descartável (`POSTGRES_TEST_*`);
+`COLDSAFE_RABBITMQ_INTEGRATION=1` habilita também o ensaio com broker descartável.
 
 Esta área contém a ingestão MQTT, a classificação das leituras, a persistência no
 InfluxDB, a estrutura relacional PostgreSQL e a API FastAPI.
@@ -56,7 +122,7 @@ As versões 004–005 acrescentam papéis e metadados privados de jobs, datasets
 modelos e ativação por proprietário. A versão 006 acrescenta identificação de
 sessões JWT, limites de login e tickets WebSocket. O [guia de migrações](migrations/README.md)
 explica propriedade, backup e recuperação. A persistência prepara o AIoT;
-workers de jobs estão na B2-17; cálculo e treino/inferência continuam posteriores. Autenticação e
+workers de jobs estão na B2-17, geração offline na B2-18; treino/inferência continuam posteriores. Autenticação e
 permissões atuais estão no [guia de segurança](../docs/aiot/tasks/B2-06.md).
 
 A primeira implementação do domínio está em `app/domain/telemetry.py`. Ela transforma

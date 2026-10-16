@@ -318,11 +318,30 @@ de linhas registradas. Seu total é fixo em duas regressões. Ambos aceitam
 o cliente não envia dono, caminho, status nem resultado. A validação aprofundada
 de dataset/modelo pertence às tarefas posteriores.
 
+Parâmetros opcionais da geração B2-18 (configuração persistida no job e manifesto):
+
+| Campo | Padrão | Validação / efeito |
+| --- | --- | --- |
+| `equipment_count` | 100 | Inteiro estrito 1–10.000; linhas distribuídas entre equipamentos sintéticos |
+| `days` | 30 | Número finito >0 e ≤3650; janela máxima simulada por equipamento |
+| `sensor_types` | Seis nomes de medições offline abaixo | Lista não vazia, sem repetição; tipos ausentes tornam-se null na linha lógica |
+| `failure_fraction` | 0.6 | Número finito 0–1; probabilidade de falha observada por equipamento |
+| `failure_modes` | `["bearing_wear","imbalance"]` | Subconjunto não vazio, sem repetição |
+| `operating_modes` | `["normal","heavy","cycling"]` | Subconjunto não vazio, sem repetição |
+| `noise_scale` | 1 | Número finito 0–10; multiplicador do ruído gaussiano |
+| `missing_rate` | 0.01 | Número finito 0–1; probabilidade por medição selecionada |
+| `outlier_rate` | 0.002 | Número finito 0–1; probabilidade de perturbação extrema por medição |
+
+Números não aceitam strings/booleanos. `total_units` conta observações de
+equipamento com até seis medições; quantidade de sensores = equipment_count ×
+quantidade de tipos selecionados. Não é contagem de células nem de eventos live.
+Armazenamento físico e operação em [backend](../backend/README.md#geração-offline-b2-18).
+
 Resposta HTTP: `{success:true,data:{id,job_type,status,completed_units,total_units,
 result_id,error_code,environment_id,dataset_id,created_at,updated_at},meta:{schema_version:3}}`.
 `result_id` é nulo até conclusão com artefato registrado do próprio job e arquivo
-interno regular, não vazio e sem symlink. Treino e geração sem executor real
-falham explicitamente, com o código correspondente; não fabricam artefatos.
+interno regular, não vazio e sem symlink. Geração já tem executor offline;
+treino sem executor real falha explicitamente, com o código correspondente.
 
 SSE emite `event: job_progress` com essa **resposta HTTP** no campo `data`, quando
 `updated_at` muda; não é o envelope AMQP abaixo. É uma assinatura do estado durável,
@@ -412,6 +431,8 @@ Labels: `health_score_true` 0–100, `rul_hours_true` ≥0 ou nulo e
 inclusive zero quando a falha foi observada. Equipamento sem falha observada
 não recebe RUL zero. Separar equipamentos entre conjuntos antes de ajustar
 transformações; nenhuma dessas verdades aparece em telemetria, previsão ou 3D.
+Na B2-18, `degradation_true` opcional 0–1 registra o desgaste sintético por linha;
+o novo gerador sempre o grava. É opcional no schema para preservar linhas antigas.
 
 ## Compatibilidade e três fluxos revisáveis
 

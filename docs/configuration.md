@@ -124,16 +124,18 @@ durante uma indisponibilidade AMQP. As demais dependências de readiness permane
 
 Workers podem ser executados com o ambiente do backend por
 `python -m backend.app.job_worker --role generation` ou `--role training`.
-Executores de geração massiva e treino **ainda não estão instalados**: pedidos
-válidos passam por queued/running e terminam failed com código sanitizado.
-Isso testa infraestrutura sem declarar dados/modelos artificiais como resultados.
-`JOB_ARTIFACT_ROOT` permite definir a raiz interna ao integrar os executores;
-padrão `/app/artifacts`. Este overlay não cria volume de datasets nem libera
-escrita: armazenamento/geração em blocos é B2-18, e não foi antecipado.
+Geração massiva está instalada na B2-18; treino ainda termina failed sem executor.
+`JOB_ARTIFACT_ROOT` define a raiz interna, padrão `/app/artifacts`. O overlay
+monta o volume persistente `job-artifacts`: RW só para geração, RO para API/treino.
+A imagem prepara proprietário/permissões para seu usuário sem privilégios.
+Se trocar a raiz, ajuste também a montagem; não aponte para buckets/volumes live.
+Geração tem limite de 512 MiB/1 CPU; não é garantia de capacidade da pilha completa.
+Formato, retomada, limpeza de órfãos e benchmark estão no
+[backend](../backend/README.md#geração-offline-b2-18).
 
 O bloqueio global é de sessão PostgreSQL e vale entre geração e treino de todas
 as contas. Worker interrompido deixa checkpoint no banco e entrega sem ACK;
-reinício retoma do contador, desde que o futuro executor persista os blocos.
+reinício da geração repete deterministicamente em diretório novo e preserva o contador.
 Não reiniciar PostgreSQL enquanto houver cálculo real: a perda da sessão libera
 o lock; o executor só detecta isso no próximo checkpoint. Esta tarefa não prova
 alta disponibilidade durante falha do coordenador.

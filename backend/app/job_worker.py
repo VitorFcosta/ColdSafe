@@ -1,4 +1,4 @@
-"""Run one private AMQP generation/training consumer; executors arrive in B2-18+."""
+"""Run one private AMQP consumer; generation is offline, training comes later."""
 import argparse
 import logging
 import signal
@@ -23,9 +23,13 @@ def main() -> None:
     if password is None:
         parser.error(f'RABBITMQ_{role.upper()}_PASSWORD is required')
     initialize_schema(settings)
+    handler = None
+    if role == 'generation':
+        from backend.app.services.generation import GenerationHandler
+        handler = GenerationHandler(settings, artifact_root=settings.job_artifact_root)
     worker = JobWorker(JobService(settings, artifact_root=settings.job_artifact_root), role,
                        host=settings.rabbitmq_host, port=settings.rabbitmq_port,
-                       password=password.get_secret_value())
+                       password=password.get_secret_value(), handler=handler)
     shutdown = Event()
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, lambda *_: shutdown.set())

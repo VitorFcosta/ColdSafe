@@ -46,9 +46,10 @@ def test_generation_is_accepted_without_executing_heavy_work(api):
     assert response.json()['data']['id'] == str(job['id'])
     assert response.json()['data']['status'] == 'queued'
     assert response.json()['meta']['schema_version'] == 3
-    service.create.assert_called_once_with(principal.user_id, {
+    from backend.app.domain.jobs import GenerationInput
+    service.create.assert_called_once_with(principal.user_id, GenerationInput(**{
         'job_type': 'generation', 'total_units': 1_000_000, 'seed': 42, 'environment_id': None,
-    })
+    }).model_dump())
     assert [call[0] for call in service.mock_calls] == ['create']
 
 

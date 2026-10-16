@@ -20,6 +20,11 @@ def test_worker_cli_selects_private_credential_and_initializes_schema(role, monk
     migrate.assert_called_once_with(config)
     assert worker.call_args.args[1] == role
     assert worker.call_args.kwargs['password'] == 'test-private'
+    from backend.app.services.generation import GenerationHandler
+    if role == 'generation':
+        assert isinstance(worker.call_args.kwargs['handler'], GenerationHandler)
+    else:
+        assert worker.call_args.kwargs['handler'] is None
     worker.return_value.run.assert_called_once()
 
 
@@ -29,3 +34,15 @@ def test_worker_cli_requires_role_credential(monkeypatch):
     with pytest.raises(SystemExit) as error:
         job_worker.main()
     assert error.value.code == 2
+
+
+def test_job_artifact_volume_is_persistent_and_only_generation_can_write():
+    from pathlib import Path
+    import yaml
+    config = yaml.safe_load(Path('compose.jobs.yaml').read_text())
+    assert 'job-artifacts' in config['volumes']
+    services = config['services']
+    assert services['generation']['volumes'] == ['job-artifacts:/app/artifacts']
+    for role in ('backend', 'training'):
+        assert services[role]['volumes'] == ['job-artifacts:/app/artifacts:ro']
+    assert services['generation']['mem_limit'] == '512m'

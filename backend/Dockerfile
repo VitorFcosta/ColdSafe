@@ -6,7 +6,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 RUN groupadd --system coldsafe \
-    && useradd --system --gid coldsafe --home-dir /app coldsafe
+    && useradd --system --gid coldsafe --home-dir /app coldsafe \
+    && mkdir -p /app/artifacts \
+    && chown coldsafe:coldsafe /app/artifacts \
+    && chmod 700 /app/artifacts
 
 COPY backend/requirements.lock.txt /tmp/requirements.lock.txt
 RUN python -m pip install --no-cache-dir --requirement /tmp/requirements.lock.txt
