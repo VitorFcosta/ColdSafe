@@ -209,6 +209,13 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         alerts=alerts,
         events=events,
     )
+    if settings.rabbitmq_monitor_password is not None:
+        from backend.app.api.messaging import create_messaging_router
+        from backend.app.services.messaging import MessagingService
+        app.include_router(create_messaging_router(auth, MessagingService(
+            settings.rabbitmq_host, settings.rabbitmq_management_port,
+            settings.rabbitmq_monitor_password.get_secret_value(),
+        )))
     if aiot is not None:
         from backend.app.api.aiot import install_aiot
         install_aiot(app, aiot, aiot_events, auth, catalog)

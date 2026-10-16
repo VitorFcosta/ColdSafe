@@ -13,6 +13,8 @@ from backend.app.runtime import build_runtime_app
 
 def settings() -> RuntimeSettings:
     return RuntimeSettings(
+        _env_file=None,
+        auth_jwt_secret="test-only-jwt-secret-for-runtime-tests",
         mqtt_host="mosquitto",
         mqtt_port=1883,
         mqtt_topic="coldsafe/v1/telemetry",

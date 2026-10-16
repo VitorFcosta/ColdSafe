@@ -1,0 +1,10 @@
+# Metrics only; keep the current dashboard and AIoT consumers unchanged.
+services:
+  backend:
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_MANAGEMENT_PORT: 15672
+      RABBITMQ_MONITOR_PASSWORD: "${RABBITMQ_MONITOR_PASSWORD:?Preencha RABBITMQ_MONITOR_PASSWORD}"

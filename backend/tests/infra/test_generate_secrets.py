@@ -17,7 +17,7 @@ EXPECTED_SECRETS = {
     "MQTT_SIMULATOR_PASSWORD", "MQTT_SIMULATOR_OPERATOR_PASSWORD", "MQTT_GATEWAY_PASSWORD",
     *(f"RABBITMQ_{role}_PASSWORD" for role in (
         "GATEWAY", "WRITER", "INFERENCE", "DELIVERY", "COMMANDS", "GENERATION",
-        "TRAINING", "OBSERVABILITY", "API", "AUDIT")),
+        "TRAINING", "OBSERVABILITY", "API", "AUDIT", "MONITOR")),
 }
 
 
@@ -142,7 +142,7 @@ def test_random_collision_retries_without_reusing_existing_secret(generator, tmp
     target = tmp_path / ".env"
     existing = "x" * 43
     target.write_text(f"AUTH_JWT_SECRET='{existing}'\n")
-    sequence = iter([existing, *(f"generated-{index}" for index in range(20))])
+    sequence = iter([existing, *(f"generated-{index}" for index in range(len(EXPECTED_SECRETS)))])
     monkeypatch.setattr(generator.secrets, "token_urlsafe", lambda size: next(sequence))
     generator.generate(target, ROOT / ".env.example")
     values = assignments(target)

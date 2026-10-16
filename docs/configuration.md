@@ -38,7 +38,7 @@ No `.env`:
 - `POSTGRES_PASSWORD`
 - `AUTH_JWT_SECRET` (chave aleatória privada, no mínimo 32 caracteres)
 
-A B2-07 exige também as dez senhas `RABBITMQ_*_PASSWORD` listadas em
+A infraestrutura exige também as onze senhas `RABBITMQ_*_PASSWORD` listadas em
 `.env.example`, aleatórias, distintas e com pelo menos 32 caracteres.
 São identidades próprias por serviço, sem `guest` ou administrador de aplicação.
 O bootstrap gera hashes num volume privado; não escreva senhas/definições
@@ -108,7 +108,7 @@ docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot --profile sim
 
 O overlay define `AIOT_ENABLED=true`, `AIOT_CATALOG_PATH=/catalog/catalog.json`,
 `AIOT_OWNER_USER_ID` a partir de `GATEWAY_OWNER_USER_ID`, e injeta somente as
-senhas AMQP `commands`/`delivery` no backend. Monte o mesmo catálogo privado do
+senhas AMQP `commands`/`delivery` e a credencial HTTP `monitor` no backend. Monte o mesmo catálogo privado do
 gateway/writer; `WRITER_OWNER_USER_ID` deve ser o mesmo dono. Fora do Docker,
 informe esses campos e `RABBITMQ_HOST/PORT`. Configuração incompleta é recusada.
 Sem overlay a API v3 permanece desabilitada e o backend conserva v1/v2.
@@ -124,6 +124,44 @@ O token legado conserva as permissões anteriores. Na instalação RabbitMQ já
 existente, as novas ACLs/bindings de recibos precisam ser importadas pelo bootstrap;
 não apague volumes. Consulte [infra RabbitMQ](../infra/rabbitmq/README.md).
 Esta entrega valida uma pilha descartável, sem modificar as credenciais pessoais.
+
+## Mensageria B2-15
+
+`RABBITMQ_MONITOR_PASSWORD` é a nova credencial exclusiva do backend para
+consultar métricas HTTP do RabbitMQ. O gerador preenche essa chave se ausente,
+sem mudar os demais segredos. O bootstrap cria `coldsafe-monitor` com tag
+`management` e sem permissão de configurar/publicar/consumir mensagens.
+Em instalações existentes, reexecute bootstrap/import preservando volumes;
+não basta inserir a chave no backend sem provisionar o usuário no broker.
+
+Para atualizar uma instalação existente já configurada, em uma janela de
+manutenção (o restart interrompe conexões brevemente):
+
+```sh
+python3 scripts/generate-secrets.py
+docker compose run --rm --no-deps --build rabbitmq-init
+docker compose restart rabbitmq
+docker compose -f compose.yaml -f compose.messaging.yaml up -d --build --no-deps backend frontend
+```
+
+Os comandos preservam volumes e valores existentes. `compose.messaging.yaml`
+habilita somente as métricas, conservando o dashboard e consumidores atuais;
+não exige catálogo nem habilita o modo AIoT completo. Não execute `down --volumes`
+na pilha pessoal.
+
+`compose.messaging.yaml` injeta a senha e `RABBITMQ_MANAGEMENT_PORT=15672` no backend;
+o host é `RABBITMQ_HOST`. Nenhuma variável `VITE_*` contém a credencial e nenhuma
+porta adicional é publicada. Fora do Compose, esses três campos habilitam a rota
+de métricas independentemente dos consumidores AIoT. Sem a senha configurada,
+a rota não é instalada (404); a página informa a falha e a operação legada continua separada.
+O overlay `compose.aiot.yaml` também inclui essas variáveis para quem já ativou
+o percurso AIoT completo. Ao atualizar a instalação, conserve o overlay escolhido.
+
+Acesse `/messaging` com conta **admin** ColdSafe. As filas são compartilhadas,
+por isso os números são agregados de infraestrutura: viewer/operator não os
+consultam e nem administradores recebem corpos de mensagens. Cadastro público
+não permite escolher admin. Não promova contas nem altere credenciais de produção
+para testar; o harness da B2-15 cria contas e infraestrutura descartáveis.
 
 ## Permissões do token InfluxDB
 

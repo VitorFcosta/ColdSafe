@@ -1,0 +1,637 @@
+{
+  "task": "B2-15",
+  "date": "2026-10-15",
+  "status": "completed",
+  "source": "Local task card, B2-07/13/14 dependencies and current source/tests; no Notion consultation",
+  "git": {
+    "base": "9d258f5ff0abc215bd63aebe26cc800450c8f59c",
+    "head": "9d258f5ff0abc215bd63aebe26cc800450c8f59c",
+    "branch": "codex/block-5-validation",
+    "initial_worktree": "clean",
+    "delivery": "uncommitted working tree",
+    "commit_created": false,
+    "push_or_deployment": false
+  },
+  "dependencies": {
+    "added": [],
+    "migrations_added": [],
+    "unchanged_manifests": [
+      {
+        "path": "backend/requirements.txt",
+        "sha256": "a6424a94686c2e723d543eb90ea212948d40df3717ab402d41fca1d9729046f0",
+        "unchanged_from_base": true
+      },
+      {
+        "path": "backend/requirements.lock.txt",
+        "sha256": "addd3d1944717c975040ad74be40060824ecc696b634943da5ba393ed4117fbb",
+        "unchanged_from_base": true
+      },
+      {
+        "path": "backend/requirements-dev.txt",
+        "sha256": "158aecbf03642bde21a9d7dd108ef8daabc5d653ef31680003b49f5939ea46f5",
+        "unchanged_from_base": true
+      },
+      {
+        "path": "backend/requirements-dev.lock.txt",
+        "sha256": "1b258d8afb03cd625cb2c1a3736ed9785a7cce24aaeacc9d01907b45d306ceb6",
+        "unchanged_from_base": true
+      },
+      {
+        "path": "frontend/package.json",
+        "sha256": "0cfa306e7c69947afd0403d2730cbd9c97d079548304d47b31668777704dfabc",
+        "unchanged_from_base": true
+      },
+      {
+        "path": "frontend/package-lock.json",
+        "sha256": "e46a7beeabb89746c14032a66709f2c0e7994c1ee39a30d4aedc53b640035bea",
+        "unchanged_from_base": true
+      }
+    ]
+  },
+  "runtimes": {
+    "python": "3.13.15",
+    "node_final_tests": "24.20.0",
+    "docker": "29.3.0",
+    "rabbitmq": "4.3.6-management-alpine",
+    "temporary_node": "Official Darwin arm64 archive, SHA-256 checked against official SHASUMS256; outside repository"
+  },
+  "tests": [
+    {
+      "name": "Focused backend",
+      "passed": 48,
+      "coverage_combined_percent": 98.98,
+      "new_service_and_router_percent": 100,
+      "settings_percent": 95,
+      "reproduction_command": ".venv/bin/python -m pytest backend/tests/services/test_messaging.py backend/tests/api/test_messaging_api.py backend/tests/config/test_messaging_settings.py -o addopts='' --cov=backend.app.services.messaging --cov=backend.app.api.messaging --cov=backend.app.config.settings --cov-branch --cov-fail-under=80 -q",
+      "executed_command": "/private/tmp/coldsafe-b213-venv/bin/python -m pytest backend/tests/services/test_messaging.py backend/tests/api/test_messaging_api.py backend/tests/config/test_messaging_settings.py --override-ini='addopts=' --cov=backend.app.services.messaging --cov=backend.app.api.messaging --cov=backend.app.config.settings --cov-branch --cov-report=term-missing --cov-fail-under=80 -q"
+    },
+    {
+      "name": "Infrastructure unit regression",
+      "passed": 56,
+      "reproduction_command": ".venv/bin/python -m pytest backend/tests/infra/test_rabbitmq_bootstrap.py backend/tests/infra/test_generate_secrets.py backend/tests/infra/test_compose_contract.py -q -o addopts=''"
+    },
+    {
+      "name": "Configuration examples",
+      "passed": 6,
+      "reproduction_command": ".venv/bin/python -m pytest backend/tests/config/test_configuration_examples.py -q -o addopts=''"
+    },
+    {
+      "name": "Backend final regression",
+      "passed": 719,
+      "skipped": 129,
+      "coverage_measured": false,
+      "summary": [
+        "719 passed, 129 skipped, 2 warnings in 60.42s (0:01:00)"
+      ],
+      "reproduction_command": ".venv/bin/python -m pytest backend/tests -q --no-cov -o addopts=''"
+    },
+    {
+      "name": "Backend earlier aggregate coverage",
+      "coverage_percent": 78.36,
+      "gate_percent": 80,
+      "gate_passed": false,
+      "passed": 716,
+      "skipped": 128,
+      "failed": 1,
+      "note": "Exact env-key assertion fixed; final regression green. This run omitted opt-in integrations. Focused new-code coverage passed separately."
+    },
+    {
+      "name": "Frontend final unit coverage, Node 24.20.0",
+      "passed": 171,
+      "test_files": 21,
+      "coverage_percent": {
+        "statements": 90.75,
+        "branches": 86.91,
+        "functions": 90.39,
+        "lines": 94.1
+      },
+      "summary": [
+        "Test Files  21 passed (21)"
+      ],
+      "reproduction_command": "cd frontend && npm run test:coverage",
+      "executed_command": "PATH=/private/tmp/coldsafe-b215-node/node-v24.20.0-darwin-arm64/bin:$PATH node node_modules/vitest/vitest.mjs run --coverage",
+      "executed_cwd": "/private/tmp/coldsafe-b215-frontend"
+    },
+    {
+      "name": "Legacy Chromium final, Node 24.20.0",
+      "passed": 31,
+      "skipped": 8,
+      "summary": [
+        "31 passed (14.5s)"
+      ],
+      "reproduction_command": "cd frontend && npm run test:e2e",
+      "executed_command": "PATH=/private/tmp/coldsafe-b215-node/node-v24.20.0-darwin-arm64/bin:$PATH node node_modules/@playwright/test/cli.js test --config playwright.config.ts",
+      "executed_cwd": "/private/tmp/coldsafe-b215-frontend"
+    },
+    {
+      "name": "Real messaging integration, Node 24.20.0",
+      "python_passed": 1,
+      "browser_passed": 4,
+      "python_seconds": 111.89,
+      "browser_seconds": 35.0,
+      "summary": [
+        "4 passed (35.0s)",
+        "Real broker: aggregate counters/rates/consumers matched; monitor privileges denied; authenticated roles, wrong credentials, timeout and recovery passed.",
+        "1 passed, 2 warnings in 111.89s (0:01:51)"
+      ],
+      "scope": [
+        "nine queue counters/rates/consumer subscriptions match real RabbitMQ",
+        "monitor denied body retrieval/purge/AMQP read/publish/configure",
+        "real PostgreSQL authentication, anonymous401, operator/viewer403",
+        "wrong monitor password503",
+        "real broker pause/socket timeout/recovery",
+        "browser metrics/mobile/keyboard, automatic refresh, only ColdSafe origins, outage/age/recovery, role denial"
+      ],
+      "reproduction_command": "COLDSAFE_WRITER_INTEGRATION=1 .venv/bin/python -m pytest backend/tests/infra/test_messaging_integration.py -q -s --tb=short --no-cov -o addopts=''"
+    },
+    {
+      "name": "Vue/TypeScript and Vite production build",
+      "passed": true,
+      "note": "Local checks and final canonical Docker frontend Node24.20.0 build, including final explanatory copy"
+    },
+    {
+      "name": "Backend Docker image build and module import without network",
+      "passed": true
+    },
+    {
+      "name": "Compose overlay with temporary credentials",
+      "passed": true
+    },
+    {
+      "name": "git diff --check",
+      "passed": true
+    }
+  ],
+  "real_broker_sample": {
+    "queues": [
+      {
+        "name": "coldsafe.commands",
+        "messages": 0,
+        "messages_ready": 0,
+        "messages_unacknowledged": 0,
+        "consumers": 0
+      },
+      {
+        "name": "coldsafe.delivery",
+        "messages": 0,
+        "messages_ready": 0,
+        "messages_unacknowledged": 0,
+        "consumers": 0
+      },
+      {
+        "name": "coldsafe.dlq",
+        "messages": 0,
+        "messages_ready": 0,
+        "messages_unacknowledged": 0,
+        "consumers": 0
+      },
+      {
+        "name": "coldsafe.gateway",
+        "messages": 0,
+        "messages_ready": 0,
+        "messages_unacknowledged": 0,
+        "consumers": 0
+      },
+      {
+        "name": "coldsafe.generation",
+        "messages": 0,
+        "messages_ready": 0,
+        "messages_unacknowledged": 0,
+        "consumers": 0
+      },
+      {
+        "name": "coldsafe.inference",
+        "messages": 18,
+        "messages_ready": 18,
+        "messages_unacknowledged": 0,
+        "consumers": 0
+      },
+      {
+        "name": "coldsafe.observability",
+        "messages": 36,
+        "messages_ready": 36,
+        "messages_unacknowledged": 0,
+        "consumers": 0
+      },
+      {
+        "name": "coldsafe.training",
+        "messages": 0,
+        "messages_ready": 0,
+        "messages_unacknowledged": 0,
+        "consumers": 1
+      },
+      {
+        "name": "coldsafe.writer",
+        "messages": 3,
+        "messages_ready": 3,
+        "messages_unacknowledged": 0,
+        "consumers": 0
+      }
+    ],
+    "rates": [
+      {
+        "name": "coldsafe.commands",
+        "publish_rate": 0.0,
+        "deliver_rate": 0.0
+      },
+      {
+        "name": "coldsafe.delivery",
+        "publish_rate": 0.0,
+        "deliver_rate": 0.0
+      },
+      {
+        "name": "coldsafe.dlq",
+        "publish_rate": null,
+        "deliver_rate": null
+      },
+      {
+        "name": "coldsafe.gateway",
+        "publish_rate": null,
+        "deliver_rate": 0.0
+      },
+      {
+        "name": "coldsafe.generation",
+        "publish_rate": null,
+        "deliver_rate": null
+      },
+      {
+        "name": "coldsafe.inference",
+        "publish_rate": 0.0,
+        "deliver_rate": null
+      },
+      {
+        "name": "coldsafe.observability",
+        "publish_rate": 0.0,
+        "deliver_rate": null
+      },
+      {
+        "name": "coldsafe.training",
+        "publish_rate": null,
+        "deliver_rate": null
+      },
+      {
+        "name": "coldsafe.writer",
+        "publish_rate": 0.0,
+        "deliver_rate": 0.0
+      }
+    ]
+  },
+  "review": {
+    "independent_security_review": "No remaining blockers after fixes",
+    "resolved": [
+      "401/403 must remove cached metrics; old-session responses ignored",
+      "HTTPException transport failures sanitized"
+    ],
+    "tdd_red": [
+      "missing new modules and monitor identity",
+      "revocation after successful sample",
+      "IncompleteRead and BadStatusLine"
+    ]
+  },
+  "test_harness_corrections": [
+    "Docker stop/start remapped an ephemeral host port, independently reproduced 53974 -> 53977; pause/unpause exercises real outage with stable address",
+    "Current workers use basic_get and do not register stable consumer subscriptions; test uses own real subscriber on empty training queue",
+    "Initial two disposable broker health failures happened before application assertions; exact cause not isolated; improved setup logs"
+  ],
+  "cleanup": {
+    "disposable_containers_remaining": 0,
+    "disposable_volumes_remaining": 0,
+    "personal_services_preserved": 6,
+    "personal_env_unchanged": true,
+    "personal_credentials_unchanged": true
+  },
+  "limitations": [
+    "No personal deployment or credential provisioning",
+    "consumers counts subscriptions, not polling processes",
+    "Rates observed after stabilization were 0.0 or null; positive rates covered by unit tests, no sustained live-throughput measurement",
+    "Socket timeout 3s is not absolute wall-clock deadline; cache up to 5s and broker sampling introduce age",
+    "Earlier global backend coverage 78.36 below 80 gate; new-code focused coverage passed",
+    "Not all opt-in integrations, hardware, browsers or final-capacity scenario executed",
+    "Final graph reindex failed Transport closed; code discovery initially used graph"
+  ],
+  "checkpoint": "B2-15 completed. B2-16 not started; await explicit user choice.",
+  "inventory": [
+    {
+      "path": ".env.example",
+      "action": "modified",
+      "sha256": "484e763f9a32efe19219168aa214d84e25c460d7f02248e1034ef61965232cf0"
+    },
+    {
+      "path": "backend/README.md",
+      "action": "modified",
+      "sha256": "7dd6ff6da33787791a77623c81760469e236b721ce633e43c0483ef30309fec8"
+    },
+    {
+      "path": "backend/app/api/messaging.py",
+      "action": "created",
+      "sha256": "7f9d19e0725ca004527a922d8cae17c308e806da678e678fc9a408e91468fdc2"
+    },
+    {
+      "path": "backend/app/config/settings.py",
+      "action": "modified",
+      "sha256": "d6f96fc9321f3f753506bb15404d886a0bbc55c96722a0116d5c7a2f01cf18f4"
+    },
+    {
+      "path": "backend/app/runtime.py",
+      "action": "modified",
+      "sha256": "c4f174e06a804d11405acf4c29496506021cb6b95d21fb3e441e8782bdad1d8c"
+    },
+    {
+      "path": "backend/app/services/messaging.py",
+      "action": "created",
+      "sha256": "b3105e92e4c5591f356ab6adcf9455acc390f4f8f1f3b79d07341b06da6979b1"
+    },
+    {
+      "path": "backend/tests/api/test_messaging_api.py",
+      "action": "created",
+      "sha256": "cfe90cbb0877c7d5195e1fa23f2ac2b4a4f2f0c99ccb9247b1b990d6af3b8dc8"
+    },
+    {
+      "path": "backend/tests/config/test_configuration_examples.py",
+      "action": "modified",
+      "sha256": "04ed7c59158b663d46c435698efaff5243b5e7396228f4154d58781c5eb1f204"
+    },
+    {
+      "path": "backend/tests/config/test_messaging_settings.py",
+      "action": "created",
+      "sha256": "0e5978960c3bd0bed20844de8d2d6d5b5d8fe44beae9e701f420eed0b4b9461a"
+    },
+    {
+      "path": "backend/tests/infra/test_generate_secrets.py",
+      "action": "modified",
+      "sha256": "a5e43d5c263aa618c016bc21663672d14b47ad9bb5cf36bd85c121f7dd0b0b71"
+    },
+    {
+      "path": "backend/tests/infra/test_messaging_integration.py",
+      "action": "created",
+      "sha256": "85143da8b60698ff924a31bbd16ef3a2af596e511958f68644cb3d47d054b67b"
+    },
+    {
+      "path": "backend/tests/infra/test_rabbitmq_bootstrap.py",
+      "action": "modified",
+      "sha256": "d0cc56518f2c5bbe087be4832206e6fae00adb8f3f1eea04491fbcf372e9e263"
+    },
+    {
+      "path": "backend/tests/infra/test_writer_integration.py",
+      "action": "modified",
+      "sha256": "578077eb3869685a3fb06ffdd7f1c3ca9bf89d783b97c8d750a70e78d3dfe8fa"
+    },
+    {
+      "path": "backend/tests/services/test_messaging.py",
+      "action": "created",
+      "sha256": "d04f7129d7e73a01508c6a2092d9706821d7ab2ea9de07a712194926df9d5c73"
+    },
+    {
+      "path": "compose.aiot.yaml",
+      "action": "modified",
+      "sha256": "f1cb8a605116a8ff6cf9bc0fdb5e81499128b6fe388b2f1589720984e97f178e"
+    },
+    {
+      "path": "compose.yaml",
+      "action": "modified",
+      "sha256": "c81a4b24f30e8180a593af1644edf429182dfad9a186dba7091c03338c9214c4"
+    },
+    {
+      "path": "docs/aiot/README.md",
+      "action": "modified",
+      "sha256": "abd7dbea170eea4c26520952112fafe896e05d12fae22404af4f88fbfcc2e915"
+    },
+    {
+      "path": "docs/aiot/tasks/B2-15.md",
+      "action": "modified",
+      "sha256": "19b5acf39371e90e0b28c97371a9c94c48904f6946fe3ebd6195b537828ff316"
+    },
+    {
+      "path": "docs/aiot/tasks/README.md",
+      "action": "modified",
+      "sha256": "7c0ad69d41c77732e5656ef843defc9fe225174d984100ad3d8f270dccfca4eb"
+    },
+    {
+      "path": "docs/configuration.md",
+      "action": "modified",
+      "sha256": "6077afc561784206e3d19f4d4787add125969983c6c4e04a14dc5a5af6259f75"
+    },
+    {
+      "path": "frontend/PRODUCT.md",
+      "action": "modified",
+      "sha256": "7923e9f4d532be39cfd41ac5a53764533eff96a80b75da6680901fda31be030f"
+    },
+    {
+      "path": "frontend/README.md",
+      "action": "modified",
+      "sha256": "24c45083726ec910889f5abe1ef59daa0d5385ded4ccd3540ee8fe5431392b8c"
+    },
+    {
+      "path": "frontend/e2e/messaging-real.spec.ts",
+      "action": "created",
+      "sha256": "45c1b677b80abce0c97a5ee74c9228bcd9fa11571e5df2e5197b983566c158b6"
+    },
+    {
+      "path": "frontend/playwright.messaging.config.ts",
+      "action": "created",
+      "sha256": "11cd58086817d4bb77def1c28f00ea33229765e9e59aab94a9b2344ff802a3dd"
+    },
+    {
+      "path": "frontend/src/features/messaging/messaging-api.spec.ts",
+      "action": "created",
+      "sha256": "e5eaa0e0be51301bb5d38ea293d420350b564a65afd506364684defe85660c92"
+    },
+    {
+      "path": "frontend/src/features/messaging/messaging-api.ts",
+      "action": "created",
+      "sha256": "58e75d171d7580ad047060e38a0fbc0caeaaa89ef81811276e3cf8bcbe9643a7"
+    },
+    {
+      "path": "frontend/src/router/index.ts",
+      "action": "modified",
+      "sha256": "b8b1ffb2bc426a5531176c3d1b35de42943f8b0c10d6eaa8e36481a4f030f77e"
+    },
+    {
+      "path": "frontend/src/views/FoundationView.vue",
+      "action": "modified",
+      "sha256": "c5b0515a1268056d9bacbf30ccd209bbeaedaea3f1ef62c5977868e4686b5bba"
+    },
+    {
+      "path": "frontend/src/views/ManageView.vue",
+      "action": "modified",
+      "sha256": "d7835ce8706868fc0155d6da08717ebc594ff777a39ce9b75c4bf5e40a295691"
+    },
+    {
+      "path": "frontend/src/views/MessagingView.spec.ts",
+      "action": "created",
+      "sha256": "78d9feaebbc14cdc91becb14a877502378d2b55db6702a9367835f5c3042989e"
+    },
+    {
+      "path": "frontend/src/views/MessagingView.vue",
+      "action": "created",
+      "sha256": "41dd7fa373772faa1b0a9ec8b974de46e2cd8387f57caf4898cfbb3efd9850df"
+    },
+    {
+      "path": "infra/rabbitmq/README.md",
+      "action": "modified",
+      "sha256": "73eb37562048576c0fdcba0696a387c38ab806bdbc099595c5fad3959c7ce449"
+    },
+    {
+      "path": "infra/rabbitmq/bootstrap.py",
+      "action": "modified",
+      "sha256": "c59d4c34c9b3eb852a81a8acfdae46ed94aafcf12cc608311448fb7b394bdf8b"
+    },
+    {
+      "path": "scripts/generate-secrets.py",
+      "action": "modified",
+      "sha256": "c8bcd993c9a0a6e2dae4fb5bfc3da16faac2837391de2c0d309e44323fdb2247"
+    }
+  ],
+  "self_inventory_note": "This evidence JSON is created by B2-15 and excluded from its own SHA-256 inventory to avoid a circular hash.",
+  "inventory_scope": "Original B2-15 delivery snapshot before authorized personal activation; follow-up hashes are under local_activation.inventory.",
+  "local_activation": {
+    "date": "2026-10-15",
+    "authorized_by_user": true,
+    "base": "9d258f5ff0abc215bd63aebe26cc800450c8f59c",
+    "credential_fields_generated": [
+      "MQTT_SIMULATOR_PASSWORD",
+      "MQTT_SIMULATOR_OPERATOR_PASSWORD",
+      "MQTT_GATEWAY_PASSWORD",
+      "RABBITMQ_MONITOR_PASSWORD"
+    ],
+    "scoped_token_fields_created": [
+      "INFLUXDB_WRITER_TOKEN"
+    ],
+    "all_credential_fields_filled": true,
+    "existing_nonempty_values_preserved": true,
+    "private_env_mode": "0600",
+    "private_env_git_ignored": true,
+    "writer_bucket": {
+      "name": "telemetry_live",
+      "created": true,
+      "retention_hours": 168,
+      "authorization": "write only on this bucket"
+    },
+    "account": {
+      "previous_role": "operator",
+      "current_role": "admin",
+      "existing_password_preserved": true,
+      "promotion_audited": true
+    },
+    "existing_data": {
+      "environments_preserved": 1,
+      "devices_preserved": 2,
+      "persistent_volumes_preserved": true
+    },
+    "deployment": {
+      "overlay": "compose.messaging.yaml",
+      "rebuilt_and_recreated": [
+        "backend",
+        "frontend"
+      ],
+      "brokers_bootstrapped_and_restarted": [
+        "rabbitmq",
+        "mosquitto"
+      ],
+      "databases_restarted": false,
+      "aiot_consumers_enabled": false,
+      "extra_published_ports": false
+    },
+    "verification": {
+      "infra_tests_passed": 57,
+      "new_overlay_test_red_then_green": true,
+      "mqtt_new_identities_authenticated": 3,
+      "writer_live_write": true,
+      "writer_read_denied": true,
+      "writer_legacy_write_denied": true,
+      "temporary_point_deleted": true,
+      "rabbitmq_monitor_tag": "management",
+      "rabbitmq_monitor_permissions": {
+        "configure": "^$",
+        "read": "^$",
+        "write": "^$"
+      },
+      "anonymous_http_status": 401,
+      "admin_messaging_http_status": 200,
+      "queues": 9,
+      "live_browser_passed": true,
+      "browser_only_origin": "http://localhost:5173",
+      "temporary_verification_session_revoked": true,
+      "healthy_services": 6
+    },
+    "dependencies_added": [],
+    "inventory": [
+      {
+        "path": "compose.messaging.yaml",
+        "sha256": "9d6209bea447f3212c3654870017bb1269393ac7af2aa79573da91944211413b"
+      },
+      {
+        "path": "backend/tests/infra/test_compose_contract.py",
+        "sha256": "8bda249948b4f709d94463cd1db7db6d434e856883bf37a5526ef1b5cd55492e"
+      },
+      {
+        "path": "docs/configuration.md",
+        "sha256": "f06df174ed669f5d39ce70ee2f26fbc8cc83057a07596f11e5324c41b5186a8b"
+      },
+      {
+        "path": "infra/rabbitmq/README.md",
+        "sha256": "8dd79204e1b31109e07b83819c5759d218aaf410fb1c583c0e52732ecaa19db9"
+      },
+      {
+        "path": "frontend/README.md",
+        "sha256": "fa7ae9504ba710c855c1c0e96caa6e248f5621047e803dc8ff6d97b0b6f280df"
+      },
+      {
+        "path": "docs/aiot/tasks/B2-15.md",
+        "sha256": "7151bd9d715c6c3e9744d11a7936e08b436f75b08559ef038af690500208d708"
+      },
+      {
+        "path": "docs/aiot/README.md",
+        "sha256": "05f6536d178da75573820d4b0dcd2a29141291c121eb569c21afcf8d81fe22d6"
+      }
+    ],
+    "limits": [
+      "Gateway/writer/simulator not started; only credentials prepared",
+      "Global coverage not remeasured",
+      "No B2-16 work or commit/push"
+    ],
+    "open_url": "http://localhost:5173/messaging",
+    "temporary_secret_backup_removed": true
+  },
+  "precommit_verification": {
+    "date": "2026-10-16",
+    "passed": 118,
+    "focused_coverage_percent": 100.0,
+    "coverage_scope": [
+      "backend.app.services.messaging",
+      "backend.app.api.messaging",
+      "backend.app.config.settings"
+    ],
+    "global_backend_coverage_remeasured": false,
+    "initial_red": {
+      "passed": 109,
+      "failed": 2,
+      "cause": "Shared runtime settings test helper loaded the newly configured personal .env"
+    },
+    "fix": {
+      "path": "backend/tests/api/test_runtime_lifecycle.py",
+      "changes": [
+        "_env_file=None",
+        "dedicated test-only JWT key"
+      ],
+      "production_changed": false
+    },
+    "reviewed_callers": [
+      "backend/tests/api/test_messaging_api.py",
+      "backend/tests/config/test_messaging_settings.py",
+      "backend/tests/config/test_aiot_settings.py"
+    ],
+    "new_dependencies": [],
+    "publication_migration": "Compose/bootstrap now require RABBITMQ_MONITOR_PASSWORD; generate missing credential and reapply bootstrap/import while retaining volumes and existing secrets.",
+    "inventory": [
+      {
+        "path": "backend/tests/api/test_runtime_lifecycle.py",
+        "sha256": "aa84dc7eaba5decad88b633112ea2a77d095b7e44abd50824e928fbdbc58ee5c"
+      },
+      {
+        "path": "docs/aiot/tasks/B2-15.md",
+        "sha256": "6d96fa9c1a1f5ba7b2994bc5371c112f872cec801f4e028cf121d97940e9f1ec"
+      }
+    ]
+  }
+}

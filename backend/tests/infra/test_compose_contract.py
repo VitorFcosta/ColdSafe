@@ -24,6 +24,20 @@ def load_integration_compose():
     return yaml.safe_load(INTEGRATION_COMPOSE_PATH.read_text(encoding="utf-8"))
 
 
+def test_messaging_overlay_keeps_legacy_dashboard_and_broker_private():
+    overlay = yaml.safe_load((REPOSITORY_ROOT / 'compose.messaging.yaml').read_text())
+    assert set(overlay['services']) == {'backend'}
+    backend = overlay['services']['backend']
+    assert backend['depends_on']['rabbitmq']['condition'] == 'service_healthy'
+    assert set(backend['environment']) == {
+        'RABBITMQ_HOST', 'RABBITMQ_MANAGEMENT_PORT', 'RABBITMQ_MONITOR_PASSWORD',
+    }
+    assert backend['environment']['RABBITMQ_HOST'] == 'rabbitmq'
+    assert backend['environment']['RABBITMQ_MANAGEMENT_PORT'] == 15672
+    assert 'RABBITMQ_MONITOR_PASSWORD:?' in backend['environment']['RABBITMQ_MONITOR_PASSWORD']
+    assert 'ports' not in backend
+
+
 def test_compose_contains_the_relational_database():
     compose = load_compose()
 

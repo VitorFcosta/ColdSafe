@@ -133,6 +133,7 @@ def stack(request):
         for name, internal in (('rabbitmq', 5672), ('mosquitto', 1883), ('postgres', 5432), ('influxdb', 8086)):
             services[name]['ports'] = [f'127.0.0.1::{internal}']
             services[name]['networks'].append('test-edge')
+        services['rabbitmq']['ports'].append('127.0.0.1::15672')
         for name in ('simulator', 'gateway', 'writer'):
             for volume in services[name].get('volumes', []):
                 if isinstance(volume, dict) and volume.get('target') == '/catalog':
@@ -188,6 +189,7 @@ def stack(request):
             run(state, 'up', '-d', '--build', '--wait', '--wait-timeout', '120', 'gateway', 'writer', 'simulator')
             # Compose may recreate built dependencies; ephemeral host ports belong to the current container.
             state['broker']['port'] = port('rabbitmq', 5672)
+            state['management_port'] = port('rabbitmq', 15672)
             state['url'] = 'http://127.0.0.1:' + str(port('influxdb', 8086))
             state['event'] = receive(state, 'delivery', lambda event: event['type'] == 'telemetry', timeout=30)
             wait_point(state, state['event'])
@@ -196,8 +198,8 @@ def stack(request):
             yield state
         finally:
             try:
-                if request.session.testsfailed:
-                    print(run(state, 'logs', '--no-color', '--tail', '40', 'gateway', 'writer', 'simulator'))
+                if request.session.testsfailed or 'event' not in state:
+                    print(run(state, 'logs', '--no-color', '--tail', '40', 'rabbitmq', 'gateway', 'writer', 'simulator'))
             finally:
                 run(state, 'down', '--volumes', '--remove-orphans')
 

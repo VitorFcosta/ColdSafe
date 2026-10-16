@@ -11,12 +11,16 @@ Estas filas prontas não provam os consumidores de negócio.
 
 ## Preparação e segredos
 
-Preencha as dez variáveis `RABBITMQ_*_PASSWORD` de `.env.example` no `.env`
+Preencha as onze variáveis `RABBITMQ_*_PASSWORD` de `.env.example` no `.env`
 privado: senhas aleatórias distintas, com pelo menos 32 caracteres. O inicializador
 offline recusa valores ausentes, curtos, repetidos ou `REPLACE_WITH_...`.
 Nenhuma credencial pessoal é alterada pelos testes. O broker não recebe as senhas
 em seu ambiente; recebe hashes SHA-256 com salt aleatório num volume privado.
 As identidades não possuem tags administrativas; não existe `guest` no volume novo.
+A identidade `coldsafe-monitor` da B2-15 tem somente a tag `management`, para
+inspecionar métricas no vhost autorizado; configure/read/write permanecem `^$`.
+Ela não consome nem publica mensagens, não altera filas e não administra usuários.
+As outras dez identidades continuam sem tags.
 
 ```bash
 docker compose config --quiet
@@ -55,12 +59,46 @@ Publicação direta pela exchange padrão e escrita na DLX são proibidas.
 | observability | `coldsafe.observability` | `v3.#`, cópia própria | nenhum |
 | api | nenhuma | nenhum | command, job_requested, model_activation, processing_error |
 | audit | `coldsafe.dlq` | originais privados com falha | nenhum |
+| monitor | nenhuma | métricas via HTTP, sem corpos de mensagens | nenhum |
 
 A observabilidade consome sua cópia; não tira mensagens das filas de negócio e
 não acessa a DLQ. `audit` é uma identidade de transporte reservada à auditoria,
 sem conceder acesso a usuários HTTP. A API autoriza cada consulta
 antes de revelar qualquer dado. O broker limita serviços/tipos, não propriedade
 de usuário ou catálogo de dispositivos: essa validação continua no consumidor.
+
+## Painel de métricas B2-15
+
+A página `/messaging` consulta somente `GET /api/v3/messaging` da API ColdSafe.
+O backend usa `RABBITMQ_HOST`, `RABBITMQ_MANAGEMENT_PORT` (15672) e
+`RABBITMQ_MONITOR_PASSWORD` com usuário fixo `coldsafe-monitor`. O overlay
+`compose.messaging.yaml` fornece esses valores sem publicar portas adicionais
+nem ativar o percurso AIoT completo; `compose.aiot.yaml` também os inclui.
+Preparação em [configuração](../../docs/configuration.md#mensageria-b2-15).
+
+As nove filas têm contagem total, prontas, sem confirmação, consumidores e taxas
+de publicação/entrega por segundo. São métricas agregadas de infraestrutura,
+restritas a administrador ColdSafe: não representam atividade de um proprietário.
+`consumers` conta assinaturas registradas no broker, não processos conectados:
+gateway/writer/API atuais usam `basic_get` e podem mostrar zero em operação.
+O painel não deve interpretar zero como prova de serviço parado. O harness
+registra uma assinatura descartável em fila vazia para conferir também esse contador.
+Nenhuma consulta lê mensagens, payloads, nomes de conexão ou usuários RabbitMQ.
+Últimas mensagens/DLQ detalhada continuam no escopo posterior B2-16.
+
+O serviço limita resposta e campos consultados, com timeout de socket de 3 s e cache curto para
+concentrar polling. A página atualiza a cada cinco segundos; a estatística do
+broker também é amostrada, portanto não é um contador instantâneo. Taxa ausente
+permanece indisponível. Falha gera 503 sanitizado; o navegador identifica a última
+coleta conhecida e sua idade, sem apresentar um snapshot antigo como atual.
+
+Em instalação existente, complete apenas a chave ausente usando o gerador e
+reexecute o bootstrap/import com os mesmos volumes, seguido da recriação do
+backend com o overlay. Não apague volumes nem rotacione senhas existentes.
+Essa operação na pilha pessoal exige execução explícita; os testes são descartáveis.
+
+Referências verificadas para RabbitMQ 4.3: [permissões de management](https://www.rabbitmq.com/docs/management#permissions)
+e [API HTTP/limitação de colunas](https://www.rabbitmq.com/docs/http-api-reference).
 
 Pedidos `v3.job_requested.{job_id}` passam da topic para `coldsafe.jobs`
 (headers). O publicador deve copiar `data.job_type` para o header AMQP `job_type`

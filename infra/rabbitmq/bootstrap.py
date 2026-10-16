@@ -25,6 +25,7 @@ SERVICE_ROLES = {
     "observability": (("#",), ()),
     "api": ((), ("command", "job_requested", "model_activation", "processing_error")),
     "audit": ((), ()),
+    "monitor": ((), ()),
 }
 
 
@@ -40,11 +41,12 @@ def build_definitions(passwords):
             raise ValueError(f"Set RABBITMQ_{role.upper()}_PASSWORD (at least 32 characters)")
     if len(set(passwords[role] for role in SERVICE_ROLES)) != len(SERVICE_ROLES):
         raise ValueError("RabbitMQ service passwords must be distinct")
-    queue_roles = tuple(role for role in SERVICE_ROLES if role not in ("api", "audit"))
+    queue_roles = tuple(role for role in SERVICE_ROLES if role not in ("api", "audit", "monitor"))
     return {
         "vhosts": [{"name": VHOST}],
         "users": [{"name": f"coldsafe-{role}", "password_hash": password_hash(passwords[role]),
-                   "hashing_algorithm": "rabbit_password_hashing_sha256", "tags": []}
+                   "hashing_algorithm": "rabbit_password_hashing_sha256",
+                   "tags": ["management"] if role == "monitor" else []}
                   for role in SERVICE_ROLES],
         "permissions": [resource_permissions(role) for role in SERVICE_ROLES],
         "topic_permissions": [topic_permissions(role, writes) for role, (_, writes) in SERVICE_ROLES.items()],
@@ -71,7 +73,7 @@ def resource_permissions(role):
     queue = "dlq" if role == "audit" else role
     return {"user": f"coldsafe-{role}", "vhost": VHOST, "configure": "^$",
             "write": r"^coldsafe\.events$" if writes else "^$",
-            "read": rf"^coldsafe\.{queue}$" if role != "api" else "^$"}
+            "read": rf"^coldsafe\.{queue}$" if role not in ("api", "monitor") else "^$"}
 
 
 def topic_permissions(role, writes):

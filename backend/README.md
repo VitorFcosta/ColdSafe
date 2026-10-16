@@ -16,6 +16,16 @@ A B2-14 acrescenta contexto/limites ao resumo, períodos ou janela UTC no histó
 consulta de alertas por intervalo e consulta privada de comando por UUID para o
 dashboard. São extensões das rotas v3; nenhuma migração ou dependência nova.
 
+A B2-15 acrescenta `GET /api/v3/messaging`, autorizado pelo papel admin atual
+no PostgreSQL. Consulta a Management API por credencial exclusiva, limita os
+campos às nove filas do produto e retorna contagens, consumidores e taxas com
+`sampled_at`. Não lê mensagens. As métricas são agregadas da infraestrutura,
+não filtradas por dispositivo/proprietário; viewer/operator recebem 403.
+Falhas do broker retornam 503 sanitizado; sem credencial, a rota não é instalada.
+Configuração e isolamento
+estão em [Mensageria](../docs/configuration.md#mensageria-b2-15); sem dependência
+ou migração nova.
+
 Esta área contém a ingestão MQTT, a classificação das leituras, a persistência no
 InfluxDB, a estrutura relacional PostgreSQL e a API FastAPI.
 

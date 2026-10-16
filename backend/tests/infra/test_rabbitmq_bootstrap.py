@@ -26,7 +26,7 @@ def test_topology_has_no_guest_or_admin_and_uses_private_vhost():
         f"coldsafe-{role}" for role in SERVICE_ROLES
     }
     for user in definitions["users"]:
-        assert user["tags"] == []
+        assert user["tags"] == (["management"] if user["name"] == "coldsafe-monitor" else [])
         raw = base64.b64decode(user["password_hash"])
         role = user["name"].removeprefix("coldsafe-")
         assert raw[4:] == hashlib.sha256(raw[:4] + passwords()[role].encode()).digest()
@@ -59,6 +59,18 @@ def test_services_cannot_configure_or_read_other_queues():
             assert bool(re.fullmatch(permission["read"], queue["name"])) == expected
         assert not re.fullmatch(permission["write"], "amq.default")
         assert not re.fullmatch(permission["write"], "coldsafe.dlx")
+
+
+def test_monitor_can_inspect_metrics_but_cannot_access_or_change_messages():
+    definitions = build_definitions(passwords())
+    monitor = next(user for user in definitions["users"] if user["name"] == "coldsafe-monitor")
+    assert monitor["tags"] == ["management"]
+    permission = next(item for item in definitions["permissions"] if item["user"] == monitor["name"])
+    assert {key: permission[key] for key in ("configure", "write", "read")} == {
+        "configure": "^$", "write": "^$", "read": "^$",
+    }
+    assert "coldsafe.monitor" not in {queue["name"] for queue in definitions["queues"]}
+    assert "RABBITMQ_MONITOR_PASSWORD" in yaml.safe_load((ROOT / "compose.yaml").read_text())["services"]["rabbitmq-init"]["environment"]
 
 
 def test_queues_limit_failed_deliveries_and_preserve_dead_letters():

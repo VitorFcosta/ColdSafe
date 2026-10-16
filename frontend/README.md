@@ -14,7 +14,19 @@ ausência de sensor em histórico legado é indisponibilidade. Estado observado
 na telemetria e confirmação de comando são informações separadas. Só ACK válido
 confirma o pedido; timeout/rejeição permanecem explícitos. Nenhuma biblioteca nova.
 
-No Compose, use `compose.aiot.yaml`: ele habilita o backend e passa o argumento
+A B2-15 acrescenta `/messaging`, acessível pela navegação como **Mensageria**.
+O painel administrativo mostra as nove filas, contagens, taxas por segundo e
+consumidores; consulta apenas a API ColdSafe com a sessão existente, nunca o
+RabbitMQ diretamente. Atualiza a cada cinco segundos e informa a idade da coleta.
+Falha conserva o último snapshot somente com aviso explícito; taxa ausente não
+vira zero. As métricas são agregadas da infraestrutura e restritas a admin.
+Não há acesso a corpos de mensagens ou credenciais do broker.
+Para habilitar apenas essa página, use `compose.messaging.yaml` junto do Compose
+base e reconstrua backend/frontend. Esse overlay conserva o modo do dashboard;
+não exige a ativação do percurso AIoT completo. Procedimento em
+[configuração de Mensageria](../docs/configuration.md#mensageria-b2-15).
+
+Para o dashboard v3 no Compose, use `compose.aiot.yaml`: ele habilita o backend e passa o argumento
 de build do frontend. É necessário reconstruir `frontend` ao alterar esse modo.
 No Vite local, defina a variável antes de iniciar o processo e configure
 `VITE_API_BASE_URL` para o backend v3. Sem a flag, preserva-se o fluxo v1/v2;
@@ -64,6 +76,19 @@ Execute da raiz do projeto. `COLDSAFE_NODE_BINARY` pode indicar o executável No
 `COLDSAFE_FRONTEND_NODE_MODULES`, uma instalação temporária feita com o mesmo lock.
 O teste copia fontes/configuração e usa credenciais/volumes próprios, removidos
 ao terminar. Fora do harness, os quatro casos reais ficam explicitamente pulados.
+
+A B2-15 tem um harness separado, que compara contagens/taxas/consumidores com
+RabbitMQ real, verifica permissões e pausa o broker para exercitar timeout e
+recuperação; também executa os quatro cenários Chromium de Mensageria:
+
+```sh
+COLDSAFE_WRITER_INTEGRATION=1 .venv/bin/python -m pytest backend/tests/infra/test_messaging_integration.py -q -s --no-cov -o addopts=''
+```
+
+Requer os mesmos runtimes/dependências e aceita `COLDSAFE_NODE_BINARY` e
+`COLDSAFE_FRONTEND_NODE_MODULES`. Use somente via harness: ele cria contas admin,
+operator e viewer temporárias, sem alterar usuários/credenciais da pilha pessoal.
+O spec `messaging-real.spec.ts` fica pulado sem as variáveis privadas do harness.
 
 ### Compatibilidade de versões
 

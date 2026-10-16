@@ -9,12 +9,19 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-14](tasks/B2-14.md): dashboard com seis medições,
-gráfico/tabela por grandeza, histórico e recuperação REST v3, LED com confirmação
-separada do estado observado e buzzer automático. Quatro cenários Chromium
-passaram com brokers/bancos/gateway/writer/simulador reais descartáveis a 1 Hz,
-incluindo mobile/teclado, reconexão e visualizador sem comando. Habilitação
-explícita, testes e limites estão no cartão e na configuração.
+A última entrega foi [B2-15](tasks/B2-15.md): página Mensageria administrativa,
+nove filas, contagens/taxas/consumidores reais via API ColdSafe, credencial exclusiva
+e sem leitura de mensagens. Quatro cenários Chromium e comparação com RabbitMQ
+real passaram, incluindo timeout, recuperação e recusa de operator/viewer.
+`consumers` conta assinaturas do broker; serviços por polling podem mostrar zero
+mesmo funcionando. A ativação local foi autorizada e concluída depois da entrega:
+credenciais ausentes preenchidas, conta existente admin e serviços atualizados
+com `compose.messaging.yaml`, preservando o dashboard e volumes. Detalhes no cartão.
+
+A B2-14 conserva dashboard com seis medições, gráfico/tabela por grandeza,
+histórico/recuperação REST v3, LED com confirmação separada do estado observado
+e buzzer automático. Seu percurso real do simulador a 1 Hz permanece evidência
+datada no cartão; não foi reexecutado como parte do aceite B2-15.
 
 A B2-12 conserva gravador que consome fila própria e grava
 seis sensores, IDs e estados no InfluxDB antes de confirmar. Identidade estável
@@ -30,7 +37,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-15](tasks/B2-15.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-16](tasks/B2-16.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

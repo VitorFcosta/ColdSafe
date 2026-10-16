@@ -19,7 +19,7 @@ SECRET_KEYS = (
     "MQTT_SIMULATOR_PASSWORD", "MQTT_SIMULATOR_OPERATOR_PASSWORD", "MQTT_GATEWAY_PASSWORD",
     *(f"RABBITMQ_{role}_PASSWORD" for role in (
         "GATEWAY", "WRITER", "INFERENCE", "DELIVERY", "COMMANDS", "GENERATION",
-        "TRAINING", "OBSERVABILITY", "API", "AUDIT")),
+        "TRAINING", "OBSERVABILITY", "API", "AUDIT", "MONITOR")),
 )
 ASSIGNMENT = re.compile(
     r"(?P<prefix>[ \t]*(?:export[ \t]+)?(?P<key>[A-Za-z_][A-Za-z0-9_]*)"

@@ -331,6 +331,7 @@ function formatDateTime(value: string | undefined) {
         <nav aria-label="Navegação principal" class="nav-actions">
           <RouterLink to="/dashboard" aria-current="page">Monitoramento</RouterLink>
           <RouterLink to="/manage">Ambientes e dispositivos</RouterLink>
+          <RouterLink to="/messaging">Mensageria</RouterLink>
           <a href="/docs" target="_blank" rel="noopener noreferrer">Documentação da API</a>
           <a v-if="diagnosticsEnabled" :href="rabbitmqManagementUrl" target="_blank" rel="noopener noreferrer">RabbitMQ local</a>
         </nav>

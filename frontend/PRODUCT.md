@@ -21,6 +21,11 @@ conforme B2-13. Não inclui IA, cena 3D nem novos painéis de filas.
 
 ## Propósito
 
+Na B2-15, `/messaging` acrescenta um painel administrativo de infraestrutura:
+filas compartilhadas, contagens, taxas e consumidores reais. Polling passa pela
+API ColdSafe, com idade da coleta e falhas explícitas. Viewer/operator não recebem
+essas métricas agregadas; o painel não lê mensagens nem expõe credenciais.
+
 O frontend do ColdSafe é um dashboard operacional acadêmico para reconhecer,
 em poucos segundos, o estado do ambiente refrigerado selecionado, a atualidade
 da última leitura e a variação recente da temperatura.
@@ -43,6 +48,7 @@ o código atual e os [contratos compartilhados](../contracts/README.md).
 | `/login` | Entrada e cadastro da conta. |
 | `/dashboard` | Seleção de ambiente e dispositivo, leitura atual, alertas, histórico, comparação e estados do LED e buzzer. |
 | `/manage` | Cadastro e edição de ambientes, dispositivos e limites. |
+| `/messaging` | Métricas administrativas reais de filas, taxas e consumidores, com idade da coleta. |
 
 `/dashboard` e `/manage` exigem sessão. A operação usa dados reais da API, com
 dois dispositivos simulados no projeto; o histórico oferece **15 min, 1 h, 6 h e
