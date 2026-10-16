@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
+import pytest
 
 from backend.app.config.settings import RuntimeSettings
 from backend.app.domain.reading_classification import ReadingStatus
@@ -58,6 +59,50 @@ def test_runtime_starts_and_closes_infrastructure(
     subscriber.start.assert_called_once_with()
     subscriber.stop.assert_called_once_with()
     resources.close.assert_called_once_with()
+
+
+@pytest.mark.parametrize('monitor_enabled', [False, True])
+def test_observer_runtime_starts_independently_and_shares_samples_with_router(monitor_enabled):
+    from threading import Event
+    from pydantic import SecretStr
+    from backend.app.api.messaging import create_messaging_router
+
+    configured = settings().model_copy(update={
+        'rabbitmq_observability_password': SecretStr('private-observer'),
+        'rabbitmq_monitor_password': SecretStr('private-monitor') if monitor_enabled else None,
+    })
+    started, stopped = Event(), Event()
+
+    def observe(shutdown):
+        started.set()
+        shutdown.wait(5)
+        if shutdown.is_set():
+            stopped.set()
+
+    with patch('backend.app.runtime.MqttSubscriber'), patch('backend.app.runtime.create_influx_repository') as repository, \
+            patch('backend.app.runtime.initialize_schema'), \
+            patch('backend.app.runtime.postgres_is_ready', return_value=True), \
+            patch('backend.app.services.commands.CommandService.expire_pending'), \
+            patch('backend.app.amqp.observation.MessageObserver') as factory, \
+            patch('backend.app.api.messaging.create_messaging_router', wraps=create_messaging_router) as router:
+        factory.return_value.run.side_effect = observe
+        application = build_runtime_app(configured)
+        with TestClient(application) as client:
+            assert started.wait(1), 'Configured observer was never started'
+            assert '/api/v3/messaging/messages' in application.openapi()['paths']
+            assert client.get('/health/ready').status_code == 200
+        assert stopped.is_set(), 'Observer did not receive the shared shutdown signal'
+        factory.return_value.close.assert_called_once_with()
+        assert router.call_args.args[2] is factory.call_args.args[0]
+        assert (router.call_args.args[1] is not None) == monitor_enabled
+        repository.return_value.close.assert_called_once_with()
+
+
+def test_runtime_does_not_create_observer_without_its_credential():
+    with patch('backend.app.runtime.MqttSubscriber'), patch('backend.app.runtime.create_influx_repository'), \
+            patch('backend.app.amqp.observation.MessageObserver') as factory:
+        build_runtime_app(settings())
+    factory.assert_not_called()
 
 
 @patch("backend.app.runtime.MqttSubscriber")

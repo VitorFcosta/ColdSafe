@@ -1,6 +1,6 @@
 # Retomar a evolução AIoT
 
-## Situação em 15/10/2026
+## Situação em 16/10/2026
 
 O código continua na base v1/v2 descrita no [README](../../README.md).
 O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
@@ -9,10 +9,16 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-15](tasks/B2-15.md): página Mensageria administrativa,
-nove filas, contagens/taxas/consumidores reais via API ColdSafe, credencial exclusiva
-e sem leitura de mensagens. Quatro cenários Chromium e comparação com RabbitMQ
-real passaram, incluindo timeout, recuperação e recusa de operator/viewer.
+A última entrega foi [B2-16](tasks/B2-16.md): observador em fila dedicada e resumos
+privados de últimas mensagens/DLQ na Mensageria. API valida o proprietário atual
+no PostgreSQL; leitura não retira originais das filas de negócio/DLQ. Ensaio real
+e Chromium passaram com backlog durante parada, esvaziamento na retomada,
+persistência exata, mensagem inválida preservada e isolamento de contas.
+Amostras são limitadas/em memória; não importam itens antigos da DLQ. Parada/retomada
+seguem manuais no terminal. A ativação pessoal desta entrega não foi executada.
+
+A [B2-15](tasks/B2-15.md) conserva nove filas e métricas globais administrativas
+via API ColdSafe, usando credencial exclusiva de monitoramento.
 `consumers` conta assinaturas do broker; serviços por polling podem mostrar zero
 mesmo funcionando. A ativação local foi autorizada e concluída depois da entrega:
 credenciais ausentes preenchidas, conta existente admin e serviços atualizados
@@ -37,7 +43,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-16](tasks/B2-16.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-17](tasks/B2-17.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

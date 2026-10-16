@@ -13,14 +13,14 @@ from backend.tests.api.test_runtime_lifecycle import settings
 from backend.tests.services.test_messaging import service
 
 
-def client_for(role):
+def client_for(role, samples=None):
     auth = AuthService(settings())
     auth.session_for_token = Mock(return_value=SessionPrincipal(
         uuid4(), uuid4(), 'admin@example.test', role, datetime.now(UTC) + timedelta(hours=1),
     ) if role else None)
     monitor, transport = service()
     application = FastAPI()
-    application.include_router(create_messaging_router(auth, monitor))
+    application.include_router(create_messaging_router(auth, monitor, samples))
     auth.install_exception_handlers(application)
     return TestClient(application), transport
 
@@ -65,3 +65,49 @@ def test_runtime_installs_metrics_only_when_monitor_password_is_configured():
         assert '/api/v3/messaging' not in build_runtime_app(settings()).openapi()['paths']
         configured = settings().model_copy(update={'rabbitmq_monitor_password': SecretStr('private-monitor')})
         assert '/api/v3/messaging' in build_runtime_app(configured).openapi()['paths']
+
+
+@pytest.mark.parametrize('role,status', [(None, 401), ('viewer', 403), ('operator', 403)])
+def test_only_admin_can_access_private_message_samples(role, status):
+    samples = Mock()
+    client, _ = client_for(role, samples)
+    response = client.get('/api/v3/messaging/messages', headers={'Authorization': 'Bearer test'} if role else {})
+    assert response.status_code == status
+    samples.snapshot.assert_not_called()
+
+
+def test_message_samples_are_private_uncached_and_observer_outage_is_explicit():
+    from backend.app.services.message_samples import MessageSnapshot
+    samples = Mock()
+    samples.snapshot.return_value = MessageSnapshot(
+        sampled_at=datetime.now(UTC), connected=False, last_observed_at=None,
+        stale=True, messages=(), dead_letters=(),
+    )
+    client, _ = client_for('admin', samples)
+    response = client.get('/api/v3/messaging/messages', headers={'Authorization': 'Bearer test'})
+    assert response.status_code == 200
+    assert response.headers['Cache-Control'] == 'no-store'
+    assert response.json()['data']['connected'] is False
+    assert response.json()['data']['messages'] == []
+    samples.snapshot.assert_called_once()
+    from uuid import UUID
+    assert isinstance(samples.snapshot.call_args.args[0], UUID)
+
+
+def test_message_samples_database_outage_is_sanitized():
+    from backend.app.services.messaging import MessagingUnavailable
+    samples = Mock()
+    samples.snapshot.side_effect = MessagingUnavailable('private-secret')
+    client, _ = client_for('admin', samples)
+    response = client.get('/api/v3/messaging/messages', headers={'Authorization': 'Bearer test'})
+    assert response.status_code == 503
+    assert response.headers['Cache-Control'] == 'no-store'
+    assert 'private-secret' not in response.text
+
+
+def test_disabled_observer_returns_explicit_disconnected_empty_sample():
+    client, _ = client_for('admin')
+    response = client.get('/api/v3/messaging/messages', headers={'Authorization': 'Bearer test'})
+    assert response.status_code == 200
+    assert response.json()['data']['connected'] is False
+    assert response.json()['data']['last_observed_at'] is None

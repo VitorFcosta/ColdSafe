@@ -26,6 +26,14 @@ Configuração e isolamento
 estão em [Mensageria](../docs/configuration.md#mensageria-b2-15); sem dependência
 ou migração nova.
 
+A B2-16 acrescenta `GET /api/v3/messaging/messages`, também admin, mas com
+resumos filtrados pelo dono atual do dispositivo/ambiente. O observador consome
+somente cópias da fila `observability`; não retira originais da DLQ ou do writer.
+Limita a memória a 100 eventos + 100 mensagens mortas, expõe conexão/atualidade
+e metadados permitidos (IDs, tipo, horários, origem, motivo/erro), nunca corpos
+brutos. Amostras desaparecem ao reiniciar; a DLQ é preservada.
+Configuração e limites em [amostras privadas](../docs/configuration.md#amostras-privadas-b2-16).
+
 Esta área contém a ingestão MQTT, a classificação das leituras, a persistência no
 InfluxDB, a estrutura relacional PostgreSQL e a API FastAPI.
 

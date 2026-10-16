@@ -56,7 +56,7 @@ Publicação direta pela exchange padrão e escrita na DLX são proibidas.
 | commands | `coldsafe.commands` | telemetry, telemetry_persisted, ack, prediction, freshness | command, command_status, alert, freshness, processing_error |
 | generation | `coldsafe.generation` | job_requested com header generation | job_progress, processing_error |
 | training | `coldsafe.training` | job_requested com header training | job_progress, model_status, processing_error |
-| observability | `coldsafe.observability` | `v3.#`, cópia própria | nenhum |
+| observability | `coldsafe.observability` | `v3.#` e cópias da DLX/jobs.unrouted | nenhum |
 | api | nenhuma | nenhum | command, job_requested, model_activation, processing_error |
 | audit | `coldsafe.dlq` | originais privados com falha | nenhum |
 | monitor | nenhuma | métricas via HTTP, sem corpos de mensagens | nenhum |
@@ -83,8 +83,9 @@ restritas a administrador ColdSafe: não representam atividade de um proprietár
 gateway/writer/API atuais usam `basic_get` e podem mostrar zero em operação.
 O painel não deve interpretar zero como prova de serviço parado. O harness
 registra uma assinatura descartável em fila vazia para conferir também esse contador.
-Nenhuma consulta lê mensagens, payloads, nomes de conexão ou usuários RabbitMQ.
-Últimas mensagens/DLQ detalhada continuam no escopo posterior B2-16.
+Essa consulta de métricas não lê mensagens, payloads, nomes de conexão ou usuários RabbitMQ.
+Na B2-16, a rota separada `/api/v3/messaging/messages` usa o observador e devolve
+apenas resumos privados, com autorização do proprietário atual no PostgreSQL.
 
 O serviço limita resposta e campos consultados, com timeout de socket de 3 s e cache curto para
 concentrar polling. A página atualiza a cada cinco segundos; a estatística do
@@ -134,6 +135,13 @@ antes de sua persistência comprovada.
 
 Filas são quorum duráveis, com teto de 64 MiB por fila de trabalho, memória do
 broker limitada a 512 MiB/1 CPU, watermark 256 MiB e mensagem de até 256 KiB.
+Exceção: a fila de cópias `observability` tem política própria de 8 MiB,
+`overflow=drop-head` e `delivery-limit=2`, sem DLX. A amostra pode perder cópias
+antigas ou repetidamente interrompidas; os originais de negócio/DLQ permanecem.
+Essa separação evita ciclos DLX → observador → DLX e impede que uma fila de
+amostras cheia rejeite publicações de negócio. A política de retry acima continua
+nas sete filas de trabalho. Confirmado na documentação RabbitMQ 4.3 de
+[DLX](https://www.rabbitmq.com/docs/dlx) e [limite de fila](https://www.rabbitmq.com/docs/maxlength).
 DLQ não tem TTL nem ciclo para filas de trabalho. Capacidade da pilha completa
 continua na B2-33. Nó único não fornece alta disponibilidade; `at-least-once`
 admite duplicatas, que o consumidor deve tratar idempotentemente.

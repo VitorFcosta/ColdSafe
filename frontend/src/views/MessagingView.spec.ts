@@ -2,26 +2,37 @@
 import { flushPromises, shallowMount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { logout, refreshSessionIdentity, sessionRole, sessionToken } from '../features/account/session'
-import { fetchMessaging, MessagingAccessError, type MessagingSnapshot } from '../features/messaging/messaging-api'
+import { fetchMessaging, fetchMessageSamples, MessagingAccessError, type MessagingSnapshot, type MessageSamplesSnapshot } from '../features/messaging/messaging-api'
 import MessagingView from './MessagingView.vue'
 
 vi.mock('../features/account/session', async (importOriginal) => ({
   ...await importOriginal<typeof import('../features/account/session')>(), refreshSessionIdentity: vi.fn(), logout: vi.fn(),
 }))
 vi.mock('../features/messaging/messaging-api', async (importOriginal) => ({
-  ...await importOriginal<typeof import('../features/messaging/messaging-api')>(), fetchMessaging: vi.fn(),
+  ...await importOriginal<typeof import('../features/messaging/messaging-api')>(), fetchMessaging: vi.fn(), fetchMessageSamples: vi.fn(),
 }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ replace: vi.fn() }) }))
 const snapshot: MessagingSnapshot = { sampled_at: '2026-10-15T12:00:00Z', queues: [
   { name: 'telemetry.api.q', messages: 3, messages_ready: 2, messages_unacknowledged: 1,
     consumers: 1, publish_rate: null, deliver_rate: 0 },
 ] }
+const samples: MessageSamplesSnapshot = { sampled_at: snapshot.sampled_at, connected: true,
+  last_observed_at: snapshot.sampled_at, stale: false, stale_after_seconds: 30, capacity_per_kind: 100,
+  messages: [{ event_id: 'event-safe', type: 'telemetry', occurred_at: snapshot.sampled_at,
+    observed_at: snapshot.sampled_at, device_record_id: 'device-record', device_id: 'cold-01',
+    environment_id: 'environment-safe', correlation_id: 'correlation-safe', source_queue: null, reason: null, error_code: null }],
+  dead_letters: [{ event_id: 'dead-safe', type: 'telemetry', occurred_at: snapshot.sampled_at,
+    observed_at: snapshot.sampled_at, device_record_id: 'device-record', device_id: 'cold-01',
+    environment_id: 'environment-safe', correlation_id: 'correlation-safe', source_queue: 'coldsafe.writer',
+    reason: 'rejected', error_code: 'INVALID_SCHEMA' }],
+}
 const mount = () => shallowMount(MessagingView, { global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } } })
 
 beforeEach(() => {
   vi.useFakeTimers()
   vi.setSystemTime(new Date(snapshot.sampled_at))
   vi.mocked(fetchMessaging).mockReset().mockResolvedValue(snapshot)
+  vi.mocked(fetchMessageSamples).mockReset().mockResolvedValue(samples)
   vi.mocked(logout).mockImplementation(async () => { sessionToken.value = null; sessionRole.value = null })
   vi.mocked(refreshSessionIdentity).mockImplementation(async () => { sessionRole.value = 'viewer' })
   sessionToken.value = 'admin-token'
@@ -47,6 +58,7 @@ describe('MessagingView', () => {
     const wrapper = mount()
     await flushPromises()
     expect(fetchMessaging).not.toHaveBeenCalled()
+    expect(fetchMessageSamples).not.toHaveBeenCalled()
     expect(wrapper.find('table').exists()).toBe(false)
     expect(wrapper.text()).toContain('administradores')
     wrapper.unmount()
@@ -194,6 +206,85 @@ describe('MessagingView', () => {
     await flushPromises()
     expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível atualizar')
     expect(wrapper.find('table').exists()).toBe(false)
+    wrapper.unmount()
+  })
+})
+
+describe('amostras privadas de mensagens', () => {
+  it('mostra últimas mensagens, origem e motivo da DLQ sem controle Docker', async () => {
+    const wrapper = mount()
+    await flushPromises()
+    expect(wrapper.get('[aria-labelledby="messages-title"]').text()).toContain('event-safe')
+    expect(wrapper.get('[aria-labelledby="dead-letters-title"]').text()).toContain('coldsafe.writer')
+    expect(wrapper.text()).toContain('INVALID_SCHEMA')
+    expect(wrapper.text()).toContain('rejected')
+    expect(wrapper.text()).toContain('seus ambientes')
+    expect(wrapper.text()).toContain('terminal')
+    expect(wrapper.get('[aria-labelledby="writer-title"]').text()).toContain('coldsafe.writer')
+    expect(wrapper.findAll('button')).toHaveLength(1)
+    wrapper.unmount()
+  })
+  it('distingue vazio de falha, desconexão e amostra desatualizada', async () => {
+    vi.mocked(fetchMessageSamples).mockResolvedValueOnce({ ...samples, messages: [], dead_letters: [],
+      last_observed_at: null, stale: true, connected: false })
+    const wrapper = mount()
+    await flushPromises()
+    expect(wrapper.text()).toContain('Nenhuma mensagem observada')
+    expect(wrapper.text()).toContain('Nenhuma mensagem morta observada')
+    expect(wrapper.text()).toContain('Observador desconectado')
+    expect(wrapper.text()).toContain('Observação desatualizada')
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+  it('falha das amostras conserva métricas e última amostra com aviso, e recupera', async () => {
+    const wrapper = mount()
+    await flushPromises()
+    vi.mocked(fetchMessageSamples).mockRejectedValueOnce(new Error('private diagnostic'))
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(wrapper.text()).toContain('Não foi possível atualizar as mensagens')
+    expect(wrapper.text()).toContain('event-safe')
+    expect(wrapper.text()).toContain('telemetry.api.q')
+    expect(wrapper.text()).not.toContain('private diagnostic')
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+  it('idade local sinaliza observação antiga mesmo quando a próxima consulta falha', async () => {
+    const wrapper = mount()
+    await flushPromises()
+    vi.mocked(fetchMessageSamples).mockRejectedValue(new Error('offline'))
+    await vi.advanceTimersByTimeAsync(31000)
+    expect(wrapper.text()).toContain('Observação desatualizada')
+    wrapper.unmount()
+  })
+  it.each(['logout', 'role', 'new-token'] as const)('remove amostras e ignora resposta tardia após %s', async (change) => {
+    let finish!: (value: MessageSamplesSnapshot) => void
+    const wrapper = mount()
+    await flushPromises()
+    vi.mocked(fetchMessageSamples).mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+    await vi.advanceTimersByTimeAsync(5000)
+    if (change === 'logout') sessionToken.value = null
+    if (change === 'role') sessionRole.value = 'viewer'
+    if (change === 'new-token') {
+      vi.mocked(fetchMessageSamples).mockResolvedValue({ ...samples, messages: [], dead_letters: [] })
+      sessionToken.value = 'new-session'
+    }
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('event-safe')
+    expect(wrapper.text()).not.toContain('dead-safe')
+    finish(samples)
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('event-safe')
+    expect(wrapper.text()).not.toContain('dead-safe')
+    wrapper.unmount()
+  })
+  it('revogação do endpoint de mensagens oculta também métricas', async () => {
+    vi.mocked(fetchMessageSamples).mockRejectedValueOnce(new MessagingAccessError(403))
+    const wrapper = mount()
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('event-safe')
+    expect(wrapper.text()).not.toContain('telemetry.api.q')
+    expect(sessionRole.value).toBe('viewer')
     wrapper.unmount()
   })
 })

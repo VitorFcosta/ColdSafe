@@ -58,13 +58,17 @@ def build_definitions(passwords):
                    for role in (*queue_roles, "dlq")],
         "bindings": bindings(queue_roles),
         "policies": [{"name": "bounded-failures", "vhost": VHOST,
-                      "pattern": r"^coldsafe\.(gateway|writer|inference|delivery|commands|generation|training|observability)$",
+                      "pattern": r"^coldsafe\.(gateway|writer|inference|delivery|commands|generation|training)$",
                       "apply-to": "quorum_queues", "priority": 10,
                       "definition": {"dead-letter-exchange": "coldsafe.dlx",
                                      "dead-letter-strategy": "at-least-once", "overflow": "reject-publish",
                                      "delivery-limit": 2, "delayed-retry-type": "failed",
                                      "delayed-retry-min": 1000, "delayed-retry-max": 2000,
-                                     "max-length-bytes": 67108864}}],
+                                     "max-length-bytes": 67108864}},
+                     # Observation copies may expire; never loop them through DLX or block business publishers.
+                     {"name": "bounded-observation", "vhost": VHOST,
+                      "pattern": r"^coldsafe\.observability$", "apply-to": "quorum_queues", "priority": 10,
+                      "definition": {"max-length-bytes": 8388608, "overflow": "drop-head", "delivery-limit": 2}}],
     }
 
 
@@ -98,7 +102,8 @@ def bindings(queue_roles):
     return [*event_bindings, binding("events", "jobs", "v3.job_requested.*", "exchange"),
             *[binding("jobs", role, "", arguments={"x-match": "all", "job_type": role})
               for role in ("generation", "training")],
-            binding("dlx", "dlq", "#"), binding("jobs.unrouted", "dlq", "")]
+            binding("dlx", "dlq", "#"), binding("jobs.unrouted", "dlq", ""),
+            binding("dlx", "observability", "#"), binding("jobs.unrouted", "observability", "")]
 
 
 def main():

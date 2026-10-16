@@ -187,6 +187,62 @@ um comando sem confirmação deve aparecer como `unconfirmed`, nunca como sucess
 
 ## 6. Diagnóstico
 
+### Mensageria B2-16: parar e retomar o gravador
+
+Pré-condições: catálogo comissionado, gateway/simulador/writer funcionando,
+token exclusivo do writer e Mensageria habilitada conforme
+[configuração](configuration.md#amostras-privadas-b2-16). A ativação somente de
+`compose.messaging.yaml` não inicia produtores nem o gravador.
+Use a mesma combinação de arquivos Compose da sua instalação. Os comandos abaixo
+pressupõem `compose.aiot.yaml`; se usa `compose.messaging.yaml`, substitua o nome.
+
+1. Entre como admin proprietário do ambiente e abra `/messaging`. Anote
+   `coldsafe.writer`, horário da coleta e IDs das últimas mensagens.
+2. Pare **somente o gravador**, mantendo o produtor em execução por alguns segundos:
+
+   ```sh
+   docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot stop writer
+   docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot ps -a writer
+   docker compose exec rabbitmq rabbitmqctl -q list_queues -p coldsafe name messages_ready messages_unacknowledged
+   ```
+
+3. Confira aumento de mensagens prontas no writer e novos resumos na página.
+   A amostragem do broker e o polling introduzem atraso. `consumers=0` não prova
+   parada: o gravador usa polling e pode mostrar zero enquanto funciona.
+4. Retome o mesmo serviço, sem apagar fila ou volume:
+
+   ```sh
+   docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot start writer
+   docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot logs --tail 30 writer
+   ```
+
+5. Confira redução do backlog e recibos `telemetry_persisted`. Para observar zero
+   estável, pare brevemente o simulador (`docker compose --profile simulator stop simulator`)
+   e retome-o depois (`docker compose --profile simulator start simulator`).
+   Fila vazia isoladamente não comprova persistência; o ensaio automatizado abaixo
+   confere cada ID e as seis medições no InfluxDB.
+
+A UI não controla Docker nem confirma, elimina ou reenvia mensagens da DLQ.
+Os resumos exibem fila de origem, motivo do broker e erro de validação quando
+identificável. `rejected` por si só não revela a causa da aplicação. Mensagem sem
+identidade privada verificável fica fora da amostra, embora o original continue
+na DLQ e contribua para o contador global. Ausência de novos resumos por 30 s
+indica amostra sem atualização, não diagnóstico automático de serviço parado.
+
+Para injetar erro com segurança e verificar integridade/recuperação, use a pilha
+**descartável** do teste; não publique dados inválidos na instalação pessoal:
+
+```sh
+COLDSAFE_WRITER_INTEGRATION=1 .venv/bin/python -m pytest backend/tests/infra/test_observation_integration.py -q -s --no-cov -o addopts=''
+```
+
+Requer Docker, Python/lock de desenvolvimento, Node/lock do frontend e Chromium
+preparados conforme [frontend](../frontend/README.md#como-executar).
+`COLDSAFE_NODE_BINARY` e `COLDSAFE_FRONTEND_NODE_MODULES` permitem indicar
+instalações temporárias com as mesmas versões. O teste para/retoma seu próprio
+writer, injeta medição inválida, verifica a DLQ sem confirmar o original e compara
+persistência antes/depois, além de conferir a página pelo navegador.
+
 ### Porta já está em uso
 
 O Docker informa qual publicação falhou. Verifique primeiro se outro container

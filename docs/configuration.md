@@ -145,7 +145,7 @@ docker compose -f compose.yaml -f compose.messaging.yaml up -d --build --no-deps
 ```
 
 Os comandos preservam volumes e valores existentes. `compose.messaging.yaml`
-habilita somente as métricas, conservando o dashboard e consumidores atuais;
+habilita métricas e o observador B2-16, conservando o modo do dashboard;
 não exige catálogo nem habilita o modo AIoT completo. Não execute `down --volumes`
 na pilha pessoal.
 
@@ -162,6 +162,28 @@ por isso os números são agregados de infraestrutura: viewer/operator não os
 consultam e nem administradores recebem corpos de mensagens. Cadastro público
 não permite escolher admin. Não promova contas nem altere credenciais de produção
 para testar; o harness da B2-15 cria contas e infraestrutura descartáveis.
+
+### Amostras privadas B2-16
+
+Os dois overlays também fornecem `RABBITMQ_PORT=5672` e a senha já existente
+`RABBITMQ_OBSERVABILITY_PASSWORD`. O backend usa `coldsafe-observability` para
+consumir somente `coldsafe.observability`. O bootstrap atualizado precisa ser
+importado para copiar também `coldsafe.dlx` e `coldsafe.jobs.unrouted` nessa fila;
+o procedimento acima preserva os originais e os volumes.
+
+`GET /api/v3/messaging/messages` exige admin e filtra os resumos pelo proprietário
+atual do dispositivo/ambiente no PostgreSQL. O corpo bruto nunca é devolvido.
+As métricas globais e as amostras privadas podem, portanto, ter contagens diferentes.
+Sem credencial de observação, o painel informa observador desconectado.
+O observador independe de `AIOT_ENABLED`; os dois overlays continuam opcionais.
+
+São até 100 resumos recentes de eventos e 100 de mensagens mortas em memória,
+por processo, compartilhados entre proprietários antes do filtro de acesso.
+Reiniciar o backend apaga essas amostras; não apaga a DLQ. As cópias no broker
+têm teto de 8 MiB, descartando as mais antigas quando cheio, sem retorno à DLX.
+Isso é amostragem operacional, não arquivo histórico nem inventário completo da DLQ.
+Originais anteriores à instalação dos bindings não são copiados retroativamente.
+Para ensaio de parada/retomada e limites, veja o [runbook](runbook.md#mensageria-b2-16-parar-e-retomar-o-gravador).
 
 ## Permissões do token InfluxDB
 

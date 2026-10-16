@@ -1,0 +1,394 @@
+{
+  "task": "B2-16",
+  "status": "completed",
+  "date": "2026-10-16",
+  "timezone": "America/Sao_Paulo",
+  "repository": "/Users/vitorhugofernandescosta/Documents/ColdSafe",
+  "branch": "codex/block-5-validation",
+  "base_head": "c64ddc2dc917b4d00540bd6a027e8b0fc3accd89",
+  "final_head": "c64ddc2dc917b4d00540bd6a027e8b0fc3accd89",
+  "committed": false,
+  "pushed": false,
+  "personal_deployment": false,
+  "initial_worktree": {
+    "modified": [
+      "backend/README.md",
+      "backend/app/api/messaging.py",
+      "backend/app/config/settings.py",
+      "backend/tests/api/test_messaging_api.py",
+      "backend/tests/infra/test_compose_contract.py",
+      "backend/tests/infra/test_rabbitmq_bootstrap.py",
+      "backend/tests/infra/test_rabbitmq_integration.py",
+      "compose.aiot.yaml",
+      "compose.messaging.yaml",
+      "docs/configuration.md",
+      "docs/runbook.md",
+      "frontend/PRODUCT.md",
+      "frontend/README.md",
+      "frontend/src/features/messaging/messaging-api.spec.ts",
+      "frontend/src/features/messaging/messaging-api.ts",
+      "frontend/src/views/MessagingView.spec.ts",
+      "frontend/src/views/MessagingView.vue",
+      "infra/rabbitmq/README.md",
+      "infra/rabbitmq/bootstrap.py"
+    ],
+    "untracked": [
+      "backend/app/amqp/observation.py",
+      "backend/app/services/message_samples.py",
+      "backend/tests/infra/test_message_observer.py",
+      "backend/tests/infra/test_observation_integration.py",
+      "backend/tests/services/test_message_samples.py",
+      "frontend/e2e/messaging-observation-real.spec.ts",
+      "frontend/playwright.observation.config.ts"
+    ]
+  },
+  "existing_files_unchanged_in_session": [
+    "backend/README.md",
+    "backend/app/amqp/observation.py",
+    "backend/app/api/messaging.py",
+    "backend/app/config/settings.py",
+    "backend/app/services/message_samples.py",
+    "backend/tests/api/test_messaging_api.py",
+    "backend/tests/infra/test_compose_contract.py",
+    "backend/tests/infra/test_message_observer.py",
+    "backend/tests/infra/test_observation_integration.py",
+    "backend/tests/infra/test_rabbitmq_bootstrap.py",
+    "backend/tests/infra/test_rabbitmq_integration.py",
+    "backend/tests/services/test_message_samples.py",
+    "compose.aiot.yaml",
+    "compose.messaging.yaml",
+    "docs/configuration.md",
+    "docs/runbook.md",
+    "frontend/PRODUCT.md",
+    "frontend/README.md",
+    "frontend/playwright.observation.config.ts",
+    "frontend/src/features/messaging/messaging-api.spec.ts",
+    "frontend/src/features/messaging/messaging-api.ts",
+    "infra/rabbitmq/README.md",
+    "infra/rabbitmq/bootstrap.py"
+  ],
+  "existing_files_completed_in_session": [
+    "frontend/e2e/messaging-observation-real.spec.ts",
+    "frontend/src/views/MessagingView.spec.ts",
+    "frontend/src/views/MessagingView.vue"
+  ],
+  "dependencies_added": [],
+  "locks_changed": false,
+  "validation": [
+    {
+      "name": "runtime_red",
+      "result": "2 failed, 1 passed before runtime integration"
+    },
+    {
+      "name": "frontend_queue_red",
+      "result": "1 failed before correcting queue label"
+    },
+    {
+      "name": "focused_backend",
+      "result": "73 passed"
+    },
+    {
+      "name": "focused_backend_coverage",
+      "result": "40 passed",
+      "branch_coverage_percent": 90.25,
+      "scope": [
+        "backend.app.services.message_samples",
+        "backend.app.amqp.observation",
+        "backend.app.api.messaging",
+        "backend.app.runtime"
+      ],
+      "observer_percent": 100
+    },
+    {
+      "name": "backend_regression",
+      "result": "746 passed, 130 skipped, 2 deprecation warnings",
+      "seconds": 49.79,
+      "coverage_measured": false,
+      "command": ".venv/bin/python -m pytest backend/tests --no-cov -o addopts='' -q"
+    },
+    {
+      "name": "real_observation_acceptance",
+      "result": "1 passed; 1 real Chromium passed",
+      "seconds": 80.05,
+      "chromium_seconds": 2.2,
+      "command": "COLDSAFE_WRITER_INTEGRATION=1 .venv/bin/python -m pytest backend/tests/infra/test_observation_integration.py -q -s --no-cov -o addopts=''",
+      "guarantees": [
+        "writer backlog exactly 3 while stopped",
+        "empty writer queue after restart",
+        "exactly one persisted point per valid ID and six exact sensor values",
+        "invalid reading absent from InfluxDB",
+        "DLQ count bytes and IDs unchanged after API/browser observation",
+        "401/403 roles and current owner transfer/revocation",
+        "observer denied business queue and original DLQ",
+        "mobile keyboard and browser origins restricted to frontend/API"
+      ]
+    },
+    {
+      "name": "real_rabbitmq_regression",
+      "result": "22 passed",
+      "seconds": 24.13,
+      "command": "COLDSAFE_RABBITMQ_INTEGRATION=1 .venv/bin/python -m pytest backend/tests/infra/test_rabbitmq_integration.py --no-cov -o addopts='' -q"
+    },
+    {
+      "name": "frontend_unit",
+      "result": "21 files, 195 passed",
+      "coverage": {
+        "statements": 90.97,
+        "branches": 87.33,
+        "functions": 90.73,
+        "lines": 94.23
+      },
+      "command": "npm run test:coverage"
+    },
+    {
+      "name": "frontend_chromium_regression",
+      "result": "31 passed, 9 skipped",
+      "seconds": 21.7,
+      "command": "npm run test:e2e -- --workers=2"
+    },
+    {
+      "name": "frontend_build",
+      "result": "vue-tsc and Vite passed",
+      "command": "npm run build"
+    },
+    {
+      "name": "backend_image",
+      "result": "Docker build and network-disabled imports passed",
+      "image": "coldsafe-b216-review-backend"
+    },
+    {
+      "name": "compose",
+      "result": "base, messaging and aiot config --quiet passed",
+      "credentials": "disposable only; generated Influx tokens and owner IDs for rendering"
+    },
+    {
+      "name": "independent_security_review",
+      "result": "runtime wiring blocker fixed; no other concrete blocker",
+      "execution": "static review; tests run by primary agent"
+    },
+    {
+      "name": "knowledge_graph",
+      "result": "fast reindex succeeded",
+      "persistence": false
+    },
+    {
+      "name": "final_integrity",
+      "result": "git diff --check, local Markdown links, local secret-value scan, unchanged manifests/locks, disposed test containers/volumes all passed",
+      "test_projects": [
+        "coldsafe-b212-3643ac4b",
+        "coldsafe-b207-d2bbd088"
+      ],
+      "running_containers_at_start": 0,
+      "running_containers_at_end": 0
+    }
+  ],
+  "limitations": [
+    "bounded per-process in-memory sample shared before owner filtering",
+    "new failures only; no historical DLQ import",
+    "unprovable envelopes omitted from private samples; originals retained",
+    "no hardware Wokwi soak load final capacity or other browsers",
+    "no new global backend coverage measurement",
+    "AIoT and observer lifecycle tested separately",
+    "other opt-in integrations not all executed"
+  ],
+  "checkpoint": "B2-16 complete; B2-17 not started; await explicit user selection; worktree remains uncommitted",
+  "files": [
+    {
+      "path": "backend/README.md",
+      "status_at_start": "modified",
+      "sha256_at_start": "b54520901ab28471b5bf11c89181e497ad46871ca8d501f38ef235eccda89291",
+      "sha256_final": "b54520901ab28471b5bf11c89181e497ad46871ca8d501f38ef235eccda89291"
+    },
+    {
+      "path": "backend/app/amqp/observation.py",
+      "status_at_start": "untracked",
+      "sha256_at_start": "e5e5f6b05fa45d8a597375d4f6f4f880fc1d9e98048fc8b34f22e9f474942f51",
+      "sha256_final": "e5e5f6b05fa45d8a597375d4f6f4f880fc1d9e98048fc8b34f22e9f474942f51"
+    },
+    {
+      "path": "backend/app/api/messaging.py",
+      "status_at_start": "modified",
+      "sha256_at_start": "f27c7137fe1a3cb0ffd9340dbeb4a14958b556b2b4927f4d888000c303560af5",
+      "sha256_final": "f27c7137fe1a3cb0ffd9340dbeb4a14958b556b2b4927f4d888000c303560af5"
+    },
+    {
+      "path": "backend/app/config/settings.py",
+      "status_at_start": "modified",
+      "sha256_at_start": "59033ca245a886c15734c310b33714e28066b5c8e8a7b286d8f72560b2ab7195",
+      "sha256_final": "59033ca245a886c15734c310b33714e28066b5c8e8a7b286d8f72560b2ab7195"
+    },
+    {
+      "path": "backend/app/runtime.py",
+      "status_at_start": "clean_or_absent",
+      "sha256_at_start": null,
+      "sha256_final": "d64b54f62cf2654c67c63eb94d930f27f078d801e5e1514e5c7d22f33d2bf735"
+    },
+    {
+      "path": "backend/app/services/message_samples.py",
+      "status_at_start": "untracked",
+      "sha256_at_start": "d6ecf12848e7179e5dff0954923e8c43dafe5199581fcdd7ac0ac904c7bb50e3",
+      "sha256_final": "d6ecf12848e7179e5dff0954923e8c43dafe5199581fcdd7ac0ac904c7bb50e3"
+    },
+    {
+      "path": "backend/tests/api/test_messaging_api.py",
+      "status_at_start": "modified",
+      "sha256_at_start": "e9807967f50bff9f74dd01063573a2d9b0e8b0d8614aab32934e032ec1654747",
+      "sha256_final": "e9807967f50bff9f74dd01063573a2d9b0e8b0d8614aab32934e032ec1654747"
+    },
+    {
+      "path": "backend/tests/api/test_runtime_lifecycle.py",
+      "status_at_start": "clean_or_absent",
+      "sha256_at_start": null,
+      "sha256_final": "f21119a2d02d1c055fad0e6080116808e2d72f5ec7a07758062748fd2c88923f"
+    },
+    {
+      "path": "backend/tests/infra/test_compose_contract.py",
+      "status_at_start": "modified",
+      "sha256_at_start": "6c5acd6e96ac9478d353d8af38a4ee404cdf1a0c0b0ee6e4ddd202c29dfcb8c1",
+      "sha256_final": "6c5acd6e96ac9478d353d8af38a4ee404cdf1a0c0b0ee6e4ddd202c29dfcb8c1"
+    },
+    {
+      "path": "backend/tests/infra/test_message_observer.py",
+      "status_at_start": "untracked",
+      "sha256_at_start": "72a0c0bcb9ad7b55e0d9a87491858d3267bc1dde12cf5151311b60e217e893f3",
+      "sha256_final": "72a0c0bcb9ad7b55e0d9a87491858d3267bc1dde12cf5151311b60e217e893f3"
+    },
+    {
+      "path": "backend/tests/infra/test_observation_integration.py",
+      "status_at_start": "untracked",
+      "sha256_at_start": "9cb9126207fc01a7cf6c533505a489d21ed8a166373ce6c6f2b4d70be2dd24a0",
+      "sha256_final": "9cb9126207fc01a7cf6c533505a489d21ed8a166373ce6c6f2b4d70be2dd24a0"
+    },
+    {
+      "path": "backend/tests/infra/test_rabbitmq_bootstrap.py",
+      "status_at_start": "modified",
+      "sha256_at_start": "e850bfd0a7f1029952dd1c8f8136bf82e73bf4803350a6904f877c672740a910",
+      "sha256_final": "e850bfd0a7f1029952dd1c8f8136bf82e73bf4803350a6904f877c672740a910"
+    },
+    {
+      "path": "backend/tests/infra/test_rabbitmq_integration.py",
+      "status_at_start": "modified",
+      "sha256_at_start": "094cda5b1a48126dcc68bf3e2c756e2d564a08e547968a8fa68902e3c7dbfa8f",
+      "sha256_final": "094cda5b1a48126dcc68bf3e2c756e2d564a08e547968a8fa68902e3c7dbfa8f"
+    },
+    {
+      "path": "backend/tests/services/test_message_samples.py",
+      "status_at_start": "untracked",
+      "sha256_at_start": "7eebbca806204724e9b78e557697a06a708ebd25b55d317ff75cb2074c3e8926",
+      "sha256_final": "7eebbca806204724e9b78e557697a06a708ebd25b55d317ff75cb2074c3e8926"
+    },
+    {
+      "path": "compose.aiot.yaml",
+      "status_at_start": "modified",
+      "sha256_at_start": "5a13124462a6a4e7bd8f51316d41d9ccfc0e8eb054fafec5e40e377280cfa04a",
+      "sha256_final": "5a13124462a6a4e7bd8f51316d41d9ccfc0e8eb054fafec5e40e377280cfa04a"
+    },
+    {
+      "path": "compose.messaging.yaml",
+      "status_at_start": "modified",
+      "sha256_at_start": "c18294dd6d8403fb3fbecd8e5847b082e331a2ba6c457c518fb1205c3dc6a23a",
+      "sha256_final": "c18294dd6d8403fb3fbecd8e5847b082e331a2ba6c457c518fb1205c3dc6a23a"
+    },
+    {
+      "path": "docs/aiot/README.md",
+      "status_at_start": "clean_or_absent",
+      "sha256_at_start": null,
+      "sha256_final": "61b582bc6274ed9fd1312b8e3632fef4e5258bd613e00d8fd8fdb74d4ae3cd05"
+    },
+    {
+      "path": "docs/aiot/tasks/B2-16.md",
+      "status_at_start": "clean_or_absent",
+      "sha256_at_start": null,
+      "sha256_final": "5bd324d0d374de7318f851d392d966df12e5051963857f6594be60f979b32284"
+    },
+    {
+      "path": "docs/aiot/tasks/README.md",
+      "status_at_start": "clean_or_absent",
+      "sha256_at_start": null,
+      "sha256_final": "881a50ef37f068ed199ee77b6f99b636144e7d97138c4dc0940869a80eddac7a"
+    },
+    {
+      "path": "docs/configuration.md",
+      "status_at_start": "modified",
+      "sha256_at_start": "2a0f13d7f90c176accb3d5f7c1c646198147fb472769794f2a3e2f6085f6fdf8",
+      "sha256_final": "2a0f13d7f90c176accb3d5f7c1c646198147fb472769794f2a3e2f6085f6fdf8"
+    },
+    {
+      "path": "docs/runbook.md",
+      "status_at_start": "modified",
+      "sha256_at_start": "85aff6a1e8941c769a26aaa192af868b1929d13c7656b8b0c3c51d655bbfcedc",
+      "sha256_final": "85aff6a1e8941c769a26aaa192af868b1929d13c7656b8b0c3c51d655bbfcedc"
+    },
+    {
+      "path": "frontend/PRODUCT.md",
+      "status_at_start": "modified",
+      "sha256_at_start": "d47ee7134d6ad9850a0b647850cb7ce95778b43ec2a3706d7f7266c5c309f0dd",
+      "sha256_final": "d47ee7134d6ad9850a0b647850cb7ce95778b43ec2a3706d7f7266c5c309f0dd"
+    },
+    {
+      "path": "frontend/README.md",
+      "status_at_start": "modified",
+      "sha256_at_start": "91147730f34b3bfdda89c73a1f11d511e28f176d038d448463309d90473263d5",
+      "sha256_final": "91147730f34b3bfdda89c73a1f11d511e28f176d038d448463309d90473263d5"
+    },
+    {
+      "path": "frontend/e2e/messaging-observation-real.spec.ts",
+      "status_at_start": "untracked",
+      "sha256_at_start": "2ba6ceb57deb5c6c050ffb70327ce46e3be4b1ee759e2ac35b712a1bcbf3b16d",
+      "sha256_final": "f3fffa83ee00b0ffd6ff31e68446081a8b30563e04b9cc5277d97a4aabceea04"
+    },
+    {
+      "path": "frontend/playwright.observation.config.ts",
+      "status_at_start": "untracked",
+      "sha256_at_start": "7cd0d2a3e67f8f97f3fae2663539ad4e3e3e8180d977a7d2efe2f8cfd368b456",
+      "sha256_final": "7cd0d2a3e67f8f97f3fae2663539ad4e3e3e8180d977a7d2efe2f8cfd368b456"
+    },
+    {
+      "path": "frontend/src/features/messaging/messaging-api.spec.ts",
+      "status_at_start": "modified",
+      "sha256_at_start": "2104318b89f92b25cfa9ed15f06b180543458ab4e32985be8c238aa502b70cc9",
+      "sha256_final": "2104318b89f92b25cfa9ed15f06b180543458ab4e32985be8c238aa502b70cc9"
+    },
+    {
+      "path": "frontend/src/features/messaging/messaging-api.ts",
+      "status_at_start": "modified",
+      "sha256_at_start": "09a4e506c052f8f12503c9c34bb3c029317c6a15486f934aed1a5e8222dd7913",
+      "sha256_final": "09a4e506c052f8f12503c9c34bb3c029317c6a15486f934aed1a5e8222dd7913"
+    },
+    {
+      "path": "frontend/src/views/MessagingView.spec.ts",
+      "status_at_start": "modified",
+      "sha256_at_start": "a09366cb12199540ea32ca48a8c3d8d5103f080fb1cf0c210b650d67f9c700ba",
+      "sha256_final": "eb72ad5c5627672fc9af22efeb4dc364a4037af91fd02fb5007b654c8b0cb7b9"
+    },
+    {
+      "path": "frontend/src/views/MessagingView.vue",
+      "status_at_start": "modified",
+      "sha256_at_start": "9cd60391ecb46e56c2dd5a059e0cab6b7627fb02d6405339a126e272ade3a858",
+      "sha256_final": "247b91f351af83fda887c81f840331073a6deefdd181f8ef88197461cde3337d"
+    },
+    {
+      "path": "infra/rabbitmq/README.md",
+      "status_at_start": "modified",
+      "sha256_at_start": "5ad7832413420281a8042039e39e993ba2d398461a10cbfc83f79d19076057a4",
+      "sha256_final": "5ad7832413420281a8042039e39e993ba2d398461a10cbfc83f79d19076057a4"
+    },
+    {
+      "path": "infra/rabbitmq/bootstrap.py",
+      "status_at_start": "modified",
+      "sha256_at_start": "1c1d00f5ee320ba0caca4b363018de72f34837563881b790fa490ed474fbe8ff",
+      "sha256_final": "1c1d00f5ee320ba0caca4b363018de72f34837563881b790fa490ed474fbe8ff"
+    }
+  ],
+  "hash_note": "Evidence file excludes its own hash. Initial hashes cover pre-existing worktree changes, not clean files.",
+  "worktree_diff_sha256": "c21995e4991b80788b4455070f623aee4ecd2dc2aab8483aba3294d4eadfc5b1",
+  "publication_authorization": {
+    "date": "2026-10-16",
+    "requested_by_user": true,
+    "branch": "codex/block-5-validation",
+    "commit_subject": "feat(aiot): adiciona amostras privadas de mensagens e DLQ",
+    "source_files_match_tested_hashes": true,
+    "remote_aligned_at_authorization": true,
+    "note": "Original committed/pushed/final_head fields refer to technical completion before the later user publication request. Confirm actual publication through Git history and remote ref."
+  }
+}

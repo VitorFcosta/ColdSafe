@@ -43,6 +43,7 @@ class RuntimeSettings(BaseSettings):
     rabbitmq_port: int = Field(default=5672, ge=1, le=65_535)
     rabbitmq_management_port: int = Field(default=15672, ge=1, le=65_535)
     rabbitmq_monitor_password: SecretStr | None = Field(default=None, min_length=1)
+    rabbitmq_observability_password: SecretStr | None = Field(default=None, min_length=1)
     rabbitmq_commands_password: SecretStr | None = Field(default=None, min_length=1)
     rabbitmq_delivery_password: SecretStr | None = Field(default=None, min_length=1)
 

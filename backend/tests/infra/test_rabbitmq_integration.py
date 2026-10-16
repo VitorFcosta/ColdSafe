@@ -208,6 +208,11 @@ def test_permanent_failure_preserves_original_and_death_context(broker):
         assert properties.headers["x-death"][0]["queue"] == "coldsafe.writer"
         assert properties.headers["x-death"][0]["routing-keys"] == [example["routing_key"]]
         channel.basic_ack(method.delivery_tag)
+    with connect(broker, "observability") as channel:
+        method, properties, body = take(channel, "observability")
+        assert body == original
+        assert properties.headers["x-death"][0]["queue"] == "coldsafe.writer"
+        channel.basic_ack(method.delivery_tag)
 
 
 def test_transient_failure_has_three_attempts_with_backoff_then_dlq(broker):
@@ -229,6 +234,11 @@ def test_transient_failure_has_three_attempts_with_backoff_then_dlq(broker):
         assert channel.basic_get(queue("writer"), auto_ack=False)[0] is None
     with connect(broker, "audit") as channel:
         method, properties, body = take(channel, "audit")
+        assert body == original
+        assert properties.headers["x-death"][0]["reason"] == "delivery_limit"
+        channel.basic_ack(method.delivery_tag)
+    with connect(broker, "observability") as channel:
+        method, properties, body = take(channel, "observability")
         assert body == original
         assert properties.headers["x-death"][0]["reason"] == "delivery_limit"
         channel.basic_ack(method.delivery_tag)

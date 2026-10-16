@@ -88,6 +88,19 @@ def test_queues_limit_failed_deliveries_and_preserve_dead_letters():
     assert policy["definition"]["delayed-retry-max"] == 2000
 
 
+def test_observer_gets_dead_letter_copies_without_a_dead_letter_cycle():
+    definitions = build_definitions(passwords())
+    for source in ('coldsafe.dlx', 'coldsafe.jobs.unrouted'):
+        assert {item['destination'] for item in definitions['bindings']
+                if item['source'] == source} == {'coldsafe.dlq', 'coldsafe.observability'}
+    policies = [policy for policy in definitions['policies']
+                if re.fullmatch(policy['pattern'], 'coldsafe.observability')]
+    assert len(policies) == 1
+    assert policies[0]['definition'] == {
+        'max-length-bytes': 8388608, 'overflow': 'drop-head', 'delivery-limit': 2,
+    }
+
+
 def test_only_writer_can_publish_persistence_proof_and_both_api_roles_receive_it():
     definitions = build_definitions(passwords())
     route = 'v3.telemetry_persisted.00000000-0000-4000-8000-000000000001'

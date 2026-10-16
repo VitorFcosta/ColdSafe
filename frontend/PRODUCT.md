@@ -24,7 +24,9 @@ conforme B2-13. Não inclui IA, cena 3D nem novos painéis de filas.
 Na B2-15, `/messaging` acrescenta um painel administrativo de infraestrutura:
 filas compartilhadas, contagens, taxas e consumidores reais. Polling passa pela
 API ColdSafe, com idade da coleta e falhas explícitas. Viewer/operator não recebem
-essas métricas agregadas; o painel não lê mensagens nem expõe credenciais.
+essas métricas agregadas. A B2-16 acrescenta resumos privados das últimas mensagens
+e de cópias da DLQ, filtrados pelo proprietário atual, com origem/motivo e estado
+do observador. O painel não expõe corpos brutos, credenciais nem controle Docker.
 
 O frontend do ColdSafe é um dashboard operacional acadêmico para reconhecer,
 em poucos segundos, o estado do ambiente refrigerado selecionado, a atualidade

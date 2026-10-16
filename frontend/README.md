@@ -26,6 +26,13 @@ base e reconstrua backend/frontend. Esse overlay conserva o modo do dashboard;
 não exige a ativação do percurso AIoT completo. Procedimento em
 [configuração de Mensageria](../docs/configuration.md#mensageria-b2-15).
 
+A B2-16 mostra também últimas mensagens e cópias da DLQ, por resumos privados
+de até 100 itens por lista. Somente mensagens de dispositivos/ambientes atualmente
+pertencentes ao admin entram na resposta; corpos brutos e credenciais não chegam
+ao navegador. A tela informa conexão/atualidade do observador e falha de consulta.
+O controle de parada/retomada do gravador continua no terminal, conforme
+[runbook](../docs/runbook.md#mensageria-b2-16-parar-e-retomar-o-gravador).
+
 Para o dashboard v3 no Compose, use `compose.aiot.yaml`: ele habilita o backend e passa o argumento
 de build do frontend. É necessário reconstruir `frontend` ao alterar esse modo.
 No Vite local, defina a variável antes de iniciar o processo e configure

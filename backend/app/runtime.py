@@ -152,9 +152,20 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             password_delivery=settings.rabbitmq_delivery_password.get_secret_value(),
         )
 
+    samples = observer = None
+    if settings.rabbitmq_observability_password is not None:
+        from backend.app.amqp.observation import MessageObserver
+        from backend.app.services.message_samples import MessageSamples
+
+        samples = MessageSamples(settings)
+        observer = MessageObserver(
+            samples, host=settings.rabbitmq_host, port=settings.rabbitmq_port,
+            password=settings.rabbitmq_observability_password.get_secret_value(),
+        )
+
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
-        shutdown, consumer_thread = Event(), None
+        shutdown, workers = Event(), []
         async def expire_commands() -> None:
             while True:
                 await asyncio.sleep(1)
@@ -169,9 +180,11 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             initialize_schema(settings)
             commands.expire_pending()
             subscriber.start()
-            if consumer is not None:
-                consumer_thread = Thread(target=consumer.run, args=(shutdown,), daemon=True)
-                consumer_thread.start()
+            for worker in (consumer, observer):
+                if worker is not None:
+                    thread = Thread(target=worker.run, args=(shutdown,), daemon=True)
+                    thread.start()
+                    workers.append((worker, thread))
         except Exception:
             resources.close()
             raise
@@ -185,11 +198,11 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             except asyncio.CancelledError:
                 pass
             try:
-                if consumer is not None:
-                    shutdown.set()
-                    consumer.close()
-                    await asyncio.to_thread(consumer_thread.join, 10)
-                    if consumer_thread.is_alive():
+                shutdown.set()
+                for worker, thread in workers:
+                    worker.close()
+                    await asyncio.to_thread(thread.join, 10)
+                    if thread.is_alive():
                         LOGGER.error('AMQP consumer did not stop within 10 seconds')
                 subscriber.stop()
             finally:
@@ -209,13 +222,14 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         alerts=alerts,
         events=events,
     )
-    if settings.rabbitmq_monitor_password is not None:
+    if settings.rabbitmq_monitor_password is not None or samples is not None:
         from backend.app.api.messaging import create_messaging_router
         from backend.app.services.messaging import MessagingService
-        app.include_router(create_messaging_router(auth, MessagingService(
+        monitoring = MessagingService(
             settings.rabbitmq_host, settings.rabbitmq_management_port,
             settings.rabbitmq_monitor_password.get_secret_value(),
-        )))
+        ) if settings.rabbitmq_monitor_password is not None else None
+        app.include_router(create_messaging_router(auth, monitoring, samples))
     if aiot is not None:
         from backend.app.api.aiot import install_aiot
         install_aiot(app, aiot, aiot_events, auth, catalog)
