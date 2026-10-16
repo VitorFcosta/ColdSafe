@@ -105,6 +105,24 @@ def test_runtime_does_not_create_observer_without_its_credential():
     factory.assert_not_called()
 
 
+def test_job_publisher_runtime_is_optional_and_stops_with_app():
+    from threading import Event
+    from pydantic import SecretStr
+    configured = settings().model_copy(update={'rabbitmq_api_password': SecretStr('private-api')})
+    started = Event()
+    with patch('backend.app.runtime.MqttSubscriber'), patch('backend.app.runtime.create_influx_repository'), \
+            patch('backend.app.runtime.initialize_schema'), patch('backend.app.runtime.postgres_is_ready', return_value=True), \
+            patch('backend.app.services.commands.CommandService.expire_pending'), \
+            patch('backend.app.amqp.jobs.JobPublisher') as factory:
+        factory.return_value.run.side_effect = lambda stop: (started.set(), stop.wait(5))
+        app = build_runtime_app(configured)
+        with TestClient(app) as client:
+            assert started.wait(2)
+            assert '/api/v3/jobs' in client.get('/openapi.json').json()['paths']
+            assert client.get('/health/ready').status_code == 200
+        factory.return_value.close.assert_called_once_with()
+
+
 @patch("backend.app.runtime.MqttSubscriber")
 @patch("backend.app.runtime.create_influx_repository")
 def test_runtime_closes_repository_when_subscriber_start_fails(

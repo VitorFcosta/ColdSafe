@@ -100,6 +100,8 @@ class ErrorDetail(ApiModel):
         "FORBIDDEN",
         "RATE_LIMITED",
         "USER_NOT_FOUND",
+        "JOB_NOT_FOUND",
+        "DATASET_NOT_FOUND",
         "EMAIL_ALREADY_REGISTERED",
         "INVALID_CREDENTIALS",
         "DEPENDENCY_UNAVAILABLE",

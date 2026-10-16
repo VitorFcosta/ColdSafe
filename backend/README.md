@@ -34,6 +34,15 @@ e metadados permitidos (IDs, tipo, horários, origem, motivo/erro), nunca corpos
 brutos. Amostras desaparecem ao reiniciar; a DLQ é preservada.
 Configuração e limites em [amostras privadas](../docs/configuration.md#amostras-privadas-b2-16).
 
+A B2-17 acrescenta jobs privados com `POST /api/v3/jobs` (admin, `202`),
+consulta por UUID e progresso HTTP/SSE autenticado. Job e outbox são atômicos;
+AMQP confirma publicação e execução antes do ACK. Workers de geração e treino
+compartilham um advisory lock PostgreSQL e retomam contadores duráveis.
+Configuração em [jobs](../docs/configuration.md#jobs-assíncronos-b2-17),
+contrato em [HTTP de jobs](../contracts/aiot.md#jobs-http-e-progresso-sse--b2-17).
+Executores de geração massiva/ML ainda pertencem às próximas tarefas: ausência
+de executor produz `failed`, nunca um resultado fictício.
+
 Esta área contém a ingestão MQTT, a classificação das leituras, a persistência no
 InfluxDB, a estrutura relacional PostgreSQL e a API FastAPI.
 
@@ -47,7 +56,7 @@ As versões 004–005 acrescentam papéis e metadados privados de jobs, datasets
 modelos e ativação por proprietário. A versão 006 acrescenta identificação de
 sessões JWT, limites de login e tickets WebSocket. O [guia de migrações](migrations/README.md)
 explica propriedade, backup e recuperação. A persistência prepara o AIoT;
-workers e treino/inferência continuam tarefas posteriores. Autenticação e
+workers de jobs estão na B2-17; cálculo e treino/inferência continuam posteriores. Autenticação e
 permissões atuais estão no [guia de segurança](../docs/aiot/tasks/B2-06.md).
 
 A primeira implementação do domínio está em `app/domain/telemetry.py`. Ela transforma

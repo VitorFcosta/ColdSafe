@@ -297,6 +297,52 @@ reinicia ambos. Gateway B2-11 mantém deduplicação/saídas/erros no diário SQ
 valida propriedade PostgreSQL. Status/timeout durável e autorização HTTP v3 são
 implementados na B2-13; cache do simulador segue em memória.
 
+## Jobs HTTP e progresso SSE — B2-17
+
+Rotas instaladas quando `RABBITMQ_API_PASSWORD` está configurada. Bearer obrigatório;
+proprietário vem da sessão e é conferido no PostgreSQL. Papel admin não permite
+ler registros alheios. Respostas privadas usam `Cache-Control: no-store`.
+
+| Rota | Regra |
+| --- | --- |
+| `POST /api/v3/jobs` | Somente admin atual; retorna `202` após transação job + outbox, sem executar cálculo nem esperar broker |
+| `GET /api/v3/jobs/{job_id}` | Qualquer papel lê somente o próprio job; inexistente/alheio retorna `404 JOB_NOT_FOUND` |
+| `GET /api/v3/jobs/{job_id}/events` | SSE privado com Bearer no header, revalidação de sessão e dono a cada segundo; fecha em estado terminal/revogação/perda de propriedade |
+
+Geração recebe `{"job_type":"generation","total_units":1000000,"seed":42}`;
+`total_units` inteiro estrito entre 1 e 2 milhões; seed inteiro estrito entre 0 e
+`2**32-1`, padrão 42. Treino recebe `{"job_type":"training","dataset_id":"UUID"}`;
+dataset deve pertencer à conta, ter chave interna de artefato e de 1 a 2 milhões
+de linhas registradas. Seu total é fixo em duas regressões. Ambos aceitam
+`environment_id` UUID opcional da própria conta. Campos extras são recusados;
+o cliente não envia dono, caminho, status nem resultado. A validação aprofundada
+de dataset/modelo pertence às tarefas posteriores.
+
+Resposta HTTP: `{success:true,data:{id,job_type,status,completed_units,total_units,
+result_id,error_code,environment_id,dataset_id,created_at,updated_at},meta:{schema_version:3}}`.
+`result_id` é nulo até conclusão com artefato registrado do próprio job e arquivo
+interno regular, não vazio e sem symlink. Treino e geração sem executor real
+falham explicitamente, com o código correspondente; não fabricam artefatos.
+
+SSE emite `event: job_progress` com essa **resposta HTTP** no campo `data`, quando
+`updated_at` muda; não é o envelope AMQP abaixo. É uma assinatura do estado durável,
+consultada a cada segundo; pode coalescer checkpoints rápidos. Comentário keep-alive
+a cada 15 s conserva o proxy. Após queda, GET/reconexão recupera o estado atual;
+não há replay integral de eventos. Erro durante stream emite `event: error` com
+`DEPENDENCY_UNAVAILABLE` sanitizado e fecha; falha inicial de banco retorna 503.
+Para browser usar `fetch` com header Bearer; `EventSource` nativo não recebe esse
+header. Tokens em URL não autenticam a rota.
+
+Solicitações e progresso continuam publicados no AMQP com outbox própria.
+O consumidor WebSocket de dispositivos não é usado para jobs sem dispositivo.
+Um lock PostgreSQL de sessão, comum a todos os donos/tipos, serializa executores;
+contenção/indisponibilidade de banco conserva entrega pendente sem gastar retries
+do broker. Checkpoint só pode avançar e é persistido com evento na mesma transação.
+Executores devem gravar blocos duráveis antes do checkpoint e interromper ao
+perder a conexão. O lock não garante exclusão durante perda da sessão PostgreSQL
+entre checkpoints de um executor ainda vivo; cancelamento/fencing desse cálculo
+deve ser tratado ao integrar executores reais. Não foi implementada alta disponibilidade.
+
 ## Jobs e ativação de modelos
 
 `job_requested` carrega `job_id`, `job_type=generation|training` e

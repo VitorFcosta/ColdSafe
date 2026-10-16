@@ -96,6 +96,54 @@ Preparação, permissões, ritmo de simulação e comandos do operador estão em
 [`simulator/README.md`](../simulator/README.md). Nenhum segredo pessoal foi
 alterado na execução B2-09; integração usa credenciais descartáveis.
 
+## Jobs assíncronos B2-17
+
+Opt-in separado, sem modificar o ambiente pessoal automaticamente:
+
+```sh
+docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml up -d --build backend generation training
+```
+
+Antes de usar em dados importantes, seguir backup/restauração no
+[guia de migrações](../backend/migrations/README.md); o runner aplicará a 008.
+O exemplo combina AIoT existente com jobs, mas jobs não exigem catálogo/dispositivo.
+As credenciais `RABBITMQ_API_PASSWORD`, `RABBITMQ_GENERATION_PASSWORD` e
+`RABBITMQ_TRAINING_PASSWORD` já constam de `.env.example` e da topologia B2-07.
+API publica usando somente sua identidade; cada worker recebe somente a própria
+credencial AMQP. Não compartilhar senhas entre papéis. Workers reaproveitam imagem,
+ambiente PostgreSQL, usuário sem privilégios, filesystem read-only e rede interna
+do backend. Não publicam portas. As verificações de vida dos executores ficam
+para integração operacional B2-33; o healthcheck HTTP herdado é desativado neles.
+
+API instala as três rotas de jobs quando a sua credencial está presente; sem ela,
+o comportamento anterior permanece. `202` significa solicitação persistida;
+broker indisponível deixa a publicação na outbox e não exige esperar no HTTP.
+Consultar o job mostra o estado durável, mesmo com worker parado.
+Readiness geral não depende do publicador de jobs: a API pode enfileirar na outbox
+durante uma indisponibilidade AMQP. As demais dependências de readiness permanecem.
+
+Workers podem ser executados com o ambiente do backend por
+`python -m backend.app.job_worker --role generation` ou `--role training`.
+Executores de geração massiva e treino **ainda não estão instalados**: pedidos
+válidos passam por queued/running e terminam failed com código sanitizado.
+Isso testa infraestrutura sem declarar dados/modelos artificiais como resultados.
+`JOB_ARTIFACT_ROOT` permite definir a raiz interna ao integrar os executores;
+padrão `/app/artifacts`. Este overlay não cria volume de datasets nem libera
+escrita: armazenamento/geração em blocos é B2-18, e não foi antecipado.
+
+O bloqueio global é de sessão PostgreSQL e vale entre geração e treino de todas
+as contas. Worker interrompido deixa checkpoint no banco e entrega sem ACK;
+reinício retoma do contador, desde que o futuro executor persista os blocos.
+Não reiniciar PostgreSQL enquanto houver cálculo real: a perda da sessão libera
+o lock; o executor só detecta isso no próximo checkpoint. Esta tarefa não prova
+alta disponibilidade durante falha do coordenador.
+
+Progresso HTTP/SSE e parâmetros estão no
+[contrato B2-17](../contracts/aiot.md#jobs-http-e-progresso-sse--b2-17).
+O stream lê estado privado no banco a cada segundo, revalida sessão e termina ao
+revogar acesso ou concluir. Solicitações e eventos AMQP permanecem duráveis;
+outbox não tem expurgo automático. Não remover solicitações de jobs ativos.
+
 ## API AIoT opcional B2-13
 
 Depois de preparar catálogo, proprietário, brokers e token exclusivo do writer,

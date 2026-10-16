@@ -163,6 +163,15 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             password=settings.rabbitmq_observability_password.get_secret_value(),
         )
 
+    jobs = job_publisher = None
+    if settings.rabbitmq_api_password is not None:
+        from backend.app.amqp.jobs import JobPublisher
+        from backend.app.services.jobs import JobService
+
+        jobs = JobService(settings, artifact_root=settings.job_artifact_root)
+        job_publisher = JobPublisher(jobs, host=settings.rabbitmq_host, port=settings.rabbitmq_port,
+                                     password=settings.rabbitmq_api_password.get_secret_value())
+
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
         shutdown, workers = Event(), []
@@ -180,7 +189,7 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             initialize_schema(settings)
             commands.expire_pending()
             subscriber.start()
-            for worker in (consumer, observer):
+            for worker in (consumer, observer, job_publisher):
                 if worker is not None:
                     thread = Thread(target=worker.run, args=(shutdown,), daemon=True)
                     thread.start()
@@ -233,4 +242,7 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
     if aiot is not None:
         from backend.app.api.aiot import install_aiot
         install_aiot(app, aiot, aiot_events, auth, catalog)
+    if jobs is not None:
+        from backend.app.api.jobs import create_jobs_router
+        app.include_router(create_jobs_router(auth, jobs))
     return app

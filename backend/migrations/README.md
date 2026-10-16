@@ -62,7 +62,7 @@ serviços futuros. Labels de treino não são acrescentados à telemetria ao viv
    python -c 'from backend.app.config.settings import RuntimeSettings; from backend.app.repositories.postgres import initialize_schema; initialize_schema(RuntimeSettings())'
    ```
 
-3. Conferir `SELECT version FROM schema_migrations ORDER BY version` (1–7).
+3. Conferir `SELECT version FROM schema_migrations ORDER BY version` (1–8).
    Repetir o runner é seguro. Se falhar, toda a rodada de migrações pendentes
    volta ao estado anterior; corrigir a causa e tentar novamente. A versão 003
    continua recusando regras legadas conflitantes.
@@ -81,6 +81,16 @@ da versão 6 e à expiração/revogação própria; novas sessões são `jwt`.
 prazo máximo de 60 segundos; o serviço limita também à expiração da sessão.
 
 ## Verificação reproduzível
+
+A versão 008 da B2-17 acrescenta `job_outbox`, separada da outbox por dispositivo.
+Cada solicitação tem um evento estável por job; mudanças de estado e progresso
+gravam seus eventos na mesma transação. `published_at` só é preenchido após
+confirmação AMQP. Falha entre confirmação e gravação permite redelivery, tratado
+sem reabrir job terminal. Não altera registros existentes nem remove eventos.
+A retenção/limpeza da outbox ainda é manual; não apagar solicitações de jobs ativos.
+O serviço aplica transições e valida artefato interno não vazio, dono e origem
+antes de concluir; as constraints 005 continuam vigentes. Não é prova de qualidade
+de dataset/modelo, que pertence às tarefas de geração e treino.
 
 A versão 007 da B2-13 acrescenta inbox, eventos, comandos, alertas, freshness e
 outbox `aiot_*`. Comandos v3 ficam separados dos comandos MQTT legados, para

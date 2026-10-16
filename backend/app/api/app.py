@@ -56,6 +56,8 @@ ERRORS: dict[str, str] = {
     "FORBIDDEN": "Seu papel não permite esta operação.",
     "RATE_LIMITED": "Muitas tentativas. Aguarde antes de tentar novamente.",
     "USER_NOT_FOUND": "O usuário informado não foi encontrado.",
+    "JOB_NOT_FOUND": "O job informado não foi encontrado.",
+    "DATASET_NOT_FOUND": "O dataset informado não foi encontrado.",
     "DEPENDENCY_UNAVAILABLE": "Não foi possível consultar as leituras agora.",
     "INTERNAL_ERROR": "Ocorreu um erro interno.",
 }

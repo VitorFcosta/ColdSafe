@@ -9,7 +9,15 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-16](tasks/B2-16.md): observador em fila dedicada e resumos
+A última entrega foi [B2-17](tasks/B2-17.md): infraestrutura de jobs privados,
+POST administrativo `202`, outbox AMQP, workers com lock PostgreSQL único,
+checkpoints/retomada e progresso HTTP/SSE autenticado por dono. PostgreSQL/RabbitMQ
+reais e executores pequenos comprovaram assincronia, isolamento, concorrência,
+duplicatas e retomada; geração massiva/ML continuam posteriores. Sem handler real,
+o worker termina failed explicitamente. Overlay pessoal não ativado. Exclusão
+depende da sessão PostgreSQL viva; ver limites de coordenação/recuperação no cartão.
+
+A [B2-16](tasks/B2-16.md) conserva observador em fila dedicada e resumos
 privados de últimas mensagens/DLQ na Mensageria. API valida o proprietário atual
 no PostgreSQL; leitura não retira originais das filas de negócio/DLQ. Ensaio real
 e Chromium passaram com backlog durante parada, esvaziamento na retomada,
@@ -43,7 +51,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-17](tasks/B2-17.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-18](tasks/B2-18.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final
