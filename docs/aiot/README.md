@@ -9,7 +9,15 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-19](tasks/B2-19.md): Laboratório Web para geração privada,
+A última entrega foi [B2-20](tasks/B2-20.md): kernel causal único e adaptadores
+offline/online, preparação NPY por equipamento e split 70/15/15 sem máquinas
+compartilhadas. Mediana/clipping ajustados apenas no treino, labels/censura
+separados de X. Fontes reais de 1–2m comprovaram paridade online e integridade;
+preparo medido ficou em 184/277 MiB após limitar mapas/fit a blocos/colunas.
+Sem modelos, consumidor de inferência, dependências novas ou ativação pessoal.
+Custos dependem da densidade das janelas; medidas não representam a pilha final.
+
+A [B2-19](tasks/B2-19.md) conserva Laboratório Web para geração privada,
 acompanhamento recuperável por UUID, configuração/autor e qualidade observada,
 com amostra separada de dez linhas. Chromium/HTTP/PostgreSQL/RabbitMQ reais
 comprovaram geração de um milhão, recarga sem reenvio, isolamento e falha parcial
@@ -66,7 +74,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-20](tasks/B2-20.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-21](tasks/B2-21.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

@@ -56,6 +56,46 @@ com RUL observada/censurada. O leitor verifica os blocos NPY sem carregar o
 dataset inteiro; cada consulta de resumo faz leitura proporcional ao volume.
 Não usa InfluxDB/MQTT nem publica amostras. NumPy já existente, sem nova dependência.
 
+## Features e preparação de dados B2-20
+
+`domain/features.py` calcula média/desvio/tendência/máximo com um kernel NumPy
+compartilhado. `services/feature_inputs.py` adapta NPY e telemetria já autorizada
+para o mesmo layout; o eixo online é `received_at`, sem usar relógio do dispositivo.
+`domain/feature_preprocessing.py` ajusta mediana e clipping exclusivamente no
+treino e exporta estado JSON para aplicação idêntica em validação/teste/online.
+
+`services/training_data.py:prepare_dataset` confere origem/dono/job concluído,
+reutiliza o leitor B2-19 e produz uma pasta nova com split 70/15/15 por equipamento,
+matrizes NPY e manifesto. Os blocos intercalados mantêm continuidade por máquina;
+X exclui IDs/labels e targets mantêm saúde/RUL/máscara de censura separados.
+Exige ao menos três equipamentos e recusa treino sem valores úteis. Não há
+handler de treino/modelo instalado nesta tarefa: seu consumidor pertence à B2-21.
+
+[Layout, fronteiras de janela, insuficiência e limites](../contracts/aiot.md#features-e-preparação-de-treino--b2-20).
+As janelas iniciais são 15 minutos/1 hora, com passado estrito. Uma falha deixa
+pasta parcial sem `manifest.json`; não a reutilize nem trate como resultado pronto.
+Não há cache de histórico live ou consumidor novo: o chamador online deve entregar
+histórico autorizado e ordenado e conferir `sufficient` antes da inferência.
+
+Mapear um arquivo não garante RSS baixo: o sistema pode manter suas páginas
+residentes. Por isso o ajuste reúne apenas uma coluna do treino por vez a partir
+dos blocos, e a gravação fecha cada mapeamento após seu bloco. A mediana e os
+quantis continuam exatos, com custo adicional de percorrer os blocos por coluna.
+
+Testes locais e ensaio com fonte gerada real, da raiz, usando o lock dev:
+
+```sh
+python -m pytest backend/tests/domain/test_features.py backend/tests/domain/test_feature_preprocessing.py backend/tests/services/test_training_data.py --no-cov -o addopts='' -q
+python -m scripts.benchmark_features --output /tmp/coldsafe-features-1m --total 1000000 --seed 42
+```
+
+A pasta de saída precisa ser nova. Para o teto, use outra pasta e `--total 2000000`.
+O benchmark confere grupos disjuntos, contagem, finitude, censura, hashes da fonte
+e igualdade da primeira linha útil entre artefato de treino e entrada online,
+reaplicando o estado salvo. Mede tempo, disco e RSS do processo completo; não
+inclui a pilha de serviços nem o custo de treinar modelos. Usa somente NumPy já
+instalado, sem pandas/scikit-learn novos. Resultados no [cartão](../docs/aiot/tasks/B2-20.md).
+
 ## Geração offline B2-18
 
 O mesmo POST de jobs aceita os parâmetros documentados no

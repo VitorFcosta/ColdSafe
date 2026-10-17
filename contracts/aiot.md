@@ -257,6 +257,61 @@ de 3 previsões críticas para abrir e 10 recuperadas para limpar, com limiares
 configurados e explícitos. Ausência, atraso ou indisponibilidade não limpam alerta
 nem acionam uma recuperação fictícia; a máquina de estados será testada no runtime.
 
+## Features e preparação de treino — B2-20
+
+O cálculo comum em `backend/app/domain/features.py` serve aos adaptadores offline
+e online. B2-20 prepara os dados; modelos e consumidor de inferência continuam
+nas tarefas seguintes. Não há novo endpoint, envelope AMQP ou alteração live.
+
+- Layout canônico por **janela → sensor → estatística**. Só sensores selecionados,
+  na ordem de `SENSOR_TYPES`; nomes `{sensor}__{mean|std|trend|max}__{segundos}s`.
+  Padrão: 900/3600 segundos, seis sensores, 48 colunas float64. Janelas são uma
+  escolha inicial de engenharia, sem calibração nem ajuste pelo teste reservado.
+- Intervalo **`[t-W,t)`**: inclui o limite inferior e exclui o instante atual,
+  timestamps empatados com ele e qualquer futuro. Eixo offline: `observed_at`;
+  online: `received_at` confiável do aceite, truncado para milissegundos UTC.
+  `occurred_at` do dispositivo nunca define essa janela online. Históricos devem
+  chegar ordenados; preparação offline agrupa/ordena máquinas antes do cálculo.
+- Média, desvio **populacional (`ddof=0`)**, máximo e tendência OLS em unidade
+  do sensor por hora. Cálculos locais usam tempos relativos e float64, sem somas
+  cumulativas com épocas distantes. Overflow é erro explícito, não feature infinita.
+- Menos de dois valores finitos em instantes distintos do sensor deixa suas
+  quatro estatísticas NaN. Não há preenchimento com informação posterior.
+  Histórico temporal suficiente exige início anterior/igual a `t-max(W)` e dois
+  instantes distintos em cada janela; isso é separado dos faltantes por sensor.
+  Online não imputa uma linha temporalmente insuficiente como previsão disponível.
+- IDs, timestamps absolutos, modos, labels de degradação/saúde/RUL e censura
+  nunca entram em X. Metadata/targets permanecem em arquivo separado.
+
+O split ordena UUIDs, aplica permutação pela seed e distribui equipamentos em
+70/15/15, com arredondamento e pelo menos um em cada conjunto. Exige **≥3
+equipamentos**; nenhum ID cruza treino, validação e teste. Mesmos IDs + seed
+reproduzem a divisão; uma nova geração tem novos UUIDs e é outro catálogo.
+
+Depois da divisão, somente X do **treino** ajusta mediana e quantis 0,01/0,99 por
+coluna. NaN recebe a mediana aprendida e valores extremos são limitados aos
+quantis aprendidos; validação, teste e online apenas reaplicam esse estado.
+Coluna sem nenhum valor útil no treino falha explicitamente. Não há escala extra.
+`median-clip-v1` identifica essa política e seu estado JSON finito é imutável.
+`features_version` combina `rolling-v1-<hash de layout/política>` e
+`median-clip-v1`; o manifesto guarda nomes, janelas, sensores e estado aprendido.
+
+Preparação `training-numpy-v1`: manifesto escrito por último, subdiretórios
+`train`, `validation`, `test`, `features.npy` float64 e `targets.npy` estruturado.
+Targets conservam `equipment_index`, `observed_at`, `health_score_true`,
+`rul_hours_true` e `rul_observed`. Censurados participam de saúde; RUL deve usar
+somente linhas com `rul_observed=true`, preservando zero como alvo válido.
+É preparação interna em disco, sem registrar modelo/dataset novo no PostgreSQL.
+Dados brutos, grupos, contagens e fonte privada são rastreados no manifesto.
+
+O preparador reutiliza a validação B2-19 dos artefatos finalizados e imutáveis,
+preservando o original. Mapeia NPY, processa equipamento a equipamento e escreve
+blocos temporários de até 5.000 linhas; fit percorre colunas. Memória e tempo não
+são constantes: dependem da quantidade de linhas, equipamentos e densidade nas
+janelas. Falha deixa tentativa privada sem manifesto final; usar diretório novo
+e limpar a tentativa incompleta manualmente. Não usar esses arquivos como treino
+concluído nem misturá-los com telemetria live.
+
 ## Comando explícito e ACK
 
 `command.data` contém comando/atuador UUID, `actuator`, `desired_state`,
