@@ -7,7 +7,7 @@ import pytest
 from pydantic import ValidationError
 
 from backend.app.domain.jobs import GenerationInput
-from backend.app.services.generation import BLOCK_SIZE, MEASUREMENTS, generate_block, write_dataset
+from backend.app.services.generation import BLOCK_SIZE, MEASUREMENTS, equipment_parameters, generate_block, write_dataset
 
 
 def config(**values):
@@ -51,6 +51,21 @@ def test_censorship_and_observed_failure_have_correct_rul_and_progressive_wear()
     for name in ('vibration_rms_mm_s', 'motor_current_a', 'motor_temperature_c', 'ambient_temperature_c'):
         assert np.mean(last[name]) > np.mean(first[name])
     assert (last['degradation_true'] >= 0).all() and (last['degradation_true'] <= 1).all()
+
+
+def test_health_is_latent_degradation_with_heterogeneous_machines_and_exact_extremes():
+    c = config()
+    first, last = generate_block(c, 0), generate_block(c, 19)
+    for rows in (first, last):
+        np.testing.assert_array_equal(rows['health_score_true'], 100 * (1 - rows['degradation_true']))
+        assert np.all((rows['health_score_true'] >= 0) & (rows['health_score_true'] <= 100))
+    np.testing.assert_array_equal(first['health_score_true'][:c.equipment_count], 100)
+    observed = last[-c.equipment_count:]['rul_observed']
+    np.testing.assert_array_equal(last[-c.equipment_count:]['health_score_true'][observed], 0)
+    assert np.all(last[-c.equipment_count:]['health_score_true'][~observed] > 0)
+    params = equipment_parameters(c)
+    assert np.ptp(params['exponent']) > 0
+    assert np.all(np.ptp(params['baseline'], axis=0) > 0)
 
 
 def test_missing_sensors_noise_outliers_daily_cycle_and_modes_affect_data():

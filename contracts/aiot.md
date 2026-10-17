@@ -312,6 +312,55 @@ janelas. Falha deixa tentativa privada sem manifesto final; usar diretório novo
 e limpar a tentativa incompleta manualmente. Não usar esses arquivos como treino
 concluído nem misturá-los com telemetria live.
 
+## Regressão offline de saúde — B2-21
+
+`services/health_training.py:train_health` recebe uma preparação finalizada
+`training-numpy-v1` e um destino novo separado da origem. Não aceita arquivos
+pickle como entrada. Revalida layout/versionamento, transformação, contagens,
+valores finitos, saúde 0–100 e grupos efetivos disjuntos entre partições. O formato
+B2-20 conserva UUIDs por partição e índices nos targets, sem mapa índice→UUID;
+a verificação prova disjunção dos dois conjuntos de identificadores, sem atestar
+a correspondência individual. O chamador continua responsável pela origem privada
+autorizada e por conservar os arquivos imutáveis durante a leitura.
+
+Saúde é `100 × (1 − degradation_true)`, alvo latente exclusivamente offline.
+Expoentes de desgaste, baselines dos sensores, modos e falhas variam por máquina
+no gerador existente. Saúde inclui máquinas censuradas; não filtra `rul_observed`.
+
+- `DummyRegressor(strategy='mean')` aprende só a média de saúde do treino.
+- Dois `HistGradientBoostingRegressor` usam todo o treino, com 15/31 folhas,
+  100 iterações, seed explícita, `early_stopping=False` e uma thread numérica.
+  Os demais parâmetros efetivos são registrados no relatório.
+- Menor **MAE na validação** escolhe o candidato; empate entre candidatos mantém
+  o primeiro. Só é `eligible` se seu MAE for **estritamente menor** que o baseline
+  na mesma validação. Empate ou pior resultado gera `rejected`.
+- Escolha e elegibilidade são fixadas antes de abrir as matrizes de teste. Não há
+  refit em validação/teste. Ambos são avaliados separadamente no teste reservado,
+  inclusive quando o candidato é rejeitado; esse resultado não altera a decisão.
+- Métricas usam previsões limitadas a 0–100: MAE, RMSE e R². R² vira `null`
+  quando há menos de dois alvos, todos são constantes ou a variância numérica
+  é zero; não se inventa R²=1.
+  Faltantes já foram imputados com o estado do treino pela B2-20; NaN remanescente
+  na matriz preparada é erro, sem ajuste de transformação nos reservados.
+
+`health-training-v1` grava `report.json` por último, como marcador de conclusão.
+Contém baseline/candidatos, parâmetros, escolha, métricas, seeds, versões,
+features/transformação, fonte, partições, SHA-256 dos insumos, tempos e pico RSS
+do processo inteiro. Tempo/memória variam; `ru_maxrss` inclui trabalho anterior
+no mesmo processo, e não representa a soma da pilha. O fit usa o treino completo
+em memória; o preparo em blocos não garante custo constante para o modelo.
+
+Somente `eligible` grava `model.pkl`, bundle interno com estimador, especificação,
+transformação, versão e faixa da previsão. O futuro consumidor deve reaplicar a
+transformação e limitar a previsão à faixa registrada, usando versões compatíveis
+e origem confiável. Pickle é restrito a artefatos internos: carregar um arquivo
+externo pode executar código. Falha pode conservar pasta parcial sem relatório;
+nunca tratar a presença de `model.pkl` isolado como treino concluído.
+
+Essa etapa não conclui job AMQP nem registra/ativa pacote em `models`: o contrato
+existente exige saúde **e** RUL (duas unidades). Integração, RUL e ativação seguem
+nas tarefas correspondentes, sem mudar o schema ou simular pacote completo.
+
 ## Comando explícito e ACK
 
 `command.data` contém comando/atuador UUID, `actuator`, `desired_state`,

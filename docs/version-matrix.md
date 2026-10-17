@@ -16,6 +16,7 @@ fonte exata; esta tabela facilita a conferência no computador da apresentação
 | Gravador B2-12 | Python `3.13.15-slim`; versões do gateway + influxdb-client `1.50.0`, urllib3 `2.8.0`, Pydantic `2.13.5` e transitivas já fixadas no lock backend | `writer/Dockerfile`, `writer/requirements.txt` |
 | API AMQP B2-13 | Pika `1.4.4` e jsonschema `4.26.0` promovidos do lock dev ao runtime backend, sem atualizar versões existentes | Manifesto/locks backend, `backend/app/amqp/`, `compose.aiot.yaml` |
 | Gerador offline B2-18 | NumPy `2.5.4`; Python `3.13.15`; armazenamento `offline-numpy-v1` | Manifesto/locks backend, `backend/app/services/generation.py` |
+| Regressão de saúde B2-21 | scikit-learn `1.9.1`; SciPy `1.18.1`, joblib `1.6.0`, threadpoolctl `3.7.0`, narwhals `2.27.1`, cloudpickle `3.1.2`; NumPy preservado | Manifesto/locks backend, `backend/app/services/health_training.py` |
 | Simulador B2-09 | Python `3.13.15-slim`, paho-mqtt `2.1.0`, jsonschema `4.26.0`; quatro transitivas nas versões existentes do lock dev | `simulator/Dockerfile`, `simulator/requirements.txt` |
 | Frontend estático B2-08 | Nginx unprivileged `1.31.6`, base `1.31-alpine3.24` fixada pelo digest `sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434` | `frontend/Dockerfile`, `frontend/nginx.conf` |
 | Frontend | Vue `3.5.42`, Vue Router `5.3.0`, Vite `8.2.2`, TypeScript `6.0.3`, Chart.js `4.5.1`, Playwright `1.63.0`, Vitest `4.1.11` | `frontend/package.json`, `frontend/package-lock.json` |

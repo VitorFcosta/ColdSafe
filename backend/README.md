@@ -40,8 +40,9 @@ AMQP confirma publicação e execução antes do ACK. Workers de geração e tre
 compartilham um advisory lock PostgreSQL e retomam contadores duráveis.
 Configuração em [jobs](../docs/configuration.md#jobs-assíncronos-b2-17),
 contrato em [HTTP de jobs](../contracts/aiot.md#jobs-http-e-progresso-sse--b2-17).
-O worker de geração B2-18 já produz datasets offline; treino/ML continuam
-posteriores e sem executor produzem `failed`.
+O worker de geração B2-18 já produz datasets offline. A B2-21 acrescenta a etapa
+offline de saúde; o job de treino ainda não tem executor do pacote saúde + RUL
+e termina `failed` se solicitado por AMQP.
 
 ## Laboratório e consulta de datasets B2-19
 
@@ -68,8 +69,8 @@ treino e exporta estado JSON para aplicação idêntica em validação/teste/onl
 reutiliza o leitor B2-19 e produz uma pasta nova com split 70/15/15 por equipamento,
 matrizes NPY e manifesto. Os blocos intercalados mantêm continuidade por máquina;
 X exclui IDs/labels e targets mantêm saúde/RUL/máscara de censura separados.
-Exige ao menos três equipamentos e recusa treino sem valores úteis. Não há
-handler de treino/modelo instalado nesta tarefa: seu consumidor pertence à B2-21.
+Exige ao menos três equipamentos e recusa treino sem valores úteis. A B2-21
+consome essa preparação no treino offline de saúde descrito abaixo.
 
 [Layout, fronteiras de janela, insuficiência e limites](../contracts/aiot.md#features-e-preparação-de-treino--b2-20).
 As janelas iniciais são 15 minutos/1 hora, com passado estrito. Uma falha deixa
@@ -95,6 +96,44 @@ e igualdade da primeira linha útil entre artefato de treino e entrada online,
 reaplicando o estado salvo. Mede tempo, disco e RSS do processo completo; não
 inclui a pilha de serviços nem o custo de treinar modelos. Usa somente NumPy já
 instalado, sem pandas/scikit-learn novos. Resultados no [cartão](../docs/aiot/tasks/B2-20.md).
+
+## Treino offline de saúde B2-21
+
+`services.health_training.train_health(prepared, directory, seed=42)` reutiliza
+as matrizes/transformação B2-20, ajusta baseline e candidatos apenas no treino,
+escolhe pela validação e avalia o teste reservado separadamente. Exemplo: se o
+baseline erra 20 pontos de saúde e o candidato erra 5 na mesma validação, o modelo
+é apto; empate ou erro maior são rejeitados. A métrica usada é MAE, média do erro
+absoluto em pontos na escala 0–100.
+
+O destino deve ser novo e separado da origem. `report.json` marca a conclusão;
+`model.pkl` só existe para candidato apto, sem significar ativação ou inferência
+no dashboard. São artefatos privados; não carregue pickle externo. O relatório
+guarda SHA-256, configuração, divisão, versões, MAE/RMSE/R², tempo e RSS.
+[Contrato, decisões e limites](../contracts/aiot.md#regressão-offline-de-saúde--b2-21).
+
+Da raiz, com `backend/requirements-dev.lock.txt` instalado:
+
+```sh
+python -m pytest backend/tests/services/test_health_training.py backend/tests/services/test_training_data.py backend/tests/services/test_generation.py --no-cov -o addopts='' -q
+python -m scripts.benchmark_health --output /tmp/coldsafe-health-novo-1m --total 1000000 --seed 42
+python -m scripts.benchmark_health --prepared /tmp/coldsafe-health-novo-1m/prepared --output /tmp/coldsafe-health-repeticao --seed 42
+```
+
+O primeiro ensaio gera/prepara uma fonte sintética com UUIDs determinísticos;
+o segundo usa exatamente o mesmo preparo sem regravar os insumos. Compare
+`training.metrics`, `training.selection`, `training.input_hashes` e hash do modelo
+nos dois `benchmark.json`; tempos/RSS naturalmente diferem. `--total 2000000`
+exercita o teto em outra pasta. O fit usa todas as linhas de treino, sem amostragem.
+Memória depende de volume/layout; RSS é o máximo do processo, incluindo geração
+e preparo quando executados juntos. Fontes/saídas do ensaio são descartáveis.
+
+Nova dependência direta: scikit-learn `1.9.1`; transitivas novas fixadas nos locks:
+SciPy `1.18.1`, joblib `1.6.0`, threadpoolctl `3.7.0`, narwhals `2.27.1` e
+cloudpickle `3.1.2`. A implementação usa pickle da biblioteca padrão apenas para
+gravar o bundle interno; não oferece carregamento de arquivos recebidos.
+Job AMQP continua exigindo duas regressões e registro do pacote: saúde isolada
+não pode satisfazer esse contrato. Resultados no [cartão B2-21](../docs/aiot/tasks/B2-21.md).
 
 ## Geração offline B2-18
 
@@ -175,7 +214,8 @@ As versões 004–005 acrescentam papéis e metadados privados de jobs, datasets
 modelos e ativação por proprietário. A versão 006 acrescenta identificação de
 sessões JWT, limites de login e tickets WebSocket. O [guia de migrações](migrations/README.md)
 explica propriedade, backup e recuperação. A persistência prepara o AIoT;
-workers de jobs estão na B2-17, geração offline na B2-18; treino/inferência continuam posteriores. Autenticação e
+workers de jobs estão na B2-17, geração offline na B2-18 e saúde offline na B2-21;
+pacote de treino integrado e inferência continuam posteriores. Autenticação e
 permissões atuais estão no [guia de segurança](../docs/aiot/tasks/B2-06.md).
 
 A primeira implementação do domínio está em `app/domain/telemetry.py`. Ela transforma

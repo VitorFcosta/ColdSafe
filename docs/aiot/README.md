@@ -9,7 +9,16 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-20](tasks/B2-20.md): kernel causal único e adaptadores
+A última entrega foi [B2-21](tasks/B2-21.md): regressão de saúde offline com
+DummyRegressor e HistGradientBoostingRegressor; ajuste só no treino e escolha/gate
+por MAE da validação, antes de abrir o teste reservado. Fonte de 1 milhão gerou
+MAE 1,89 na validação e 2,46 no teste, contra 23,28/21,63 do baseline. Repetição
+em processo novo confirmou métricas e bytes do modelo idênticos; treino final
+33,9 s, pico RSS 573,9 MiB. scikit-learn e cinco transitivas adicionados aos locks,
+sem atualizar versões existentes. Evidência sintética, sem validação física,
+ativação pessoal ou integração AMQP do pacote saúde + RUL das próximas tarefas.
+
+A [B2-20](tasks/B2-20.md) conserva kernel causal único e adaptadores
 offline/online, preparação NPY por equipamento e split 70/15/15 sem máquinas
 compartilhadas. Mediana/clipping ajustados apenas no treino, labels/censura
 separados de X. Fontes reais de 1–2m comprovaram paridade online e integridade;
@@ -74,7 +83,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-21](tasks/B2-21.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-22](tasks/B2-22.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final
