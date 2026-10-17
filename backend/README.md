@@ -135,6 +135,41 @@ gravar o bundle interno; não oferece carregamento de arquivos recebidos.
 Job AMQP continua exigindo duas regressões e registro do pacote: saúde isolada
 não pode satisfazer esse contrato. Resultados no [cartão B2-21](../docs/aiot/tasks/B2-21.md).
 
+## Treino offline de RUL B2-22
+
+`services.rul_training.train_rul(prepared, directory, seed=42)` estima vida útil
+restante em **horas**, usando somente falhas observadas. Por exemplo, uma máquina
+que falhou tem tempo até falha conhecido, inclusive zero no instante final; uma
+máquina que continuou funcionando ao encerrar a coleta tem duração desconhecida,
+e seu alvo censurado não vira zero. Saúde continua usando também os censurados.
+
+Reutiliza o preparo B2-20 e suas máquinas disjuntas. Baseline e candidatos usam
+somente treino; validação escolhe/gateia o modelo, e o teste reservado registra
+o resultado separado. O relatório inclui o recorte das últimas **24 horas** antes
+da falha, definido previamente para expor erros próximos do evento. Previsões
+são limitadas apenas em zero: 240 horas continuam 240, sem herdar o teto da saúde.
+[Contrato e limites](../contracts/aiot.md#regressão-offline-de-vida-útil-restante--b2-22).
+
+Para comprovar os **dois modelos separados**, execute, da raiz com o lock dev:
+
+```sh
+python -m pytest backend/tests/services/test_rul_training.py backend/tests/services/test_health_training.py backend/tests/infra/test_benchmark_rul.py --no-cov -o addopts='' -q
+python -m scripts.benchmark_rul --prepared /tmp/coldsafe-health-novo-1m/prepared --output /tmp/coldsafe-rul-par-novo --seed 42
+```
+
+O preparo precisa existir; o benchmark de saúde acima pode produzi-lo. Saída
+precisa ser nova e separada. O script treina saúde e depois RUL em filhos
+separados, sem manter os dois fits na memória. Cada pasta (`health`, `rul`) tem
+seu próprio relatório e, se apto, modelo; o `benchmark.json` final confere hashes,
+contratos, origem intacta e artefatos distintos. Repita com o mesmo preparo/seed
+em outra saída e compare métricas, escolha e hashes; tempos/RSS podem variar.
+
+Nenhuma dependência nova. São etapas offline; o executor AMQP e o registro do
+pacote permanecem posteriores. O aprendizado apenas com falhas observadas pode
+favorecer esse subconjunto: os resultados não comprovam duração de máquinas
+censuradas, calibração física ou capacidade da pilha completa. Resultados no
+[cartão B2-22](../docs/aiot/tasks/B2-22.md).
+
 ## Geração offline B2-18
 
 O mesmo POST de jobs aceita os parâmetros documentados no
@@ -214,7 +249,7 @@ As versões 004–005 acrescentam papéis e metadados privados de jobs, datasets
 modelos e ativação por proprietário. A versão 006 acrescenta identificação de
 sessões JWT, limites de login e tickets WebSocket. O [guia de migrações](migrations/README.md)
 explica propriedade, backup e recuperação. A persistência prepara o AIoT;
-workers de jobs estão na B2-17, geração offline na B2-18 e saúde offline na B2-21;
+workers de jobs estão na B2-17, geração offline na B2-18 e saúde/RUL offline nas B2-21/22;
 pacote de treino integrado e inferência continuam posteriores. Autenticação e
 permissões atuais estão no [guia de segurança](../docs/aiot/tasks/B2-06.md).
 

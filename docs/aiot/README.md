@@ -9,7 +9,16 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-21](tasks/B2-21.md): regressão de saúde offline com
+A última entrega foi [B2-22](tasks/B2-22.md): regressor independente de RUL em
+horas, ajustado somente em falhas observadas, sem converter censurados em zero.
+Saúde/RUL treinados em filhos separados e sequenciais no mesmo preparo de 1m;
+ambos aptos pela validação, com modelos/métricas idênticos na repetição e fontes
+intactas. RUL: MAE 57,44 h na validação e 40,55 h no teste, contra 149,99/144,38 h
+do baseline. Nas últimas 24 h, MAE do teste ainda 14,00 h e R² negativo: limite
+importante, sem comprovar precisão operacional ou calibração física. RUL final
+22,01 s/580,17 MiB; sem dependências novas, registro, ativação ou executor AMQP.
+
+A [B2-21](tasks/B2-21.md) conserva regressão de saúde offline com
 DummyRegressor e HistGradientBoostingRegressor; ajuste só no treino e escolha/gate
 por MAE da validação, antes de abrir o teste reservado. Fonte de 1 milhão gerou
 MAE 1,89 na validação e 2,46 no teste, contra 23,28/21,63 do baseline. Repetição
@@ -83,7 +92,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-22](tasks/B2-22.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-23](tasks/B2-23.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

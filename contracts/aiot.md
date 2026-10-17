@@ -358,8 +358,61 @@ externo pode executar código. Falha pode conservar pasta parcial sem relatório
 nunca tratar a presença de `model.pkl` isolado como treino concluído.
 
 Essa etapa não conclui job AMQP nem registra/ativa pacote em `models`: o contrato
-existente exige saúde **e** RUL (duas unidades). Integração, RUL e ativação seguem
-nas tarefas correspondentes, sem mudar o schema ou simular pacote completo.
+existente exige saúde **e** RUL (duas unidades). A etapa offline RUL está descrita
+na B2-22 abaixo; integração/registro e ativação continuam posteriores.
+
+## Regressão offline de vida útil restante — B2-22
+
+`services/rul_training.py:train_rul` recebe o mesmo preparo B2-20, sem dividir
+equipamentos novamente ou ajustar outra transformação. Produz estimador e
+artefato independentes da saúde. Reutiliza validação/leitura/métricas da B2-21;
+o helper de avaliação mantém o teto 100 por padrão para saúde e aceita `None`
+para RUL, preservando previsões acima de 100 horas.
+
+- Alvo **`rul_hours_true`**, unidade **horas**, com saída avaliada/apresentada
+  limitada apenas em zero. Zero é válido quando a falha foi observada.
+- `rul_observed=true` exige alvo finito e não negativo. `false` exige NaN no
+  armazenamento, sem imputar zero. Censurados ficam fora do fit e das métricas
+  RUL, mas todos os equipamentos continuam na verificação de disjunção.
+- Treino, validação e teste precisam ter pelo menos um alvo observado. Ausência
+  causa erro explícito, sem relatório final; não se inventa avaliação disponível.
+- Dummy médio e dois HGB (15/31 folhas, 100 iterações, seed explícita, uma thread,
+  sem early stopping) são ajustados apenas nos observados do treino. Escolha por
+  menor MAE da validação e elegibilidade por melhora estrita sobre o baseline na
+  mesma validação. Teste reservado aberto só após escolha/gate, sem refit.
+- MAE/RMSE são em horas; R² segue a política numérica da saúde. Diagnóstico
+  adicional em **`0 ≤ RUL ≤ 24 horas`**, incluindo zero e o limite 24, usa apenas
+  observados da validação/teste. Faixa fixada antes do ensaio, sem escolher
+  parâmetros por esse recorte. Recorte vazio registra `row_count=0` e métricas
+  `null`, distinguindo ausência de evidência de erro zero.
+
+`rul-training-v1` conserva `report.json` como marcador final e `model.pkl` apenas
+se `eligible`. Relatório registra `target`, `unit`, `prediction_range=[0,null]`,
+contagens totais/observadas/censuradas, métricas globais e `near_failure`, versões,
+parâmetros, transformação, fonte, hashes, seeds, tempos e pico RSS. Bundle interno
+também informa alvo/unidade/faixa; o consumidor futuro deve respeitá-los.
+Aplicam-se as restrições de origem privada, imutabilidade, pickle confiável,
+saída nova e tratamento de falha parcial da B2-21.
+
+O benchmark B2-22 executa saúde e depois RUL em **processos separados e
+sequenciais**, esperando cada filho encerrar antes de iniciar o outro. O pai usa
+somente a biblioteca padrão e não mantém estimadores. Confere os sete arquivos
+de entrada, igualdade do preparo/split/transformação e artefatos distintos;
+`benchmark.json` só aparece após essas verificações. `rejected` conserva o
+resultado diagnóstico sem afirmar que existem dois modelos aptos.
+
+A filtragem de observados copia X; treino/validação são liberados antes de abrir
+o teste. Isso reduz sobreposição, sem garantir RAM constante. RSS por processo
+não deve ser somado como se os dois treinos estivessem simultâneos, nem tratado
+como a capacidade da pilha completa.
+
+Regressão apenas sobre falhas observadas pode ter **viés de seleção/censura**:
+máquinas que não falharam não participam do ajuste. Prever para uma máquina
+saudável não prova sua duração real; extrapolação além das histórias observadas
+e transferência para hardware físico continuam sem validação. Não é modelo de
+sobrevivência e não estima intervalo de confiança.
+Etapas offline disponíveis não instalam executor AMQP, registro ou ativação;
+esses contratos continuam nas tarefas posteriores, sem alterar schemas/jobs.
 
 ## Comando explícito e ACK
 

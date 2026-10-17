@@ -101,15 +101,15 @@ def _partition(root: Path, manifest: dict, part: str, hashes: dict) -> tuple[np.
     return features, targets['health_score_true'], groups
 
 
-def _evaluate(model, features: np.ndarray, health: np.ndarray) -> dict:
+def _evaluate(model, features: np.ndarray, health: np.ndarray, *, upper_bound: float | None = 100) -> dict:
     absolute, squared, centered = 0., 0., 0.
     mean = float(np.mean(health))
     minimum, maximum = float(np.min(health)), float(np.max(health))
     for start in range(0, len(health), BATCH_SIZE):
         target = health[start:start + BATCH_SIZE]
-        prediction = np.clip(model.predict(features[start:start + BATCH_SIZE]), 0, 100)
+        prediction = np.clip(model.predict(features[start:start + BATCH_SIZE]), 0, upper_bound)
         if not np.isfinite(prediction).all():
-            raise ValueError('Model produced nonfinite health predictions')
+            raise ValueError('Model produced nonfinite predictions')
         residual = target - prediction
         absolute += float(np.abs(residual).sum())
         squared += float(np.square(residual).sum())

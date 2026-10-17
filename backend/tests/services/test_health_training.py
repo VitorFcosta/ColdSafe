@@ -239,3 +239,12 @@ def test_numerically_zero_target_variance_does_not_divide_by_zero():
     metrics = _evaluate(Model(), np.zeros((2, 1)), np.array([0., 1e-300]))
     assert metrics['r2'] is None
     assert metrics['mae'] == 5e-301
+
+
+def test_shared_evaluation_can_preserve_hours_above_health_range():
+    from backend.app.services.health_training import _evaluate
+    class Model:
+        def predict(self, x):
+            return np.array([-5., 240.])
+    metrics = _evaluate(Model(), np.zeros((2, 1)), np.array([0., 240.]), upper_bound=None)
+    assert metrics == {'mae': 0., 'rmse': 0., 'r2': 1.}
