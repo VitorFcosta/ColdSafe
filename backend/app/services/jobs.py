@@ -21,10 +21,17 @@ JobHandler = Callable[[dict, Callable[[int], None]], UUID]
 
 
 def public_job(row: dict) -> dict:
+    from backend.app.domain.jobs import GenerationInput
+    config = row['config'] | {'job_type': row['job_type'], 'environment_id': row['environment_id']}
+    if row['job_type'] == 'generation':
+        config['total_units'] = row['total_units']
+        config = GenerationInput.model_construct(**config).model_dump(mode='json')
+    else:
+        config['dataset_id'] = str(row['dataset_id'])
     return {key: row[key] for key in (
-        'id', 'environment_id', 'dataset_id', 'job_type', 'status', 'completed_units',
+        'id', 'owner_user_id', 'environment_id', 'dataset_id', 'job_type', 'status', 'completed_units',
         'total_units', 'error_code', 'created_at', 'updated_at',
-    )} | {'result_id': row['result_dataset_id'] or row['result_model_id']}
+    )} | {'result_id': row['result_dataset_id'] or row['result_model_id'], 'config': config}
 
 
 class JobService:

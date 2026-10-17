@@ -101,6 +101,7 @@ const formatTime = (value: string) => new Intl.DateTimeFormat('pt-BR', {
           <RouterLink to="/dashboard">Monitoramento</RouterLink>
           <RouterLink to="/manage">Ambientes e dispositivos</RouterLink>
           <RouterLink to="/messaging" aria-current="page">Mensageria</RouterLink>
+          <RouterLink to="/laboratory">Laboratório</RouterLink>
         </nav>
         <button class="sign-out" type="button" @click="signOut">Sair</button>
       </header>

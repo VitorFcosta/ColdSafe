@@ -4,7 +4,7 @@
 Status importados em 13/10/2026; cada cartão é o registro de execução.
 Este índice resume os cartões e deve acompanhar futuras mudanças de status.
 Ler só o cartão escolhido e suas dependências.
-B2-01–18 concluídas nos seus escopos; B2-19–36 não iniciadas.
+B2-01–19 concluídas nos seus escopos; B2-20–36 não iniciadas.
 A migração documental não executou tarefas técnicas.
 
 | Tarefa | Status atual | Dependências | Meta original |
@@ -27,7 +27,7 @@ A migração documental não executou tarefas técnicas.
 | [B2-16 — Últimas mensagens, DLQ e consumidor parado](B2-16.md) | Concluída | B2-12, B2-15 | 2026-10-25 |
 | [B2-17 — Jobs assíncronos, progresso e concorrência](B2-17.md) | Concluída | B2-05, B2-07, B2-13 | 2026-10-26 |
 | [B2-18 — Gerador massivo em blocos](B2-18.md) | Concluída | B2-09, B2-17 | 2026-10-27 |
-| [B2-19 — Laboratório de Dados e validação do dataset](B2-19.md) | Não iniciada | B2-18 | 2026-10-28 |
+| [B2-19 — Laboratório de Dados e validação do dataset](B2-19.md) | Concluída | B2-18 | 2026-10-28 |
 | [B2-20 — Features compartilhadas e divisão por equipamento](B2-20.md) | Não iniciada | B2-18, B2-19 | 2026-10-29 |
 | [B2-21 — Baseline e regressão de saúde](B2-21.md) | Não iniciada | B2-20 | 2026-10-30 |
 | [B2-22 — Baseline e regressão de vida útil restante](B2-22.md) | Não iniciada | B2-20, B2-21 | 2026-10-31 a 2026-11-01 |

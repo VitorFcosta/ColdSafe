@@ -1,6 +1,6 @@
 # Retomar a evolução AIoT
 
-## Situação em 16/10/2026
+## Situação em 17/10/2026
 
 O código continua na base v1/v2 descrita no [README](../../README.md).
 O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
@@ -9,7 +9,14 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-18](tasks/B2-18.md): gerador NumPy offline em blocos
+A última entrega foi [B2-19](tasks/B2-19.md): Laboratório Web para geração privada,
+acompanhamento recuperável por UUID, configuração/autor e qualidade observada,
+com amostra separada de dez linhas. Chromium/HTTP/PostgreSQL/RabbitMQ reais
+comprovaram geração de um milhão, recarga sem reenvio, isolamento e falha parcial
+sem dataset concluído. Resumo/amostra verificam todos os blocos por consulta;
+há custo de I/O proporcional ao volume. Sem nova dependência ou ativação pessoal.
+
+A [B2-18](tasks/B2-18.md) conserva gerador NumPy offline em blocos
 de 50 mil, integrado ao worker de jobs e volume persistente privado. Foram
 verificadas 1–2 milhões de linhas, reprodução por seed/hash, ruído/faltantes/
 outliers, degradação e RUL censurada sem labels no live. Pico RSS medido:
@@ -59,7 +66,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-19](tasks/B2-19.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-20](tasks/B2-20.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

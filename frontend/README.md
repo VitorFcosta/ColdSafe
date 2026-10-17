@@ -33,6 +33,30 @@ ao navegador. A tela informa conexão/atualidade do observador e falha de consul
 O controle de parada/retomada do gravador continua no terminal, conforme
 [runbook](../docs/runbook.md#mensageria-b2-16-parar-e-retomar-o-gravador).
 
+A B2-19 acrescenta `/laboratory`, acessível como **Laboratório** na navegação.
+Admin configura todos os parâmetros do gerador, confere a estimativa antes de
+enfileirar e acompanha o estado durável por HTTP autenticado. O ID fica em
+`?job=UUID` para recarregar/retomar sem repetir o POST. O resumo mostra configuração,
+seed, autor, contagem e qualidade observada; a amostra de dez linhas é solicitada
+separadamente. Dados sintéticos e labels não entram no monitoramento live.
+As limitações da simulação, censura de RUL e taxa configurada de outliers ficam
+explícitas na página. O backend precisa do [overlay de jobs](../docs/configuration.md#jobs-assíncronos-b2-17)
+e da montagem de artefatos RO; reconstruir o frontend disponibiliza a rota.
+
+Teste Web real, da raiz e com PostgreSQL descartável configurado por
+`POSTGRES_TEST_HOST/PORT/DB/USER/PASSWORD`, Docker e Chromium instalados:
+
+```sh
+COLDSAFE_LAB_INTEGRATION=1 COLDSAFE_RABBITMQ_INTEGRATION=1 python -m pytest backend/tests/integration/test_laboratory_integration.py -q -s --no-cov -o addopts=''
+```
+
+O harness cria/remove um banco isolado, um broker e arquivos temporários próprios;
+não o aponte para credenciais pessoais. Usa Node 24/dependências do lock e aceita
+`COLDSAFE_NODE_BINARY`/`COLDSAFE_FRONTEND_NODE_MODULES`. Exercita geração real de
+um milhão, recarga sem reenvio, resumo/amostra privados, teto e falha após um
+bloco durável. Login HTTP é real; a sessão obtida é colocada no navegador pelo
+harness para limitar o teste ao Laboratório. Não simula respostas HTTP/AMQP.
+
 Para o dashboard v3 no Compose, use `compose.aiot.yaml`: ele habilita o backend e passa o argumento
 de build do frontend. É necessário reconstruir `frontend` ao alterar esse modo.
 No Vite local, defina a variável antes de iniciar o processo e configure

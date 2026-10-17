@@ -22,6 +22,7 @@ def api():
     auth.session_for_token = Mock(return_value=principal)
     now = datetime.now(UTC)
     job = {'id': uuid4(), 'job_type': 'generation', 'status': 'queued',
+           'owner_user_id': owner, 'config': {'job_type': 'generation', 'total_units': 1_000_000},
            'completed_units': 0, 'total_units': 1_000_000, 'result_id': None,
            'error_code': None, 'created_at': now, 'updated_at': now,
            'environment_id': None, 'dataset_id': None}

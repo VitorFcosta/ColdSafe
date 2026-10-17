@@ -115,7 +115,7 @@ ambiente PostgreSQL, usuário sem privilégios, filesystem read-only e rede inte
 do backend. Não publicam portas. As verificações de vida dos executores ficam
 para integração operacional B2-33; o healthcheck HTTP herdado é desativado neles.
 
-API instala as três rotas de jobs quando a sua credencial está presente; sem ela,
+API instala as rotas de jobs e de consulta privada de datasets quando a sua credencial está presente; sem ela,
 o comportamento anterior permanece. `202` significa solicitação persistida;
 broker indisponível deixa a publicação na outbox e não exige esperar no HTTP.
 Consultar o job mostra o estado durável, mesmo com worker parado.
@@ -145,6 +145,14 @@ Progresso HTTP/SSE e parâmetros estão no
 O stream lê estado privado no banco a cada segundo, revalida sessão e termina ao
 revogar acesso ou concluir. Solicitações e eventos AMQP permanecem duráveis;
 outbox não tem expurgo automático. Não remover solicitações de jobs ativos.
+
+Na B2-19, `/laboratory` no frontend permite gerar e inspecionar datasets privados.
+Reconstrua também `frontend` para disponibilizar a página. O formulário exige
+admin; consultas ao artefato usam a montagem RO já existente na API. Não é
+necessária nova variável, porta ou dependência. `?job=UUID` na URL recupera o
+estado após recarga; salve essa URL para retomar o mesmo job. Sem a configuração
+de jobs acima, a página informa erro de consulta/execução; ela não ativa workers.
+Contrato de resumo/amostra em [datasets](../contracts/aiot.md#consulta-privada-de-datasets--b2-19).
 
 ## API AIoT opcional B2-13
 

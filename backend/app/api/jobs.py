@@ -16,6 +16,7 @@ from starlette.concurrency import run_in_threadpool
 from backend.app.api.auth import AuthService
 from backend.app.api.schemas import ApiModel, ErrorResponse
 from backend.app.domain.jobs import GenerationInput, TrainingInput
+from backend.app.services.datasets import DatasetUnavailable, read_dataset
 
 if TYPE_CHECKING:
     from backend.app.services.jobs import JobService
@@ -23,6 +24,8 @@ if TYPE_CHECKING:
 
 class JobData(ApiModel):
     id: UUID
+    owner_user_id: UUID
+    config: dict
     job_type: Literal['generation', 'training']
     status: Literal['queued', 'running', 'completed', 'failed', 'cancelled']
     completed_units: int = Field(ge=0)
@@ -61,6 +64,34 @@ def create_jobs_router(auth: AuthService, service: 'JobService') -> APIRouter:
         if job is None:
             raise HTTPException(404, 'JOB_NOT_FOUND')
         return job
+
+    def dataset_data(owner: UUID, dataset_id: UUID, *, sample: bool) -> dict:
+        try:
+            dataset = service.repository.get_dataset(owner, dataset_id)
+            if dataset is None or dataset['owner_user_id'] != owner or not dataset['generation_job_id']:
+                raise HTTPException(404, 'DATASET_NOT_FOUND')
+            job = service.get(owner, dataset['generation_job_id'])
+            if (job is None or job['owner_user_id'] != owner or job['job_type'] != 'generation' or
+                    job['status'] != 'completed' or job['result_id'] != dataset_id):
+                raise HTTPException(404, 'DATASET_NOT_FOUND')
+            summary, rows = read_dataset(service.artifact_root, dataset, job)
+            return {'success': True, 'data': rows if sample else summary, 'meta': {'schema_version': 3}}
+        except psycopg.Error:
+            raise HTTPException(503, 'DEPENDENCY_UNAVAILABLE') from None
+        except DatasetUnavailable:
+            raise HTTPException(503, 'DATASET_UNAVAILABLE') from None
+
+    @router.get('/datasets/{dataset_id}')
+    def get_dataset(dataset_id: UUID, response: Response,
+                    owner: UUID = Depends(auth.require_user)) -> dict:
+        response.headers['Cache-Control'] = 'no-store'
+        return dataset_data(owner, dataset_id, sample=False)
+
+    @router.get('/datasets/{dataset_id}/sample')
+    def get_dataset_sample(dataset_id: UUID, response: Response,
+                           owner: UUID = Depends(auth.require_user)) -> dict:
+        response.headers['Cache-Control'] = 'no-store'
+        return dataset_data(owner, dataset_id, sample=True)
 
     @router.post('/jobs', status_code=202, response_model=JobResponse)
     def create_job(

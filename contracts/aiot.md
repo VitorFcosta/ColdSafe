@@ -337,8 +337,11 @@ equipamento com até seis medições; quantidade de sensores = equipment_count �
 quantidade de tipos selecionados. Não é contagem de células nem de eventos live.
 Armazenamento físico e operação em [backend](../backend/README.md#geração-offline-b2-18).
 
-Resposta HTTP: `{success:true,data:{id,job_type,status,completed_units,total_units,
+Resposta HTTP: `{success:true,data:{id,owner_user_id,config,job_type,status,completed_units,total_units,
 result_id,error_code,environment_id,dataset_id,created_at,updated_at},meta:{schema_version:3}}`.
+Na B2-19, `owner_user_id` identifica o autor autenticado e `config` recupera a
+configuração persistida, inclusive campos guardados em colunas separadas. Para
+geração, contém o `GenerationInput` completo; esses campos não alteram o envelope AMQP.
 `result_id` é nulo até conclusão com artefato registrado do próprio job e arquivo
 interno regular, não vazio e sem symlink. Geração já tem executor offline;
 treino sem executor real falha explicitamente, com o código correspondente.
@@ -361,6 +364,34 @@ Executores devem gravar blocos duráveis antes do checkpoint e interromper ao
 perder a conexão. O lock não garante exclusão durante perda da sessão PostgreSQL
 entre checkpoints de um executor ainda vivo; cancelamento/fencing desse cálculo
 deve ser tratado ao integrar executores reais. Não foi implementada alta disponibilidade.
+
+## Consulta privada de datasets — B2-19
+
+Instalada junto das rotas de jobs. Bearer no header e dono obtido da sessão;
+até admin recebe `404 DATASET_NOT_FOUND` para dataset alheio. Somente resultado
+do job de geração concluído e vinculado pode ser lido. Respostas têm
+`Cache-Control: no-store`; caminhos internos nunca são publicados.
+
+- `GET /api/v3/datasets/{id}` devolve `{success:true,data:{id,owner_user_id,
+  generation_job_id,created_at,row_count,config,storage_version,units,quality},
+  meta:{schema_version:3}}`. `config` é a configuração completa de geração.
+- `quality.missing_by_sensor` conta valores faltantes somente dos sensores
+  selecionados. `range_by_sensor` informa `{min,max}` observados por sensor;
+  ambos são null quando todos os valores faltam. `rul_observed_rows` e
+  `rul_censored_rows` contam **linhas**, cuja soma é `row_count`.
+- `GET /api/v3/datasets/{id}/sample` é uma consulta separada. Devolve no mesmo
+  envelope `data:{dataset_id,rows:[{equipment_id,observed_at,measurements,
+  degradation_true,health_score_true,rul_hours_true,rul_observed}]}` com as dez
+  primeiras linhas. NaN vira null. A amostra determinística não representa a
+  distribuição inteira; labels continuam exclusivamente offline.
+
+O leitor percorre NPY com memória limitada por bloco, conferindo manifesto,
+contagem, dtype, tamanho, hashes e caminhos internos sem symlink. Artefato ausente,
+incompatível ou corrompido retorna `503 DATASET_UNAVAILABLE`, sem detalhes de disco.
+Resumo lê todos os blocos a cada consulta, separado do polling de progresso;
+há custo de I/O proporcional ao dataset. Não há importação, download completo,
+treino nem escrita em telemetria live. Outliers são uma taxa **configurada**,
+sem contagem observada: a máscara das perturbações não está armazenada.
 
 ## Jobs e ativação de modelos
 

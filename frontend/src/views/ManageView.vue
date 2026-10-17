@@ -251,6 +251,7 @@ async function signOut() {
           <RouterLink to="/dashboard">Monitoramento</RouterLink>
           <RouterLink to="/manage" aria-current="page">Ambientes e dispositivos</RouterLink>
           <RouterLink to="/messaging">Mensageria</RouterLink>
+          <RouterLink to="/laboratory">Laboratório</RouterLink>
         </nav>
         <button class="sign-out" type="button" @click="signOut">Sair</button>
       </header>

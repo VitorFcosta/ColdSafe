@@ -43,6 +43,19 @@ contrato em [HTTP de jobs](../contracts/aiot.md#jobs-http-e-progresso-sse--b2-17
 O worker de geração B2-18 já produz datasets offline; treino/ML continuam
 posteriores e sem executor produzem `failed`.
 
+## Laboratório e consulta de datasets B2-19
+
+O router de jobs oferece resumo privado em `GET /api/v3/datasets/{id}` e amostra
+separada em `GET /api/v3/datasets/{id}/sample`. Reutiliza dono da sessão, metadados
+PostgreSQL e volume de artefatos RO; só resultados de geração concluídos ficam
+disponíveis. O job HTTP passa a devolver autor e configuração persistida para
+recuperação da página. [Contrato e limites](../contracts/aiot.md#consulta-privada-de-datasets--b2-19).
+
+Qualidade observada conta faltantes e faixas dos sensores selecionados e linhas
+com RUL observada/censurada. O leitor verifica os blocos NPY sem carregar o
+dataset inteiro; cada consulta de resumo faz leitura proporcional ao volume.
+Não usa InfluxDB/MQTT nem publica amostras. NumPy já existente, sem nova dependência.
+
 ## Geração offline B2-18
 
 O mesmo POST de jobs aceita os parâmetros documentados no
