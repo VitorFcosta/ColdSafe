@@ -24,7 +24,8 @@ def test_worker_cli_selects_private_credential_and_initializes_schema(role, monk
     if role == 'generation':
         assert isinstance(worker.call_args.kwargs['handler'], GenerationHandler)
     else:
-        assert worker.call_args.kwargs['handler'] is None
+        from backend.app.services.training import TrainingHandler
+        assert isinstance(worker.call_args.kwargs['handler'], TrainingHandler)
     worker.return_value.run.assert_called_once()
 
 
@@ -43,6 +44,10 @@ def test_job_artifact_volume_is_persistent_and_only_generation_can_write():
     assert 'job-artifacts' in config['volumes']
     services = config['services']
     assert services['generation']['volumes'] == ['job-artifacts:/app/artifacts']
-    for role in ('backend', 'training'):
-        assert services[role]['volumes'] == ['job-artifacts:/app/artifacts:ro']
+    assert services['backend']['volumes'] == ['job-artifacts:/app/artifacts:ro',
+                                               'training-artifacts:/app/training-artifacts:ro']
+    assert services['training']['volumes'] == ['job-artifacts:/app/artifacts:ro',
+                                                'training-artifacts:/app/training-artifacts']
+    assert services['training']['mem_limit'] == '1g'
+    assert services['training']['cpus'] == 1.0
     assert services['generation']['mem_limit'] == '512m'

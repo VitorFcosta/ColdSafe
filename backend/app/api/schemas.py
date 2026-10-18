@@ -102,6 +102,8 @@ class ErrorDetail(ApiModel):
         "USER_NOT_FOUND",
         "JOB_NOT_FOUND",
         "DATASET_NOT_FOUND",
+        "TRAINING_NOT_READY",
+        "TRAINING_RESULT_UNAVAILABLE",
         "EMAIL_ALREADY_REGISTERED",
         "INVALID_CREDENTIALS",
         "DEPENDENCY_UNAVAILABLE",

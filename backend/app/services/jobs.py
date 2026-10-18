@@ -35,8 +35,10 @@ def public_job(row: dict) -> dict:
 
 
 class JobService:
-    def __init__(self, settings: RuntimeSettings, *, artifact_root: Path = Path('/app/artifacts')):
+    def __init__(self, settings: RuntimeSettings, *, artifact_root: Path = Path('/app/artifacts'),
+                 training_artifact_root: Path | None = None):
         self.settings, self.artifact_root = settings, artifact_root
+        self.training_artifact_root = training_artifact_root if training_artifact_root is not None else artifact_root
         self.repository = AiotRepository(settings)
 
     def get(self, owner: UUID, job_id: UUID) -> dict | None:
@@ -134,7 +136,8 @@ class JobService:
                                      'AND dataset_id=%s', (result, job['owner_user_id'], job['id'], job['dataset_id'])).fetchone()
             if row is None or not row['artifact_key']:
                 raise ValueError('Result must have a persisted artifact')
-            root = self.artifact_root.resolve(strict=True)
+            root = (self.artifact_root if job['job_type'] == 'generation' else
+                    self.training_artifact_root).resolve(strict=True)
             path = root / row['artifact_key']
             if (not path.resolve(strict=True).is_relative_to(root) or
                     any(parent.is_symlink() for parent in (path, *path.parents) if parent != root) or

@@ -50,6 +50,7 @@ class RuntimeSettings(BaseSettings):
     rabbitmq_generation_password: SecretStr | None = Field(default=None, min_length=1)
     rabbitmq_training_password: SecretStr | None = Field(default=None, min_length=1)
     job_artifact_root: Path = Path('/app/artifacts')
+    training_artifact_root: Path = Path('/app/training-artifacts')
 
     @model_validator(mode="after")
     def require_aiot_configuration(self) -> Self:

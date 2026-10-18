@@ -62,6 +62,11 @@ def test_training_is_reproducible_private_and_keeps_source_readonly(tmp_path):
     assert a['status'] == b['status'] == 'eligible'
     assert a['selection'] == b['selection']
     assert a['metrics'] == b['metrics']
+    assert a['diagnostics'] == b['diagnostics']
+    assert a['model_sha256'] == b['model_sha256']
+    assert a['diagnostics']['total_rows'] == a['diagnostics']['sample_count'] == 200
+    assert [item['name'] for item in a['diagnostics']['permutation']['features']] == manifest['feature_names']
+    assert a['diagnostics']['permutation']['reference_mae'] == pytest.approx(a['metrics']['test']['candidate']['mae'])
     assert a['metrics']['validation']['candidate']['mae'] < a['metrics']['validation']['baseline']['mae']
     expected_mae = float(np.mean(abs(np.linspace(0, 100, 200) - 50)))
     assert a['metrics']['validation']['baseline']['mae'] == pytest.approx(expected_mae)
@@ -81,6 +86,8 @@ def test_constant_target_rejects_tie_and_serializes_undefined_r2(tmp_path):
     prepared(tmp_path / 'prepared', constant=True)
     report = train_health(tmp_path / 'prepared', tmp_path / 'output')
     assert report['status'] == 'rejected'
+    assert report['diagnostics']['sample_count'] == 200
+    assert report['diagnostics']['permutation']['reference_mae'] == 0
     assert not (tmp_path / 'output/model.pkl').exists()
     for metrics in report['metrics'].values():
         assert metrics['baseline'] == metrics['candidate'] == {'mae': 0., 'rmse': 0., 'r2': None}
@@ -98,6 +105,8 @@ def test_test_labels_never_choose_candidate_or_eligibility(tmp_path):
     assert first['selection'] == second['selection']
     assert first['status'] == second['status']
     assert first['metrics']['validation'] == second['metrics']['validation']
+    assert first['model_sha256'] == second['model_sha256']
+    assert first['diagnostics'] != second['diagnostics']
     assert first['metrics']['test']['candidate']['mae'] < second['metrics']['test']['candidate']['mae']
 
 

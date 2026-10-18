@@ -164,11 +164,52 @@ seu próprio relatório e, se apto, modelo; o `benchmark.json` final confere has
 contratos, origem intacta e artefatos distintos. Repita com o mesmo preparo/seed
 em outra saída e compare métricas, escolha e hashes; tempos/RSS podem variar.
 
-Nenhuma dependência nova. São etapas offline; o executor AMQP e o registro do
-pacote permanecem posteriores. O aprendizado apenas com falhas observadas pode
+Nenhuma dependência nova. Essas funções são etapas offline; B2-23 abaixo integra
+o executor AMQP e registra seus resultados. O aprendizado apenas com falhas observadas pode
 favorecer esse subconjunto: os resultados não comprovam duração de máquinas
 censuradas, calibração física ou capacidade da pilha completa. Resultados no
 [cartão B2-22](../docs/aiot/tasks/B2-22.md).
+
+## Treinamento integrado e resultados B2-23
+
+`TrainingHandler` liga a fonte privada ao preparo B2-20 e aos dois regressores
+em subprocessos sequenciais. O pai conserva o lock PostgreSQL e o progresso;
+cada filho usa uma thread. Relatórios recebem dispersão e importância por
+permutação em até 500 linhas do teste reservado, três repetições e seed 42,
+depois da seleção por validação. Não muda baseline, gate nem métricas completas.
+
+O pacote JSON `training-package-v1` é registrado em `models` para concluir o
+job, inclusive quando algum candidato é rejeitado. `eligible` exige ambos aptos;
+somente alvos aptos têm pickle. Não existe ativação automática. Leitor de
+resultados confere propriedade, identidades, contratos, limites e hashes,
+sem desserializar os modelos. `GET /api/v3/datasets` lista fontes concluídas da
+conta; `GET /api/v3/jobs/{id}/result` expõe apenas métricas/diagnósticos privados.
+Detalhes em [contrato B2-23](../contracts/aiot.md#resultados-e-diagnósticos-de-treinamento--b2-23).
+
+Use o [overlay/configuração de jobs](../docs/configuration.md#jobs-assíncronos-b2-17),
+com fontes RO e resultados em volume separado. Não remover tentativas ou
+preparos referenciados; não há coleta automática de órfãos. O limite inicial do
+worker não comprova capacidade da pilha inteira. Testes direcionados:
+
+```sh
+python -m pytest backend/tests/services/test_training.py backend/tests/api/test_training_api.py backend/tests/services/test_regression_diagnostics.py backend/tests/services/test_health_training.py backend/tests/services/test_rul_training.py --no-cov -o addopts='' -q
+```
+
+Ensaio real com PostgreSQL de teste, Docker, Node 24/lock frontend e Chromium:
+
+```sh
+COLDSAFE_TRAINING_INTEGRATION=1 COLDSAFE_RABBITMQ_INTEGRATION=1 python -m pytest backend/tests/integration/test_training_integration.py --no-cov -o addopts='' -q -s
+```
+
+Configure `POSTGRES_TEST_HOST/PORT/DB/USER/PASSWORD` para um PostgreSQL
+descartável e `AUTH_JWT_SECRET` de teste (mínimo 32 caracteres). O harness cria e
+remove banco/broker/arquivos próprios; nunca usar credenciais pessoais.
+`COLDSAFE_NODE_BINARY`/`COLDSAFE_FRONTEND_NODE_MODULES` aceitam runtime/instalação
+temporários do mesmo lock. `COLDSAFE_TRAINING_EVIDENCE_DIR` conserva relatórios e
+capturas; trate IDs/metadados dessa pasta como dados privados do ensaio.
+O teste gera 1m, treina os dois alvos por AMQP, recarrega entre etapas, compara
+API/tela/artefatos, verifica isolamento/403 e ausência de ativações. Login HTTP
+é real; somente a colocação da sessão no navegador é feita pelo harness.
 
 ## Geração offline B2-18
 

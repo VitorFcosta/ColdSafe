@@ -1,8 +1,9 @@
-# Explicit opt-in for private jobs; generation B2-18 is offline, ML comes later.
+# Explicit opt-in for private offline generation and training jobs.
 services:
   backend:
     volumes:
       - "job-artifacts:/app/artifacts:ro"
+      - "training-artifacts:/app/training-artifacts:ro"
     environment:
       RABBITMQ_API_PASSWORD: "${RABBITMQ_API_PASSWORD:?Preencha a credencial privada da API}"
       RABBITMQ_HOST: rabbitmq
@@ -33,6 +34,9 @@ services:
     command: [python, -m, backend.app.job_worker, --role, training]
     volumes:
       - "job-artifacts:/app/artifacts:ro"
+      - "training-artifacts:/app/training-artifacts"
+    mem_limit: 1g
+    cpus: 1.0
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_TRAINING_PASSWORD: "${RABBITMQ_TRAINING_PASSWORD:?Preencha a credencial privada de treino}"
@@ -44,3 +48,4 @@ services:
 
 volumes:
   job-artifacts:
+  training-artifacts:

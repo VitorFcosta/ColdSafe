@@ -16,6 +16,7 @@ from threadpoolctl import threadpool_limits
 
 from backend.app.services.datasets import _internal_file
 from backend.app.services.health_training import BATCH_SIZE, PARTITIONS, _evaluate, _manifest, _partition, _sha256
+from backend.app.services.regression_diagnostics import regression_diagnostics
 
 NEAR_FAILURE_HOURS = 24
 
@@ -101,6 +102,10 @@ def train_rul(prepared: Path, directory: Path, *, seed: int = 42) -> dict:
                             'candidate': _evaluate(selected, test, y_test, upper_bound=None)}
             near_failure['test'] = _near_failure(baseline, selected, test, y_test)
             timings['test_load_and_evaluation_seconds'] = perf_counter() - phase
+            phase = perf_counter()
+            diagnostics = regression_diagnostics(selected, baseline, test, y_test,
+                manifest['feature_names'], seed=seed, upper_bound=None)
+            timings['diagnostics_seconds'] = perf_counter() - phase
     except (KeyError, TypeError, IndexError, OverflowError, EOFError) as error:
         raise ValueError('Invalid prepared training artifact') from error
 
@@ -110,6 +115,7 @@ def train_rul(prepared: Path, directory: Path, *, seed: int = 42) -> dict:
             'gate': 'candidate_mae < baseline_mae', 'tie_policy': 'first candidate, reject baseline tie'},
         'metrics': {'validation': {'baseline': baseline_validation, 'candidate': selected_metrics},
                     'test': test_metrics}, 'candidates': choices, 'near_failure': near_failure,
+        'diagnostics': diagnostics,
         'censoring_policy': 'fit and metrics use observed failures only; censored RUL remains NaN, never zero',
         'r2_policy': 'null for fewer than two targets, constant targets or zero numerical variance; otherwise 1 - SSE/SST',
         'baseline': {'parameters': baseline.get_params(), 'training_mean': float(baseline.constant_[0, 0])},

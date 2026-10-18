@@ -333,6 +333,7 @@ function formatDateTime(value: string | undefined) {
           <RouterLink to="/manage">Ambientes e dispositivos</RouterLink>
           <RouterLink to="/messaging">Mensageria</RouterLink>
           <RouterLink to="/laboratory">Laboratório</RouterLink>
+          <RouterLink to="/training">Treinamento</RouterLink>
           <a href="/docs" target="_blank" rel="noopener noreferrer">Documentação da API</a>
           <a v-if="diagnosticsEnabled" :href="rabbitmqManagementUrl" target="_blank" rel="noopener noreferrer">RabbitMQ local</a>
         </nav>

@@ -150,6 +150,7 @@ async function signOut() {
           <RouterLink to="/manage">Ambientes e dispositivos</RouterLink>
           <RouterLink to="/messaging">Mensageria</RouterLink>
           <RouterLink to="/laboratory" aria-current="page">Laboratório</RouterLink>
+          <RouterLink to="/training">Treinamento</RouterLink>
         </nav>
         <button type="button" class="sign-out" @click="signOut">Sair</button>
       </header>
@@ -210,6 +211,7 @@ async function signOut() {
         </section>
         <section v-if="dataset" class="panel" aria-labelledby="dataset-title">
           <h2 id="dataset-title">Dataset concluído</h2>
+          <RouterLink :to="{ path: '/training', query: { dataset: dataset.id } }">Treinar modelos com este dataset</RouterLink>
           <p>{{ number(dataset.row_count) }} linhas · Seed: {{ dataset.config.seed }} · {{ dataset.storage_version }}</p>
           <dl>
             <div><dt>Dataset</dt><dd>{{ dataset.id }}</dd></div>

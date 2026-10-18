@@ -28,6 +28,16 @@ class AiotRepository:
                     (dataset_id, owner_user_id),
                 ).fetchone()
 
+    def list_datasets(self, owner_user_id: UUID) -> list[dict]:
+        with connect(self._settings) as connection, connection.cursor(row_factory=dict_row) as cursor:
+            return cursor.execute(
+                "SELECT d.id,d.name,d.row_count,d.created_at,d.generation_job_id FROM datasets d "
+                "JOIN jobs j ON j.id=d.generation_job_id AND j.owner_user_id=d.owner_user_id "
+                "AND j.result_dataset_id=d.id WHERE d.owner_user_id=%s AND j.status='completed' "
+                "AND j.job_type='generation' ORDER BY d.created_at DESC,d.id DESC LIMIT 50",
+                (owner_user_id,),
+            ).fetchall()
+
     def get_model(self, owner_user_id: UUID, model_id: UUID) -> dict | None:
         with connect(self._settings) as connection:
             with connection.cursor(row_factory=dict_row) as cursor:

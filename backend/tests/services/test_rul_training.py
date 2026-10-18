@@ -71,6 +71,12 @@ def test_observed_only_baseline_reproduction_units_and_private_artifacts(tmp_pat
     assert a['status'] == b['status'] == 'eligible'
     assert a['metrics'] == b['metrics']
     assert a['selection'] == b['selection']
+    assert a['diagnostics'] == b['diagnostics']
+    assert a['diagnostics']['total_rows'] == a['diagnostics']['sample_count'] == 200
+    assert max(point['actual'] for point in a['diagnostics']['scatter']) == 398
+    assert max(point['predicted'] for point in a['diagnostics']['scatter']) > 300
+    assert [item['name'] for item in a['diagnostics']['permutation']['features']] == manifest['feature_names']
+    assert a['diagnostics']['permutation']['reference_mae'] == pytest.approx(a['metrics']['test']['candidate']['mae'])
     assert a['model_sha256'] == b['model_sha256']
     assert a['baseline']['training_mean'] == 199
     assert a['target'] == 'rul_hours_true'
@@ -140,6 +146,7 @@ def test_test_targets_do_not_influence_selection(tmp_path):
     assert first['status'] == second['status']
     assert first['metrics']['validation'] == second['metrics']['validation']
     assert first['model_sha256'] == second['model_sha256']
+    assert first['diagnostics'] != second['diagnostics']
     assert first['metrics']['test']['candidate']['mae'] < second['metrics']['test']['candidate']['mae']
 
 
@@ -148,6 +155,8 @@ def test_tie_rejects_without_model_and_empty_near_failure_is_explicit(tmp_path):
     prepared(source, constant=True)
     report = train_rul(source, tmp_path / 'output')
     assert report['status'] == 'rejected'
+    assert report['diagnostics']['sample_count'] == 200
+    assert report['diagnostics']['permutation']['reference_mae'] == 0
     assert not (tmp_path / 'output/model.pkl').exists()
     for part in ('validation', 'test'):
         assert report['metrics'][part]['candidate'] == {'mae': 0., 'rmse': 0., 'r2': None}

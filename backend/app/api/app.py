@@ -58,6 +58,8 @@ ERRORS: dict[str, str] = {
     "USER_NOT_FOUND": "O usuário informado não foi encontrado.",
     "JOB_NOT_FOUND": "O job informado não foi encontrado.",
     "DATASET_NOT_FOUND": "O dataset informado não foi encontrado.",
+    "TRAINING_NOT_READY": "O resultado do treinamento ainda não está disponível.",
+    "TRAINING_RESULT_UNAVAILABLE": "Não foi possível consultar o resultado do treinamento agora.",
     "DEPENDENCY_UNAVAILABLE": "Não foi possível consultar as leituras agora.",
     "INTERNAL_ERROR": "Ocorreu um erro interno.",
 }

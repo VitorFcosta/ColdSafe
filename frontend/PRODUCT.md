@@ -51,6 +51,8 @@ o código atual e os [contratos compartilhados](../contracts/README.md).
 | `/dashboard` | Seleção de ambiente e dispositivo, leitura atual, alertas, histórico, comparação e estados do LED e buzzer. |
 | `/manage` | Cadastro e edição de ambientes, dispositivos e limites. |
 | `/messaging` | Métricas administrativas reais de filas, taxas e consumidores, com idade da coleta. |
+| `/laboratory` | Geração sintética privada, progresso recuperável, resumo e amostra; formulário administrativo. |
+| `/training` | Avaliação administrativa de saúde/RUL: dataset próprio, job, baseline, erros, gráficos e importância; pacote permanece offline. |
 
 `/dashboard` e `/manage` exigem sessão. A operação usa dados reais da API, com
 dois dispositivos simulados no projeto; o histórico oferece **15 min, 1 h, 6 h e

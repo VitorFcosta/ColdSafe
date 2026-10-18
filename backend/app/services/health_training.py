@@ -19,6 +19,7 @@ from backend.app.domain.feature_preprocessing import FeatureTransform
 from backend.app.domain.features import FeatureSpec
 from backend.app.services.datasets import _internal_file
 from backend.app.services.feature_inputs import features_version
+from backend.app.services.regression_diagnostics import regression_diagnostics
 from backend.app.services.training_data import TARGET_DTYPE, split_equipment
 
 PARTITIONS = ('train', 'validation', 'test')
@@ -171,6 +172,10 @@ def train_health(prepared: Path, directory: Path, *, seed: int = 42) -> dict:
             test_metrics = {'baseline': _evaluate(baseline, test, y_test),
                             'candidate': _evaluate(selected, test, y_test)}
             timings['test_load_and_evaluation_seconds'] = perf_counter() - phase
+            phase = perf_counter()
+            diagnostics = regression_diagnostics(selected, baseline, test, y_test,
+                manifest['feature_names'], seed=seed)
+            timings['diagnostics_seconds'] = perf_counter() - phase
     except (KeyError, TypeError, IndexError, OverflowError, EOFError) as error:
         raise ValueError('Invalid prepared training artifact') from error
 
@@ -179,7 +184,7 @@ def train_health(prepared: Path, directory: Path, *, seed: int = 42) -> dict:
         'selection': {'parameters': selected.get_params(), 'metric': 'mae', 'partition': 'validation',
             'gate': 'candidate_mae < baseline_mae', 'tie_policy': 'first candidate, reject baseline tie'},
         'metrics': {'validation': {'baseline': baseline_validation, 'candidate': selected_metrics},
-                    'test': test_metrics}, 'candidates': choices,
+                    'test': test_metrics}, 'candidates': choices, 'diagnostics': diagnostics,
         'r2_policy': 'null for fewer than two targets, constant targets or zero numerical variance; otherwise 1 - SSE/SST',
         'baseline': {'parameters': baseline.get_params(), 'training_mean': float(baseline.constant_[0, 0])},
         'features_version': manifest['features_version'], 'feature_names': manifest['feature_names'],

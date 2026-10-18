@@ -17,6 +17,7 @@ from backend.app.api.auth import AuthService
 from backend.app.api.schemas import ApiModel, ErrorResponse
 from backend.app.domain.jobs import GenerationInput, TrainingInput
 from backend.app.services.datasets import DatasetUnavailable, read_dataset
+from backend.app.services.training_results import TrainingResultUnavailable, read_training_result
 
 if TYPE_CHECKING:
     from backend.app.services.jobs import JobService
@@ -81,6 +82,15 @@ def create_jobs_router(auth: AuthService, service: 'JobService') -> APIRouter:
         except DatasetUnavailable:
             raise HTTPException(503, 'DATASET_UNAVAILABLE') from None
 
+    @router.get('/datasets')
+    def list_datasets(response: Response, owner: UUID = Depends(auth.require_user)) -> dict:
+        response.headers['Cache-Control'] = 'no-store'
+        try:
+            rows = service.repository.list_datasets(owner)
+            return {'success': True, 'data': rows, 'meta': {'schema_version': 3}}
+        except psycopg.Error:
+            raise HTTPException(503, 'DEPENDENCY_UNAVAILABLE') from None
+
     @router.get('/datasets/{dataset_id}')
     def get_dataset(dataset_id: UUID, response: Response,
                     owner: UUID = Depends(auth.require_user)) -> dict:
@@ -109,6 +119,29 @@ def create_jobs_router(auth: AuthService, service: 'JobService') -> APIRouter:
                 owner: UUID = Depends(auth.require_user)) -> JobResponse:
         response.headers['Cache-Control'] = 'no-store'
         return JobResponse(data=owned_job(owner, job_id))
+
+    @router.get('/jobs/{job_id}/result')
+    def get_training_result(job_id: UUID, response: Response,
+                            owner: UUID = Depends(auth.require_user)) -> dict:
+        response.headers['Cache-Control'] = 'no-store'
+        job = owned_job(owner, job_id)
+        if job['job_type'] != 'training':
+            raise HTTPException(404, 'JOB_NOT_FOUND')
+        if job['status'] != 'completed':
+            raise HTTPException(409, 'TRAINING_NOT_READY')
+        try:
+            model = service.repository.get_model(owner, job['result_id'])
+            dataset = service.repository.get_dataset(owner, job['dataset_id'])
+            if (model is None or dataset is None or model['owner_user_id'] != owner or
+                    dataset['owner_user_id'] != owner or model['training_job_id'] != job_id or
+                    model['dataset_id'] != dataset['id'] or dataset['id'] != job['dataset_id']):
+                raise HTTPException(404, 'JOB_NOT_FOUND')
+            data = read_training_result(service.training_artifact_root, model, job, dataset)
+            return {'success': True, 'data': data, 'meta': {'schema_version': 3}}
+        except psycopg.Error:
+            raise HTTPException(503, 'DEPENDENCY_UNAVAILABLE') from None
+        except TrainingResultUnavailable:
+            raise HTTPException(503, 'TRAINING_RESULT_UNAVAILABLE') from None
 
     @router.get('/jobs/{job_id}/events', response_class=StreamingResponse)
     def job_events(

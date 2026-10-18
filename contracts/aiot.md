@@ -357,9 +357,9 @@ e origem confiável. Pickle é restrito a artefatos internos: carregar um arquiv
 externo pode executar código. Falha pode conservar pasta parcial sem relatório;
 nunca tratar a presença de `model.pkl` isolado como treino concluído.
 
-Essa etapa não conclui job AMQP nem registra/ativa pacote em `models`: o contrato
+Essa etapa isolada não conclui job AMQP nem registra/ativa pacote em `models`: o contrato
 existente exige saúde **e** RUL (duas unidades). A etapa offline RUL está descrita
-na B2-22 abaixo; integração/registro e ativação continuam posteriores.
+na B2-22 abaixo; integração/registro de resultados na B2-23, ativação posterior.
 
 ## Regressão offline de vida útil restante — B2-22
 
@@ -411,8 +411,56 @@ máquinas que não falharam não participam do ajuste. Prever para uma máquina
 saudável não prova sua duração real; extrapolação além das histórias observadas
 e transferência para hardware físico continuam sem validação. Não é modelo de
 sobrevivência e não estima intervalo de confiança.
-Etapas offline disponíveis não instalam executor AMQP, registro ou ativação;
-esses contratos continuam nas tarefas posteriores, sem alterar schemas/jobs.
+As funções offline isoladas não instalam executor AMQP nem registram/ativam;
+a integração B2-23 abaixo registra o resultado sem alterar os schemas de jobs.
+
+## Resultados e diagnósticos de treinamento — B2-23
+
+O worker `training` reutiliza um preparo B2-20 e executa saúde/RUL em filhos
+sequenciais, com seed fixa 42. Checkpoints no pai verificam a conexão do lock
+durante o cálculo a cada dois segundos; falha encerra o filho. Retomada refaz
+o cálculo em nova pasta, sem diminuir `completed_units`. Duas etapas concluídas
+ainda podem preceder a validação/registro final do pacote.
+
+`training-package-v1` reúne manifesto preparado, relatórios e hashes. O registro
+privado em `models` satisfaz a FK do resultado de um job concluído; **não altera
+`active_models`/`model_activations`**. Um cálculo com candidato `rejected` pode
+concluir e exibir seus erros, sem publicar o pickle desse candidato. O pacote só
+é apto se ambos superarem estritamente o MAE de validação dos seus baselines.
+Falha de cálculo/artefato é `TRAINING_FAILED`, sem resultado concluído.
+
+| Rota | Regra / resposta |
+| --- | --- |
+| `GET /api/v3/datasets` | Sessão atual; até 50 datasets próprios de geração concluída, mais recentes primeiro: `id,name,row_count,created_at,generation_job_id`. Lista vazia é válida. |
+| `GET /api/v3/jobs/{job_id}/result` | Sessão/dono conferidos antes de ler disco. Somente job de treino concluído e pacote vinculado ao mesmo job/dataset. `404 JOB_NOT_FOUND` alheio/ausente; `409 TRAINING_NOT_READY` não concluído; `503 TRAINING_RESULT_UNAVAILABLE` para resultado inseguro/inválido. |
+
+Sucesso usa `{success:true,data:...,meta:{schema_version:3}}` e `no-store`.
+Resultado contém IDs, `model_version`, `eligible`, `features_version`, `seed`,
+`split_seed`, contagem de equipamentos por partição, versões, `health`, `rul` e
+limitações. Cada alvo contém `target`, `unit`, `status`, métricas
+`validation|test.baseline|candidate.{mae,rmse,r2}`, linhas por partição,
+`diagnostics` e `near_failure` (somente RUL, recorte B2-22).
+
+`diagnostics` usa **somente teste reservado depois da escolha**, com até 500
+linhas, sem reposição, seed do treino e índices ordenados. `scatter` informa
+`actual,predicted,baseline,error`, com erro = previsto − real. Importância é o
+aumento de MAE ao permutar cada feature, três repetições na mesma amostra, uma
+thread e o mesmo clipping da avaliação: média/desvio padrão, referência MAE,
+nomes, quantidade e método registrados. Valores negativos são preservados;
+correlação pode diluir importância e não há interpretação causal. Métricas
+globais continuam nas partições completas; a amostra não escolhe modelo.
+
+A leitura HTTP aceita JSON limitado, finito e validado, confere identidades,
+alvo/unidade/faixa, split/transformação, gate, contagens e hashes de
+relatórios/modelos. Nunca desserializa pickle nem entrega caminhos, matrizes ou
+parâmetros privados. Arquivos ficam na raiz separada `TRAINING_ARTIFACT_ROOT`
+(RW no treino/RO na API); a fonte de datasets continua RO para ambos.
+
+Frontend `/training` segue o acesso administrativo do Laboratório; recupera
+`?job=UUID`, consulta progresso sem repetir POST e oferece tabelas para gráficos.
+Os GETs continuam privados por dono para qualquer papel autenticado no backend;
+o POST permanece exclusivamente administrativo. Dados sintéticos e censura de
+RUL impedem interpretar aptidão offline como precisão física comprovada.
 
 ## Comando explícito e ACK
 
@@ -472,8 +520,8 @@ Geração recebe `{"job_type":"generation","total_units":1000000,"seed":42}`;
 dataset deve pertencer à conta, ter chave interna de artefato e de 1 a 2 milhões
 de linhas registradas. Seu total é fixo em duas regressões. Ambos aceitam
 `environment_id` UUID opcional da própria conta. Campos extras são recusados;
-o cliente não envia dono, caminho, status nem resultado. A validação aprofundada
-de dataset/modelo pertence às tarefas posteriores.
+o cliente não envia dono, caminho, status nem resultado. B2-23 conecta a validação
+aprofundada do preparo/modelos antes de registrar o resultado concluído.
 
 Parâmetros opcionais da geração B2-18 (configuração persistida no job e manifesto):
 
@@ -500,8 +548,8 @@ Na B2-19, `owner_user_id` identifica o autor autenticado e `config` recupera a
 configuração persistida, inclusive campos guardados em colunas separadas. Para
 geração, contém o `GenerationInput` completo; esses campos não alteram o envelope AMQP.
 `result_id` é nulo até conclusão com artefato registrado do próprio job e arquivo
-interno regular, não vazio e sem symlink. Geração já tem executor offline;
-treino sem executor real falha explicitamente, com o código correspondente.
+interno regular, não vazio e sem symlink. Geração e treino têm executores offline;
+ausência de executor real falha explicitamente, com o código correspondente.
 
 SSE emite `event: job_progress` com essa **resposta HTTP** no campo `data`, quando
 `updated_at` muda; não é o envelope AMQP abaixo. É uma assinatura do estado durável,
@@ -519,8 +567,9 @@ contenção/indisponibilidade de banco conserva entrega pendente sem gastar retr
 do broker. Checkpoint só pode avançar e é persistido com evento na mesma transação.
 Executores devem gravar blocos duráveis antes do checkpoint e interromper ao
 perder a conexão. O lock não garante exclusão durante perda da sessão PostgreSQL
-entre checkpoints de um executor ainda vivo; cancelamento/fencing desse cálculo
-deve ser tratado ao integrar executores reais. Não foi implementada alta disponibilidade.
+entre checkpoints de um executor ainda vivo; B2-23 encerra seus filhos ao detectar
+a falha no próximo checkpoint (até dois segundos durante cálculo). Esse intervalo
+não é fencing distribuído; não foi implementada alta disponibilidade.
 
 ## Consulta privada de datasets — B2-19
 

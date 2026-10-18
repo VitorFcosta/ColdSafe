@@ -168,7 +168,8 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         from backend.app.amqp.jobs import JobPublisher
         from backend.app.services.jobs import JobService
 
-        jobs = JobService(settings, artifact_root=settings.job_artifact_root)
+        jobs = JobService(settings, artifact_root=settings.job_artifact_root,
+                          training_artifact_root=settings.training_artifact_root)
         job_publisher = JobPublisher(jobs, host=settings.rabbitmq_host, port=settings.rabbitmq_port,
                                      password=settings.rabbitmq_api_password.get_secret_value())
 

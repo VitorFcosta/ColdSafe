@@ -57,6 +57,23 @@ um milhão, recarga sem reenvio, resumo/amostra privados, teto e falha após um
 bloco durável. Login HTTP é real; a sessão obtida é colocada no navegador pelo
 harness para limitar o teste ao Laboratório. Não simula respostas HTTP/AMQP.
 
+A B2-23 acrescenta `/training` (**Treinamento**), com seleção de dataset próprio
+concluído e link direto a partir do Laboratório. Admin envia um job real,
+acompanha duas etapas e recupera o estado por `?job=UUID` sem repetir o POST.
+Saúde e RUL mostram MAE/RMSE/R², baseline, gate de validação, previsto × real,
+tabela de erros e importância por permutação com sinal. Métricas completas e
+amostra reservada são identificadas separadamente. Versões, seeds, split e
+limitações sintéticas/censura ficam visíveis; nenhum resultado ativa o pacote.
+Falha de consulta permite repetir GET; envio incerto não é repetido automaticamente.
+
+Reutiliza Vue/Chart.js e sessão existente, sem dependências novas. A página segue
+o acesso administrativo do Laboratório; o backend protege POST por papel atual
+e GET por dono. Requer worker `training` e montagem RO dos resultados na API,
+conforme [configuração de jobs](../docs/configuration.md#jobs-assíncronos-b2-17).
+Teste simulado específico: `npm run test:e2e -- training.spec.ts`.
+Teste real completo pelo [harness B2-23](../backend/README.md#treinamento-integrado-e-resultados-b2-23),
+que também confere os valores contra relatórios e captura desktop/mobile.
+
 Para o dashboard v3 no Compose, use `compose.aiot.yaml`: ele habilita o backend e passa o argumento
 de build do frontend. É necessário reconstruir `frontend` ao alterar esse modo.
 No Vite local, defina a variável antes de iniciar o processo e configure

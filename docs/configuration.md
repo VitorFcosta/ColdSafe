@@ -124,12 +124,21 @@ durante uma indisponibilidade AMQP. As demais dependências de readiness permane
 
 Workers podem ser executados com o ambiente do backend por
 `python -m backend.app.job_worker --role generation` ou `--role training`.
-Geração massiva está instalada na B2-18; treino ainda termina failed sem executor.
+Geração massiva está instalada na B2-18; B2-23 instala preparo e os dois treinos
+em filhos separados/sequenciais, sem ativar o pacote no monitoramento.
 `JOB_ARTIFACT_ROOT` define a raiz interna, padrão `/app/artifacts`. O overlay
 monta o volume persistente `job-artifacts`: RW só para geração, RO para API/treino.
 A imagem prepara proprietário/permissões para seu usuário sem privilégios.
 Se trocar a raiz, ajuste também a montagem; não aponte para buckets/volumes live.
 Geração tem limite de 512 MiB/1 CPU; não é garantia de capacidade da pilha completa.
+`TRAINING_ARTIFACT_ROOT` define a raiz de resultados, padrão
+`/app/training-artifacts`: volume separado `training-artifacts`, RW somente no
+treinamento e RO na API. O worker de treino tem limite inicial de 1 GiB/1 CPU;
+o ensaio HTTP/AMQP/browser não equivale à medição de toda a pilha nesse limite.
+Fora do Compose, forneça as duas raízes acessíveis aos respectivos processos.
+Retomada recalcula em nova tentativa e preserva o contador; pastas parciais e
+preparos completos são conservados, sem expurgo automático. Não apague arquivos
+de jobs ativos nem pacotes referenciados por `models`.
 Formato, retomada, limpeza de órfãos e benchmark estão no
 [backend](../backend/README.md#geração-offline-b2-18).
 
@@ -153,6 +162,13 @@ necessária nova variável, porta ou dependência. `?job=UUID` na URL recupera o
 estado após recarga; salve essa URL para retomar o mesmo job. Sem a configuração
 de jobs acima, a página informa erro de consulta/execução; ela não ativa workers.
 Contrato de resumo/amostra em [datasets](../contracts/aiot.md#consulta-privada-de-datasets--b2-19).
+
+Na B2-23, `/training` permite selecionar um dataset concluído da conta ou seguir
+o link do Laboratório. Apenas admin envia o treinamento; `?job=UUID` recupera
+o acompanhamento e os resultados após recarga. A API precisa das duas montagens
+RO descritas acima. Sem o worker `training`, o job permanece enfileirado.
+Métricas são de regressão offline; concluir o job ou vencer a baseline não ativa
+um modelo no monitoramento. Contrato em [B2-23](../contracts/aiot.md#resultados-e-diagnósticos-de-treinamento--b2-23).
 
 ## API AIoT opcional B2-13
 

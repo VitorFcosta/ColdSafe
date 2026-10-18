@@ -1,4 +1,4 @@
-"""Run one private AMQP consumer; generation is offline, training comes later."""
+"""Run one private AMQP consumer; generation and training are offline."""
 import argparse
 import logging
 import signal
@@ -27,7 +27,12 @@ def main() -> None:
     if role == 'generation':
         from backend.app.services.generation import GenerationHandler
         handler = GenerationHandler(settings, artifact_root=settings.job_artifact_root)
-    worker = JobWorker(JobService(settings, artifact_root=settings.job_artifact_root), role,
+    else:
+        from backend.app.services.training import TrainingHandler
+        handler = TrainingHandler(settings, artifact_root=settings.job_artifact_root,
+                                  training_artifact_root=settings.training_artifact_root)
+    worker = JobWorker(JobService(settings, artifact_root=settings.job_artifact_root,
+                                 training_artifact_root=settings.training_artifact_root), role,
                        host=settings.rabbitmq_host, port=settings.rabbitmq_port,
                        password=password.get_secret_value(), handler=handler)
     shutdown = Event()
