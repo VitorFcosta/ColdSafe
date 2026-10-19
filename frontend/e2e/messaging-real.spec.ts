@@ -36,7 +36,7 @@ test('métricas reais, atualização e navegação por teclado no mobile; navega
   const firstSample = page.waitForResponse((response) => response.url() === `${api}/api/v3/messaging` && response.status() === 200)
   await login(page)
   const data = (await (await firstSample).json()).data
-  expect(data.queues).toHaveLength(9)
+  expect(data.queues).toHaveLength(10)
   await expect(page.getByRole('heading', { name: 'Mensageria', exact: true })).toBeFocused()
   await expect(page.locator('tbody tr')).toHaveCount(data.queues.length)
   for (const queue of data.queues) {
@@ -64,14 +64,14 @@ test('métricas reais, atualização e navegação por teclado no mobile; navega
 test('queda real do RabbitMQ mantém última amostra, idade e falha; recupera automaticamente', async ({ page }) => {
   test.setTimeout(120_000)
   await login(page)
-  await expect(page.locator('tbody tr')).toHaveCount(9)
+  await expect(page.locator('tbody tr')).toHaveCount(10)
   const before = await page.locator('time').getAttribute('datetime')
   // Keep Docker's ephemeral host mapping stable while the real broker is unavailable.
   broker('pause')
   try {
     await expect(page.getByRole('alert')).toContainText('Não foi possível atualizar', { timeout: 20_000 })
     await expect(page.getByRole('alert')).toContainText('Última consulta bem-sucedida')
-    await expect(page.locator('tbody tr')).toHaveCount(9)
+    await expect(page.locator('tbody tr')).toHaveCount(10)
     await expect(page.locator('time')).toHaveAttribute('datetime', before!)
     await expect(page.getByRole('status')).toContainText('Informação desatualizada', { timeout: 20_000 })
     expect(await messagingStatus(page)).toBe(503)

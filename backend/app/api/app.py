@@ -60,6 +60,10 @@ ERRORS: dict[str, str] = {
     "DATASET_NOT_FOUND": "O dataset informado não foi encontrado.",
     "TRAINING_NOT_READY": "O resultado do treinamento ainda não está disponível.",
     "TRAINING_RESULT_UNAVAILABLE": "Não foi possível consultar o resultado do treinamento agora.",
+    "MODEL_NOT_FOUND": "O modelo informado não foi encontrado.",
+    "MODEL_NOT_ELIGIBLE": "O modelo informado não foi aprovado para ativação.",
+    "ACTIVATION_PENDING": "Já existe uma ativação pendente para este proprietário.",
+    "MODEL_ACTIVATION_NOT_FOUND": "A ativação informada não foi encontrada.",
     "DEPENDENCY_UNAVAILABLE": "Não foi possível consultar as leituras agora.",
     "INTERNAL_ERROR": "Ocorreu um erro interno.",
 }

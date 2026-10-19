@@ -18,7 +18,7 @@ dashboard. São extensões das rotas v3; nenhuma migração ou dependência nova
 
 A B2-15 acrescenta `GET /api/v3/messaging`, autorizado pelo papel admin atual
 no PostgreSQL. Consulta a Management API por credencial exclusiva, limita os
-campos às nove filas do produto e retorna contagens, consumidores e taxas com
+campos às dez filas do produto e retorna contagens, consumidores e taxas com
 `sampled_at`. Não lê mensagens. As métricas são agregadas da infraestrutura,
 não filtradas por dispositivo/proprietário; viewer/operator recebem 403.
 Falhas do broker retornam 503 sanitizado; sem credencial, a rota não é instalada.
@@ -40,9 +40,8 @@ AMQP confirma publicação e execução antes do ACK. Workers de geração e tre
 compartilham um advisory lock PostgreSQL e retomam contadores duráveis.
 Configuração em [jobs](../docs/configuration.md#jobs-assíncronos-b2-17),
 contrato em [HTTP de jobs](../contracts/aiot.md#jobs-http-e-progresso-sse--b2-17).
-O worker de geração B2-18 já produz datasets offline. A B2-21 acrescenta a etapa
-offline de saúde; o job de treino ainda não tem executor do pacote saúde + RUL
-e termina `failed` se solicitado por AMQP.
+O worker de geração B2-18 produz datasets offline. A B2-23 integra o pacote
+saúde + RUL ao job de treino; a ativação explícita está na B2-24 abaixo.
 
 ## Laboratório e consulta de datasets B2-19
 
@@ -211,6 +210,40 @@ O teste gera 1m, treina os dois alvos por AMQP, recarrega entre etapas, compara
 API/tela/artefatos, verifica isolamento/403 e ausência de ativações. Login HTTP
 é real; somente a colocação da sessão no navegador é feita pelo harness.
 
+## Versões e ativação B2-24
+
+`services/models.py` registra pedidos administrativos privados, serializa cargas
+por proprietário e troca ponteiro/status/outbox na mesma transação. O worker
+`python -m backend.app.model_worker` consome somente a fila dedicada de ativação;
+`services/model_bundle.py` valida e carrega o par inteiro antes da promoção.
+Baseline reprovada, artefato incompleto ou runtime incompatível impedem ativação.
+Erro de carga é consultável; a versão anterior continua registrada e carregada.
+
+As quatro rotas estão no [contrato B2-24](../contracts/aiot.md#ativação-implementada--b2-24).
+Para recuperar, consulte a ativação e envie novo pedido com `previous_model_id`.
+Conserve o volume e seus pacotes; não é necessário retreinar. A versão ativa no
+banco sobrevive ao restart, enquanto reidratação/inferência de leituras são B2-25.
+Sem dependência nova, portas ou mudança no frontend de Treinamento.
+
+Testes locais com o lock dev:
+
+```sh
+python -m pytest backend/tests/services/test_model_bundle.py backend/tests/amqp/test_models.py backend/tests/api/test_models_api.py backend/tests/infra/test_model_worker_cli.py backend/tests/contract/test_model_feature_version.py --no-cov -o addopts='' -q
+```
+
+Ensaio PostgreSQL/RabbitMQ reais com `POSTGRES_TEST_*` de uma instância descartável
+e `AUTH_JWT_SECRET` de teste, sem credenciais pessoais:
+
+```sh
+COLDSAFE_RABBITMQ_INTEGRATION=1 python -m pytest backend/tests/integration/test_models_integration.py --no-cov -o addopts='' -q -s
+```
+
+O harness treina uma fixture pequena real de 720 linhas; valida promoção,
+recuperação, isolamento HTTP/sessão, exclusão concorrente, rollback transacional,
+retomada de `loading`, arquivos ruins, duplicatas/confirm perdida e eventos reais.
+Não é novo ensaio massivo nem validação de precisão física. Configuração do
+serviço e atualização coordenada do schema/broker estão no [guia](../docs/configuration.md#ativação-de-modelos-b2-24).
+
 ## Geração offline B2-18
 
 O mesmo POST de jobs aceita os parâmetros documentados no
@@ -291,7 +324,7 @@ modelos e ativação por proprietário. A versão 006 acrescenta identificação
 sessões JWT, limites de login e tickets WebSocket. O [guia de migrações](migrations/README.md)
 explica propriedade, backup e recuperação. A persistência prepara o AIoT;
 workers de jobs estão na B2-17, geração offline na B2-18 e saúde/RUL offline nas B2-21/22;
-pacote de treino integrado e inferência continuam posteriores. Autenticação e
+pacote de treino integrado está na B2-23, ativação na B2-24; inferência é posterior. Autenticação e
 permissões atuais estão no [guia de segurança](../docs/aiot/tasks/B2-06.md).
 
 A primeira implementação do domínio está em `app/domain/telemetry.py`. Ela transforma

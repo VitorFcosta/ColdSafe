@@ -55,7 +55,7 @@ def test_services_cannot_configure_or_read_other_queues():
         for queue in definitions["queues"]:
             expected = queue["name"] == f"coldsafe.{role}" or (
                 role == "audit" and queue["name"] == "coldsafe.dlq"
-            )
+            ) or (role == "inference" and queue["name"] == "coldsafe.model-activation")
             assert bool(re.fullmatch(permission["read"], queue["name"])) == expected
         assert not re.fullmatch(permission["write"], "amq.default")
         assert not re.fullmatch(permission["write"], "coldsafe.dlx")
@@ -75,7 +75,7 @@ def test_monitor_can_inspect_metrics_but_cannot_access_or_change_messages():
 
 def test_queues_limit_failed_deliveries_and_preserve_dead_letters():
     definitions = build_definitions(passwords())
-    assert len(definitions["queues"]) == 9
+    assert len(definitions["queues"]) == 10
     assert all(queue["durable"] and queue["arguments"]["x-queue-type"] == "quorum"
                for queue in definitions["queues"])
     policy = definitions["policies"][0]
@@ -86,6 +86,22 @@ def test_queues_limit_failed_deliveries_and_preserve_dead_letters():
     assert policy["definition"]["delayed-retry-type"] == "failed"
     assert policy["definition"]["delayed-retry-min"] == 1000
     assert policy["definition"]["delayed-retry-max"] == 2000
+
+
+def test_model_activation_worker_has_a_dedicated_queue_and_scoped_access():
+    definitions = build_definitions(passwords())
+    queue = next(item for item in definitions['queues'] if item['name'] == 'coldsafe.model-activation')
+    assert queue['durable'] and queue['arguments']['x-queue-type'] == 'quorum'
+    routes = [item for item in definitions['bindings'] if item['destination'] == queue['name']]
+    assert [(item['source'], item['routing_key']) for item in routes] == [
+        ('coldsafe.events', 'v3.model_activation.*'),
+    ]
+    assert re.fullmatch(definitions['policies'][0]['pattern'], queue['name'])
+    destinations = {item['destination'] for item in definitions['bindings']
+                    if item['routing_key'] == 'v3.model_activation.*'}
+    assert destinations == {'coldsafe.inference', 'coldsafe.model-activation'}
+    for item in definitions['permissions']:
+        assert bool(re.fullmatch(item['read'], queue['name'])) == (item['user'] == 'coldsafe-inference')
 
 
 def test_observer_gets_dead_letter_copies_without_a_dead_letter_cycle():

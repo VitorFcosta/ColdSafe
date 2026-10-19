@@ -14,7 +14,7 @@ from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_ope
 
 QUEUE_NAMES = tuple(f'coldsafe.{role}' for role in (
     'gateway', 'writer', 'inference', 'delivery', 'commands', 'generation',
-    'training', 'observability', 'dlq',
+    'training', 'observability', 'model-activation', 'dlq',
 ))
 MAX_RESPONSE_BYTES = 262_144
 

@@ -114,7 +114,7 @@ def test_new_database_and_repeatable_migrations(database):
     postgres.initialize_schema(database)
     postgres.initialize_schema(database)
     with postgres.connect(database) as connection:
-        assert connection.execute("SELECT array_agg(version ORDER BY version) FROM schema_migrations").fetchone() == ([1, 2, 3, 4, 5, 6, 7, 8],)
+        assert connection.execute("SELECT array_agg(version ORDER BY version) FROM schema_migrations").fetchone() == ([1, 2, 3, 4, 5, 6, 7, 8, 9],)
         tables = {row[0] for row in connection.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")}
         assert {"jobs", "datasets", "models", "model_activations", "active_models"} <= tables
 
@@ -243,6 +243,45 @@ def test_activations_are_private_and_active_pointer_is_unique_per_owner(demo):
     assert repository.get_activation(stranger.owner, activation) is None
     assert repository.get_active_model(owner.owner)["id"] == owner.model
     assert repository.get_active_model(stranger.owner)["id"] == stranger.model
+
+
+def test_model_outbox_has_one_request_per_activation_and_ordered_statuses(demo):
+    config, (owner, _stranger, _admin) = demo
+    with postgres.connect(config) as connection:
+        activation = connection.execute(
+            'INSERT INTO model_activations (owner_user_id, model_id) VALUES (%s,%s) RETURNING id',
+            (owner.owner, owner.model),
+        ).fetchone()[0]
+        event = uuid4()
+        sequence = connection.execute(
+            "INSERT INTO model_outbox (event_id, activation_id, publisher_role, event) "
+            "VALUES (%s,%s,'api','{}') RETURNING sequence", (event, activation),
+        ).fetchone()[0]
+        for role in ('api', 'inference'):
+            with pytest.raises(psycopg.errors.UniqueViolation), connection.transaction():
+                connection.execute(
+                    'INSERT INTO model_outbox (event_id, activation_id, publisher_role, event) '
+                    "VALUES (%s,%s,%s,'{}')", (event if role == 'inference' else uuid4(), activation, role),
+                )
+        for role, payload in (('training', '{}'), ('inference', '[]')):
+            with pytest.raises(psycopg.errors.CheckViolation), connection.transaction():
+                connection.execute(
+                    'INSERT INTO model_outbox (event_id, activation_id, publisher_role, event) '
+                    'VALUES (%s,%s,%s,%s::jsonb)', (uuid4(), activation, role, payload),
+                )
+        with pytest.raises(psycopg.errors.ForeignKeyViolation), connection.transaction():
+            connection.execute(
+                'INSERT INTO model_outbox (event_id, activation_id, publisher_role, event) '
+                "VALUES (%s,%s,'inference','{}')", (uuid4(), uuid4()),
+            )
+        for _ in range(2):
+            next_sequence, created, published = connection.execute(
+                'INSERT INTO model_outbox (event_id, activation_id, publisher_role, event) '
+                "VALUES (%s,%s,'inference','{}') RETURNING sequence,created_at,published_at",
+                (uuid4(), activation),
+            ).fetchone()
+            assert next_sequence > sequence and created is not None and published is None
+            sequence = next_sequence
 
 
 @pytest.mark.parametrize("changes", [

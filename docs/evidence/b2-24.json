@@ -1,0 +1,186 @@
+{
+  "task": "B2-24",
+  "status": "completed",
+  "date": "2026-10-18",
+  "timezone": "America/Sao_Paulo",
+  "git": {
+    "base": "8ab1cd72b4b2366af227432ec15f8d5d8f2d3ecb",
+    "branch": "codex/block-5-validation",
+    "initial_worktree_clean": true,
+    "delivery": "uncommitted local diff; no push"
+  },
+  "new_dependencies": [],
+  "created_files": [
+    "backend/app/amqp/models.py",
+    "backend/app/api/models.py",
+    "backend/app/model_worker.py",
+    "backend/app/services/model_bundle.py",
+    "backend/app/services/models.py",
+    "backend/migrations/009_model_activation_outbox.sql",
+    "backend/tests/amqp/test_models.py",
+    "backend/tests/api/test_models_api.py",
+    "backend/tests/contract/test_model_feature_version.py",
+    "backend/tests/infra/test_model_worker_cli.py",
+    "backend/tests/integration/test_models_integration.py",
+    "backend/tests/services/test_model_bundle.py",
+    "docs/evidence/b2-24.json"
+  ],
+  "modified_files": [
+    "backend/README.md",
+    "backend/app/api/app.py",
+    "backend/app/api/schemas.py",
+    "backend/app/config/settings.py",
+    "backend/app/repositories/postgres.py",
+    "backend/app/runtime.py",
+    "backend/app/services/messaging.py",
+    "backend/migrations/README.md",
+    "backend/tests/api/test_messaging_api.py",
+    "backend/tests/api/test_runtime_lifecycle.py",
+    "backend/tests/config/test_runtime_settings.py",
+    "backend/tests/infra/test_compose_contract.py",
+    "backend/tests/infra/test_messaging_integration.py",
+    "backend/tests/infra/test_rabbitmq_bootstrap.py",
+    "backend/tests/infra/test_rabbitmq_integration.py",
+    "backend/tests/integration/test_aiot_migrations_integration.py",
+    "backend/tests/integration/test_postgres_schema_integration.py",
+    "backend/tests/services/test_messaging.py",
+    "compose.jobs.yaml",
+    "contracts/aiot.md",
+    "contracts/aiot.schema.json",
+    "docs/aiot/README.md",
+    "docs/aiot/tasks/B2-24.md",
+    "docs/aiot/tasks/README.md",
+    "docs/configuration.md",
+    "frontend/e2e/messaging-real.spec.ts",
+    "infra/rabbitmq/README.md",
+    "infra/rabbitmq/bootstrap.py"
+  ],
+  "source_sha256": {
+    "backend/app/amqp/models.py": "88cc260bf00e1701005fc35c7fbddd46629340c90ff3c392a68e7287265e57b7",
+    "backend/app/api/app.py": "8bf4d62d214ec3bb3e27fa862078786e34105983c36d823c8f2ad981c3636879",
+    "backend/app/api/models.py": "f97774ceccd47bff4fc8d76b8a541491713219f910b650b78dc0424d5fc35492",
+    "backend/app/api/schemas.py": "3a1ad09c381b6ed7eebf617e338778f451a38cd68653f11184d40bab89ea65f6",
+    "backend/app/config/settings.py": "b6a4b6e6d6132b46650acd0077ecf034c73a695f89acc41abe5cdbe3dfab6991",
+    "backend/app/model_worker.py": "460259912dc983614df5eb9b60bb0a3f909fb6df24f4ec6fd2aedcb6b7b6e6d6",
+    "backend/app/repositories/postgres.py": "c370ef5d750519ae5b7fb92b9e93b8046e7dd65fa46817ad06975af203e81ed9",
+    "backend/app/runtime.py": "2d3291bd64ab68acf700192d6c1a0fa5f1b6ff1c64bfefd5e2738670b25d5bcb",
+    "backend/app/services/messaging.py": "7b7d9505a0dc6567e924d78f0539eaa4aab7dcd0bcb93c81379f8a0f9b5e4a1b",
+    "backend/app/services/model_bundle.py": "6e2b24a2afd16ffd5dfd01e946400810583c8c2ec43c8e2f698b45d2b3e460ef",
+    "backend/app/services/models.py": "c16afa19a943ee9da67061fd2b6e13659c03bca8c18e8cc77a7187a29163003f",
+    "backend/migrations/009_model_activation_outbox.sql": "ed92c2d6f0287342a24b2b5fbf99526b3de34e1b91f29a3c13c3101729765d31",
+    "backend/tests/amqp/test_models.py": "b2313b7d1e4bccd7dce0766ec455e139559c7a14ff6da39559a63a501b3d4b13",
+    "backend/tests/api/test_messaging_api.py": "0c2491cfc3b6e321acadc531badd95646e3f870c14c6c4fd3d7f5af9943ad9b4",
+    "backend/tests/api/test_models_api.py": "0130bddba8787bfc0b4e7663f6d790f331d149a69f32e92a149f3cec252e8e99",
+    "backend/tests/api/test_runtime_lifecycle.py": "4c9c881129fd44de893ed7e3f5e69fd61ac7b656c3dc5ffa5f7783b21420592b",
+    "backend/tests/config/test_runtime_settings.py": "05ec97c75d063b72bc04d35844a800c4cc936ce7893e9d476d892318417e74ec",
+    "backend/tests/contract/test_model_feature_version.py": "5a588bdb5e0fd9fd387c449ce1a31b7b41f9aa9d89a1a59c9860e22010e0b730",
+    "backend/tests/infra/test_compose_contract.py": "fa306a6d42b9d359809688cd91deb6a283834a8f60b95215d1d943333de57254",
+    "backend/tests/infra/test_messaging_integration.py": "c018b3bbda003d94fffd85cdae76ee81f551f195b5fa5974dffd1c85e9738b6f",
+    "backend/tests/infra/test_model_worker_cli.py": "02685f80c35b46b8c994555640f2caa51dee5f3fac9ad8d97db1a13380a7f47d",
+    "backend/tests/infra/test_rabbitmq_bootstrap.py": "915dd52e2dcb96e127afd90a267f89d836e863c366e595e868f8b61b99db8c34",
+    "backend/tests/infra/test_rabbitmq_integration.py": "221423adaf7943a2fd50d87c05b568e3112cbe4dcdbead44b005c493e2e2fbe8",
+    "backend/tests/integration/test_aiot_migrations_integration.py": "2729d41f3411d1ee9418e912689dd8158c1117b04634090cee5a6355256e2842",
+    "backend/tests/integration/test_models_integration.py": "97822f289628a0dc6d9682f5eb0ae067eff47d3a336a1c01c0906d3817cfbf04",
+    "backend/tests/integration/test_postgres_schema_integration.py": "7b0eb18cda22c0d5a41dfc3339136ace1aac44c8d202154b5c5162fd7a30bfe3",
+    "backend/tests/services/test_messaging.py": "0c628ddef029effb47dcb794e8e6c047841c45a4d5c12a3f37fd50703afe85c7",
+    "backend/tests/services/test_model_bundle.py": "78835eba932ac053912174e69e557a39846244fc9a390237f143f42c4ede8d58",
+    "compose.jobs.yaml": "ef08d2317375a30baa8c39a31c36d2531b6f7e3ca8dfd047e4832738c1ae11c0",
+    "contracts/aiot.schema.json": "e40c7b65770575b07ef9141b2648c934ca71f4f01dcee635f2fecbbe08b79c67",
+    "frontend/e2e/messaging-real.spec.ts": "aa08e9572e36792d96bc27e11556aa35c52395c78b7820ed7d8c2ec1ab755866",
+    "infra/rabbitmq/bootstrap.py": "258f74b234d7f3bd345d4614bb6d8aff07ae2d979664d301c00d1b52132b3faf"
+  },
+  "tests": {
+    "backend_non_integration": {
+      "passed": 1260,
+      "deselected": 176,
+      "seconds": 93.21,
+      "before_last_status_identity_change": true
+    },
+    "final_targeted_including_integration": {
+      "passed": 111,
+      "seconds": 31.45,
+      "real_postgres_scenarios": 11,
+      "real_rabbitmq_scenarios": 1,
+      "http": "TestClient with real JWT/session/PostgreSQL; no external HTTP server"
+    },
+    "contracts": {
+      "passed": 65
+    },
+    "infra_unit_config_messaging": {
+      "passed": 97
+    },
+    "rabbitmq_disposable": {
+      "passed": 34,
+      "seconds": 52.36
+    },
+    "postgres_migrations_disposable": {
+      "passed": 26,
+      "seconds": 12.76
+    },
+    "api_jobs_lifecycle_mock": {
+      "passed": 77,
+      "seconds": 29.39
+    },
+    "new_modules_coverage_with_branches": {
+      "total_percent": 95.54455445544555,
+      "modules": {
+        "backend/app/amqp/models.py": 97.97979797979798,
+        "backend/app/api/models.py": 100.0,
+        "backend/app/model_worker.py": 83.78378378378379,
+        "backend/app/services/model_bundle.py": 100.0,
+        "backend/app/services/models.py": 93.4640522875817
+      }
+    },
+    "bootstrap_coverage_percent": 83.64,
+    "warnings": [
+      "Existing Starlette HTTPX deprecation",
+      "Existing AnyIO BlockingPortal deprecation"
+    ],
+    "red_green": [
+      "New modules missing before implementation; tests passed after implementation",
+      "Generated features_version rejected by bus schema: 3 RED; dedicated features_version accepts plus: 65 contract tests GREEN",
+      "Real broker first attempt rejected plus identifier, corrected and re-run",
+      "HTTP harness initially omitted required CatalogService; harness corrected, application contract preserved"
+    ]
+  },
+  "container": {
+    "image": "coldsafe-b224-validation",
+    "built": true,
+    "imports_uid": 999,
+    "read_only_root": true,
+    "read_only_artifact_bind": true,
+    "network": "none",
+    "both_models_loaded": true,
+    "units": {
+      "health": "points",
+      "rul": "hours"
+    },
+    "peak_rss_mib": 155.66,
+    "row_count": 720,
+    "memory_limit_mib": 512,
+    "cpu_limit": 1
+  },
+  "acceptance": [
+    "private registered complete training package only",
+    "both validation MAEs strictly beat baseline",
+    "load complete pair before atomic pointer/status/outbox swap",
+    "previous version recovery through a new activation",
+    "missing/corrupt/incompatible rejected; previous pointer and loaded bundle preserved",
+    "private HTTP and current roles/revocation",
+    "real broker request/status, confirms-loss duplicate idempotency",
+    "loading restart and transaction rollback",
+    "changed registered version fails with original event identity"
+  ],
+  "limitations": [
+    "No live telemetry inference or cache rehydration at startup (B2-25)",
+    "No personal deployment or activation",
+    "No new million-row training, physical calibration or whole-stack capacity benchmark",
+    "Container load uses real 720-row training fixture only",
+    "No browser/frontend build; only E2E queue-count expectations updated",
+    "Pickle trusts internal worker and private volume; hashes detect corruption, not malicious trusted producers",
+    "Artifacts/outbox need manual retention",
+    "Broker delivery-limit exhaustion may require manual redelivery of original request from DLQ",
+    "Existing consumers must rebuild updated features_version schema and broker topological update before use"
+  ],
+  "next_task": "B2-25, not started; requires user selection"
+}

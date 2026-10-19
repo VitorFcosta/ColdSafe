@@ -36,6 +36,17 @@ def test_runtime_settings_hide_secrets_from_representations() -> None:
     assert "postgres-secret" not in repr(settings)
 
 
+def test_model_worker_inference_password_is_optional_private_and_not_empty(monkeypatch):
+    original = RuntimeSettings(**valid_settings(), _env_file=None)
+    assert original.rabbitmq_inference_password is None
+    monkeypatch.setenv('RABBITMQ_INFERENCE_PASSWORD', 'private-model-worker-secret')
+    configured = RuntimeSettings(**valid_settings(), _env_file=None)
+    assert configured.rabbitmq_inference_password.get_secret_value() == 'private-model-worker-secret'
+    assert 'private-model-worker-secret' not in repr(configured)
+    with pytest.raises(ValidationError):
+        RuntimeSettings(**valid_settings(), rabbitmq_inference_password='', _env_file=None)
+
+
 def test_runtime_settings_parse_numeric_values_from_environment(monkeypatch) -> None:
     for name, value in valid_settings().items():
         monkeypatch.setenv(name.upper(), str(value))

@@ -40,7 +40,7 @@ def test_admin_receives_only_aggregate_metrics_without_browser_cache():
     assert response.headers['Cache-Control'] == 'no-store'
     assert response.json()['success'] is True
     assert 'sampled_at' in response.json()['data']
-    assert len(response.json()['data']['queues']) == 9
+    assert len(response.json()['data']['queues']) == 10
     assert 'private' not in response.text
     assert set(response.json()['data']['queues'][0]) == {
         'name', 'messages', 'messages_ready', 'messages_unacknowledged',

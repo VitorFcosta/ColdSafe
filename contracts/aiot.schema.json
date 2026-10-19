@@ -26,6 +26,12 @@
       "maxLength": 64,
       "pattern": "^[A-Za-z0-9._-]+$"
     },
+    "features_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._+-]+$"
+    },
     "ambient_measurement": {
       "type": "object",
       "additionalProperties": false,
@@ -145,7 +151,7 @@
         "equipment_id": {"$ref":"#/$defs/uuid"},
         "source_event_id": {"$ref":"#/$defs/uuid"},
         "input_received_at": {"$ref":"#/$defs/utc_time"},
-        "features_version": {"$ref":"#/$defs/version"},
+        "features_version": {"$ref":"#/$defs/features_version"},
         "model_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
         "model_version": {"anyOf":[{"$ref":"#/$defs/version"},{"type":"null"}]},
         "status": {"enum":["available","unavailable"]},
@@ -163,7 +169,7 @@
         "activation_id": {"$ref":"#/$defs/uuid"},
         "model_id": {"$ref":"#/$defs/uuid"},
         "model_version": {"$ref":"#/$defs/version"},
-        "features_version": {"$ref":"#/$defs/version"},
+        "features_version": {"$ref":"#/$defs/features_version"},
         "previous_active_model_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]}
       }
     },
@@ -175,7 +181,7 @@
         "activation_id": {"$ref":"#/$defs/uuid"},
         "model_id": {"$ref":"#/$defs/uuid"},
         "model_version": {"$ref":"#/$defs/version"},
-        "features_version": {"$ref":"#/$defs/version"},
+        "features_version": {"$ref":"#/$defs/features_version"},
         "status": {"enum":["ready","loading","active","failed"]},
         "active_model_id": {"anyOf":[{"$ref":"#/$defs/uuid"},{"type":"null"}]},
         "error_code": {"anyOf":[{"const":"MODEL_LOAD_FAILED"},{"type":"null"}]}

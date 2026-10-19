@@ -207,7 +207,7 @@ with connect(broker, 'training') as channel:
                     assert 2.5 <= time.monotonic() - started < 8
                 finally:
                     run(stack, 'unpause', 'rabbitmq')
-                wait_metrics(api_url, tokens['admin'], lambda queues: len(queues) == 9)
+                wait_metrics(api_url, tokens['admin'], lambda queues: len(queues) == 10)
                 vite = subprocess.Popen([node, 'node_modules/vite/bin/vite.js', '--host', '127.0.0.1',
                                          '--port', web_url.rsplit(':', 1)[1], '--strictPort'],
                                         cwd=frontend, env=environment, stdout=logs, stderr=logs)

@@ -24,6 +24,22 @@ def load_integration_compose():
     return yaml.safe_load(INTEGRATION_COMPOSE_PATH.read_text(encoding="utf-8"))
 
 
+def test_model_worker_uses_private_read_only_artifacts_and_inference_identity():
+    overlay = yaml.safe_load((REPOSITORY_ROOT / 'compose.jobs.yaml').read_text())
+    worker = overlay['services']['models']
+    assert worker['extends'] == {'file': 'compose.yaml', 'service': 'backend'}
+    assert worker['command'] == ['python', '-m', 'backend.app.model_worker']
+    assert worker['volumes'] == ['training-artifacts:/app/training-artifacts:ro']
+    assert worker['mem_limit'] == '512m'
+    assert worker['cpus'] == 1.0
+    assert worker['environment'] == {
+        'RABBITMQ_HOST': 'rabbitmq',
+        'RABBITMQ_INFERENCE_PASSWORD': '${RABBITMQ_INFERENCE_PASSWORD:?Preencha a credencial privada de inferencia}',
+    }
+    assert worker['depends_on']['rabbitmq']['condition'] == 'service_healthy'
+    assert worker['healthcheck']['disable'] is True
+
+
 def test_messaging_overlay_keeps_legacy_dashboard_and_broker_private():
     overlay = yaml.safe_load((REPOSITORY_ROOT / 'compose.messaging.yaml').read_text())
     assert set(overlay['services']) == {'backend'}

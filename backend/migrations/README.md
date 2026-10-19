@@ -62,7 +62,7 @@ serviços futuros. Labels de treino não são acrescentados à telemetria ao viv
    python -c 'from backend.app.config.settings import RuntimeSettings; from backend.app.repositories.postgres import initialize_schema; initialize_schema(RuntimeSettings())'
    ```
 
-3. Conferir `SELECT version FROM schema_migrations ORDER BY version` (1–8).
+3. Conferir `SELECT version FROM schema_migrations ORDER BY version` (1–9).
    Repetir o runner é seguro. Se falhar, toda a rodada de migrações pendentes
    volta ao estado anterior; corrigir a causa e tentar novamente. A versão 003
    continua recusando regras legadas conflitantes.
@@ -81,6 +81,13 @@ da versão 6 e à expiração/revogação própria; novas sessões são `jwt`.
 prazo máximo de 60 segundos; o serviço limita também à expiração da sessão.
 
 ## Verificação reproduzível
+
+A versão 009 da B2-24 acrescenta `model_outbox`. Solicitação de ativação e
+transições de carga gravam evento junto ao efeito PostgreSQL; `sequence` preserva
+ordem de publicação e `event_id` identifica redelivery. Cada ativação tem uma
+solicitação canônica `api`; `inference` pode publicar seus estados sucessivos.
+`published_at` só recebe valor após publisher confirm. Não remove registros nem
+altera modelos existentes. Retenção continua manual; não apagar eventos pendentes.
 
 A versão 008 da B2-17 acrescenta `job_outbox`, separada da outbox por dispositivo.
 Cada solicitação tem um evento estável por job; mudanças de estado e progresso

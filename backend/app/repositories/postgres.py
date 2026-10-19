@@ -14,6 +14,7 @@ MIGRATIONS = (
     (6, Path(__file__).resolve().parents[2] / "migrations" / "006_auth_security.sql"),
     (7, Path(__file__).resolve().parents[2] / "migrations" / "007_aiot_events.sql"),
     (8, Path(__file__).resolve().parents[2] / "migrations" / "008_job_outbox.sql"),
+    (9, Path(__file__).resolve().parents[2] / "migrations" / "009_model_activation_outbox.sql"),
 )
 
 

@@ -9,7 +9,16 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-23](tasks/B2-23.md): página Treinamento com jobs reais,
+A última entrega foi [B2-24](tasks/B2-24.md): registro privado de versões e
+ativação administrativa assíncrona, com validação/carga dos dois modelos antes
+da troca atômica. Outbox e fila dedicada preservam pedidos/status; falha mantém
+versão anterior e erro consultável. PostgreSQL/RabbitMQ reais comprovaram troca,
+recuperação, retomada de `loading`, duplicatas, isolamento e rollback transacional.
+Schema aceita o `+` já produzido em `features_version`; artefatos antigos intactos.
+Sem dependências novas ou ativação no ambiente pessoal. Inferência/reidratação
+do consumidor de previsões continuam na B2-25; limites e testes estão no cartão.
+
+A [B2-23](tasks/B2-23.md) conserva página Treinamento com jobs reais,
 progresso recuperável, baseline/MAE/RMSE/R², dispersão e erros dos dois alvos,
 importância por permutação em até 500 linhas reservadas e versões/seed/split.
 PostgreSQL/RabbitMQ/Chromium reais comprovaram 1m, recarga sem reenvio, isolamento,
@@ -102,7 +111,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-24](tasks/B2-24.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-25](tasks/B2-25.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

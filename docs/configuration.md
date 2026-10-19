@@ -105,7 +105,7 @@ docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml up -d -
 ```
 
 Antes de usar em dados importantes, seguir backup/restauração no
-[guia de migrações](../backend/migrations/README.md); o runner aplicará a 008.
+[guia de migrações](../backend/migrations/README.md); o runner aplicará até a 009.
 O exemplo combina AIoT existente com jobs, mas jobs não exigem catálogo/dispositivo.
 As credenciais `RABBITMQ_API_PASSWORD`, `RABBITMQ_GENERATION_PASSWORD` e
 `RABBITMQ_TRAINING_PASSWORD` já constam de `.env.example` e da topologia B2-07.
@@ -169,6 +169,39 @@ o acompanhamento e os resultados após recarga. A API precisa das duas montagens
 RO descritas acima. Sem o worker `training`, o job permanece enfileirado.
 Métricas são de regressão offline; concluir o job ou vencer a baseline não ativa
 um modelo no monitoramento. Contrato em [B2-23](../contracts/aiot.md#resultados-e-diagnósticos-de-treinamento--b2-23).
+
+## Ativação de modelos B2-24
+
+O overlay de jobs também define `models`, com `RABBITMQ_INFERENCE_PASSWORD`
+(credencial já prevista na topologia), `TRAINING_ARTIFACT_ROOT` e volume de treino
+somente leitura. Não precisa catálogo live, MQTT, porta publicada ou biblioteca
+nova. Limite inicial: 512 MiB/1 CPU, sujeito à medição da pilha na B2-33.
+
+Antes de habilitar, reconstruir o bootstrap e atualizar RabbitMQ preservando
+volumes, conforme [infra](../infra/rabbitmq/README.md), para instalar a décima
+fila `coldsafe.model-activation` e seu ACL. Rebuild coordenado dos consumidores
+também leva a correção do schema para `features_version` com `+`. O backend
+atualizado de Mensageria espera as dez filas. Depois, no ambiente já configurado:
+
+```sh
+docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml up -d --build backend models
+```
+
+Fora do Compose: `python -m backend.app.model_worker`, com configuração PostgreSQL,
+RabbitMQ e volume RO próprios. A API usa apenas `RABBITMQ_API_PASSWORD` para
+publicar pedidos; o worker usa apenas sua identidade `inference`. As rotas ficam
+disponíveis junto do opt-in dos jobs. `202` conserva pedido mesmo com worker/broker
+parado; consulte status antes de enviar novamente, pois só uma ativação pode ficar
+pendente por dono. A [API privada](../contracts/aiot.md#ativação-implementada--b2-24)
+lista modelos, registra ativação e informa versão ativa/erros. A interface web de
+ativação não faz parte desta entrega.
+
+Retomada do mesmo pedido em `loading` recarrega o pacote. Se o broker esgotar o
+limite de redelivery, faça recuperação manual da mensagem original da DLQ, com
+mesmos IDs/propriedades; não exclua outbox/ativação para liberar outro pedido.
+Para voltar à versão anterior, envie um novo pedido usando o ID anterior; não
+edite `active_models` por SQL. Não apagar pacotes referenciados, inclusive antigos.
+Registro ativo é durável; reidratação e inferência online ficam para B2-25.
 
 ## API AIoT opcional B2-13
 

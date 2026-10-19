@@ -154,6 +154,45 @@ def test_every_contract_event_routes_to_the_right_queues(broker):
                     assert properties.delivery_mode == 2
                     channel.basic_ack(method.delivery_tag)
                 assert channel.basic_get(queue(role), auto_ack=False)[0] is None
+        if kind == 'model_activation':
+            with connect(broker, 'inference') as channel:
+                method, properties, body = take(channel, 'model-activation')
+                assert body == original
+                assert properties.message_id == example['payload']['event_id']
+                channel.basic_ack(method.delivery_tag)
+                assert channel.basic_get(queue('model-activation'), auto_ack=False)[0] is None
+
+
+def test_model_activation_failure_keeps_original_in_dlq_without_consuming_telemetry(broker):
+    example = next(item for item in examples() if item['payload']['type'] == 'model_activation')
+    with connect(broker, 'api') as channel:
+        original = publish(channel, example)
+    for role in ('inference', 'observability'):
+        with connect(broker, role) as channel:
+            method, _, body = take(channel, role)
+            assert body == original
+            channel.basic_ack(method.delivery_tag)
+    with connect(broker, 'inference') as channel:
+        method, _, body = take(channel, 'model-activation')
+        assert body == original
+        channel.basic_reject(method.delivery_tag, requeue=False)
+    for role in ('audit', 'observability'):
+        with connect(broker, role) as channel:
+            method, properties, body = take(channel, role)
+            assert body == original
+            assert properties.headers['x-death'][0]['queue'] == 'coldsafe.model-activation'
+            channel.basic_ack(method.delivery_tag)
+
+
+@pytest.mark.parametrize('role', list(SERVICE_ROLES))
+def test_only_inference_identity_can_read_model_activation_queue(broker, role):
+    with connect(broker, role) as channel:
+        if role == 'inference':
+            assert channel.basic_get(queue('model-activation'), auto_ack=False)[0] is None
+        else:
+            with pytest.raises(pika.exceptions.ChannelClosedByBroker) as error:
+                channel.basic_get(queue('model-activation'), auto_ack=False)
+            assert error.value.reply_code == 403
 
 
 @pytest.mark.parametrize("role", list(SERVICE_ROLES))

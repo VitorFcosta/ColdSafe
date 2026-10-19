@@ -113,6 +113,7 @@ def test_job_publisher_runtime_is_optional_and_stops_with_app():
     with patch('backend.app.runtime.MqttSubscriber'), patch('backend.app.runtime.create_influx_repository'), \
             patch('backend.app.runtime.initialize_schema'), patch('backend.app.runtime.postgres_is_ready', return_value=True), \
             patch('backend.app.services.commands.CommandService.expire_pending'), \
+            patch('backend.app.amqp.models.ModelPublisher'), \
             patch('backend.app.amqp.jobs.JobPublisher') as factory:
         factory.return_value.run.side_effect = lambda stop: (started.set(), stop.wait(5))
         app = build_runtime_app(configured)

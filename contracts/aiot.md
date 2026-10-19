@@ -634,6 +634,55 @@ evita que solicitações concorrentes restaurem uma versão já substituída.
 A versão realmente carregada aparece em cada previsão; publicar ativação
 não significa que já foi ativada. Falha preserva o serviço anterior.
 
+### Ativação implementada — B2-24
+
+| Rota | Regra / resposta |
+| --- | --- |
+| `GET /api/v3/models` | Sessão atual; até 50 pacotes próprios de treino concluído: IDs, versões, métricas e data. Inclui rejeitados para inspeção; não expõe caminhos. |
+| `GET /api/v3/models/active` | Versão ativa persistida da conta (`model_id`, versões, `activated_at`), ou `data:null`. |
+| `POST /api/v3/model-activations` | Admin atual; corpo estrito `{model_id: UUID}`. Retorna `202` com ativação `ready`, ID, versões, anterior, datas e erro. |
+| `GET /api/v3/model-activations/{id}` | Status privado recuperável por ID, inclusive `failed/MODEL_LOAD_FAILED`. |
+
+Respostas seguem envelope v3 e `no-store`. Sem credencial AMQP da API, essas
+rotas não são instaladas. `404 MODEL_NOT_FOUND` cobre pacote ausente/alheio ou
+sem resultado de treino concluído; `409 MODEL_NOT_ELIGIBLE` rejeita candidato
+não aprovado; `409 ACTIVATION_PENDING` impede novo pedido enquanto há carga.
+Consulta alheia/ausente usa `404 MODEL_ACTIVATION_NOT_FOUND`. Falha de JSON/hashes
+no POST usa `503 TRAINING_RESULT_UNAVAILABLE`; erro PostgreSQL usa `503` sanitizado.
+
+O pedido e `model_activation` são persistidos juntos em `model_outbox` pela API.
+Worker `models` usa a identidade `inference`, consome a fila dedicada
+`coldsafe.model-activation` e confere o evento contra a solicitação persistida.
+O lock de sessão por proprietário atravessa o checkpoint `loading`. Depois de
+validar e carregar **ambos** os estimadores, a mesma transação troca
+`active_models`, conclui a ativação e grava `model_status`. Falha conserva o
+ponteiro/bundle anterior; duplicata terminal não repete a troca. Interrupção em
+`loading` permite repetir a carga pelo mesmo ID em outro processo.
+
+O carregador reutiliza `training-package-v1`: fonte, layout, unidades, transformação,
+baseline/gate e SHA-256 são revalidados antes do pickle. Exige Python major/minor
+igual e versões numéricas registradas exatamente iguais; confere tipos, parâmetros,
+layout e uma previsão finita após carregar. Aceita apenas referências internas
+registradas de jobs concluídos, nunca uploads/URLs/caminhos no HTTP. Hash detecta
+corrupção, não autentica um produtor malicioso: worker/volume continuam confiáveis.
+
+Correção de compatibilidade: apenas `features_version` também aceita `+`, usado
+desde B2-20 em `rolling-v1-<hash>+median-clip-v1`. Identificadores já produzidos
+são preservados; `model_version` mantém a regra anterior. Reconstruir consumidores
+com o schema atualizado antes de publicar esses eventos.
+
+Recuperação da versão anterior usa novo POST com o `previous_model_id` de uma
+ativação; revalida o pacote e serializa a troca novamente, sem alterar registros
+manualmente. Preserve os artefatos das versões anteriores. Publicação com confirms
+e outbox pode duplicar transporte, mas conserva `event_id`. Perdas repetidas podem
+esgotar o limite do broker e exigir redelivery manual da solicitação original na
+DLQ; não apague uma ativação pendente para contornar a exclusão.
+
+Essa etapa não processa telemetria nem reidrata o cache do consumidor de previsões
+ao reiniciar: isso pertence à B2-25. O registro ativo sobrevive ao restart. A cópia
+de `model_activation` na fila `inference` continua preservada para essa integração;
+o novo worker não consome essa fila nem descarta sua telemetria.
+
 ## Erro e retry
 
 `processing_error` contém evento fonte conhecido (ou nulo), código fechado,

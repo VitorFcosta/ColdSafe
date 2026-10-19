@@ -37,6 +37,7 @@ def service(payload=None, *, error=None):
 
 
 def test_only_fixed_queue_metrics_leave_the_service():
+    assert 'coldsafe.model-activation' in QUEUE_NAMES
     payload = queues() + [{'name': 'other-owner-queue', 'secret': 'private'}]
     monitor, transport = service(payload)
     result = monitor.summary()

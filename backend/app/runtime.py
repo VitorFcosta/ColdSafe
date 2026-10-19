@@ -163,15 +163,22 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             password=settings.rabbitmq_observability_password.get_secret_value(),
         )
 
-    jobs = job_publisher = None
+    jobs = job_publisher = models = model_publisher = None
     if settings.rabbitmq_api_password is not None:
         from backend.app.amqp.jobs import JobPublisher
+        from backend.app.amqp.models import ModelPublisher
         from backend.app.services.jobs import JobService
+        from backend.app.services.models import ModelService
 
         jobs = JobService(settings, artifact_root=settings.job_artifact_root,
                           training_artifact_root=settings.training_artifact_root)
         job_publisher = JobPublisher(jobs, host=settings.rabbitmq_host, port=settings.rabbitmq_port,
                                      password=settings.rabbitmq_api_password.get_secret_value())
+        models = ModelService(settings, artifact_root=settings.training_artifact_root)
+        model_publisher = ModelPublisher(
+            models, host=settings.rabbitmq_host, port=settings.rabbitmq_port,
+            password=settings.rabbitmq_api_password.get_secret_value(), role='api',
+        )
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
@@ -190,7 +197,7 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             initialize_schema(settings)
             commands.expire_pending()
             subscriber.start()
-            for worker in (consumer, observer, job_publisher):
+            for worker in (consumer, observer, job_publisher, model_publisher):
                 if worker is not None:
                     thread = Thread(target=worker.run, args=(shutdown,), daemon=True)
                     thread.start()
@@ -246,4 +253,7 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
     if jobs is not None:
         from backend.app.api.jobs import create_jobs_router
         app.include_router(create_jobs_router(auth, jobs))
+    if models is not None:
+        from backend.app.api.models import create_models_router
+        app.include_router(create_models_router(auth, models))
     return app

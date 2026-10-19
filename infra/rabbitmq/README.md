@@ -52,6 +52,7 @@ Publicação direta pela exchange padrão e escrita na DLX são proibidas.
 | gateway | `coldsafe.gateway` | command | telemetry, ack, processing_error |
 | writer | `coldsafe.writer` | telemetry | telemetry_persisted, processing_error |
 | inference | `coldsafe.inference` | telemetry, model_activation | prediction, model_status, processing_error |
+| inference (worker models B2-24) | `coldsafe.model-activation` | model_activation | model_status, processing_error |
 | delivery | `coldsafe.delivery` | telemetry, telemetry_persisted, ack, prediction, command_status, alert, freshness, job_progress, model_status, processing_error | processing_error |
 | commands | `coldsafe.commands` | telemetry, telemetry_persisted, ack, prediction, freshness | command, command_status, alert, freshness, processing_error |
 | generation | `coldsafe.generation` | job_requested com header generation | job_progress, processing_error |
@@ -67,6 +68,13 @@ sem conceder acesso a usuários HTTP. A API autoriza cada consulta
 antes de revelar qualquer dado. O broker limita serviços/tipos, não propriedade
 de usuário ou catálogo de dispositivos: essa validação continua no consumidor.
 
+Na B2-24, `models` de `compose.jobs.yaml` carrega somente artefatos privados em
+volume de leitura, com 512 MiB/1 CPU e a identidade existente `inference`. Sua
+fila dedicada impede que pedidos de ativação retirem telemetria da futura B2-25.
+O binding de `model_activation` da fila `inference` permanece; ela recebe uma
+cópia independente para o consumidor futuro. A credencial só lê essas duas filas.
+Ativação pessoal do overlay e import da topologia são operações separadas.
+
 ## Painel de métricas B2-15
 
 A página `/messaging` consulta somente `GET /api/v3/messaging` da API ColdSafe.
@@ -76,7 +84,7 @@ O backend usa `RABBITMQ_HOST`, `RABBITMQ_MANAGEMENT_PORT` (15672) e
 nem ativar o percurso AIoT completo; `compose.aiot.yaml` também os inclui.
 Preparação em [configuração](../../docs/configuration.md#mensageria-b2-15).
 
-As nove filas têm contagem total, prontas, sem confirmação, consumidores e taxas
+As dez filas têm contagem total, prontas, sem confirmação, consumidores e taxas
 de publicação/entrega por segundo. São métricas agregadas de infraestrutura,
 restritas a administrador ColdSafe: não representam atividade de um proprietário.
 `consumers` conta assinaturas registradas no broker, não processos conectados:
@@ -140,7 +148,7 @@ Exceção: a fila de cópias `observability` tem política própria de 8 MiB,
 antigas ou repetidamente interrompidas; os originais de negócio/DLQ permanecem.
 Essa separação evita ciclos DLX → observador → DLX e impede que uma fila de
 amostras cheia rejeite publicações de negócio. A política de retry acima continua
-nas sete filas de trabalho. Confirmado na documentação RabbitMQ 4.3 de
+nas oito filas de trabalho. Confirmado na documentação RabbitMQ 4.3 de
 [DLX](https://www.rabbitmq.com/docs/dlx) e [limite de fila](https://www.rabbitmq.com/docs/maxlength).
 DLQ não tem TTL nem ciclo para filas de trabalho. Capacidade da pilha completa
 continua na B2-33. Nó único não fornece alta disponibilidade; `at-least-once`

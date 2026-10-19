@@ -55,10 +55,10 @@ def build_definitions(passwords):
                       exchange("jobs.unrouted", "fanout")],
         "queues": [{"name": f"coldsafe.{role}", "vhost": VHOST, "durable": True,
                     "auto_delete": False, "arguments": {"x-queue-type": "quorum"}}
-                   for role in (*queue_roles, "dlq")],
+                   for role in (*queue_roles, "model-activation", "dlq")],
         "bindings": bindings(queue_roles),
         "policies": [{"name": "bounded-failures", "vhost": VHOST,
-                      "pattern": r"^coldsafe\.(gateway|writer|inference|delivery|commands|generation|training)$",
+                      "pattern": r"^coldsafe\.(gateway|writer|inference|delivery|commands|generation|training|model-activation)$",
                       "apply-to": "quorum_queues", "priority": 10,
                       "definition": {"dead-letter-exchange": "coldsafe.dlx",
                                      "dead-letter-strategy": "at-least-once", "overflow": "reject-publish",
@@ -77,7 +77,8 @@ def resource_permissions(role):
     queue = "dlq" if role == "audit" else role
     return {"user": f"coldsafe-{role}", "vhost": VHOST, "configure": "^$",
             "write": r"^coldsafe\.events$" if writes else "^$",
-            "read": rf"^coldsafe\.{queue}$" if role not in ("api", "monitor") else "^$"}
+            "read": (r"^coldsafe\.(inference|model-activation)$" if role == "inference" else
+                     rf"^coldsafe\.{queue}$" if role not in ("api", "monitor") else "^$")}
 
 
 def topic_permissions(role, writes):
@@ -99,7 +100,8 @@ def binding(source, destination, key, kind="queue", arguments=None):
 def bindings(queue_roles):
     event_bindings = [binding("events", role, "v3.#" if kind == "#" else f"v3.{kind}.*")
                       for role in queue_roles for kind in SERVICE_ROLES[role][0]]
-    return [*event_bindings, binding("events", "jobs", "v3.job_requested.*", "exchange"),
+    return [*event_bindings, binding("events", "model-activation", "v3.model_activation.*"),
+            binding("events", "jobs", "v3.job_requested.*", "exchange"),
             *[binding("jobs", role, "", arguments={"x-match": "all", "job_type": role})
               for role in ("generation", "training")],
             binding("dlx", "dlq", "#"), binding("jobs.unrouted", "dlq", ""),

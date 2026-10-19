@@ -45,6 +45,23 @@ services:
         condition: service_healthy
     healthcheck:
       disable: true
+  models:
+    extends:
+      file: compose.yaml
+      service: backend
+    command: [python, -m, backend.app.model_worker]
+    volumes:
+      - "training-artifacts:/app/training-artifacts:ro"
+    mem_limit: 512m
+    cpus: 1.0
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_INFERENCE_PASSWORD: "${RABBITMQ_INFERENCE_PASSWORD:?Preencha a credencial privada de inferencia}"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      disable: true
 
 volumes:
   job-artifacts:
