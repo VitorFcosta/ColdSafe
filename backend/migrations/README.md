@@ -82,6 +82,14 @@ prazo máximo de 60 segundos; o serviço limita também à expiração da sessã
 
 ## Verificação reproduzível
 
+A versão 010 da B2-25 acrescenta `inference_events`, com histórico aceito,
+previsão canônica e marcação de confirmação. Fonte/saída são gravadas juntas,
+deduplicadas pelo UUID da telemetria. Índices limitam consulta à janela por
+proprietário/dispositivo/equipamento e às saídas pendentes. Migração aditiva,
+sem alterar telemetria, buckets ou versões de modelos existentes. Retenção
+continua sem expurgo automático: apagar a linha elimina histórico/deduplicação
+e pode transformar redelivery em novo cálculo; preservar pendências e identidades.
+
 A versão 009 da B2-24 acrescenta `model_outbox`. Solicitação de ativação e
 transições de carga gravam evento junto ao efeito PostgreSQL; `sequence` preserva
 ordem de publicação e `event_id` identifica redelivery. Cada ativação tem uma

@@ -52,10 +52,10 @@ describe('AIoT API boundary', () => {
     expect(parseAiotEvent(event, deviceId, environmentId)).toBeNull()
   })
 
-  it('normaliza snapshot, frescor e persistência sem expor previsão futura', () => {
+  it('normaliza snapshot, frescor e persistência sem inventar previsão', () => {
     const result = parseAiotSnapshot(snapshot(), deviceId)
     expect(result).toMatchObject({ environment: { id: environmentId }, device: { id: deviceId }, status: 'normal', freshness: { is_stale: false, age_seconds: 4 }, persistence: 'pending', reading: { motor_current_a: 1.4 } })
-    expect(result).not.toHaveProperty('prediction')
+    expect(result?.prediction).toBeNull()
     expect(parseAiotSnapshot({ ...snapshot(), persistence: 'persisted' }, deviceId)?.persistence).toBe('persisted')
     expect(parseAiotSnapshot({ ...snapshot(), telemetry: null, persistence: null, freshness: { state: 'no_data', last_event_id: null, last_received_at: null, age_seconds: null, stale_after_seconds: 30 } }, deviceId)).toMatchObject({ reading: null, status: 'no_data', freshness: null })
   })
@@ -66,12 +66,12 @@ describe('AIoT API boundary', () => {
     expect(parseAiotSnapshot({ ...snapshot(), freshness: { ...snapshot().freshness, last_event_id: '00000000-0000-4000-8000-000000000999' } }, deviceId)).toBeNull()
   })
 
-  it('valida frescor na fronteira de 30 segundos e ignora IA', () => {
+  it('valida frescor na fronteira de 30 segundos e reconhece previsão', () => {
     expect(parseAiotEvent(example('fresh_boundary'), deviceId)?.type).toBe('freshness')
     const invalid = example('fresh_boundary')
     ;(invalid.data as { age_seconds: number }).age_seconds = 31
     expect(parseAiotEvent(invalid, deviceId)).toBeNull()
-    expect(parseAiotEvent(example('prediction_available_zero_rul'), deviceId)).toBeNull()
+    expect(parseAiotEvent(example('prediction_available_zero_rul'), deviceId)?.type).toBe('prediction')
     expect(parseAiotEvent(example('temperature_alert_closed'), deviceId)?.type).toBe('alert')
   })
 

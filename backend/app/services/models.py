@@ -11,8 +11,12 @@ from backend.app.api.auth import AuthError
 from backend.app.repositories.aiot import AiotRepository
 from backend.app.repositories.postgres import connect
 from backend.app.services.jobs import public_job
-from backend.app.services.model_bundle import ModelBundleUnavailable, load_model_bundle
+from backend.app.services.model_bundle import LoadedBundle, ModelBundleUnavailable, load_model_bundle
 from backend.app.services.training_results import read_training_result
+
+
+class ModelActivationBusy(RuntimeError):
+    """The owner is loading another bundle; retain the source for retry."""
 
 
 class ModelService:
@@ -105,6 +109,27 @@ class ModelService:
             return cursor.execute('SELECT a.model_id,a.activated_at,m.model_version,m.features_version '
                 'FROM active_models a JOIN models m ON (m.id,m.owner_user_id)=(a.model_id,a.owner_user_id) '
                 'WHERE a.owner_user_id=%s', (owner,)).fetchone()
+
+    def sync_active(self, owner: UUID) -> LoadedBundle | None:
+        """Restore after startup and reload only when the authorized pointer changes."""
+        with connect(self.settings) as connection:
+            connection.autocommit = True
+            if not self._lock(connection, owner, session=True):
+                raise ModelActivationBusy('Model activation is in progress')
+            with connection.transaction():
+                model_id = self._previous(connection, owner)
+                if model_id is None:
+                    return None
+                previous = self.loaded.get(owner)
+                if previous is not None and previous.model_id == model_id:
+                    return previous
+                try:
+                    model, job, dataset = self._context(connection, owner, model_id)
+                    bundle = load_model_bundle(self.artifact_root, model, job, dataset)
+                except (ModelBundleUnavailable, HTTPException):
+                    return None
+                self.loaded[owner] = bundle
+                return bundle
 
     def list_models(self, owner: UUID) -> list[dict]:
         with connect(self.settings) as connection, connection.cursor(row_factory=dict_row) as cursor:

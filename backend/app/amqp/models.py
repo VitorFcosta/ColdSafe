@@ -58,6 +58,9 @@ class ModelWorker(ModelPublisher):
 
     def execute(self, event: dict, channel) -> bool:
         future = self.executor.submit(self.service.execute, UUID(event['data']['activation_id']))
+        return self._wait(future, channel)
+
+    def _wait(self, future, channel):
         try:
             while True:
                 try:

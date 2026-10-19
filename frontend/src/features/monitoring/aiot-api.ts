@@ -33,11 +33,24 @@ type Envelope = Readonly<{
   occurred_at: string
   received_at: string
 }>
+export const predictionUnavailableReasons = ['no_model', 'insufficient_history', 'invalid_features', 'model_unavailable', 'stale_input'] as const
+export type PredictionUnavailableReason = typeof predictionUnavailableReasons[number]
+export type Prediction = Envelope & Readonly<{ type: 'prediction'; data: PredictionData }>
+type PredictionData = Readonly<{
+  equipment_id: string
+  source_event_id: string
+  input_received_at: string
+  features_version: string
+}> & (
+  | Readonly<{ status: 'available'; model_id: string; model_version: string; health_score: number; rul_hours: number; reason: null }>
+  | Readonly<{ status: 'unavailable'; model_id: string | null; model_version: string | null; health_score: null; rul_hours: null; reason: PredictionUnavailableReason }>
+)
 export type AiotEvent = Envelope & (
   | { type: 'telemetry'; data: { reading: NonNullable<MonitoringSummary['reading']>; equipment: MonitoringEquipment } }
   | { type: 'command_status'; data: ActuatorCommand }
   | { type: 'alert'; data: TemperatureAlert }
   | { type: 'freshness'; data: Freshness }
+  | { type: 'prediction'; data: PredictionData }
 )
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -112,6 +125,22 @@ export function parseAiotEvent(value: unknown, deviceId: string, environmentId?:
       equipment: { equipment_id: equipment.equipment_id, running: equipment.running, led: actuators.led, buzzer: actuators.buzzer },
     } }
   }
+  if (value.type === 'prediction') {
+    if (!isUuid(data.equipment_id) || !isUuid(data.source_event_id) || value.correlation_id !== data.source_event_id ||
+      !isUtcTime(data.input_received_at) || typeof data.features_version !== 'string' ||
+      !/^[A-Za-z0-9._+-]{1,64}$/.test(data.features_version)) return null
+    const age = Date.parse(value.occurred_at) - Date.parse(data.input_received_at)
+    if (age < 0 || Date.parse(value.received_at) < Date.parse(data.input_received_at)) return null
+    const hasModel = isUuid(data.model_id) && typeof data.model_version === 'string' && /^[A-Za-z0-9._-]{1,64}$/.test(data.model_version)
+    const available = data.status === 'available' && hasModel && data.reason === null &&
+      inRange(data.health_score, 0, 100) && inRange(data.rul_hours, 0) && age <= 30_000
+    const unavailable = data.status === 'unavailable' && data.health_score === null && data.rul_hours === null &&
+      predictionUnavailableReasons.includes(data.reason as PredictionUnavailableReason) &&
+      (data.reason === 'no_model' ? data.model_id === null && data.model_version === null : hasModel) &&
+      (data.reason !== 'stale_input' || age > 30_000)
+    if (!available && !unavailable) return null
+    return { ...envelope, type: 'prediction', data: data as PredictionData }
+  }
   if (value.type === 'command_status') {
     if (!isUuid(data.command_id) || !isUuid(data.actuator_id) || value.correlation_id !== data.command_id ||
       (data.actuator !== 'led' && data.actuator !== 'buzzer') || typeof data.desired_state !== 'boolean' ||
@@ -140,6 +169,13 @@ export function parseAiotCommand(value: unknown, deviceId?: string, environmentI
   return event?.type === 'command_status' ? event.data : null
 }
 
+export function predictionMatchesReading(prediction: Prediction, reading: NonNullable<MonitoringSummary['reading']>): boolean {
+  return prediction.data.source_event_id === reading.event_id &&
+    prediction.correlation_id === reading.event_id && prediction.device_record_id === reading.device_record_id &&
+    prediction.environment_id === reading.environment_id && prediction.data.equipment_id === reading.equipment_id &&
+    Date.parse(prediction.data.input_received_at) === Date.parse(reading.received_at)
+}
+
 export function parseAiotSnapshot(value: unknown, deviceId?: string): MonitoringSummary | null {
   if (!isRecord(value) || !isRecord(value.environment) || !isUuid(value.environment.id) ||
     typeof value.environment.name !== 'string' || value.environment.name.trim() === '' ||
@@ -151,15 +187,21 @@ export function parseAiotSnapshot(value: unknown, deviceId?: string): Monitoring
     const command = value.commands[actuator]
     if (command !== null && parseAiotCommand(command, value.device.id, value.environment.id)?.actuator !== actuator) return null
   }
+  if (value.prediction_unavailable_reason != null && !predictionUnavailableReasons.includes(value.prediction_unavailable_reason as PredictionUnavailableReason)) return null
   const common = { environment: { id: value.environment.id, name: value.environment.name }, device: { id: value.device.id }, thresholds: value.thresholds }
   if (value.telemetry === null) {
-    return freshness.state === 'no_data' && value.persistence === null ? { ...common, reading: null, freshness: null, status: 'no_data', persistence: null } : null
+    return freshness.state === 'no_data' && value.persistence === null ? { ...common, reading: null, freshness: null, status: 'no_data', persistence: null, prediction: null, prediction_unavailable_reason: null } : null
   }
   const event = parseAiotEvent(value.telemetry, value.device.id, value.environment.id)
   if (event?.type !== 'telemetry' || freshness.state === 'no_data' || freshness.last_event_id !== event.event_id ||
     Date.parse(freshness.last_received_at!) !== Date.parse(event.received_at) ||
     (value.persistence !== 'pending' && value.persistence !== 'persisted')) return null
-  return { ...common, ...event.data, persistence: value.persistence,
+  const candidate = parseAiotEvent(value.prediction, value.device.id, value.environment.id)
+  const linked = candidate?.type === 'prediction' && predictionMatchesReading(candidate, event.data.reading) ? candidate : null
+  const expired = linked?.data.status === 'available' && freshness.state === 'stale'
+  const prediction = expired ? null : linked
+  const reason = expired ? 'stale_input' : prediction?.data.reason ?? value.prediction_unavailable_reason ?? null
+  return { ...common, ...event.data, persistence: value.persistence, prediction, prediction_unavailable_reason: reason as PredictionUnavailableReason | null,
     status: freshness.state === 'stale' ? 'stale' : calculateReadingStatus(event.data.reading.temperature_c, value.thresholds),
     freshness: { is_stale: freshness.state === 'stale', age_seconds: freshness.age_seconds! },
   }

@@ -105,7 +105,7 @@ docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml up -d -
 ```
 
 Antes de usar em dados importantes, seguir backup/restauração no
-[guia de migrações](../backend/migrations/README.md); o runner aplicará até a 009.
+[guia de migrações](../backend/migrations/README.md); o runner aplicará até a 010.
 O exemplo combina AIoT existente com jobs, mas jobs não exigem catálogo/dispositivo.
 As credenciais `RABBITMQ_API_PASSWORD`, `RABBITMQ_GENERATION_PASSWORD` e
 `RABBITMQ_TRAINING_PASSWORD` já constam de `.env.example` e da topologia B2-07.
@@ -202,6 +202,44 @@ mesmos IDs/propriedades; não exclua outbox/ativação para liberar outro pedido
 Para voltar à versão anterior, envie um novo pedido usando o ID anterior; não
 edite `active_models` por SQL. Não apagar pacotes referenciados, inclusive antigos.
 Registro ativo é durável; reidratação e inferência online ficam para B2-25.
+
+## Inferência ao vivo B2-25
+
+Opt-in sobre AIoT/jobs, com o mesmo catálogo e proprietário já comissionados:
+
+```sh
+docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml -f compose.inference.yaml config --quiet
+docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml -f compose.inference.yaml up -d --build backend models frontend
+```
+
+Esses comandos são instruções para implantação autorizada; os ensaios desta
+entrega usam infraestrutura descartável. O último overlay substitui somente o
+comando do serviço `models`: não inicie outro worker de ativação concorrente por
+engano. Preserva 512 MiB/1 CPU e artefatos RO, acrescentando catálogo RO em
+`/catalog/catalog.json` a partir de `SIMULATOR_CATALOG_DIR` e dono
+`AIOT_OWNER_USER_ID` a partir de `GATEWAY_OWNER_USER_ID`. Não publica portas nem
+precisa de nova biblioteca/credencial: usa `RABBITMQ_INFERENCE_PASSWORD` existente.
+O runner aplica migração aditiva 010; seguir backup no guia de migrações antes.
+
+Fora do Compose, `python -m backend.app.inference_worker` exige configuração
+PostgreSQL/RabbitMQ, raiz privada de treino, `AIOT_CATALOG_PATH` e
+`AIOT_OWNER_USER_ID`. Não precisa ativar consumidores da API no mesmo processo.
+O frontend deve ser reconstruído em modo AIoT para exibir previsão. Backend/writer/
+gateway precisam estar operantes para a fonte e sua prova de persistência chegarem
+ao WebSocket, conforme a integração anterior; este overlay não os comissiona.
+
+Ativação segue a API B2-24. O worker restaura o modelo ativo ao iniciar e troca
+sem reinício; pacote reprovado/incompleto não muda a versão anterior. Sem histórico
+prévio, o padrão 900/3600 s exige uma hora de coleta. Estados de indisponibilidade
+são informados, sem inventar zero. Não apagar `inference_events` para acelerar
+warm-up/retry: histórico, IDs e saída formam a deduplicação durável.
+
+Consulta é limitada à janela e até 10.000 registros incluindo âncora; excesso gera
+`invalid_features`. Disco cresce sem expurgo automático, e JSON/histórico têm custo
+de I/O por previsão. Revogar dono/desativar dispositivo fecha a publicação e pode
+encerrar/reiniciar esse runtime; corrigir o comissionamento antes de retomar.
+Perdas repetidas de conexão ainda podem esgotar redelivery e exigir recuperação
+manual da mensagem original na DLQ. Ver [contrato](../contracts/aiot.md#inferência-ao-vivo-implementada--b2-25).
 
 ## API AIoT opcional B2-13
 

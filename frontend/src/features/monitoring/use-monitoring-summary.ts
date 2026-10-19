@@ -3,7 +3,7 @@ import { clearSession, sessionToken } from '../account/session'
 
 import { resolveMonitoringState, STALE_AFTER_SECONDS, type SummaryState } from './monitoring-state'
 import { fetchMonitoringSummary, type MonitoringSummary } from './monitoring-summary'
-import { parseAiotEvent, type AiotEvent } from './aiot-api'
+import { parseAiotEvent, predictionMatchesReading, type AiotEvent } from './aiot-api'
 import { aiotEnabled } from './monitoring-version'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
@@ -161,6 +161,11 @@ export function useMonitoringSummary(
         if (aiotEnabled) {
           const event = parseAiotEvent(value, currentDevice, summary.value?.environment.id)
           if (event === null || recentEvents.has(event.event_id)) return
+          if (event.type === 'prediction' && summary.value?.reading) {
+            const reading = summary.value.reading
+            if (event.device_record_id !== reading.device_record_id || event.data.equipment_id !== reading.equipment_id ||
+              (!predictionMatchesReading(event, reading) && Date.parse(event.data.input_received_at) <= Date.parse(reading.received_at))) return
+          }
           recentEvents.add(event.event_id)
           // shortcut: bounded live dedup; REST recovers authoritative state after reconnect.
           if (recentEvents.size > 256) recentEvents.delete(recentEvents.values().next().value!)

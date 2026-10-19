@@ -15,7 +15,7 @@ na telemetria e confirmação de comando são informações separadas. Só ACK v
 confirma o pedido; timeout/rejeição permanecem explícitos. Nenhuma biblioteca nova.
 
 A B2-15 acrescenta `/messaging`, acessível pela navegação como **Mensageria**.
-O painel administrativo mostra as nove filas, contagens, taxas por segundo e
+O painel administrativo mostra as dez filas atuais, contagens, taxas por segundo e
 consumidores; consulta apenas a API ColdSafe com a sessão existente, nunca o
 RabbitMQ diretamente. Atualiza a cada cinco segundos e informa a idade da coleta.
 Falha conserva o último snapshot somente com aviso explícito; taxa ausente não
@@ -73,6 +73,21 @@ conforme [configuração de jobs](../docs/configuration.md#jobs-assíncronos-b2-
 Teste simulado específico: `npm run test:e2e -- training.spec.ts`.
 Teste real completo pelo [harness B2-23](../backend/README.md#treinamento-integrado-e-resultados-b2-23),
 que também confere os valores contra relatórios e captura desktop/mobile.
+
+A B2-25 acrescenta **Previsão do equipamento** no dashboard AIoT: saúde em pontos
+0–100, RUL em horas (zero é válido), versão do pacote/features e horários da entrada
+e cálculo. Falta de modelo/histórico, features inválidas, modelo indisponível e
+leitura vencida têm mensagens distintas. Resultado só aparece se vinculado à
+leitura atual; não reaproveita previsão anterior quando chega outra telemetria.
+WS dispara recuperação REST e a idade local oculta valores vencidos. A troca de
+versão aparece sem recarga da página; ativação continua na API administrativa.
+
+Sem dependência nova. `PredictionPanel.vue` reutiliza tokens e texto semântico;
+o modo legado conserva seu contrato. Teste simulado: `npm run test:e2e -- inference.spec.ts`.
+O [harness real](../backend/README.md#inferência-ao-vivo-b2-25) verifica worker,
+RabbitMQ, PostgreSQL, HTTP/WS e Chromium, com fixtures explícitas na fonte/recibo.
+Janelas de produção continuam 15 min/1 h; o warm-up pode exigir uma hora de coleta.
+Configuração do worker está no [guia](../docs/configuration.md#inferência-ao-vivo-b2-25).
 
 Para o dashboard v3 no Compose, use `compose.aiot.yaml`: ele habilita o backend e passa o argumento
 de build do frontend. É necessário reconstruir `frontend` ao alterar esse modo.

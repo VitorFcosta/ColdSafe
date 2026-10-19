@@ -1,5 +1,5 @@
 import type { ReadingStatus } from './monitoring-state'
-import { parseAiotSnapshot, isRecord as isAiotRecord, type MonitoringEquipment } from './aiot-api'
+import { parseAiotSnapshot, isRecord as isAiotRecord, type MonitoringEquipment, type Prediction, type PredictionUnavailableReason } from './aiot-api'
 import { aiotEnabled } from './monitoring-version'
 
 export type MonitoringSummary = Readonly<{
@@ -20,6 +20,8 @@ export type MonitoringSummary = Readonly<{
     sensor_ids?: Readonly<Record<string, string>>
     received_at: string
   }> | null
+  prediction?: Prediction | null
+  prediction_unavailable_reason?: PredictionUnavailableReason | null
   equipment?: MonitoringEquipment
   persistence?: 'pending' | 'persisted' | null
   status: ReadingStatus

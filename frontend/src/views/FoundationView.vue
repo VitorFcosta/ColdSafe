@@ -7,6 +7,7 @@ import { canWrite, clearSession, dashboardSelection, logout, saveDashboardSelect
 import AlertsComparisonPanel from '../features/monitoring/AlertsComparisonPanel.vue'
 import { fetchActuators, fetchCommand, isCommand, requestLed, type ActuatorCommand } from '../features/monitoring/actuators'
 import TemperatureHistoryChart from '../features/monitoring/TemperatureHistoryChart.vue'
+import PredictionPanel from '../features/monitoring/PredictionPanel.vue'
 import {
   fetchMonitoringHistory, historyPeriods, type HistoryPeriod, type MonitoringHistory,
 } from '../features/monitoring/monitoring-history'
@@ -424,6 +425,8 @@ function formatDateTime(value: string | undefined) {
               </div>
             </article>
           </section>
+
+          <PredictionPanel v-if="aiotEnabled" :summary="summary" :age-seconds="ageSeconds" />
 
           <section aria-label="Medições do ambiente" class="metrics-grid">
             <article class="panel">

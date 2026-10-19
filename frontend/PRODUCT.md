@@ -19,6 +19,19 @@ resumo, atuadores, histórico e alertas/comparação são recuperados.
 Essa integração usa o catálogo comissionado de um equipamento/dono por runtime,
 conforme B2-13. Não inclui IA, cena 3D nem novos painéis de filas.
 
+## Previsão do equipamento B2-25 — 19/10/2026
+
+O dashboard AIoT acrescenta saúde 0–100 e RUL em horas, com versão e horários da
+previsão e da entrada que a originou. Zero é válido; falta de modelo, warm-up,
+features inválidas, erro de modelo e leitura vencida são estados textuais.
+Só a previsão vinculada à leitura atual pode fornecer valores. Receber previsão
+não renova a atualidade dos sensores, e o estado local stale oculta esses números.
+A versão muda sem recarregar a página após ativação administrativa autorizada.
+
+As janelas padrão continuam 15 min/1 h. Sem histórico prévio, o primeiro resultado
+pode exigir uma hora de coleta. São estimativas sintéticas ainda sem calibração
+física. A ativação permanece na API; Insights/alertas preditivos são B2-26.
+
 ## Propósito
 
 Na B2-15, `/messaging` acrescenta um painel administrativo de infraestrutura:
@@ -48,7 +61,7 @@ o código atual e os [contratos compartilhados](../contracts/README.md).
 | --- | --- |
 | `/` | Apresentação acadêmica escura, demonstração identificada como simulada, vídeo com legendas e caminho para o painel. |
 | `/login` | Entrada e cadastro da conta. |
-| `/dashboard` | Seleção de ambiente e dispositivo, leitura atual, alertas, histórico, comparação e estados do LED e buzzer. |
+| `/dashboard` | Seleção de ambiente/dispositivo, leitura, alertas, histórico, comparação, atuadores e previsão vinculada no modo AIoT. |
 | `/manage` | Cadastro e edição de ambientes, dispositivos e limites. |
 | `/messaging` | Métricas administrativas reais de filas, taxas e consumidores, com idade da coleta. |
 | `/laboratory` | Geração sintética privada, progresso recuperável, resumo e amostra; formulário administrativo. |

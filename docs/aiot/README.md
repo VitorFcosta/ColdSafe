@@ -1,6 +1,6 @@
 # Retomar a evolução AIoT
 
-## Situação em 18/10/2026
+## Situação em 19/10/2026
 
 O código continua na base v1/v2 descrita no [README](../../README.md).
 O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
@@ -9,14 +9,23 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-24](tasks/B2-24.md): registro privado de versões e
+A última entrega foi [B2-25](tasks/B2-25.md): inferência de saúde/RUL ligada ao
+barramento e dashboard, com restauração do ativo e troca sem reiniciar worker
+ou navegador. Histórico/saída canônica são transacionais no PostgreSQL; kernel e
+transformação do treino, fonte/versão e estados de indisponibilidade preservados.
+PostgreSQL/RabbitMQ/API/WS/Chromium reais comprovaram troca A→B e falha mantendo B;
+fonte/recibos são fixtures declaradas, sem novo ensaio InfluxDB ou calibração.
+Paridade SQL/offline de uma hora passou; padrão continua 900/3600 s, sem encurtar
+warm-up. Sem dependências novas ou implantação pessoal. Limites/testes no cartão.
+
+A [B2-24](tasks/B2-24.md) conserva registro privado de versões e
 ativação administrativa assíncrona, com validação/carga dos dois modelos antes
 da troca atômica. Outbox e fila dedicada preservam pedidos/status; falha mantém
 versão anterior e erro consultável. PostgreSQL/RabbitMQ reais comprovaram troca,
 recuperação, retomada de `loading`, duplicatas, isolamento e rollback transacional.
 Schema aceita o `+` já produzido em `features_version`; artefatos antigos intactos.
 Sem dependências novas ou ativação no ambiente pessoal. Inferência/reidratação
-do consumidor de previsões continuam na B2-25; limites e testes estão no cartão.
+do consumidor de previsões foram integradas na B2-25; limites no cartão respectivo.
 
 A [B2-23](tasks/B2-23.md) conserva página Treinamento com jobs reais,
 progresso recuperável, baseline/MAE/RMSE/R², dispersão e erros dos dois alvos,
@@ -111,7 +120,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-25](tasks/B2-25.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-26](tasks/B2-26.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

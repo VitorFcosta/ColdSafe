@@ -244,6 +244,42 @@ retomada de `loading`, arquivos ruins, duplicatas/confirm perdida e eventos reai
 Não é novo ensaio massivo nem validação de precisão física. Configuração do
 serviço e atualização coordenada do schema/broker estão no [guia](../docs/configuration.md#ativação-de-modelos-b2-24).
 
+## Inferência ao vivo B2-25
+
+O worker `python -m backend.app.inference_worker` reúne ativação e telemetria na
+mesma instância de modelos. Restaura o ativo após reinício e usa as janelas e
+transformações do treino para publicar saúde/RUL, versão e fonte pelo RabbitMQ.
+Estado PostgreSQL em `inference_events` protege histórico, saída e replay antes
+do ACK; duplicatas não recalculam após mudança de versão.
+
+O [contrato B2-25](../contracts/aiot.md#inferência-ao-vivo-implementada--b2-25)
+explica causalidade, estados e limites. Padrão 15 min/1 h exige warm-up de uma
+hora se não houver histórico prévio persistido; janela curta existe apenas nas
+fixtures de teste. As duas saídas são finitas, saúde 0–100/RUL ≥0 horas. Pacote
+não carregável, entrada vencida e histórico insuficiente permanecem explícitos.
+Não há nova dependência, novo broker ou serviço paralelo ao de modelos.
+
+Testes rápidos com o lock dev, da raiz:
+
+```sh
+python -m pytest backend/tests/services/test_inference_service.py backend/tests/services/test_models_restore.py backend/tests/amqp/test_inference.py backend/tests/infra/test_inference_worker_cli.py backend/tests/infra/test_inference_compose.py --no-cov -o addopts='' -q
+```
+
+Com PostgreSQL descartável configurado por `POSTGRES_TEST_*` e chave JWT de teste:
+
+```sh
+COLDSAFE_RABBITMQ_INTEGRATION=1 python -m pytest backend/tests/integration/test_inference_integration.py backend/tests/integration/test_inference_migrations.py --no-cov -o addopts='' -q
+COLDSAFE_INFERENCE_INTEGRATION=1 COLDSAFE_RABBITMQ_INTEGRATION=1 python -m pytest backend/tests/integration/test_inference_browser.py --no-cov -o addopts='' -q -s
+```
+
+O primeiro verifica SQL real, paridade com uma hora/3.600 amostras, ordem,
+redelivery, restauração e autorização. O segundo usa modelos treinados da fixture
+de 720 linhas/2 s, PostgreSQL/RabbitMQ, HTTP/WS e Chromium reais; fonte e recibo são
+fixtures declaradas, sem nova gravação InfluxDB. Compara valores REST/tela e troca
+versão no mesmo worker/browser. Aceita `COLDSAFE_NODE_BINARY`,
+`COLDSAFE_FRONTEND_NODE_MODULES` e `COLDSAFE_INFERENCE_EVIDENCE_DIR` para artefatos.
+Não usar credenciais pessoais. Operação no [guia](../docs/configuration.md#inferência-ao-vivo-b2-25).
+
 ## Geração offline B2-18
 
 O mesmo POST de jobs aceita os parâmetros documentados no

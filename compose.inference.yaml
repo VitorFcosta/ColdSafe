@@ -1,0 +1,14 @@
+# Explicit opt-in after compose.yaml, compose.aiot.yaml and compose.jobs.yaml.
+services:
+  models:
+    command: [python, -m, backend.app.inference_worker]
+    environment:
+      AIOT_CATALOG_PATH: /catalog/catalog.json
+      AIOT_OWNER_USER_ID: "${GATEWAY_OWNER_USER_ID:?Preencha o proprietario do catalogo AIoT}"
+    volumes:
+      - type: bind
+        source: "${SIMULATOR_CATALOG_DIR:-./simulator/local}"
+        target: /catalog
+        read_only: true
+        bind:
+          create_host_path: false

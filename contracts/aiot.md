@@ -683,6 +683,60 @@ ao reiniciar: isso pertence à B2-25. O registro ativo sobrevive ao restart. A c
 de `model_activation` na fila `inference` continua preservada para essa integração;
 o novo worker não consome essa fila nem descarta sua telemetria.
 
+### Inferência ao vivo implementada — B2-25
+
+O overlay `compose.inference.yaml`, aplicado depois de AIoT/jobs, troca o comando
+do serviço `models` para `backend.app.inference_worker`: ativação e previsão usam
+um processo, uma identidade AMQP `inference` e a mesma instância de `ModelService`.
+Consome a fila própria `coldsafe.inference` (telemetria e cópia de ativação) e a
+fila dedicada da B2-24; replay de ativação terminal não reverte a versão atual.
+Catálogo, IDs de sensores/atuadores, propriedades AMQP e proprietário atual são
+validados. O escopo comissionado continua sendo um equipamento/dono por runtime.
+
+`sync_active` restaura o pacote autorizado ao iniciar e confere o ponteiro antes
+de cada entrada. Só recarrega quando o ID muda; ativação bem-sucedida substitui
+os dois estimadores juntos. Falha da ativação mantém anterior; falha ao restaurar
+um ativo em outro processo produz `model_unavailable`, sem rotular o bundle antigo
+com a nova versão. Banco indisponível/lock ocupado preservam a entrega para retry.
+
+A migração **010** acrescenta `inference_events`: fonte, previsão canônica e
+marcação de publicação. O processamento revalida propriedade no PostgreSQL,
+serializa por dono/dispositivo e grava fonte+previsão numa transação antes do ACK.
+UUID da previsão deriva da fonte; redelivery retorna o envelope já persistido,
+mesmo após troca de modelo. UUID reutilizado com outro conteúdo não é aceito.
+Outbox publica com confirmação antes de marcar; falha pode duplicar transporte,
+mas não recalcula nem cria outra identidade. Publicação também revalida dono ativo.
+
+Histórico usa exclusivamente `received_at` aceito, truncado em milissegundos,
+ordenado por horário/ID, e o mesmo `telemetry_features`/transformação do treino.
+Cada janela é `[cutoff-duration, cutoff)`: a própria entrada, leituras futuras e
+amostras no mesmo milissegundo ficam fora de X. SQL busca a maior janela passada
+e uma âncora anterior para provar extensão temporal. Limite explícito de **10.000
+registros, incluindo âncora**; excesso gera `invalid_features`, sem amostragem.
+Padrão permanece 900/3600 segundos: sem histórico persistido anterior, o warm-up
+exige uma hora e ao menos duas observações em tempos distintos por janela.
+Entradas sem modelo também compõem histórico para uma ativação posterior.
+
+Inferência calcula saúde e RUL com uma thread e limita saúde a 0–100/RUL a zero
+no mínimo. Valores devem ser finitos e sair juntos. Falta de modelo tem prioridade
+`no_model`; com modelo, histórico curto é `insufficient_history`, falha de features
+é `invalid_features`, falha de carga/execução é `model_unavailable` e entrada
+com idade maior que 30 s é `stale_input`. Idade é reavaliada após o cálculo.
+Zero RUL continua válido. Não há labels, nova interpretação de censura ou alteração
+de thresholds/alertas; Insights/histerese preditiva são B2-26.
+
+O dashboard AIoT mostra saúde, RUL em horas, versões e horários da previsão e da
+entrada, ou o motivo textual de ausência. Prediction WS invalida REST; o resumo
+autorizado continua a fonte da interface. Parser verifica vínculo completo com
+a leitura atual, sem substituir uma leitura nova por previsão antiga. Freshness
+local oculta números vencidos sem renovar a idade da telemetria.
+
+Histórico/outbox não têm expurgo automático; consulta por janela limita memória,
+não crescimento do disco ou custo de I/O. Não apagar linhas referenciadas/pendentes
+para refazer o warm-up: isso quebra deduplicação/identidade. Catálogo/proprietário
+revogado encerra esse worker de forma fechada, sem liberar saídas; o restart herdado
+requer recomissionar a configuração. Limites medidos da pilha inteira continuam B2-33.
+
 ## Erro e retry
 
 `processing_error` contém evento fonte conhecido (ou nulo), código fechado,

@@ -75,6 +75,14 @@ O binding de `model_activation` da fila `inference` permanece; ela recebe uma
 cópia independente para o consumidor futuro. A credencial só lê essas duas filas.
 Ativação pessoal do overlay e import da topologia são operações separadas.
 
+Na B2-25, `compose.inference.yaml` substitui o comando desse mesmo serviço para
+consumir as duas filas no mesmo processo e compartilhar o pacote carregado.
+Publica previsões pela identidade `inference` já permitida; não acrescenta fila,
+ACL ou credencial. A cópia de ativação passa pela mesma verificação durável e
+replay terminal não desfaz troca. Histórico/fonte/previsão/outbox ficam no
+PostgreSQL antes do ACK; publisher confirm antecede marcação da saída. Setup e
+limites em [inferência](../../docs/configuration.md#inferência-ao-vivo-b2-25).
+
 ## Painel de métricas B2-15
 
 A página `/messaging` consulta somente `GET /api/v3/messaging` da API ColdSafe.
