@@ -44,6 +44,8 @@ class AiotEventService:
         if str(UUID(owner_user_id)) != owner_user_id:
             raise ValueError('Canonical owner UUID required')
         self.settings, self.catalog, self.owner_user_id = settings, catalog, owner_user_id
+        from backend.app.services.predictive_alerts import PredictiveAlertService
+        self.predictive = PredictiveAlertService(self)
 
     @staticmethod
     def _now() -> datetime:
@@ -170,6 +172,15 @@ class AiotEventService:
                 self._link(cursor, event)
             elif kind == 'ack':
                 self._ack(cursor, event)
+            if kind in ('telemetry', 'prediction', 'telemetry_persisted'):
+                self.predictive.evaluate(cursor, event['event_id'] if kind == 'telemetry'
+                                         else data['source_event_id'])
+
+    def insights(self, user_id: UUID, device_id: str) -> dict | None:
+        return self.predictive.snapshot(user_id, device_id)
+
+    def update_predictive_rules(self, user_id: UUID, device_id: str, values: dict) -> dict | None:
+        return self.predictive.update_rules(user_id, device_id, values)
 
     def _link(self, cursor, event: dict) -> None:
         data = event['data']
@@ -330,6 +341,7 @@ class AiotEventService:
                 return
             self._expire(cursor)
             self._freshness(cursor)
+            self.predictive.reset_stale(cursor)
 
     def _expire(self, cursor) -> None:
         rows = cursor.execute("SELECT * FROM aiot_commands WHERE device_id=%s AND status='pending' "

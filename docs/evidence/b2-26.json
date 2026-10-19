@@ -1,0 +1,388 @@
+{
+  "task": "B2-26",
+  "date": "2026-10-19",
+  "status": "completed",
+  "git": {
+    "base": "2731b573587a86bdbf999339a41b4b67bb2b0d16",
+    "branch": "codex/block-5-validation",
+    "working_tree": "uncommitted task changes",
+    "commit_created": false,
+    "push_executed": false,
+    "checkpoint": "Validation snapshot before the subsequently authorized B2-26 commit and push; containing commit identifies the delivered revision."
+  },
+  "new_dependencies": [],
+  "files": {
+    "created": [
+      "backend/app/services/predictive_alerts.py",
+      "backend/migrations/011_predictive_alerts.sql",
+      "backend/tests/api/test_insights_api.py",
+      "backend/tests/integration/test_insights_browser.py",
+      "backend/tests/integration/test_predictive_alerts_integration.py",
+      "backend/tests/services/test_predictive_alerts.py",
+      "docs/evidence/b2-26.json",
+      "frontend/e2e/insights-real.spec.ts",
+      "frontend/playwright.insights.config.ts",
+      "frontend/src/features/account/catalog-session.spec.ts",
+      "frontend/src/features/insights/insights-api.spec.ts",
+      "frontend/src/features/insights/insights-api.ts",
+      "frontend/src/views/InsightsView.spec.ts",
+      "frontend/src/views/InsightsView.vue"
+    ],
+    "modified": [
+      "backend/README.md",
+      "backend/app/api/aiot.py",
+      "backend/app/repositories/postgres.py",
+      "backend/app/services/aiot_events.py",
+      "backend/migrations/README.md",
+      "backend/tests/integration/test_aiot_migrations_integration.py",
+      "backend/tests/integration/test_inference_migrations.py",
+      "backend/tests/integration/test_postgres_schema_integration.py",
+      "contracts/aiot.md",
+      "docs/aiot/README.md",
+      "docs/aiot/tasks/B2-26.md",
+      "docs/aiot/tasks/README.md",
+      "frontend/PRODUCT.md",
+      "frontend/README.md",
+      "frontend/src/features/account/catalog.ts",
+      "frontend/src/router/index.ts",
+      "frontend/src/views/FoundationView.vue",
+      "frontend/src/views/LaboratoryView.vue",
+      "frontend/src/views/ManageView.vue",
+      "frontend/src/views/MessagingView.vue",
+      "frontend/src/views/TrainingView.vue"
+    ]
+  },
+  "source_sha256": {
+    "backend/app/api/aiot.py": "fe86002e551649efef9f65b004f22ad8c6f65a26a6d953b1d76ebec4ea820c51",
+    "backend/app/repositories/postgres.py": "cf3d05ab874a85faf9ccc53baffb381601f85c9c7e6732ce68b88af3d4ae214c",
+    "backend/app/services/aiot_events.py": "3352fb341ff4c2501dc88e32e7797ce43a5734512791c8f41afeabd66b0ed671",
+    "backend/app/services/predictive_alerts.py": "c104cb749978a9a38319780bf7ab28ba66b5d62780e9fd4315005ed6c8a28a3c",
+    "backend/migrations/011_predictive_alerts.sql": "a2d12ebf203730e14d4827234821bc264b2fbd7963dc8a24fce18c6d8c496387",
+    "backend/tests/api/test_insights_api.py": "0b9cb74207fa7b79ef4c3be9347bfcb474937f7235d1c43bb7ab2cbc6910e882",
+    "backend/tests/integration/test_aiot_migrations_integration.py": "c1664d6f7bfc2ae85bb1d4d71117ea15a2f11221a79738201140e1a78c1058ec",
+    "backend/tests/integration/test_inference_migrations.py": "d17f487eb8b834aaab44e0ea179ef37f521fbf04d19d333cb99105aa99a4949b",
+    "backend/tests/integration/test_insights_browser.py": "ab05dd06f4af07c91d5614c355d3076f7677a0271144388d45be4115a3a9d24a",
+    "backend/tests/integration/test_postgres_schema_integration.py": "ddb40eefcaa7362f031d6ed0c51d7425ab296ef7ef45c205eb4292f6e5688658",
+    "backend/tests/integration/test_predictive_alerts_integration.py": "38d79b7a0c66e56f7b38d66e0209a1c6a586721cee36b823e55ca05c161619bd",
+    "backend/tests/services/test_predictive_alerts.py": "44e6c9cffef29112272d5b5aeae36df3c742dbf16e550030add6554832583831",
+    "frontend/e2e/insights-real.spec.ts": "6d96826b6470e567401bd8cc2091a98b6ef65943991c093750a4c5d36b5ff6b1",
+    "frontend/playwright.insights.config.ts": "90ac2465104eef30af6c7ac6cdc1c16c30a2f91af221ec099b0f51dd40c933a0",
+    "frontend/src/features/account/catalog-session.spec.ts": "ccbfbc6631638aa862009c30339bb59fc6daba9c59857f1367d4c3e0fb6707cb",
+    "frontend/src/features/account/catalog.ts": "af43b12f3265718fd56ef407f6bdcd6ec0833c71007e6ee4805b3efc060e98c7",
+    "frontend/src/features/insights/insights-api.spec.ts": "9e072959a2df0f824ab7976435534eebde9e50b0c110174b032ebc020dc6ff0d",
+    "frontend/src/features/insights/insights-api.ts": "07c31456f0e7c9e3b6ff84dfa96a60dd3fd51018809287b72879e3e27d638dd1",
+    "frontend/src/router/index.ts": "868a9fe9a7869966130da39557245f4ef30c1bc9de14da3bbeca80065464f8eb",
+    "frontend/src/views/FoundationView.vue": "1d6f2011cd3f4c104760c22aac0cab3f8fcf9d09f273c08c2c56e487b325668c",
+    "frontend/src/views/InsightsView.spec.ts": "8cd91ca55b0709de61b5d87905032430476be4450f5b730873054a5443fd9f1c",
+    "frontend/src/views/InsightsView.vue": "28dd80a242b5fdc9e18ad9f7f336e341ad82a4f7e49f6fed966a7e8c0c4f845b",
+    "frontend/src/views/LaboratoryView.vue": "0d6c3f7cf229dc22d39046b9952207ca25ca4e5ae0919378859f39cd94a545c4",
+    "frontend/src/views/ManageView.vue": "87b8fd4cab1832450c516e5beb8390cbfb22d69c2998a2724d222cc75c08436b",
+    "frontend/src/views/MessagingView.vue": "04434af00450d31a354570fc4d26a9dc21bcfde601e598f4d8c49f1a38e0e146",
+    "frontend/src/views/TrainingView.vue": "a89e8cc1b4601cfa4af9bf2b4ff3e7d7fdd6a31c8e3bbd713211c445b495b478"
+  },
+  "acceptance": {
+    "opened": {
+      "device_id": "insights-cb8e07c8effd",
+      "equipment_id": "00000000-0000-4000-8000-000000000003",
+      "rules": {
+        "health_critical": 32,
+        "health_recovery": 42,
+        "rul_critical_hours": 22,
+        "rul_recovery_hours": 44,
+        "open_count": 3,
+        "close_count": 10
+      },
+      "prediction": {
+        "data": {
+          "reason": null,
+          "status": "available",
+          "model_id": "127da88e-f395-44f3-93aa-6ec2814aeb2c",
+          "rul_hours": 16,
+          "equipment_id": "00000000-0000-4000-8000-000000000003",
+          "health_score": 27,
+          "model_version": "demo-v1",
+          "source_event_id": "2372eeb1-b066-47b3-89ff-b7c8649c253a",
+          "features_version": "fan-v1",
+          "input_received_at": "2026-10-19T14:58:20.641371Z"
+        },
+        "type": "prediction",
+        "event_id": "8b05cdee-3243-4b66-8b45-43a750dcfbcf",
+        "device_id": "insights-cb8e07c8effd",
+        "occurred_at": "2026-10-19T14:58:20.649546Z",
+        "received_at": "2026-10-19T14:58:20.649546Z",
+        "correlation_id": "2372eeb1-b066-47b3-89ff-b7c8649c253a",
+        "environment_id": "5fbebc70-1661-4ff3-a6e7-254b14d22986",
+        "schema_version": 3,
+        "device_record_id": "ad1450a7-3e02-4e45-9f50-90417a1ed9b3"
+      },
+      "availability": "available",
+      "age_seconds": 0.845771,
+      "trend": "declining",
+      "active_alerts": [
+        {
+          "alert_id": "7b5e5ea6-6205-4edc-af74-7872e78eacfb",
+          "opened_at": "2026-10-19T14:58:20.917037Z",
+          "source_event_id": "2372eeb1-b066-47b3-89ff-b7c8649c253a",
+          "prediction_event_id": "8b05cdee-3243-4b66-8b45-43a750dcfbcf",
+          "kind": "predictive_failure"
+        }
+      ]
+    },
+    "recovered": {
+      "device_id": "insights-cb8e07c8effd",
+      "equipment_id": "00000000-0000-4000-8000-000000000003",
+      "rules": {
+        "health_critical": 32,
+        "health_recovery": 42,
+        "rul_critical_hours": 22,
+        "rul_recovery_hours": 44,
+        "open_count": 3,
+        "close_count": 10
+      },
+      "prediction": {
+        "data": {
+          "reason": null,
+          "status": "available",
+          "model_id": "127da88e-f395-44f3-93aa-6ec2814aeb2c",
+          "rul_hours": 110,
+          "equipment_id": "00000000-0000-4000-8000-000000000003",
+          "health_score": 90,
+          "model_version": "demo-v1",
+          "source_event_id": "3dc73c0e-4bcf-434b-945e-48c2c3b651cf",
+          "features_version": "fan-v1",
+          "input_received_at": "2026-10-19T14:59:02.619291Z"
+        },
+        "type": "prediction",
+        "event_id": "0d9d2cc8-02a8-414d-91ad-f55d6cef4a59",
+        "device_id": "insights-cb8e07c8effd",
+        "occurred_at": "2026-10-19T14:59:02.630258Z",
+        "received_at": "2026-10-19T14:59:02.630258Z",
+        "correlation_id": "3dc73c0e-4bcf-434b-945e-48c2c3b651cf",
+        "environment_id": "5fbebc70-1661-4ff3-a6e7-254b14d22986",
+        "schema_version": 3,
+        "device_record_id": "ad1450a7-3e02-4e45-9f50-90417a1ed9b3"
+      },
+      "availability": "available",
+      "age_seconds": 0.324722,
+      "trend": "improving",
+      "active_alerts": []
+    },
+    "unavailable": {
+      "device_id": "insights-cb8e07c8effd",
+      "equipment_id": "00000000-0000-4000-8000-000000000003",
+      "rules": {
+        "health_critical": 32,
+        "health_recovery": 42,
+        "rul_critical_hours": 22,
+        "rul_recovery_hours": 44,
+        "open_count": 3,
+        "close_count": 10
+      },
+      "prediction": {
+        "data": {
+          "reason": "insufficient_history",
+          "status": "unavailable",
+          "model_id": "127da88e-f395-44f3-93aa-6ec2814aeb2c",
+          "rul_hours": null,
+          "equipment_id": "00000000-0000-4000-8000-000000000003",
+          "health_score": null,
+          "model_version": "demo-v1",
+          "source_event_id": "e2842c12-e01b-4bf9-b4ec-abc597167353",
+          "features_version": "fan-v1",
+          "input_received_at": "2026-10-19T14:58:24.143602Z"
+        },
+        "type": "prediction",
+        "event_id": "f37f8dcd-302a-4e79-852b-9f8bd6ce0718",
+        "device_id": "insights-cb8e07c8effd",
+        "occurred_at": "2026-10-19T14:58:24.153296Z",
+        "received_at": "2026-10-19T14:58:24.153296Z",
+        "correlation_id": "e2842c12-e01b-4bf9-b4ec-abc597167353",
+        "environment_id": "5fbebc70-1661-4ff3-a6e7-254b14d22986",
+        "schema_version": 3,
+        "device_record_id": "ad1450a7-3e02-4e45-9f50-90417a1ed9b3"
+      },
+      "availability": "unavailable",
+      "age_seconds": 0.882058,
+      "trend": "unknown",
+      "active_alerts": [
+        {
+          "alert_id": "7b5e5ea6-6205-4edc-af74-7872e78eacfb",
+          "opened_at": "2026-10-19T14:58:20.917037Z",
+          "source_event_id": "2372eeb1-b066-47b3-89ff-b7c8649c253a",
+          "prediction_event_id": "8b05cdee-3243-4b66-8b45-43a750dcfbcf",
+          "kind": "predictive_failure"
+        }
+      ]
+    },
+    "rules": {
+      "health_critical": 32,
+      "health_recovery": 42,
+      "rul_critical_hours": 22,
+      "rul_recovery_hours": 44,
+      "open_count": 3,
+      "close_count": 10
+    },
+    "active_alert_id": "7b5e5ea6-6205-4edc-af74-7872e78eacfb",
+    "duplicate_republished": true,
+    "neutral_resets_open_sequence": true,
+    "recovery_requires_ten_consecutive": true,
+    "oscillation_no_flicker": true,
+    "no_prediction_not_recovery": true,
+    "real_telemetry_interruption_stale": true,
+    "reload_preserves_alert_and_rules": true,
+    "private_owner_denied": true,
+    "mobile_320_without_overflow": true,
+    "real_postgres_rabbitmq_http_chromium": true,
+    "service_recreated_preserves_state": true,
+    "audit_open_count": 1,
+    "audit_close_count": 1,
+    "predictive_alert_does_not_request_thermal_buzzer": true,
+    "prediction_source": "contract-valid boundary fixture; model inference not executed",
+    "influxdb_exercised": false,
+    "physical_accuracy_validated": false
+  },
+  "validation": {
+    "api_routes": {
+      "passed": 18,
+      "seconds": 7.97,
+      "red": "15 new tests failed with missing routes before implementation",
+      "command": "python -m pytest backend/tests/api/test_insights_api.py backend/tests/api/test_aiot_api.py --no-cov -q"
+    },
+    "backend_nonintegration": {
+      "passed": 1364,
+      "deselected": 195,
+      "warnings": 2,
+      "seconds": 135.52,
+      "coverage": {
+        "covered_lines": 4002,
+        "num_statements": 4760,
+        "percent_covered": 81.43191702910673,
+        "percent_covered_display": "81",
+        "missing_lines": 758,
+        "excluded_lines": 35,
+        "percent_statements_covered": 84.07563025210084,
+        "percent_statements_covered_display": "84",
+        "num_branches": 1218,
+        "num_partial_branches": 124,
+        "covered_branches": 866,
+        "missing_branches": 352,
+        "percent_branches_covered": 71.10016420361248,
+        "percent_branches_covered_display": "71"
+      },
+      "command": "python -m pytest backend/tests -m 'not integration' --cov=backend/app --cov-branch --cov-report=json --cov-fail-under=80 -q",
+      "scope": "General regression preceded last localized fixes; final focused tests below validate final predictive service."
+    },
+    "predictive_final": {
+      "passed": 43,
+      "warnings": 2,
+      "seconds": 10.23,
+      "service_coverage_percent": 98.74,
+      "command": "python -m pytest backend/tests/services/test_predictive_alerts.py backend/tests/services/test_aiot_events.py backend/tests/integration/test_predictive_alerts_integration.py --no-cov -o addopts='' -q",
+      "red_regressions": [
+        "service initially absent",
+        "model boundary mixed streak",
+        "extreme integer OverflowError",
+        "trend from another source at same timestamp"
+      ]
+    },
+    "sql_regression": {
+      "passed": 35,
+      "skipped": 1,
+      "warnings": 2,
+      "seconds": 31.54,
+      "skipped_reason": "existing confirm-loss inference integration requires broker opt-in",
+      "command": "python -m pytest backend/tests/integration/test_aiot_migrations_integration.py backend/tests/integration/test_postgres_schema_integration.py backend/tests/integration/test_inference_migrations.py backend/tests/integration/test_inference_integration.py --no-cov -o addopts='' -q"
+    },
+    "frontend": {
+      "passed": 360,
+      "test_files": 32,
+      "focused_passed": 67,
+      "coverage_percent": {
+        "statements": 91.69,
+        "branches": 88.76,
+        "functions": 90.23,
+        "lines": 95.04
+      },
+      "insights_view_coverage_percent": {
+        "lines": 100,
+        "branches": 97.61
+      },
+      "insights_api_coverage_percent": {
+        "lines": 100,
+        "branches": 98.18
+      },
+      "command": "node node_modules/vitest/vitest.mjs run --coverage",
+      "red_regressions": [
+        "new Insights modules absent",
+        "late catalog 401 cleared newer session"
+      ]
+    },
+    "frontend_build": {
+      "passed": true,
+      "modules": 459,
+      "seconds": 44.28,
+      "command": "node node_modules/vite/bin/vite.js build",
+      "workspace_source": true
+    },
+    "frontend_typecheck": {
+      "passed": true,
+      "command": "node node_modules/vue-tsc/bin/vue-tsc.js --noEmit -p tsconfig.app.json",
+      "node": "24.20.0",
+      "vue": "3.5.42",
+      "typescript": "6.0.3",
+      "vue_tsc": "3.3.11",
+      "same_direct_dependency_versions_verified": 19,
+      "source_copy": "unchanged source in temporary directory with existing cached dependencies",
+      "workspace_attempts": "two OS-read stalls in existing motion-v/chart.js declarations; only own stalled processes terminated"
+    },
+    "real_browser": {
+      "passed": 1,
+      "python_seconds": 83.14,
+      "playwright_seconds": 53.2,
+      "warnings": 2,
+      "command": "COLDSAFE_INSIGHTS_INTEGRATION=1 COLDSAFE_RABBITMQ_INTEGRATION=1 python -m pytest backend/tests/integration/test_insights_browser.py -q -s --no-cov",
+      "browser_source_sha256_matches_workspace": true,
+      "local_dependency_override": "/tmp/coldsafe-b223-frontend-deps/node_modules",
+      "same_direct_dependency_versions_verified": 19,
+      "initial_failed_attempt": "workspace dependency IO/optimization delay consumed test budget; REST opening confirmed, UI assertion incomplete. Final rerun passed without runtime workaround."
+    },
+    "review": {
+      "final_blockers": 0,
+      "scope": "static correctness, ownership, transactions, frontend contract and delayed response handling"
+    },
+    "diff_check": "passed"
+  },
+  "temporary_artifacts": {
+    "insights-open.png": {
+      "path": "/tmp/coldsafe-b226-evidence/insights-open.png",
+      "sha256": "b55bc2d17222185ea1993fb3f6d5714f0673828a19431cb3ef18385023b04d8b"
+    },
+    "insights-recovered-mobile.png": {
+      "path": "/tmp/coldsafe-b226-evidence/insights-recovered-mobile.png",
+      "sha256": "02a5c8a3d0a9f7cbb99e167304d6afc84ad6567e3a9dd64cfed307f8449ca5bd"
+    },
+    "insights-stale-active.png": {
+      "path": "/tmp/coldsafe-b226-evidence/insights-stale-active.png",
+      "sha256": "19a4fce5c34dc758884c5694ff51b8feb157d0fecd941a31521c61e931583405"
+    },
+    "integration.json": {
+      "path": "/tmp/coldsafe-b226-evidence/integration.json",
+      "sha256": "070f08a90d8e722b5f15c7453e4a89d9ba17569f729f5b13e91a337b514d35c2"
+    }
+  },
+  "limits": [
+    "Prototype thresholds are configurable and not physically calibrated.",
+    "Telemetry, predictions and persistence receipts are boundary fixtures; no model inference, MQTT or InfluxDB rerun.",
+    "Single commissioned device/owner per runtime remains; final whole-stack capacity not measured.",
+    "No automatic retention for event/audit/alert history.",
+    "Coverage groups overlap and must not be summed as unique cases.",
+    "Temporary screenshots may disappear; results and hashes persist here."
+  ],
+  "cleanup": {
+    "disposable_postgres_removed": true,
+    "disposable_rabbitmq_and_volumes_removed": true,
+    "personal_services_preserved": true,
+    "personal_deployment_changed": false,
+    "next_task_started": false
+  }
+}

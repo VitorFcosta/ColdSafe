@@ -114,7 +114,7 @@ def test_new_database_and_repeatable_migrations(database):
     postgres.initialize_schema(database)
     postgres.initialize_schema(database)
     with postgres.connect(database) as connection:
-        assert connection.execute("SELECT array_agg(version ORDER BY version) FROM schema_migrations").fetchone() == ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10],)
+        assert connection.execute("SELECT array_agg(version ORDER BY version) FROM schema_migrations").fetchone() == ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],)
         tables = {row[0] for row in connection.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")}
         assert {"jobs", "datasets", "models", "model_activations", "active_models"} <= tables
 

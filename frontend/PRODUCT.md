@@ -32,6 +32,15 @@ As janelas padrão continuam 15 min/1 h. Sem histórico prévio, o primeiro resu
 pode exigir uma hora de coleta. São estimativas sintéticas ainda sem calibração
 física. A ativação permanece na API; Insights/alertas preditivos são B2-26.
 
+## Insights B2-26 — 19/10/2026
+
+`/insights` apresenta saúde, RUL, versão, idade, tendência observada e alertas
+preditivos persistidos do equipamento autorizado. Falta de previsão e leitura
+vencida permanecem explícitas; não representam recuperação. Operador/admin pode
+editar regras do proprietário, com 3 críticas para abrir e 10 recuperadas para
+encerrar inicialmente. O buzzer continua ligado exclusivamente à regra térmica.
+Os limites iniciais são de protótipo e exigem calibração para uso operacional.
+
 ## Propósito
 
 Na B2-15, `/messaging` acrescenta um painel administrativo de infraestrutura:
@@ -66,6 +75,7 @@ o código atual e os [contratos compartilhados](../contracts/README.md).
 | `/messaging` | Métricas administrativas reais de filas, taxas e consumidores, com idade da coleta. |
 | `/laboratory` | Geração sintética privada, progresso recuperável, resumo e amostra; formulário administrativo. |
 | `/training` | Avaliação administrativa de saúde/RUL: dataset próprio, job, baseline, erros, gráficos e importância; pacote permanece offline. |
+| `/insights` | Saúde/RUL, tendência, idade e alertas preditivos privados; regras editáveis por operador/admin. |
 
 `/dashboard` e `/manage` exigem sessão. A operação usa dados reais da API, com
 dois dispositivos simulados no projeto; o histórico oferece **15 min, 1 h, 6 h e

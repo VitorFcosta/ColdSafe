@@ -249,6 +249,7 @@ async function signOut() {
         <RouterLink to="/" class="brand"><span aria-hidden="true">◉</span> ColdSafe</RouterLink>
         <nav aria-label="Navegação principal">
           <RouterLink to="/dashboard">Monitoramento</RouterLink>
+          <RouterLink to="/insights">Insights</RouterLink>
           <RouterLink to="/manage" aria-current="page">Ambientes e dispositivos</RouterLink>
           <RouterLink to="/messaging">Mensageria</RouterLink>
           <RouterLink to="/laboratory">Laboratório</RouterLink>

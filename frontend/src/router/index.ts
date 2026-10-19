@@ -18,6 +18,12 @@ const router = createRouter({
       meta: { requiresAuth: true, title: 'Monitoramento · ColdSafe' }
     },
     {
+      path: '/insights',
+      name: 'insights',
+      component: () => import('../views/InsightsView.vue'),
+      meta: { requiresAuth: true, title: 'Insights · ColdSafe' }
+    },
+    {
       path: '/laboratory',
       name: 'laboratory',
       component: () => import('../views/LaboratoryView.vue'),

@@ -4,12 +4,13 @@ from typing import Annotated, TYPE_CHECKING
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path, Query
+from pydantic import Field, model_validator
 
 from backend.app.api.auth import AuthService
 from backend.app.api.catalog import CatalogService
 from backend.app.api.commands import LedCommandInput
 from backend.app.api.events import EventHub, install_events
-from backend.app.api.schemas import ErrorResponse
+from backend.app.api.schemas import ApiModel, ErrorResponse
 from backend.app.services.monitoring import PERIOD_DURATION, Period, utc_now
 
 if TYPE_CHECKING:
@@ -17,6 +18,22 @@ if TYPE_CHECKING:
 
 
 DeviceId = Annotated[str, Query(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9._-]+$")]
+
+
+class PredictiveRulesInput(ApiModel):
+    health_critical: float = Field(strict=True, ge=0, le=100, allow_inf_nan=False)
+    health_recovery: float = Field(strict=True, ge=0, le=100, allow_inf_nan=False)
+    rul_critical_hours: float = Field(strict=True, ge=0, allow_inf_nan=False)
+    rul_recovery_hours: float = Field(strict=True, ge=0, allow_inf_nan=False)
+    open_count: int = Field(strict=True, ge=1, le=100)
+    close_count: int = Field(strict=True, ge=1, le=100)
+
+    @model_validator(mode='after')
+    def recovery_above_critical(self) -> 'PredictiveRulesInput':
+        if (self.health_recovery <= self.health_critical
+                or self.rul_recovery_hours <= self.rul_critical_hours):
+            raise ValueError('Recovery thresholds must exceed critical thresholds')
+        return self
 
 
 def install_aiot(app: FastAPI, service: 'AiotEventService', hub: EventHub,
@@ -46,6 +63,20 @@ def install_aiot(app: FastAPI, service: 'AiotEventService', hub: EventHub,
     @router.get('/monitoring/summary')
     def summary(device_id: DeviceId, user_id: UUID = Depends(auth.require_user)) -> dict:
         return response(service.snapshot(user_id, device_id))
+
+    @router.get('/insights')
+    def insights(device_id: DeviceId, user_id: UUID = Depends(auth.require_user)) -> dict:
+        return response(service.insights(user_id, device_id))
+
+    @router.put('/insights/rules', responses={403: {'model': ErrorResponse}})
+    def predictive_rules(body: PredictiveRulesInput, device_id: DeviceId,
+                         user_id: UUID = Depends(auth.require_operator)) -> dict:
+        try:
+            return response(service.update_predictive_rules(user_id, device_id, body.model_dump()))
+        except PermissionError:
+            raise HTTPException(status_code=403, detail='FORBIDDEN') from None
+        except ValueError:
+            raise HTTPException(status_code=422, detail='VALIDATION_ERROR') from None
 
     @router.get('/readings')
     def readings(device_id: DeviceId, limit: Annotated[int, Query(ge=1, le=1000)] = 300,

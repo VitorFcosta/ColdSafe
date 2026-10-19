@@ -9,7 +9,16 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-25](tasks/B2-25.md): inferência de saúde/RUL ligada ao
+A última entrega foi [B2-26](tasks/B2-26.md): alertas preditivos persistentes com
+regras privadas por proprietário, histerese inicial 3/10 e auditoria transacional;
+página Insights exibe saúde/RUL, tendência, versão, idade e alertas. Ausência,
+indisponibilidade, stale e troca de modelo interrompem sequências sem fechar
+alerta. PostgreSQL/RabbitMQ/HTTP/Chromium reais comprovaram oscilação, reentrega,
+interrupção de 31 s, recarga/recriação do serviço, recuperação e duas contas;
+previsões/fonte/recibos são fixtures declaradas, sem ensaio físico ou InfluxDB.
+Nenhuma dependência nova ou implantação pessoal; limites/testes no cartão.
+
+A [B2-25](tasks/B2-25.md) conserva inferência de saúde/RUL ligada ao
 barramento e dashboard, com restauração do ativo e troca sem reiniciar worker
 ou navegador. Histórico/saída canônica são transacionais no PostgreSQL; kernel e
 transformação do treino, fonte/versão e estados de indisponibilidade preservados.
@@ -120,7 +129,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-26](tasks/B2-26.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-27](tasks/B2-27.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

@@ -1,4 +1,4 @@
-import { clearSession } from './session'
+import { clearSession, sessionToken } from './session'
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/+$/, '')
 
@@ -25,7 +25,7 @@ export async function catalogRequest<T>(token: string, path: string, method = 'G
   }
   let payload: { success?: boolean; data?: T; error?: { message?: string } }
   try { payload = await response.json() } catch { throw new Error('A API retornou uma resposta inválida.') }
-  if (response.status === 401) clearSession()
+  if (response.status === 401 && sessionToken.value === token) clearSession()
   if (!response.ok || payload.success !== true || payload.data === undefined) {
     throw new Error(payload.error?.message ?? 'Não foi possível concluir a operação.')
   }

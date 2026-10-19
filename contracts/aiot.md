@@ -737,6 +737,54 @@ para refazer o warm-up: isso quebra deduplicação/identidade. Catálogo/proprie
 revogado encerra esse worker de forma fechada, sem liberar saídas; o restart herdado
 requer recomissionar a configuração. Limites medidos da pilha inteira continuam B2-33.
 
+### Alertas preditivos e Insights — B2-26
+
+`GET /api/v3/insights?device_id=<mqtt_device_id>` exige sessão e propriedade
+atual do dispositivo comissionado. Responde no envelope HTTP v3 com
+`device_id`, `equipment_id`, `rules`, `prediction` (envelope v3 ou `null`),
+`availability` (`available`, `unavailable`, `stale`, `no_data`), `age_seconds`,
+`trend` (`improving`, `declining`, `stable`, `unknown`) e `active_alerts`.
+Cada alerta contém `alert_id`, `kind=predictive_failure`, `opened_at`,
+`source_event_id` e `prediction_event_id`. Conta/dispositivo fora do escopo
+retorna 404, sem expor dados. A página consulta o estado persistido por HTTP.
+
+`PUT /api/v3/insights/rules?device_id=<mqtt_device_id>` exige operador/admin e
+propriedade atual. Recebe exatamente os seis campos abaixo e retorna as regras
+diretamente em `data`; não aceita campos extras, strings numéricas, booleanos,
+valores não finitos ou contagens fracionárias. Regras pertencem ao proprietário.
+
+| Campo | Inicial | Validação |
+| --- | --- | --- |
+| `health_critical` | 30 | 0 ≤ crítico < recuperação ≤ 100 |
+| `health_recovery` | 40 | Mesmo intervalo acima |
+| `rul_critical_hours` | 24 | 0 ≤ crítico < recuperação, finitos |
+| `rul_recovery_hours` | 48 | Mesmo intervalo acima |
+| `open_count` | 3 | Inteiro entre 1 e 100 |
+| `close_count` | 10 | Inteiro entre 1 e 100 |
+
+Saúde ≤ crítico **ou** RUL ≤ crítico conta criticidade; saúde ≥ recuperação
+**e** RUL ≥ recuperação conta recuperação. A faixa entre esses valores zera
+a sequência e conserva o alerta aberto. Ausência/indisponibilidade e entrada
+com mais de 30 s não encerram alertas. Previsão precisa de fonte e recibo
+vinculados e autorizados. Fonte com instante igual/anterior ao último avaliado
+não avança o estado; uma previsão ainda recente pode ser avaliada mesmo se a
+telemetria seguinte já chegou, para tolerar atraso entre filas. A tela continua
+vinculada à última telemetria.
+
+A migração 011 guarda regras, sequência por dono/dispositivo/equipamento e
+histórico de alertas. Abertura/encerramento e auditoria compartilham a transação
+do consumo antes do ACK; índice único impede dois alertas abertos no escopo.
+Reinício preserva estado e recarga recupera os alertas. Alterar regras audita e
+zera sequências, sem encerrar alertas. Troca de modelo também reinicia a sequência
+e a comparação de tendência, preservando o alerta aberto. Não cria comando nem
+altera buzzer térmico.
+
+Tendência compara as duas últimas previsões elegíveis: qualquer queda em saúde
+ou RUL é `declining`; sem queda, qualquer subida é `improving`; iguais são
+`stable`; sem comparação é `unknown`. Não é prognóstico adicional do modelo.
+Limiares iniciais são configuráveis de protótipo, sem calibração física.
+Histórico/auditoria permanecem sem expurgo automático.
+
 ## Erro e retry
 
 `processing_error` contém evento fonte conhecido (ou nulo), código fechado,

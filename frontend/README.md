@@ -89,6 +89,15 @@ RabbitMQ, PostgreSQL, HTTP/WS e Chromium, com fixtures explícitas na fonte/reci
 Janelas de produção continuam 15 min/1 h; o warm-up pode exigir uma hora de coleta.
 Configuração do worker está no [guia](../docs/configuration.md#inferência-ao-vivo-b2-25).
 
+A B2-26 acrescenta `/insights`: equipamento privado, saúde/RUL, tendência entre
+previsões, versão/idade e alertas persistidos. Consulta HTTP a cada 2 s recupera
+o estado após recarga; ausência/erro/stale são explícitos e conservam os alertas
+conhecidos. Regras do proprietário são editáveis por operador/admin. Limiares
+iniciais são de protótipo, sem calibração física; não acionam o buzzer térmico.
+Testes rápidos: `npm run test:unit:run -- src/features/insights src/views/InsightsView.spec.ts`.
+O ensaio real está no [backend](../backend/README.md#alertas-preditivos-e-insights-b2-26).
+Nenhuma dependência nova.
+
 Para o dashboard v3 no Compose, use `compose.aiot.yaml`: ele habilita o backend e passa o argumento
 de build do frontend. É necessário reconstruir `frontend` ao alterar esse modo.
 No Vite local, defina a variável antes de iniciar o processo e configure

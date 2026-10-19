@@ -280,6 +280,34 @@ versão no mesmo worker/browser. Aceita `COLDSAFE_NODE_BINARY`,
 `COLDSAFE_FRONTEND_NODE_MODULES` e `COLDSAFE_INFERENCE_EVIDENCE_DIR` para artefatos.
 Não usar credenciais pessoais. Operação no [guia](../docs/configuration.md#inferência-ao-vivo-b2-25).
 
+## Alertas preditivos e Insights B2-26
+
+O consumidor v3 aplica histerese sobre previsões autorizadas e vinculadas à fonte
+e ao recibo. Regras por proprietário, sequências e alertas são persistidos pela
+migração 011; abertura/encerramento/auditoria são transacionais com o consumo.
+O buzzer térmico permanece independente. As rotas de consulta e edição estão no
+[contrato](../contracts/aiot.md#alertas-preditivos-e-insights--b2-26).
+Ausência/indisponibilidade/stale não encerram alertas; os limites iniciais são
+configuráveis de protótipo e não comprovam calibração física.
+
+Testes da regra e fronteira HTTP:
+
+```sh
+python -m pytest backend/tests/services/test_predictive_alerts.py backend/tests/api/test_insights_api.py --no-cov -o addopts='' -q
+```
+
+Com `POSTGRES_TEST_HOST/PORT/DB/USER/PASSWORD` apontando para PostgreSQL descartável:
+
+```sh
+python -m pytest backend/tests/integration/test_predictive_alerts_integration.py --no-cov -o addopts='' -q
+COLDSAFE_INSIGHTS_INTEGRATION=1 COLDSAFE_RABBITMQ_INTEGRATION=1 python -m pytest backend/tests/integration/test_insights_browser.py --no-cov -o addopts='' -q -s
+```
+
+O harness de navegador usa PostgreSQL, RabbitMQ, HTTP e Chromium reais e eventos
+de previsão/telemetria/recibo declarados como fixtures. Não treina nem valida
+novamente MQTT, InfluxDB ou precisão do modelo. Requer Node 24/Chromium instalados;
+`COLDSAFE_NODE_BINARY` pode selecionar o Node. Não usar banco/credenciais pessoais.
+
 ## Geração offline B2-18
 
 O mesmo POST de jobs aceita os parâmetros documentados no

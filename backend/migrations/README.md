@@ -82,6 +82,13 @@ prazo máximo de 60 segundos; o serviço limita também à expiração da sessã
 
 ## Verificação reproduzível
 
+A versão 011 da B2-26 acrescenta `predictive_rules`, `predictive_state` e
+`predictive_alerts`. Regras são privadas por proprietário; sequência e alerta
+pertencem ao dono/dispositivo/equipamento. Índice parcial permite um alerta
+aberto por escopo. Não altera os alertas térmicos ou dados/modelos anteriores.
+Auditoria de transição usa `audit_events` na mesma transação do consumo.
+Histórico permanece sem expurgo automático.
+
 A versão 010 da B2-25 acrescenta `inference_events`, com histórico aceito,
 previsão canônica e marcação de confirmação. Fonte/saída são gravadas juntas,
 deduplicadas pelo UUID da telemetria. Índices limitam consulta à janela por
