@@ -2,7 +2,7 @@
 influxdb-client==1.50.0
 urllib3==2.8.0
 # Match the backend lock, including the legacy model imported by its repository.
-certifi==2026.7.22
+certifi==2026.10.19
 python-dateutil==2.9.0.post0
 reactivex==5.1.0
 six==1.17.0
