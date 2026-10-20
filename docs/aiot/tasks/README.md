@@ -4,7 +4,7 @@
 Status importados em 13/10/2026; cada cartão é o registro de execução.
 Este índice resume os cartões e deve acompanhar futuras mudanças de status.
 Ler só o cartão escolhido e suas dependências.
-B2-01–26 concluídas nos seus escopos; B2-27–36 não iniciadas.
+B2-01–27 concluídas nos seus escopos; B2-28–36 não iniciadas.
 A migração documental não executou tarefas técnicas.
 
 | Tarefa | Status atual | Dependências | Meta original |
@@ -35,7 +35,7 @@ A migração documental não executou tarefas técnicas.
 | [B2-24 — Versionar e ativar modelos](B2-24.md) | Concluída | B2-23 | 2026-11-02 |
 | [B2-25 — Inferência ao vivo e troca de versão](B2-25.md) | Concluída | B2-13, B2-24 | 2026-11-03 |
 | [B2-26 — Alertas com histerese e página Insights](B2-26.md) | Concluída | B2-25 | 2026-11-04 |
-| [B2-27 — Cena 3D, IDs e estados](B2-27.md) | Não iniciada | B2-14, B2-26 | 2026-11-05 |
+| [B2-27 — Cena 3D, IDs e estados](B2-27.md) | Concluída | B2-14, B2-26 | 2026-11-05 |
 | [B2-28 — Animações, ambiente reativo e ausência de dados](B2-28.md) | Não iniciada | B2-27 | 2026-11-06 |
 | [B2-29 — Painel por item e comandos autorizados no 3D](B2-29.md) | Não iniciada | B2-28 | 2026-11-07 |
 | [B2-30 — Ollama, pré-carregamento e coordenação de memória](B2-30.md) | Não iniciada | B2-03, B2-17 | 2026-11-08 |

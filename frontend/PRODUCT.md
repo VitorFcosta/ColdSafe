@@ -41,6 +41,22 @@ editar regras do proprietário, com 3 críticas para abrir e 10 recuperadas para
 encerrar inicialmente. O buzzer continua ligado exclusivamente à regra térmica.
 Os limites iniciais são de protótipo e exigem calibração para uso operacional.
 
+## Gêmeo digital B2-27 — 19/10/2026
+
+`/digital-twin` mostra o ventilador, seis sensores, LED e buzzer em geometria
+simples. Inventário autorizado identifica os nove itens mesmo sem leituras;
+posições ilustrativas pertencem somente ao frontend. A lista de botões oferece
+seleção por teclado equivalente ao clique 3D, com nome, ID, valor e estado textual.
+Leituras/estados vêm do resumo recuperado por eventos WebSocket; não há simulação
+local. Temperatura usa regras do ambiente; ventilador usa alerta/faixas preditivas;
+LED/buzzer usam telemetria observada. Os demais sensores não possuem faixas
+operacionais, e “Normal” nesses itens significa apenas dado atual recebido.
+Ausência, vencimento, falha de consulta e falha WebGL ficam explícitos.
+
+Three.js direto no Vue, com renderização sob demanda e descarte de recursos ao
+desmontar. Dependências fixadas: `three 0.186.1` e `@types/three 0.186.0`.
+Animações e comandos pela cena pertencem aos cartões seguintes.
+
 ## Propósito
 
 Na B2-15, `/messaging` acrescenta um painel administrativo de infraestrutura:

@@ -19,6 +19,21 @@ function snapshot() {
 }
 
 describe('AIoT API boundary', () => {
+  it('valida inventário sem telemetria e recusa IDs repetidos ou divergentes da leitura', () => {
+    const base = snapshot()
+    const data = base.telemetry.data as { equipment: { equipment_id: string }; measurements: Record<string, { sensor_id: string }>; actuators: Record<string, { actuator_id: string }> }
+    const inventory = { equipment_id: data.equipment.equipment_id,
+      sensors: Object.fromEntries(Object.entries(data.measurements).map(([key, value]) => [key, value.sensor_id])),
+      actuators: { led: data.actuators.led!.actuator_id, buzzer: data.actuators.buzzer!.actuator_id } }
+    const noData = { ...base, inventory, telemetry: null, persistence: null,
+      freshness: { state: 'no_data', age_seconds: null, last_event_id: null, last_received_at: null, stale_after_seconds: 30 } }
+    expect(parseAiotSnapshot(noData)?.inventory).toEqual(inventory)
+    expect(parseAiotSnapshot({ ...base, inventory })?.inventory).toEqual(inventory)
+    expect(parseAiotSnapshot({ ...noData, inventory: { ...inventory, equipment_id: 'invalid' } })).toBeNull()
+    expect(parseAiotSnapshot({ ...noData, inventory: { ...inventory, actuators: { led: inventory.actuators.led, buzzer: inventory.actuators.led } } })).toBeNull()
+    expect(parseAiotSnapshot({ ...base, inventory: { ...inventory, equipment_id: '00000000-0000-4000-8000-000000000999' } })).toBeNull()
+    expect(parseAiotSnapshot({ ...noData, inventory: { ...inventory, sensors: {} } })).toBeNull()
+  })
   it('usa as mesmas bordas inclusivas da classificação de temperatura do backend', () => {
     expect(calculateReadingStatus(2.5, thresholds)).toBe('attention')
     expect(calculateReadingStatus(7.5, thresholds)).toBe('attention')

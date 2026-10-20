@@ -192,7 +192,7 @@ const format = (value: number | null | undefined) => value?.toLocaleString('pt-B
       <header class="nav">
         <RouterLink to="/" class="brand"><span aria-hidden="true">◉</span> ColdSafe</RouterLink>
         <nav aria-label="Navegação principal">
-          <RouterLink to="/dashboard">Monitoramento</RouterLink><RouterLink to="/insights" aria-current="page">Insights</RouterLink>
+          <RouterLink to="/dashboard">Monitoramento</RouterLink><RouterLink to="/insights" aria-current="page">Insights</RouterLink><RouterLink to="/digital-twin">Gêmeo digital</RouterLink>
           <RouterLink to="/manage">Ambientes e dispositivos</RouterLink><RouterLink to="/messaging">Mensageria</RouterLink>
           <RouterLink to="/laboratory">Laboratório</RouterLink><RouterLink to="/training">Treinamento</RouterLink>
         </nav>

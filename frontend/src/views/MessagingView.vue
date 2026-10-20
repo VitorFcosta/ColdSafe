@@ -99,7 +99,7 @@ const formatTime = (value: string) => new Intl.DateTimeFormat('pt-BR', {
         <RouterLink to="/" class="brand"><span aria-hidden="true">◉</span> ColdSafe</RouterLink>
         <nav aria-label="Navegação principal">
           <RouterLink to="/dashboard">Monitoramento</RouterLink>
-          <RouterLink to="/insights">Insights</RouterLink>
+          <RouterLink to="/insights">Insights</RouterLink><RouterLink to="/digital-twin">Gêmeo digital</RouterLink>
           <RouterLink to="/manage">Ambientes e dispositivos</RouterLink>
           <RouterLink to="/messaging" aria-current="page">Mensageria</RouterLink>
           <RouterLink to="/laboratory">Laboratório</RouterLink>

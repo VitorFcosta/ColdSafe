@@ -2,6 +2,20 @@ import type { ActuatorCommand } from './actuators'
 import type { MonitoringSummary } from './monitoring-summary'
 import type { ReadingStatus } from './monitoring-state'
 
+export const sensorRoles = ['ambient_temperature', 'humidity', 'light', 'vibration', 'motor_current', 'motor_temperature'] as const
+export type TwinInventory = Readonly<{
+  equipment_id: string
+  sensors: Readonly<Record<typeof sensorRoles[number], string>>
+  actuators: Readonly<{ led: string; buzzer: string }>
+}>
+
+function isInventory(value: unknown): value is TwinInventory {
+  if (!isRecord(value) || !isUuid(value.equipment_id) || !isRecord(value.sensors) || !isRecord(value.actuators)) return false
+  const sensors = value.sensors
+  const ids = [value.equipment_id, ...sensorRoles.map((role) => sensors[role]), value.actuators.led, value.actuators.buzzer]
+  return ids.every(isUuid) && new Set(ids).size === 9
+}
+
 export type MonitoringEquipment = Readonly<{
   equipment_id: string
   running: boolean
@@ -75,7 +89,7 @@ export function isThresholds(value: unknown): value is MonitoringSummary['thresh
     value.min_c < value.max_c && inRange(value.attention_margin_c, 0) &&
     value.attention_margin_c * 2 < value.max_c - value.min_c
 }
-export function calculateReadingStatus(temperature: number, thresholds: MonitoringSummary['thresholds']): ReadingStatus {
+export function calculateReadingStatus(temperature: number, thresholds: MonitoringSummary['thresholds']): Extract<ReadingStatus, 'normal' | 'attention' | 'critical'> {
   if (temperature < thresholds.min_c || temperature > thresholds.max_c) return 'critical'
   if (temperature <= thresholds.min_c + thresholds.attention_margin_c || temperature >= thresholds.max_c - thresholds.attention_margin_c) return 'attention'
   return 'normal'
@@ -188,7 +202,9 @@ export function parseAiotSnapshot(value: unknown, deviceId?: string): Monitoring
     if (command !== null && parseAiotCommand(command, value.device.id, value.environment.id)?.actuator !== actuator) return null
   }
   if (value.prediction_unavailable_reason != null && !predictionUnavailableReasons.includes(value.prediction_unavailable_reason as PredictionUnavailableReason)) return null
-  const common = { environment: { id: value.environment.id, name: value.environment.name }, device: { id: value.device.id }, thresholds: value.thresholds }
+  if (value.inventory !== undefined && !isInventory(value.inventory)) return null
+  const inventory = value.inventory as TwinInventory | undefined
+  const common = { environment: { id: value.environment.id, name: value.environment.name }, device: { id: value.device.id }, thresholds: value.thresholds, ...(inventory ? { inventory } : {}) }
   if (value.telemetry === null) {
     return freshness.state === 'no_data' && value.persistence === null ? { ...common, reading: null, freshness: null, status: 'no_data', persistence: null, prediction: null, prediction_unavailable_reason: null } : null
   }
@@ -196,6 +212,9 @@ export function parseAiotSnapshot(value: unknown, deviceId?: string): Monitoring
   if (event?.type !== 'telemetry' || freshness.state === 'no_data' || freshness.last_event_id !== event.event_id ||
     Date.parse(freshness.last_received_at!) !== Date.parse(event.received_at) ||
     (value.persistence !== 'pending' && value.persistence !== 'persisted')) return null
+  if (inventory && (inventory.equipment_id !== event.data.equipment.equipment_id ||
+    inventory.actuators.led !== event.data.equipment.led.actuator_id || inventory.actuators.buzzer !== event.data.equipment.buzzer.actuator_id ||
+    sensorRoles.some((role) => inventory.sensors[role] !== event.data.reading.sensor_ids?.[role]))) return null
   const candidate = parseAiotEvent(value.prediction, value.device.id, value.environment.id)
   const linked = candidate?.type === 'prediction' && predictionMatchesReading(candidate, event.data.reading) ? candidate : null
   const expired = linked?.data.status === 'available' && freshness.state === 'stale'

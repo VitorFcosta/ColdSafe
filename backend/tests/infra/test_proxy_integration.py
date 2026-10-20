@@ -56,8 +56,13 @@ def stack():
         services = config["services"]
         for role, service in services.items():
             if "build" in service:
+                build = {**service["build"], "context": str(ROOT / service["build"]["context"])}
+                if "additional_contexts" in build:
+                    build = {**build, "additional_contexts": {
+                        name: str(ROOT / path) for name, path in build["additional_contexts"].items()
+                    }}
                 services[role] = {**service, "image": f"{project}-{role}",
-                                  "build": {**service["build"], "context": str(ROOT / service["build"]["context"])}}
+                                  "build": build}
         config["services"]["frontend"] = {**services["frontend"], "ports": ["127.0.0.1::8080"]}
         file = temporary / "compose.yaml"
         file.write_text(yaml.safe_dump(config))

@@ -98,6 +98,44 @@ Testes rápidos: `npm run test:unit:run -- src/features/insights src/views/Insig
 O ensaio real está no [backend](../backend/README.md#alertas-preditivos-e-insights-b2-26).
 Nenhuma dependência nova.
 
+Na B2-27, `/digital-twin` (**Gêmeo digital**) representa o ventilador, os seis
+sensores, LED e buzzer com Three.js direto no Vue. Requer o mesmo build
+`VITE_AIOT_ENABLED=true` do dashboard v3. O inventário do resumo autenticado
+preserva os nove IDs mesmo antes da primeira leitura; as posições são somente
+ilustrativas e locais ao frontend. Clique na peça ou use os botões da lista pelo
+teclado para consultar o mesmo ID, valor e estado. Falha WebGL mantém a lista.
+
+O composable do dashboard recupera REST a partir do WebSocket e faz expirar a
+leitura localmente após 30 s. Sem dados atuais, os valores ficam indisponíveis.
+A temperatura ambiente segue os limites cadastrados; os demais sensores ainda
+não têm faixas operacionais. A cor do ventilador combina alerta persistente e
+faixas preditivas recebidas; não atesta segurança física. Atuadores mostram a
+telemetria observada. A cena renderiza sob demanda e libera os recursos ao sair.
+
+Dependências adicionadas e fixadas: `three 0.186.1` para renderização e
+`@types/three 0.186.0` para TypeScript, com seis transitivas de desenvolvimento
+registradas no lock. As versões anteriores permanecem iguais. Após atualizar os
+fontes, execute `npm ci` com Node 24.20.0. Não há wrapper Vue, modelos 3D externos
+ou simulador embarcado na página.
+
+```sh
+npm run test:unit:run -- src/features/digital-twin src/views/DigitalTwinView.spec.ts src/features/monitoring/aiot-api.spec.ts
+VITE_AIOT_ENABLED=true npm run test:e2e -- digital-twin.spec.ts --workers=1
+VITE_AIOT_ENABLED=true npm run build
+```
+
+O E2E usa Chromium/WebGL reais com respostas HTTP/WS simuladas e declaradas;
+não representa novo ensaio de MQTT/AMQP, bancos ou sensores físicos.
+Resultados e limitações no [cartão B2-27](../docs/aiot/tasks/B2-27.md).
+
+Na ativação pessoal de 20/10/2026, o build Docker passou a receber `contracts`
+como contexto adicional do Compose. O estágio de build copia seus exemplos para
+`/contracts/examples`, preservando a resolução relativa dos imports das specs e
+a verificação de tipos completa. O contexto principal continua `frontend`; a
+raiz com `.env` não é enviada para esse build. Para construir fora do Compose:
+`docker build --build-context contracts=./contracts -f frontend/Dockerfile ./frontend`,
+a partir da raiz. Acrescente `--build-arg VITE_AIOT_ENABLED=true` para AIoT v3.
+
 Para o dashboard v3 no Compose, use `compose.aiot.yaml`: ele habilita o backend e passa o argumento
 de build do frontend. É necessário reconstruir `frontend` ao alterar esse modo.
 No Vite local, defina a variável antes de iniciar o processo e configure

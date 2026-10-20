@@ -331,7 +331,7 @@ function formatDateTime(value: string | undefined) {
         <a href="/" class="brand"><span aria-hidden="true">◉</span> ColdSafe</a>
         <nav aria-label="Navegação principal" class="nav-actions">
           <RouterLink to="/dashboard" aria-current="page">Monitoramento</RouterLink>
-          <RouterLink to="/insights">Insights</RouterLink>
+          <RouterLink to="/insights">Insights</RouterLink><RouterLink to="/digital-twin">Gêmeo digital</RouterLink>
           <RouterLink to="/manage">Ambientes e dispositivos</RouterLink>
           <RouterLink to="/messaging">Mensageria</RouterLink>
           <RouterLink to="/laboratory">Laboratório</RouterLink>

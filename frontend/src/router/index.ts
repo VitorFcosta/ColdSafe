@@ -18,6 +18,12 @@ const router = createRouter({
       meta: { requiresAuth: true, title: 'Monitoramento · ColdSafe' }
     },
     {
+      path: '/digital-twin',
+      name: 'digital-twin',
+      component: () => import('../views/DigitalTwinView.vue'),
+      meta: { requiresAuth: true, title: 'Gêmeo Digital · ColdSafe' }
+    },
+    {
       path: '/insights',
       name: 'insights',
       component: () => import('../views/InsightsView.vue'),

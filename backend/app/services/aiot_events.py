@@ -401,6 +401,9 @@ class AiotEventService:
                 result['prediction'] = None
             return {**result, 'environment': {'id': str(metadata['id']), 'name': metadata['name']},
                     'device': {'id': device_id},
+                    'inventory': {'equipment_id': self.catalog['equipment_id'],
+                                  'sensors': dict(self.catalog['sensors']),
+                                  'actuators': dict(self.catalog['actuators'])},
                     'thresholds': {key: float(metadata[key]) for key in
                                    ('min_c', 'max_c', 'attention_margin_c')},
                     'freshness': state,

@@ -26,6 +26,9 @@ equipamento → sensores/atuadores; o gateway verifica todos esses vínculos.
 Na B2-11, os primeiros vêm do PostgreSQL; equipamento/sensores/atuadores são
 conferidos no catálogo privado de comissionamento, sem tabelas/API dessas entidades.
 IDs enviados pelo equipamento nunca são autoridade de propriedade.
+O resumo autenticado expõe somente para leitura os IDs desse catálogo em
+`inventory`, após validar dispositivo ativo e proprietário atual no PostgreSQL.
+Isso não cria cadastro editável nem acrescenta coordenadas 3D ao contrato.
 
 As seis funções são chaves fixas em `data.measurements`; cada valor contém
 `sensor_id`, `unit` e `value`. Os IDs vêm do cadastro, não de um enum de nomes.
@@ -183,6 +186,13 @@ Resumo contém `environment`, `device` e `thresholds` consultados no PostgreSQL
 (inclusive sem telemetria), além de `telemetry`, `prediction`, `prediction_unavailable_reason`,
 `persistence`, `freshness`, `commands` e `alerts`. Antes da primeira leitura,
 telemetria/previsão/persistência são nulas e freshness é `no_data`.
+Extensão B2-27: o resumo inclui `inventory` mesmo com `telemetry=null`:
+`{equipment_id: UUID, sensors: {ambient_temperature: UUID, humidity: UUID,
+light: UUID, vibration: UUID, motor_current: UUID, motor_temperature: UUID},
+actuators: {led: UUID, buzzer: UUID}}`. Os UUIDs são strings canônicas do
+comissionamento, protegidas pela mesma sessão/propriedade do resumo; não incluem
+credenciais, proprietário adicional nem coordenadas. Posições visuais são locais
+ao frontend e vinculadas por esses IDs, sem inventar sensores pela telemetria.
 `persistence` passa de `pending` a `persisted` após recibo vinculado. A projeção
 durável PostgreSQL pode aparecer antes do ponto InfluxDB, sem depender da ordem
 das filas. `commands` traz o último status de LED/buzzer ou nulo; `alerts`, até

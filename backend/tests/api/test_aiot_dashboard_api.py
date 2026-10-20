@@ -118,19 +118,70 @@ def dashboard_cursor(service, monkeypatch):
     return cursor
 
 
-def test_snapshot_includes_database_name_and_rules_even_without_telemetry(service, monkeypatch):
+@pytest.mark.parametrize('has_telemetry', [False, True])
+def test_snapshot_includes_private_inventory_with_or_without_telemetry(service, monkeypatch, has_telemetry):
     cursor = dashboard_cursor(service, monkeypatch)
     monkeypatch.setattr(service, '_expire', Mock())
-    monkeypatch.setattr(service, '_latest', Mock(return_value=None))
+    telemetry = {'event_id': str(uuid4()), 'received_at': utc(START)} if has_telemetry else None
+    monkeypatch.setattr(service, '_latest', Mock(return_value=telemetry))
+    monkeypatch.setattr(service, '_now', lambda: START)
     metadata = {'id': service.catalog['environment_id'], 'name': 'Private cold room',
                 'min_c': 1.0, 'max_c': 7.0, 'attention_margin_c': 0.7}
     cursor.execute.return_value.fetchone.return_value = metadata
     cursor.execute.return_value.fetchall.return_value = []
     snapshot = service.snapshot(uuid4(), service.catalog['device_id'])
-    assert snapshot['freshness']['state'] == 'no_data'
+    assert snapshot['freshness']['state'] == ('fresh' if has_telemetry else 'no_data')
+    assert snapshot['telemetry'] == telemetry
     assert snapshot['environment'] == {'id': metadata['id'], 'name': metadata['name']}
     assert snapshot['device'] == {'id': service.catalog['device_id']}
     assert snapshot['thresholds'] == {key: metadata[key] for key in ('min_c', 'max_c', 'attention_margin_c')}
+    assert snapshot['inventory'] == {key: service.catalog[key] for key in
+                                     ('equipment_id', 'sensors', 'actuators')}
+    snapshot['inventory']['sensors']['humidity'] = 'client-side-change'
+    assert service.catalog['sensors']['humidity'] != 'client-side-change'
+
+
+def test_snapshot_rejects_wrong_owner_or_device_before_inventory_queries(service, monkeypatch):
+    cursor = dashboard_cursor(service, monkeypatch)
+    service._scope.return_value = False
+    assert service.snapshot(uuid4(), service.catalog['device_id']) is None
+    cursor.execute.assert_not_called()
+    service._scope.reset_mock()
+    assert service.snapshot(uuid4(), 'other-device') is None
+    service._scope.assert_not_called()
+    cursor.execute.assert_not_called()
+
+
+def test_summary_http_returns_inventory_only_to_authenticated_owner(service, monkeypatch):
+    from backend.app.api.aiot import install_aiot
+    from backend.app.api.events import EventHub
+    from backend.tests.api.test_events_api import make_client
+
+    client, _hub, auth, state = make_client()
+    cursor = dashboard_cursor(service, monkeypatch)
+    service._scope.side_effect = lambda _cursor, user: user == state['owner']
+    monkeypatch.setattr(service, '_expire', Mock())
+    monkeypatch.setattr(service, '_latest', Mock(return_value=None))
+    cursor.execute.return_value.fetchone.return_value = {
+        'id': service.catalog['environment_id'], 'name': 'Private cold room',
+        'min_c': 2.0, 'max_c': 8.0, 'attention_margin_c': 0.5}
+    cursor.execute.return_value.fetchall.return_value = []
+    install_aiot(client.app, service, EventHub(), auth, Mock())
+    endpoint = '/api/v3/monitoring/summary'
+    params = {'device_id': service.catalog['device_id']}
+    assert client.get(endpoint, params=params).status_code == 401
+    response = client.get(endpoint, params=params, headers=HEADERS)
+    assert response.status_code == 200
+    body = response.json()
+    assert body['meta'] == {'schema_version': 3}
+    assert body['data']['telemetry'] is None
+    assert body['data']['inventory'] == {key: service.catalog[key] for key in
+                                       ('equipment_id', 'sensors', 'actuators')}
+    for query, headers in ((params, {'Authorization': 'Bearer stranger'}),
+                           ({'device_id': 'other-device'}, HEADERS)):
+        response = client.get(endpoint, params=query, headers=headers)
+        assert response.status_code == 404
+        assert 'inventory' not in response.json()
 
 
 def test_service_history_keeps_legacy_call_and_uses_half_open_range(service, monkeypatch):

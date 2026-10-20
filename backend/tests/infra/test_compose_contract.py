@@ -242,7 +242,10 @@ def test_backend_requires_a_private_jwt_signing_key():
 def test_frontend_uses_a_pinned_static_image_with_isolated_dependencies():
     frontend = load_compose()["services"]["frontend"]
 
-    assert frontend["build"] == {"context": "./frontend", "dockerfile": "Dockerfile"}
+    assert frontend["build"] == {
+        "context": "./frontend", "dockerfile": "Dockerfile",
+        "additional_contexts": {"contracts": "./contracts"},
+    }
     assert frontend["depends_on"] == {
         "backend": {"condition": "service_healthy"},
     }
@@ -254,6 +257,7 @@ def test_frontend_uses_a_pinned_static_image_with_isolated_dependencies():
     dockerfile = FRONTEND_DOCKERFILE_PATH.read_text(encoding="utf-8")
     assert "FROM node:24.20.0-alpine3.24" in dockerfile
     assert "USER node" in dockerfile
+    assert "COPY --from=contracts /examples /contracts/examples" in dockerfile
 
 
 def test_frontend_network_allows_loopback_port_publication():

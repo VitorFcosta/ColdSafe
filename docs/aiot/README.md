@@ -1,6 +1,6 @@
 # Retomar a evolução AIoT
 
-## Situação em 19/10/2026
+## Situação em 20/10/2026
 
 O código continua na base v1/v2 descrita no [README](../../README.md).
 O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
@@ -9,7 +9,27 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-26](tasks/B2-26.md): alertas preditivos persistentes com
+A última entrega foi [B2-27](tasks/B2-27.md): Gêmeo digital com Three.js direto
+no Vue, seis sensores, LED, buzzer e ventilador ligados ao monitoramento WS/REST.
+Inventário autorizado conserva nove IDs mesmo sem leitura; posições são locais
+ao frontend. Clique/teclado compartilham seleção, valores e estados; falha WebGL
+mantém lista acessível. Chromium/WebGL reais comprovaram raycast, 320 px,
+troca de ambiente/resposta antiga e descarte de contextos após navegação;
+HTTP/WS do ensaio original são fixtures declaradas. Adicionados Three.js/tipos
+com versões fixadas, sem atualizar pacotes anteriores. A ativação pessoal foi
+autorizada e executada em 20/10: catálogo do `sim-lab-01` no ambiente Hospital 1,
+overlays AIoT/jobs/inferência e serviços atualizados; seis sensores e recibo de
+persistência reais no percurso do simulador foram conferidos. Em seguida, a
+operação pessoal de geração de 1 milhão/treino/ativação foi concluída: modelo
+`training-4ec768f5-b77d-4059-b27b-020b979fa066` ativo e saúde/RUL confirmadas no
+Insights para Hospital 1 / Ventilador. Nenhuma dependência nova nessa operação.
+Métricas e limites em [B2-23](tasks/B2-23.md), ativação em [B2-24](tasks/B2-24.md) e
+percurso live em [B2-25](tasks/B2-25.md);
+[evidência datada](../evidence/personal-training-2026-10-20.json). Dados sintéticos,
+RUL perto da falha ainda imprecisa e capacidade final não comprovada. Os parágrafos
+seguintes conservam o escopo original das entregas, antes dessa operação pessoal.
+
+A [B2-26](tasks/B2-26.md) conserva alertas preditivos persistentes com
 regras privadas por proprietário, histerese inicial 3/10 e auditoria transacional;
 página Insights exibe saúde/RUL, tendência, versão, idade e alertas. Ausência,
 indisponibilidade, stale e troca de modelo interrompem sequências sem fechar
@@ -129,7 +149,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-27](tasks/B2-27.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-28](tasks/B2-28.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

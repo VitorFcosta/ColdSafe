@@ -11,6 +11,7 @@ WORKDIR /app
 
 COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --chown=node:node . .
+COPY --from=contracts /examples /contracts/examples
 RUN chown node:node /app
 
 USER node

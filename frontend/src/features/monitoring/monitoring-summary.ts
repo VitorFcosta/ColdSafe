@@ -1,5 +1,5 @@
 import type { ReadingStatus } from './monitoring-state'
-import { parseAiotSnapshot, isRecord as isAiotRecord, type MonitoringEquipment, type Prediction, type PredictionUnavailableReason } from './aiot-api'
+import { parseAiotSnapshot, isRecord as isAiotRecord, type MonitoringEquipment, type TwinInventory, type Prediction, type PredictionUnavailableReason } from './aiot-api'
 import { aiotEnabled } from './monitoring-version'
 
 export type MonitoringSummary = Readonly<{
@@ -23,6 +23,7 @@ export type MonitoringSummary = Readonly<{
   prediction?: Prediction | null
   prediction_unavailable_reason?: PredictionUnavailableReason | null
   equipment?: MonitoringEquipment
+  inventory?: TwinInventory
   persistence?: 'pending' | 'persisted' | null
   status: ReadingStatus
   freshness: Readonly<{ is_stale: boolean; age_seconds: number }> | null

@@ -1,0 +1,66 @@
+{
+  "task": "B2-27 precommit validation",
+  "date": "2026-10-20",
+  "timezone": "America/Sao_Paulo",
+  "base_commit": "93049af3e7507e69f92a47652ee9b23bce9ad9ff",
+  "branch": "codex/block-5-validation",
+  "authorization": "User requested commit and push of all pending project changes.",
+  "runtimes": {
+    "node": "24.20.0",
+    "python": "3.13.15"
+  },
+  "frontend": {
+    "unit_tests": 390,
+    "files": 35,
+    "coverage": {
+      "statements": 92.09,
+      "branches": 88.99,
+      "functions": 90.3,
+      "lines": 95.38
+    },
+    "typecheck": "passed",
+    "aiot_build": "passed",
+    "chromium_webgl_tests": 3,
+    "e2e_seconds": 8.2,
+    "e2e_network": "mocked HTTP/WS; actual Chromium/WebGL"
+  },
+  "backend": {
+    "tests": 72,
+    "seconds": 10.86,
+    "files": [
+      "backend/tests/api/test_aiot_dashboard_api.py",
+      "backend/tests/infra/test_compose_contract.py",
+      "backend/tests/infra/test_proxy_contract.py"
+    ],
+    "warnings": "Two pre-existing Starlette/AnyIO deprecations",
+    "red_green": "Actual disposable fixture interception failed on relative contracts path; passed after resolving additional contexts against repository ROOT."
+  },
+  "audits": {
+    "npm_known_vulnerabilities": 0,
+    "python_runtime_packages": 45,
+    "python_known_vulnerabilities": 0
+  },
+  "reviews": {
+    "security": "No blockers in pending diff or evidence; private files excluded.",
+    "code": "P2 proxy test context regression fixed and rereviewed; no remaining findings."
+  },
+  "new_project_dependencies_during_precommit": [],
+  "temporary_tools": [
+    "Node 24.20.0 from npm registry",
+    "Python dev environment restored from existing lock",
+    "pip-audit via uvx"
+  ],
+  "limitations": [
+    "No new fullstack Docker/database or physical hardware run.",
+    "No new generation or training; personal run evidence remains dated.",
+    "Three.js route chunk >500 kB warning remains."
+  ],
+  "files_sha256": {
+    "backend/tests/infra/test_proxy_integration.py": "0ec8aabe36664aadd77e6d2b032b084b6b3d9f2bf349b56a968844b053dfef67",
+    "backend/tests/infra/test_proxy_contract.py": "838b807ff6a7ebca5126b09802058c4a590d25aee5ca88b87f95e1ceb5e6e8f4",
+    "compose.yaml": "5714cef43fa6e446900d5cdc28d0cb044f2d8cb419569ad23749131fc13a4ba4",
+    "frontend/Dockerfile": "ca806a70d46b9b3633934b1b1066e5705c49386c9497be045fea1d45d142e7f8",
+    "frontend/package.json": "4a605ab08953ea4dd3efcc26f8d9ea6c36d786b02133ab5ac76048d7601ff5a5",
+    "frontend/package-lock.json": "2a700a597d8065fa5fc76847cbcdbf25f95ef4ef72e402735e9e3c98f194fdb3"
+  }
+}

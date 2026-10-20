@@ -1,9 +1,37 @@
 from pathlib import Path
 
+import pytest
 import yaml
 
 
 ROOT = Path(__file__).resolve().parents[3]
+
+
+def test_disposable_proxy_stack_keeps_build_contexts_in_repository(monkeypatch):
+    from backend.tests.infra import test_proxy_integration as integration
+
+    captured = {}
+
+    class ComposeCaptured(Exception):
+        pass
+
+    def capture_command(base, *args, **kwargs):
+        if base[0] == integration.sys.executable:
+            Path(args[1]).write_text("INFLUXDB_TOKEN=\n")
+        elif args[0] == "up":
+            file = Path(base[base.index("-f") + 1])
+            captured.update(yaml.safe_load(file.read_text()))
+            raise ComposeCaptured
+        return ""
+
+    monkeypatch.setenv("COLDSAFE_PROXY_INTEGRATION", "1")
+    monkeypatch.setattr(integration, "command", capture_command)
+    with pytest.raises(ComposeCaptured):
+        next(integration.stack.__wrapped__())
+
+    build = captured["services"]["frontend"]["build"]
+    assert Path(build["context"]) == ROOT / "frontend"
+    assert Path(build["additional_contexts"]["contracts"]) == ROOT / "contracts"
 
 
 def test_frontend_is_the_only_normal_published_service():
