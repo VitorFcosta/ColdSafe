@@ -4,6 +4,24 @@ import type { MonitoringSummary } from '../monitoring/monitoring-summary'
 import { sensorMetrics } from '../monitoring/sensor-metrics'
 
 export type TwinStatus = 'normal' | 'attention' | 'critical' | 'no_data'
+export type TwinVisualState = Readonly<{
+  running: boolean
+  vibration: number | null
+  temperature: number
+  light: number | null
+  led: boolean
+  buzzer: boolean
+}>
+
+export function buildTwinVisualState(summary: MonitoringSummary | null, fresh: boolean): TwinVisualState | null {
+  if (!fresh || !summary?.reading || !summary.equipment) return null
+  return {
+    running: summary.equipment.running, vibration: summary.reading.vibration_rms_mm_s ?? null,
+    temperature: summary.reading.temperature_c, light: summary.reading.light_percent ?? null,
+    led: summary.equipment.led.actual_state, buzzer: summary.equipment.buzzer.actual_state,
+  }
+}
+
 export type TwinItem = Readonly<{
   id: string | null
   key: string

@@ -34,6 +34,10 @@ O primeiro comando também exige as variáveis dos demais serviços do Compose.
 e arquivo `0440` ao UID/GID `100:101` da imagem fixada. Somente esse volume é
 montado como leitura pelo broker. `rabbitmq-data` mantém as mensagens; hostname
 fixo mantém a identidade do nó entre recriações. Não apagar volumes para reiniciar.
+O healthcheck executa ambos os diagnósticos com `su-exec rabbitmq`, o mesmo
+usuário do broker. Isso evita que um diagnóstico precoce como root crie
+`.erlang.cookie` privado de root e impeça o boot com `eacces`. O entrypoint
+continua podendo ajustar o proprietário do volume antes de reduzir privilégios.
 Imports não removem usuários/recursos preexistentes: usar apenas o volume próprio
 deste Compose. Rotação de credenciais ou remoção de identidades exige operação
 administrativa explícita, conferência no broker e atualização dos consumidores.

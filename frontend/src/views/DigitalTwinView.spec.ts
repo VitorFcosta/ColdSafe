@@ -17,8 +17,8 @@ vi.mock('../features/monitoring/use-monitoring-summary', () => ({ useMonitoringS
   live.mqtt = mqtt
   return { summary: live.summary, monitoringState: live.state, refreshRevision: live.revision, connectionState: live.connection }
 } }))
-vi.mock('../features/digital-twin/DigitalTwinScene.vue', () => ({ default: { name: 'DigitalTwinScene', props: ['items', 'selectedId'], emits: ['select'], template: '<div data-scene />' } }))
-vi.mock('../features/digital-twin/twin-state', () => ({ twinStatusLabels: { normal: 'Normal', attention: 'Atenção', critical: 'Crítico', no_data: 'Sem dados' }, twinColors: { normal: 0x197854, attention: 0xa96409, critical: 0xc3353c, no_data: 0x667681 }, buildTwinItems: (summary: MonitoringSummary | null, fresh: boolean, insights: InsightsSnapshot | null) => { live.insightsInput = insights; return [{ id: summary ? 'real-sensor-id' : null, key: 'temperature', label: 'Temperatura ambiente', kind: 'sensor', value: fresh ? '4 °C' : '—', status: fresh ? 'normal' : 'no_data', position: [0, 0, 0] }] } }))
+vi.mock('../features/digital-twin/DigitalTwinScene.vue', () => ({ default: { name: 'DigitalTwinScene', props: ['items', 'selectedId', 'visual'], emits: ['select'], template: '<div data-scene />' } }))
+vi.mock('../features/digital-twin/twin-state', async (original) => ({ ...await original<typeof import('../features/digital-twin/twin-state')>(), twinStatusLabels: { normal: 'Normal', attention: 'Atenção', critical: 'Crítico', no_data: 'Sem dados' }, twinColors: { normal: 0x197854, attention: 0xa96409, critical: 0xc3353c, no_data: 0x667681 }, buildTwinItems: (summary: MonitoringSummary | null, fresh: boolean, insights: InsightsSnapshot | null) => { live.insightsInput = insights; return [{ id: summary ? 'real-sensor-id' : null, key: 'temperature', label: 'Temperatura ambiente', kind: 'sensor', value: fresh ? '4 °C' : '—', status: fresh ? 'normal' : 'no_data', position: [0, 0, 0] }] } }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ replace: vi.fn() }) }))
 const device = { id: 'record-a', environment_id: 'env-a', mqtt_device_id: 'mqtt-a', name: 'Motor autorizado', is_active: true }
 const other = { ...device, id: 'record-b', mqtt_device_id: 'mqtt-b', name: 'Motor B' }
@@ -41,6 +41,21 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers() })
 
 describe('DigitalTwinView', () => {
+  it('anima só com telemetria atual do escopo selecionado, sem exigir previsão', async () => {
+    const equipment = { equipment_id: 'equipment-a', running: true,
+      led: { actuator_id: 'led-a', actual_state: false }, buzzer: { actuator_id: 'buzzer-a', actual_state: true } }
+    data().value = { ...summary, equipment }
+    const wrapper = mount(); await flushPromises()
+    const scene = () => wrapper.findComponent({ name: 'DigitalTwinScene' })
+    expect(scene().props('visual')).toMatchObject({ running: true, temperature: 4, led: false, buzzer: true })
+    state().value = { kind: 'stale' }; await flushPromises()
+    expect(scene().props('visual')).toBeNull()
+    state().value = { kind: 'normal' }; await flushPromises()
+    expect(scene().props('visual')).toMatchObject({ running: true })
+    data().value = { ...summary, equipment, environment: { id: 'foreign', name: 'Foreign' } }; await flushPromises()
+    expect(scene().props('visual')).toBeNull()
+    wrapper.unmount()
+  })
   it('telemetria 1Hz não renova deadline nem cancela consulta em andamento', async () => {
     const alert = { alert_id: 'alert-a', kind: 'predictive_failure' as const, opened_at: '2026-10-19T12:00:00Z', source_event_id: 'reading-a', prediction_event_id: 'prediction-a' }
     vi.mocked(fetchInsights).mockResolvedValueOnce({ ...snapshot, active_alerts: [alert] })

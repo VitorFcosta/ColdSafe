@@ -110,7 +110,20 @@ leitura localmente após 30 s. Sem dados atuais, os valores ficam indisponíveis
 A temperatura ambiente segue os limites cadastrados; os demais sensores ainda
 não têm faixas operacionais. A cor do ventilador combina alerta persistente e
 faixas preditivas recebidas; não atesta segurança física. Atuadores mostram a
-telemetria observada. A cena renderiza sob demanda e libera os recursos ao sair.
+telemetria observada. A cena libera os recursos ao sair.
+
+Na B2-28, o mesmo snapshot alimenta giro por `running`, tremor proporcional à
+vibração (ganho ilustrativo limitado a 10 mm/s), brilho do LED e pulso suave de
+1 Hz do buzzer ligado, sem áudio. Iluminação acompanha luminosidade em **%**;
+uma barra térmica superior muda de azul a vermelho entre −20 e 60 °C. Essa escala
+visual não substitui as faixas de risco cadastradas, nem mede RPM/calibração física.
+O loop reutiliza cena/geometrias e lê o estado atual; ao vencer a leitura após
+30 s, suspende movimento e avisa **Cena congelada**, mesmo com WebSocket aberto.
+A aparência ambiental conservada pertence à última leitura. Troca de equipamento
+recria a cena para não conservar a aparência de outro escopo. Leitura nova retoma
+sem compensar o tempo parado. Aba oculta e preferência de movimento reduzido
+suspendem animações; esta última conserva atualização dos valores/estados.
+Nenhuma dependência nova. Aceite e evidências no [cartão B2-28](../docs/aiot/tasks/B2-28.md).
 
 Dependências adicionadas e fixadas: `three 0.186.1` para renderização e
 `@types/three 0.186.0` para TypeScript, com seis transitivas de desenvolvimento
@@ -185,7 +198,9 @@ COLDSAFE_WRITER_INTEGRATION=1 .venv/bin/python -m pytest backend/tests/infra/tes
 Execute da raiz do projeto. `COLDSAFE_NODE_BINARY` pode indicar o executável Node;
 `COLDSAFE_FRONTEND_NODE_MODULES`, uma instalação temporária feita com o mesmo lock.
 O teste copia fontes/configuração e usa credenciais/volumes próprios, removidos
-ao terminar. Fora do harness, os quatro casos reais ficam explicitamente pulados.
+ao terminar. Fora do harness, os cinco casos reais ficam explicitamente pulados.
+O quinto exercita o gêmeo digital: para só o simulador, conserva o WebSocket
+conectado, espera freshness vencer, compara quadros congelados e confere a retomada.
 
 A B2-15 tem um harness separado, que compara contagens/taxas/consumidores com
 RabbitMQ real, verifica permissões e pausa o broker para exercitar timeout e

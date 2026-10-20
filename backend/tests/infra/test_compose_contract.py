@@ -1,4 +1,5 @@
 from pathlib import Path
+import shlex
 
 import yaml
 
@@ -91,6 +92,17 @@ def test_runtime_images_are_pinned_and_have_healthchecks():
         "healthcheck" in services[name]
         for name in ("mosquitto", "influxdb", "postgres", "backend")
     )
+
+
+def test_rabbitmq_healthcheck_uses_broker_identity_to_avoid_root_cookie():
+    service = load_compose()['services']['rabbitmq']
+    check = service['healthcheck']['test']
+    assert check[0] == 'CMD-SHELL'
+    commands = [shlex.split(command.strip()) for command in check[1].split('&&')]
+    assert len(commands) == 2
+    for command in commands:
+        assert command[:3] == ['su-exec', 'rabbitmq', 'rabbitmq-diagnostics']
+    assert {command[-1] for command in commands} == {'check_running', 'check_local_alarms'}
 
 
 def test_writer_is_optional_private_and_receives_only_its_influx_token():

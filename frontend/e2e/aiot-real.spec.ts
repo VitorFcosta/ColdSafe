@@ -165,3 +165,41 @@ test('visualizador do equipamento configurado lê sensores e gráfico sem comand
     setRole('operator')
   }
 })
+
+test('gêmeo digital real congela após parar simulador com WebSocket aberto e retoma com dados novos', async ({ page }) => {
+  simulator('start')
+  await login(page)
+  const socketPromise = page.waitForEvent('websocket', (socket) => socket.url().includes('/api/v3/events?'))
+  await page.locator('nav a[href="/digital-twin"]').click()
+  const socket = await socketPromise
+  let closed = false
+  socket.on('close', () => { closed = true })
+  const list = page.getByRole('region', { name: 'Componentes do gêmeo digital', exact: true })
+  const canvas = page.locator('[data-testid=twin-scene] canvas')
+  await expect(list.getByRole('button')).toHaveCount(9)
+  await expect(list.getByRole('button', { name: /^Ventilador/ })).toContainText('Em operação')
+  await expect(canvas).toBeVisible()
+  const before = await canvas.screenshot()
+  await expect.poll(async () => (await canvas.screenshot()).equals(before)).toBe(false)
+  simulator('stop')
+  try {
+    await expect(page.getByRole('status').filter({ hasText: 'Cena congelada' })).toBeVisible({ timeout: 45_000 })
+    await expect(page.getByRole('status').filter({ hasText: 'Leitura desatualizada' })).toBeVisible()
+    for (const button of await list.getByRole('button').all()) await expect(button).toContainText('Sem dados atuais')
+    const snapshot = await callApi(page, `/api/v3/monitoring/summary?device_id=${device}`)
+    expect(snapshot.body.data.freshness.state).toBe('stale')
+    expect(snapshot.body.data.freshness.age_seconds).toBeGreaterThan(30)
+    expect(socket.isClosed()).toBe(false)
+    expect(closed).toBe(false)
+    const frozen = await canvas.screenshot({ path: '/tmp/coldsafe-b228/twin-real-stale.png' })
+    await page.waitForTimeout(750)
+    expect((await canvas.screenshot()).equals(frozen)).toBe(true)
+  } finally {
+    simulator('start')
+  }
+  await expect(page.getByRole('status').filter({ hasText: 'Cena congelada' })).toHaveCount(0)
+  await expect(list.getByRole('button', { name: /^Ventilador/ })).toContainText('Em operação')
+  const resumed = await canvas.screenshot({ path: '/tmp/coldsafe-b228/twin-real-resumed.png' })
+  await expect.poll(async () => (await canvas.screenshot()).equals(resumed)).toBe(false)
+  expect(closed).toBe(false)
+})

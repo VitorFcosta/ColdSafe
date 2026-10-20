@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { listDevices, listEnvironments, type Device, type Environment } from '../features/account/catalog'
 import { clearSession, logout, refreshSessionIdentity, sessionToken } from '../features/account/session'
 import DigitalTwinScene from '../features/digital-twin/DigitalTwinScene.vue'
-import { buildTwinItems, twinColors, twinStatusLabels as statusLabels } from '../features/digital-twin/twin-state'
+import { buildTwinItems, buildTwinVisualState, twinColors, twinStatusLabels as statusLabels } from '../features/digital-twin/twin-state'
 import { fetchInsights, InsightsAccessError, type InsightsSnapshot } from '../features/insights/insights-api'
 import { aiotEnabled } from '../features/monitoring/monitoring-version'
 import { useMonitoringSummary } from '../features/monitoring/use-monitoring-summary'
@@ -34,6 +34,7 @@ const scopedSummary = computed(() => {
 })
 const fresh = computed(() => ['normal', 'attention', 'critical'].includes(monitoringState.value.kind))
 const items = computed(() => buildTwinItems(scopedSummary.value, fresh.value && scopedSummary.value !== null, insightsFailed.value ? null : insights.value))
+const visual = computed(() => buildTwinVisualState(scopedSummary.value, fresh.value))
 const selected = computed(() => items.value.find((item) => item.id !== null && item.id === selectedId.value))
 const monitorMessage = computed(() => {
   if (denied.value) return 'Acesso ao equipamento indisponível. Selecione outro equipamento ou entre novamente.'
@@ -183,7 +184,7 @@ async function signOut() {
             <p>A cor do ventilador segue o alerta persistente e as faixas de recuperação preditivas; sem previsão confirmada fica sem dados. LED e buzzer mostram o estado observado na telemetria.</p>
           </section>
           <div class="workspace">
-            <section class="panel scene" aria-label="Visualização do gêmeo digital"><DigitalTwinScene :items="items" :selected-id="selectedId" @select="selectItem" /></section>
+            <section class="panel scene" aria-label="Visualização do gêmeo digital"><DigitalTwinScene :key="`${environmentId}:${deviceUuid}`" :items="items" :selected-id="selectedId" :visual="visual" @select="selectItem" /></section>
             <section class="panel" aria-label="Componentes do gêmeo digital">
               <h2>Componentes</h2>
               <p>A lista oferece os mesmos componentes e estados da cena e pode ser usada pelo teclado.</p>

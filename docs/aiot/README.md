@@ -9,7 +9,18 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-27](tasks/B2-27.md): Gêmeo digital com Three.js direto
+A última entrega foi [B2-28](tasks/B2-28.md): giro/tremor do ventilador,
+brilho do LED e pulso visual do buzzer por telemetria; luz ambiente e barra térmica
+reativas. Loop reutiliza os objetos, congela após freshness de 30 s mesmo com
+WebSocket aberto e retoma por dados novos; preferência de movimento reduzido e
+aba oculta suspendem animações. 395 testes frontend, quatro cenários Chromium
+com HTTP/WS simulados e cinco cenários no percurso real descartável passaram.
+Corrigida corrida de `.erlang.cookie`: healthcheck usa o mesmo usuário do broker.
+Nenhuma dependência nova ou implantação pessoal. Escalas de movimento/temperatura
+são ilustrativas; não houve calibração física nem ensaio de capacidade final.
+Detalhes, limites e checkpoint no cartão e na [evidência](../evidence/b2-28.json).
+
+A [B2-27](tasks/B2-27.md) conserva Gêmeo digital com Three.js direto
 no Vue, seis sensores, LED, buzzer e ventilador ligados ao monitoramento WS/REST.
 Inventário autorizado conserva nove IDs mesmo sem leitura; posições são locais
 ao frontend. Clique/teclado compartilham seleção, valores e estados; falha WebGL
@@ -149,7 +160,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-28](tasks/B2-28.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-29](tasks/B2-29.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

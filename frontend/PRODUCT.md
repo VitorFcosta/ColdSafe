@@ -53,9 +53,18 @@ LED/buzzer usam telemetria observada. Os demais sensores não possuem faixas
 operacionais, e “Normal” nesses itens significa apenas dado atual recebido.
 Ausência, vencimento, falha de consulta e falha WebGL ficam explícitos.
 
-Three.js direto no Vue, com renderização sob demanda e descarte de recursos ao
-desmontar. Dependências fixadas: `three 0.186.1` e `@types/three 0.186.0`.
-Animações e comandos pela cena pertencem aos cartões seguintes.
+Three.js direto no Vue, com descarte de recursos ao desmontar. Dependências
+fixadas: `three 0.186.1` e `@types/three 0.186.0`.
+
+Na B2-28, giro acompanha funcionamento observado e tremor acompanha vibração;
+LED brilha e buzzer ligado tem pulso suave de 1 Hz, sem áudio. A luminosidade
+percentual muda a iluminação; temperatura ambiente muda a barra térmica superior.
+Giro/tremor e escala térmica são ilustrativos, sem calibração física ou RPM medido.
+Leitura vencida após 30 s congela movimento e avisa, mesmo com WebSocket aberto;
+a aparência ambiental conservada identifica a última leitura. Dados novos retomam
+sem compensar o intervalo parado. Preferência de movimento reduzido e aba oculta
+suspendem o loop; valores e estados continuam disponíveis na lista.
+Comandos pela cena continuam pertencendo à B2-29.
 
 ## Propósito
 

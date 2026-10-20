@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { parseAiotSnapshot } from '../monitoring/aiot-api'
 import type { InsightsSnapshot } from '../insights/insights-api'
-import { buildTwinItems } from './twin-state'
+import { buildTwinItems, buildTwinVisualState } from './twin-state'
 
 const examples = JSON.parse(readFileSync(new URL('../../../../contracts/examples/aiot.valid.json', import.meta.url), 'utf8'))
 const telemetry = examples.find((item: { name: string }) => item.name === 'telemetry_received').payload
@@ -20,6 +20,18 @@ const insights = { device_id: telemetry.device_id, equipment_id: inventory.equip
   active_alerts: [], prediction: null, availability: 'no_data', age_seconds: null, trend: 'unknown' } satisfies InsightsSnapshot
 
 describe('inventário do gêmeo digital', () => {
+  it('entrega números/estados observados para animação, preserva zero e bloqueia leitura vencida', () => {
+    const base = summary()
+    const current = { ...base, reading: { ...base.reading!, temperature_c: 0, light_percent: 0, vibration_rms_mm_s: 0 },
+      equipment: { ...base.equipment!, running: false } }
+    expect(buildTwinVisualState(current, true)).toEqual({ temperature: 0, light: 0, vibration: 0, running: false, led: false, buzzer: false })
+    expect(buildTwinVisualState(base, false)).toBeNull()
+    expect(buildTwinVisualState(null, true)).toBeNull()
+    expect(buildTwinVisualState({ ...base, reading: null }, true)).toBeNull()
+    expect(buildTwinVisualState({ ...base, equipment: undefined }, true)).toBeNull()
+    expect(buildTwinVisualState({ ...base, reading: { ...base.reading!, light_percent: null, vibration_rms_mm_s: undefined } }, true))
+      .toMatchObject({ light: null, vibration: null, running: true })
+  })
   it('representa nove IDs únicos do cadastro e posições independentes dos valores', () => {
     const items = buildTwinItems(summary(), true, insights)
     expect(items).toHaveLength(9)

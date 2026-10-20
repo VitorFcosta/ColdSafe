@@ -94,11 +94,16 @@ async function mockTwin(page: Page) {
       heldSummary = { started: markStarted, released }
       return { started, release }
     },
-    async update(change: { temperature?: number; led?: boolean; alert?: boolean; empty?: boolean; stale?: boolean }) {
+    async update(change: { temperature?: number; light?: number; vibration?: number; running?: boolean; led?: boolean; buzzer?: boolean; alert?: boolean; empty?: boolean; stale?: boolean }) {
       telemetry = { ...telemetry, event_id: `00000000-0000-4000-8000-${String(++revision).padStart(12, '0')}`,
-        data: { ...telemetry.data, measurements: { ...telemetry.data.measurements,
+        data: { ...telemetry.data, equipment: { ...telemetry.data.equipment, running: change.running ?? telemetry.data.equipment.running },
+          measurements: { ...telemetry.data.measurements,
+          light: { ...telemetry.data.measurements.light!, value: change.light ?? telemetry.data.measurements.light!.value },
+          vibration: { ...telemetry.data.measurements.vibration!, value: change.vibration ?? telemetry.data.measurements.vibration!.value },
           ambient_temperature: { ...telemetry.data.measurements.ambient_temperature!, value: change.temperature ?? telemetry.data.measurements.ambient_temperature!.value } },
-        actuators: { ...telemetry.data.actuators, led: { ...telemetry.data.actuators.led, actual_state: change.led ?? telemetry.data.actuators.led.actual_state } } } }
+        actuators: { ...telemetry.data.actuators,
+          buzzer: { ...telemetry.data.actuators.buzzer, actual_state: change.buzzer ?? telemetry.data.actuators.buzzer.actual_state },
+          led: { ...telemetry.data.actuators.led, actual_state: change.led ?? telemetry.data.actuators.led.actual_state } } } }
       activeAlert = change.alert ?? activeAlert; noData = change.empty ?? noData; stale = change.stale ?? stale
       await expect.poll(() => sockets.has(telemetry.device_id)).toBe(true)
       sockets.get(telemetry.device_id)!.send(JSON.stringify(telemetry))
@@ -162,6 +167,47 @@ test('cena WebGL real identifica nove peças e atualiza valores e estados via WS
   await expect(list.getByRole('button', { name: /Temperatura ambiente/ })).toContainText('Sem dados atuais · Sem dados')
   await expect(list.getByRole('button', { name: /^Ventilador/ })).toContainText('Sem dados atuais · Sem dados')
   expect(mock.requests()).toBeGreaterThanOrEqual(5)
+})
+
+test('ambiente e atuadores reagem ao WS com movimento reduzido; expiração local congela com socket aberto', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.install()
+  const mock = await mockTwin(page)
+  await page.goto('/digital-twin')
+  const list = components(page)
+  await expect(list).toContainText('6,5 °C')
+  await expect.poll(() => mock.requests()).toBeGreaterThanOrEqual(2)
+  const canvas = page.locator('[data-testid=twin-scene] canvas')
+  await expect(page.getByRole('status').filter({ hasText: 'Movimento reduzido' })).toBeVisible()
+  const initial = await canvas.screenshot()
+  await mock.update({ light: 0, vibration: 0, running: false, temperature: 0 })
+  await expect(list.getByRole('button', { name: /Luminosidade/ })).toContainText('0 %')
+  await expect(list.getByRole('button', { name: /^Ventilador/ })).toContainText('Parado')
+  const dark = await canvas.screenshot()
+  expect(dark.equals(initial)).toBe(false)
+  await mock.update({ light: 100 })
+  await expect(list.getByRole('button', { name: /Luminosidade/ })).toContainText('100 %')
+  const bright = await canvas.screenshot()
+  expect(bright.equals(dark)).toBe(false)
+  await mock.update({ temperature: 40 })
+  await expect(list.getByRole('button', { name: /Temperatura ambiente/ })).toContainText('40 °C')
+  const hot = await canvas.screenshot()
+  expect(hot.equals(bright)).toBe(false)
+  await mock.update({ led: true, buzzer: true })
+  await expect(list.getByRole('button', { name: /^LED/ })).toContainText('Ligado')
+  await expect(list.getByRole('button', { name: /^Buzzer/ })).toContainText('Ligado')
+  expect((await canvas.screenshot()).equals(hot)).toBe(false)
+  const requests = mock.requests()
+  await page.clock.fastForward(32_000)
+  await expect(page.getByRole('status').filter({ hasText: 'Cena congelada' })).toBeVisible()
+  await expect(list).toContainText('Sem dados atuais')
+  expect(mock.requests()).toBe(requests)
+  const frozen = await canvas.screenshot()
+  await page.clock.fastForward(5_000)
+  expect((await canvas.screenshot()).equals(frozen)).toBe(true)
+  await mock.update({ temperature: 5, stale: false })
+  await expect(list.getByRole('button', { name: /Temperatura ambiente/ })).toContainText('5 °C')
+  await expect(page.getByRole('status').filter({ hasText: 'Cena congelada' })).toHaveCount(0)
 })
 
 test('troca ambiente sem reaproveitar leitura e libera contextos ao navegar três vezes', async ({ page }) => {
