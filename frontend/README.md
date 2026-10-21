@@ -125,6 +125,20 @@ sem compensar o tempo parado. Aba oculta e preferência de movimento reduzido
 suspendem animações; esta última conserva atualização dos valores/estados.
 Nenhuma dependência nova. Aceite e evidências no [cartão B2-28](../docs/aiot/tasks/B2-28.md).
 
+Na B2-29, selecionar qualquer item abre leitura atual/última leitura, idade,
+horário e mini gráfico de 15 minutos. Sensores filtram o histórico pelo próprio ID,
+além do dispositivo/ambiente/equipamento. Para ventilador/atuadores, o gráfico
+contextual de temperatura ambiente é identificado como medição associada; não há
+série própria de estados disponível. Sensores/atuadores exibem saúde/RUL próprias
+**não aplicáveis**, separadas da previsão do equipamento identificado.
+
+O painel do LED e o dashboard usam `useActuators`/`LedControl` compartilhados:
+envio, ACK e estado observado permanecem distintos, com bloqueio de reenvio,
+rejeição/sem confirmação e permissões atuais. Buzzer continua automático.
+Histórico consulta a cada 5 s, com prazo de 8 s e limpeza ao trocar escopo/sair;
+consulta lenta não é cancelada por eventos live de 1 Hz. Sem dependências novas.
+Resultados/limites no [cartão B2-29](../docs/aiot/tasks/B2-29.md).
+
 Dependências adicionadas e fixadas: `three 0.186.1` para renderização e
 `@types/three 0.186.0` para TypeScript, com seis transitivas de desenvolvimento
 registradas no lock. As versões anteriores permanecem iguais. Após atualizar os
@@ -198,9 +212,11 @@ COLDSAFE_WRITER_INTEGRATION=1 .venv/bin/python -m pytest backend/tests/infra/tes
 Execute da raiz do projeto. `COLDSAFE_NODE_BINARY` pode indicar o executável Node;
 `COLDSAFE_FRONTEND_NODE_MODULES`, uma instalação temporária feita com o mesmo lock.
 O teste copia fontes/configuração e usa credenciais/volumes próprios, removidos
-ao terminar. Fora do harness, os cinco casos reais ficam explicitamente pulados.
+ao terminar. Fora do harness, os seis casos reais ficam explicitamente pulados.
 O quinto exercita o gêmeo digital: para só o simulador, conserva o WebSocket
 conectado, espera freshness vencer, compara quadros congelados e confere a retomada.
+O sexto inspeciona os nove IDs, comanda LED e verifica recusa do servidor após
+revogar o papel, visualização sem comando após recarga e isolamento de outra conta.
 
 A B2-15 tem um harness separado, que compara contagens/taxas/consumidores com
 RabbitMQ real, verifica permissões e pausa o broker para exercitar timeout e

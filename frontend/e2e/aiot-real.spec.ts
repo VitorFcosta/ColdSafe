@@ -33,6 +33,10 @@ async function callApi(page: Page, path: string, method = 'GET', body?: object) 
   }, { api, path, method, body })
 }
 
+const setRole = (role: 'viewer' | 'operator') => execFileSync(process.env.DASHBOARD_REAL_PYTHON!, ['-c',
+    'import os,psycopg; c=psycopg.connect(host=os.environ["POSTGRES_HOST"],port=os.environ["POSTGRES_PORT"],dbname=os.environ["POSTGRES_DB"],user=os.environ["POSTGRES_USER"],password=os.environ["POSTGRES_PASSWORD"]); c.execute("UPDATE users SET role=%s WHERE id=%s",(os.environ["DASHBOARD_TEST_ROLE"],os.environ["DASHBOARD_REAL_OWNER"])); c.commit(); c.close()',
+  ], { env: { ...process.env, DASHBOARD_TEST_ROLE: role }, stdio: 'pipe' })
+
 test('sensor real chega a seis medições, gráfico e tabela; LED aguarda ACK; buzzer segue regra', async ({ page }) => {
   await login(page)
   // Keep the real sensor stopped so UI values and the pending command are observable.
@@ -148,9 +152,6 @@ test('conta visualizadora real não comanda e não acessa o dispositivo do opera
 })
 
 test('visualizador do equipamento configurado lê sensores e gráfico sem comandar', async ({ page }) => {
-  const setRole = (role: 'viewer' | 'operator') => execFileSync(process.env.DASHBOARD_REAL_PYTHON!, ['-c',
-    'import os,psycopg; c=psycopg.connect(host=os.environ["POSTGRES_HOST"],port=os.environ["POSTGRES_PORT"],dbname=os.environ["POSTGRES_DB"],user=os.environ["POSTGRES_USER"],password=os.environ["POSTGRES_PASSWORD"]); c.execute("UPDATE users SET role=%s WHERE id=%s",(os.environ["DASHBOARD_TEST_ROLE"],os.environ["DASHBOARD_REAL_OWNER"])); c.commit(); c.close()',
-  ], { env: { ...process.env, DASHBOARD_TEST_ROLE: role }, stdio: 'pipe' })
   setRole('viewer')
   try {
     simulator('start')
@@ -202,4 +203,47 @@ test('gêmeo digital real congela após parar simulador com WebSocket aberto e r
   const resumed = await canvas.screenshot({ path: '/tmp/coldsafe-b228/twin-real-resumed.png' })
   await expect.poll(async () => (await canvas.screenshot()).equals(resumed)).toBe(false)
   expect(closed).toBe(false)
+})
+
+test('painel 3D real inspeciona nove IDs, comanda LED e servidor recusa papel revogado', async ({ page }) => {
+  simulator('start')
+  await login(page)
+  await page.locator('nav a[href="/digital-twin"]').click()
+  const list = page.getByRole('region', { name: 'Componentes do gêmeo digital', exact: true })
+  const panel = page.getByRole('region', { name: 'Detalhes do componente', exact: true })
+  await expect(list.getByRole('button')).toHaveCount(9)
+  for (const button of await list.getByRole('button').all()) {
+    await button.click()
+    const name = (await button.locator('strong').textContent())!
+    await expect(panel.getByRole('heading', { level: 2 }).first()).toHaveText(name)
+    await expect(panel).toContainText('Idade da leitura')
+    await expect(panel.getByRole('img', { name: /Gráfico de linha/ })).toHaveCount(1)
+    if (name !== 'Ventilador') await expect(panel).toContainText('Saúde/RUL deste item: não aplicável')
+    await expect(panel.getByText('Saúde estimada', { exact: true })).toHaveCount(0)
+  }
+  await list.getByRole('button', { name: /^LED/ }).click()
+  const control = panel.getByRole('region', { name: 'Controle do LED selecionado' })
+  const snapshot = await callApi(page, `/api/v3/monitoring/summary?device_id=${device}`)
+  const before = snapshot.body.data.commands.led?.data.confirmed_state === true
+  await control.getByRole('button', { name: before ? 'Desligar Luz' : 'Ligar Luz' }).click()
+  await expect(control.getByRole('button', { name: before ? 'Ligar Luz' : 'Desligar Luz' })).toBeEnabled({ timeout: 25_000 })
+  await expect(list.getByRole('button', { name: /^LED/ })).toContainText(!before ? 'Ligado' : 'Desligado')
+  const ack = await callApi(page, `/api/v3/monitoring/summary?device_id=${device}`)
+  expect(ack.body.data.commands.led.data.status).toBe('confirmed')
+  expect(ack.body.data.telemetry.data.actuators.led.actual_state).toBe(!before)
+  await page.screenshot({ path: '/tmp/coldsafe-b229/twin-real-led.png', fullPage: true })
+  setRole('viewer')
+  try {
+    // The browser still caches operator; current server-side role must reject the POST.
+    await control.getByRole('button', { name: before ? 'Ligar Luz' : 'Desligar Luz' }).click()
+    await expect(control).toContainText('Não foi possível enviar o comando')
+    expect((await callApi(page, `/api/v3/devices/${device}/led/commands`, 'POST', { desired_state: before })).status).toBe(403)
+    await page.reload()
+    await list.getByRole('button', { name: /^LED/ }).click()
+    await expect(control).toContainText('Modo visualizador')
+    await expect(control.getByRole('button', { name: /Ligar Luz|Desligar Luz/ })).toBeDisabled()
+    expect((await callApi(page, '/api/v3/monitoring/summary?device_id=dashboard-viewer-device')).status).toBe(404)
+  } finally {
+    setRole('operator')
+  }
 })

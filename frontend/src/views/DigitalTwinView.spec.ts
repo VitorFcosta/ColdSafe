@@ -15,7 +15,7 @@ vi.mock('../features/insights/insights-api', async (original) => ({ ...await ori
 vi.mock('../features/monitoring/monitoring-version', () => ({ get aiotEnabled() { return live.enabled } }))
 vi.mock('../features/monitoring/use-monitoring-summary', () => ({ useMonitoringSummary: (_token: unknown, mqtt: unknown) => {
   live.mqtt = mqtt
-  return { summary: live.summary, monitoringState: live.state, refreshRevision: live.revision, connectionState: live.connection }
+  return { summary: live.summary, monitoringState: live.state, refreshRevision: live.revision, connectionState: live.connection, ageSeconds: ref(1) }
 } }))
 vi.mock('../features/digital-twin/DigitalTwinScene.vue', () => ({ default: { name: 'DigitalTwinScene', props: ['items', 'selectedId', 'visual'], emits: ['select'], template: '<div data-scene />' } }))
 vi.mock('../features/digital-twin/twin-state', async (original) => ({ ...await original<typeof import('../features/digital-twin/twin-state')>(), twinStatusLabels: { normal: 'Normal', attention: 'Atenção', critical: 'Crítico', no_data: 'Sem dados' }, twinColors: { normal: 0x197854, attention: 0xa96409, critical: 0xc3353c, no_data: 0x667681 }, buildTwinItems: (summary: MonitoringSummary | null, fresh: boolean, insights: InsightsSnapshot | null) => { live.insightsInput = insights; return [{ id: summary ? 'real-sensor-id' : null, key: 'temperature', label: 'Temperatura ambiente', kind: 'sensor', value: fresh ? '4 °C' : '—', status: fresh ? 'normal' : 'no_data', position: [0, 0, 0] }] } }))
@@ -24,7 +24,10 @@ const device = { id: 'record-a', environment_id: 'env-a', mqtt_device_id: 'mqtt-
 const other = { ...device, id: 'record-b', mqtt_device_id: 'mqtt-b', name: 'Motor B' }
 const summary: MonitoringSummary = { environment: { id: 'env-a', name: 'A' }, device: { id: 'mqtt-a' }, reading: { temperature_c: 4, humidity_percent: 40, received_at: new Date().toISOString(), device_record_id: 'record-a', environment_id: 'env-a', equipment_id: 'equipment-a' }, status: 'normal', freshness: { age_seconds: 0, is_stale: false }, thresholds: { min_c: 0, max_c: 8, attention_margin_c: 1 } }
 const snapshot: InsightsSnapshot = { device_id: 'mqtt-a', equipment_id: 'equipment-a', rules: { health_critical: 30, health_recovery: 40, rul_critical_hours: 24, rul_recovery_hours: 48, open_count: 3, close_count: 10 }, prediction: null, availability: 'no_data', age_seconds: null, trend: 'unknown', active_alerts: [] }
-const mount = () => shallowMount(DigitalTwinView, { global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } } })
+const mount = () => shallowMount(DigitalTwinView, { global: { stubs: {
+  RouterLink: { template: '<a><slot /></a>' },
+  TwinItemPanel: { name: 'TwinItemPanel', props: ['item', 'summary', 'device', 'token', 'fresh', 'ageSeconds', 'revision', 'connectionState'], template: '<section aria-label="Detalhes do componente"><h2>{{ item.label }}</h2>{{ item.id }} {{ item.value }}</section>' },
+} } })
 const state = () => live.state as Ref<{ kind: string }>
 const data = () => live.summary as Ref<MonitoringSummary | null>
 const revision = () => live.revision as Ref<number>

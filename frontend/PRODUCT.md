@@ -64,7 +64,12 @@ Leitura vencida após 30 s congela movimento e avisa, mesmo com WebSocket aberto
 a aparência ambiental conservada identifica a última leitura. Dados novos retomam
 sem compensar o intervalo parado. Preferência de movimento reduzido e aba oculta
 suspendem o loop; valores e estados continuam disponíveis na lista.
-Comandos pela cena continuam pertencendo à B2-29.
+Na B2-29, seleção por clique/lista abre última leitura, idade, horário e gráfico
+por ID. Saúde/RUL de sensores/atuadores são não aplicáveis; a previsão do
+equipamento aparece separadamente. O LED usa o mesmo controle/ACK do dashboard,
+com permissões e erros explícitos; buzzer permanece automático. Histórico de
+estado dos atuadores não existe: o gráfico contextual de temperatura ambiente
+do equipamento associado é identificado, sem inferir estado a partir dele.
 
 ## Propósito
 

@@ -3,9 +3,10 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { listDevices, listEnvironments, type Device, type Environment } from '../features/account/catalog'
-import { canWrite, clearSession, dashboardSelection, logout, saveDashboardSelection, sessionRole, sessionToken } from '../features/account/session'
+import { clearSession, dashboardSelection, logout, saveDashboardSelection, sessionToken } from '../features/account/session'
 import AlertsComparisonPanel from '../features/monitoring/AlertsComparisonPanel.vue'
-import { fetchActuators, fetchCommand, isCommand, requestLed, type ActuatorCommand } from '../features/monitoring/actuators'
+import LedControl from '../features/monitoring/LedControl.vue'
+import { actuatorLabel, useActuators } from '../features/monitoring/use-actuators'
 import TemperatureHistoryChart from '../features/monitoring/TemperatureHistoryChart.vue'
 import PredictionPanel from '../features/monitoring/PredictionPanel.vue'
 import {
@@ -35,33 +36,23 @@ const availableMetrics = computed(() => sensorMetrics.filter((metric) =>
 const selectedPeriod = ref<HistoryPeriod>(historyPeriods.find((period) => period === restoredSelection?.period) ?? '1h')
 const history = ref<MonitoringHistory | null>(null)
 const historyPhase = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
-const led = ref<ActuatorCommand | null>(null)
-const buzzer = ref<ActuatorCommand | null>(null)
-const actuatorPhase = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
-const commandError = ref('')
-const commandSubmitting = ref(false)
 const logoutError = ref('')
 const eventsRevision = ref(0)
 let latestCatalogRequest = 0
 let latestHistoryRequest = 0
-let latestActuatorRequest = 0
-let pendingTimer: ReturnType<typeof setInterval> | null = null
 let catalogRetryTimer: ReturnType<typeof setTimeout> | null = null
-let pendingChecks = 0
-let commandRevision = 0
 
+const legacyActuatorEvent = ref<MonitoringEvent | null>(null)
 function handleEvent(event: MonitoringEvent) {
-  // v3 events invalidate REST state; a redelivery must not overwrite a newer ACK.
   if (event.schema_version === 3) return
   eventsRevision.value += 1
-  if (event.type !== 'command_status' || !isCommand(event.data)) return
-  if (event.data.actuator === 'led') led.value = event.data
-  else buzzer.value = event.data
-  if (event.data.actuator === 'led' && event.data.status !== 'pending') stopPendingCheck()
+  legacyActuatorEvent.value = event
 }
 
 const { loadSummary, monitoringState, refreshRevision, summary, connectionState, ageSeconds } =
   useMonitoringSummary(sessionToken, selectedMqttId, handleEvent)
+const { led, buzzer, actuatorPhase, commandError, commandSubmitting, loadActuators, toggleLed } =
+  useActuators(sessionToken, selectedActuatorId, refreshRevision, connectionState, legacyActuatorEvent)
 
 watch(connectionState, (state) => {
   if (state === 'unauthorized') {
@@ -93,7 +84,6 @@ const motorMetrics = computed(() => sensorMetrics.slice(3).map((metric) => ({
 onMounted(() => { void loadEnvironments() })
 onUnmounted(() => {
   latestCatalogRequest += 1
-  stopPendingCheck()
   if (catalogRetryTimer !== null) clearTimeout(catalogRetryTimer)
 })
 
@@ -211,103 +201,7 @@ async function loadHistory(deviceId: string) {
   }
 }
 
-watch(selectedActuatorId, (deviceId) => {
-  latestActuatorRequest += 1
-  led.value = null
-  buzzer.value = null
-  commandError.value = ''
-  commandSubmitting.value = false
-  commandRevision += 1
-  stopPendingCheck()
-  if (!deviceId) {
-    actuatorPhase.value = 'idle'
-    return
-  }
-  void loadActuators(deviceId)
-})
-
-watch(connectionState, (state, previous) => {
-  if (state === 'connected' && previous !== 'connected' && selectedActuatorId.value) {
-    void loadActuators(selectedActuatorId.value)
-  }
-})
-
-watch(refreshRevision, () => {
-  eventsRevision.value += 1
-  if (aiotEnabled && selectedActuatorId.value) void loadActuators(selectedActuatorId.value)
-})
-
-async function loadActuators(deviceId: string) {
-  const token = sessionToken.value
-  if (!token || commandSubmitting.value) return
-  const requestId = ++latestActuatorRequest
-  actuatorPhase.value = 'loading'
-  try {
-    const result = await fetchActuators(token, deviceId)
-    if (requestId !== latestActuatorRequest || selectedActuatorId.value !== deviceId || sessionToken.value !== token) return
-    led.value = result.led
-    buzzer.value = result.buzzer
-    actuatorPhase.value = 'ready'
-    if (result.led?.status === 'pending') startPendingCheck(result.led.command_id, deviceId)
-    else stopPendingCheck()
-  } catch {
-    if (requestId === latestActuatorRequest) actuatorPhase.value = 'error'
-  }
-}
-
-async function toggleLed() {
-  const token = sessionToken.value
-  const deviceId = selectedActuatorId.value
-  if (!canWrite.value || !token || !deviceId || commandSubmitting.value || led.value?.status === 'pending') return
-  const requestId = ++commandRevision
-  latestActuatorRequest += 1
-  commandSubmitting.value = true
-  commandError.value = ''
-  try {
-    const result = await requestLed(token, deviceId, led.value?.confirmed_state !== true)
-    if (requestId !== commandRevision || selectedActuatorId.value !== deviceId || sessionToken.value !== token) return
-    led.value = result
-    actuatorPhase.value = 'ready'
-    if (result.status === 'pending') startPendingCheck(result.command_id, deviceId)
-  } catch {
-    if (requestId === commandRevision) commandError.value = 'Não foi possível enviar o comando. Tente novamente.'
-  } finally {
-    if (requestId === commandRevision) commandSubmitting.value = false
-  }
-}
-
-function stopPendingCheck() {
-  if (pendingTimer !== null) clearInterval(pendingTimer)
-  pendingTimer = null
-  pendingChecks = 0
-}
-
-function startPendingCheck(commandId: string, deviceId: string) {
-  stopPendingCheck()
-  pendingTimer = setInterval(async () => {
-    const token = sessionToken.value
-    if (!token || selectedActuatorId.value !== deviceId || pendingChecks++ >= 35) {
-      stopPendingCheck()
-      return
-    }
-    try {
-      const result = await fetchCommand(token, commandId)
-      if (selectedActuatorId.value !== deviceId || sessionToken.value !== token ||
-        led.value?.command_id !== commandId || led.value.status !== 'pending') return
-      led.value = result
-      if (result.status !== 'pending') stopPendingCheck()
-    } catch {
-      commandError.value = 'Confirmação indisponível. Consulte o estado novamente.'
-    }
-  }, 1000)
-}
-
-const actuatorLabel = (command: ActuatorCommand | null) => {
-  if (command === null) return 'Sem confirmação registrada'
-  if (command.status === 'confirmed') return command.confirmed_state ? 'Ligado' : 'Desligado'
-  if (command.status === 'pending') return 'Aguardando confirmação'
-  return command.status === 'rejected' ? 'Comando rejeitado' : 'Sem confirmação'
-}
+watch(refreshRevision, () => { eventsRevision.value += 1 })
 
 function formatMeasurement(value: number | null | undefined, unit: string, precision = 1) {
   return value == null ? '—' : `${value.toLocaleString('pt-BR', { maximumFractionDigits: precision })} ${unit}`
@@ -496,16 +390,11 @@ function formatDateTime(value: string | undefined) {
             <span v-if="commandError" class="actuator-summary-state text-status-critical" role="alert">{{ commandError }}</span>
           </summary>
           <div class="actuator-content">
-            <p v-if="!canWrite" role="status">{{ sessionRole === 'viewer' ? 'Modo visualizador: você pode consultar o estado dos atuadores.' : 'Permissões ainda não confirmadas. O controle da luz está indisponível.' }}</p>
-            <button type="button" class="rounded-md border border-control-border px-4 py-3 text-sm hover:bg-surface-muted" @click="selectedActuatorId && loadActuators(selectedActuatorId)">Atualizar estado</button>
             <div class="actuator-grid">
               <div>
                 <h3 class="font-medium">Luz manual</h3>
-                <p class="mt-2" aria-live="polite">{{ actuatorLabel(led) }}</p>
+                <LedControl :led="led" :phase="actuatorPhase" :submitting="commandSubmitting" :error="commandError" @toggle="toggleLed" @refresh="selectedActuatorId && loadActuators(selectedActuatorId)" />
                 <p v-if="summary?.equipment" class="mt-2 text-sm text-ink-muted">Luz observada na última leitura: {{ summary.equipment.led.actual_state ? 'Ligado' : 'Desligado' }}. {{ formattedFreshness }}.</p>
-                <button type="button" class="mt-3 rounded-md bg-accent px-4 py-3 font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-50" :disabled="!canWrite || actuatorPhase !== 'ready' || commandSubmitting || led?.status === 'pending'" @click="toggleLed">
-                  {{ led?.confirmed_state === true ? 'Desligar Luz' : 'Ligar Luz' }}
-                </button>
               </div>
               <div>
                 <h3 class="font-medium">Som de aviso automático</h3>

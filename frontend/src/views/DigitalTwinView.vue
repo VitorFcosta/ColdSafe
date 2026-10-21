@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { listDevices, listEnvironments, type Device, type Environment } from '../features/account/catalog'
 import { clearSession, logout, refreshSessionIdentity, sessionToken } from '../features/account/session'
 import DigitalTwinScene from '../features/digital-twin/DigitalTwinScene.vue'
+import TwinItemPanel from '../features/digital-twin/TwinItemPanel.vue'
 import { buildTwinItems, buildTwinVisualState, twinColors, twinStatusLabels as statusLabels } from '../features/digital-twin/twin-state'
 import { fetchInsights, InsightsAccessError, type InsightsSnapshot } from '../features/insights/insights-api'
 import { aiotEnabled } from '../features/monitoring/monitoring-version'
@@ -23,7 +24,7 @@ const insightsFailed = ref(false)
 const selectedId = ref<string | null>(null)
 const logoutError = ref('')
 const mqttId = computed(() => aiotEnabled && !denied.value ? selectedDevice.value?.mqtt_device_id ?? null : null)
-const { summary, monitoringState, refreshRevision, connectionState } = useMonitoringSummary(sessionToken, mqttId)
+const { summary, monitoringState, refreshRevision, connectionState, ageSeconds } = useMonitoringSummary(sessionToken, mqttId)
 const scopedSummary = computed(() => {
   const current = summary.value
   const device = selectedDevice.value
@@ -191,7 +192,7 @@ async function signOut() {
               <ul class="components"><li v-for="item in items" :key="item.key"><button type="button" :aria-pressed="item.id !== null && selectedId === item.id" :disabled="item.id === null" @click="item.id && selectItem(item.id)"><strong>{{ item.label }}</strong><span>ID: {{ item.id ?? 'Sem identificador confirmado' }}</span><span>{{ item.value }} · {{ statusLabels[item.status] }}</span></button></li></ul>
             </section>
           </div>
-          <section v-if="selected" class="panel" aria-label="Detalhes do componente"><h2>{{ selected.label }}</h2><dl><div><dt>ID</dt><dd>{{ selected.id }}</dd></div><div><dt>Estado</dt><dd>{{ statusLabels[selected.status] }}</dd></div><div><dt>Valor atual</dt><dd>{{ selected.value }}</dd></div></dl></section>
+          <TwinItemPanel v-if="selected && scopedSummary && selectedDevice" :key="`${environmentId}:${deviceUuid}`" :item="selected" :summary="scopedSummary" :device="selectedDevice" :token="sessionToken" :fresh="fresh" :age-seconds="ageSeconds" :revision="refreshRevision" :connection-state="connectionState" />
         </template>
       </template>
     </div>

@@ -15,6 +15,9 @@ const otherEnvironment = '00000000-0000-4000-8000-000000000702'
 const otherDevice = '00000000-0000-4000-8000-000000000701'
 const rules = { health_critical: 20, health_recovery: 40, rul_critical_hours: 10, rul_recovery_hours: 30, open_count: 2, close_count: 2 }
 const thresholds = { min_c: 2, max_c: 8, attention_margin_c: 1 }
+const commandFixture = examples.find((item) => item.name === 'led_status_pending')!.payload as unknown as {
+  event_id: string; correlation_id: string; data: { command_id: string; status: string; desired_state: boolean; confirmed_state: boolean | null }
+}
 
 async function mockTwin(page: Page) {
   await mockDashboardAccount(page)
@@ -25,6 +28,8 @@ async function mockTwin(page: Page) {
   let revision = 800
   let summaryRequests = 0
   let heldSummary: { started: () => void; released: Promise<void> } | null = null
+  let command: typeof commandFixture | null = null
+  let posts = 0
   const sockets = new Map<string, WebSocketRoute>()
   const inventory = {
     equipment_id: telemetry.data.equipment.equipment_id,
@@ -58,7 +63,7 @@ async function mockTwin(page: Page) {
       persistence: empty ? null : 'persisted', prediction_unavailable_reason: null,
       freshness: { state: empty ? 'no_data' : stale ? 'stale' : 'fresh', age_seconds: empty ? null : stale ? 35 : 1,
         last_event_id: empty ? null : telemetry.event_id, last_received_at: empty ? null : telemetry.received_at, stale_after_seconds: 30 },
-      commands: { led: null, buzzer: null }, alerts: [],
+      commands: { led: second ? null : command, buzzer: null }, alerts: [],
     }, meta: { schema_version: 3 } }
     const held = heldSummary
     heldSummary = null
@@ -76,16 +81,28 @@ async function mockTwin(page: Page) {
         opened_at: telemetry.received_at, source_event_id: telemetry.event_id, prediction_event_id: predictionFixture.event_id }] : [],
     }, meta: { schema_version: 3 } } })
   })
-  await page.route('**/api/v3/readings?**', (route) => route.fulfill({ json: { success: true, data: [], meta: {
-    schema_version: 3, device_id: telemetry.device_id, start: '2026-10-12T17:00:00Z', end: '2026-10-12T18:01:00Z', count: 0, limit: 300, thresholds,
+  await page.route('**/api/v3/readings?**', (route) => route.fulfill({ json: { success: true, data: [{ telemetry, persistence: 'persisted' }], meta: {
+    schema_version: 3, device_id: telemetry.device_id, start: '2026-10-12T17:00:00Z', end: '2026-10-12T18:01:00Z', count: 1, limit: 300, thresholds,
   } } }))
+  await page.route('**/api/v3/devices/*/led/commands', (route) => {
+    posts++
+    const desired = route.request().postDataJSON().desired_state
+    command = { ...structuredClone(commandFixture), event_id: `00000000-0000-4000-8000-${String(++revision).padStart(12, '0')}`,
+      correlation_id: `00000000-0000-4000-8000-${String(950 + posts).padStart(12, '0')}`,
+      data: { ...commandFixture.data, command_id: `00000000-0000-4000-8000-${String(950 + posts).padStart(12, '0')}`, desired_state: desired } }
+    return route.fulfill({ status: 202, json: { success: true, data: command, meta: { schema_version: 3 } } })
+  })
+  await page.route('**/api/v3/commands/*', (route) => route.fulfill({ json: { success: true, data: command, meta: { schema_version: 3 } } }))
   await page.route('**/api/v3/alerts?**', (route) => route.fulfill({ json: { success: true, data: { alerts: [] }, meta: { schema_version: 3, count: 0 } } }))
   await page.routeWebSocket('**/api/v3/events?**', (socket) => {
     sockets.set(new URL(socket.url()).searchParams.get('device_id')!, socket)
     socket.onMessage((message) => expect(JSON.parse(String(message))).toMatchObject({ ticket: expect.any(String) }))
   })
   return {
-    inventory, secondInventory, sockets, requests: () => summaryRequests,
+    inventory, secondInventory, sockets, requests: () => summaryRequests, posts: () => posts,
+    commandStatus(status: 'confirmed' | 'rejected' | 'unconfirmed') {
+      command = { ...command!, data: { ...command!.data, status, confirmed_state: status === 'confirmed' ? command!.data.desired_state : null } }
+    },
     holdNextSummary() {
       let markStarted!: () => void
       let release!: () => void
@@ -149,7 +166,7 @@ test('cena WebGL real identifica nove peças e atualiza valores e estados via WS
     const bounds = (await canvas.boundingBox())!
     const halfWidth = Math.max(5, 3.2 * bounds.width / bounds.height)
     await canvas.click({ position: { x: (piece.x / halfWidth + 1) / 2 * bounds.width, y: (1 - piece.y / 3.2) / 2 * bounds.height } })
-    await expect(details(page).getByRole('heading')).toHaveText(piece.label)
+    await expect(details(page).getByRole('heading', { level: 2 }).first()).toHaveText(piece.label)
     await expect(list.getByRole('button', { name: new RegExp(`^${piece.label}`) })).toHaveAttribute('aria-pressed', 'true')
   }
   for (const id of [mock.inventory.equipment_id, ...Object.values(mock.inventory.sensors), ...Object.values(mock.inventory.actuators)]) await expect(list).toContainText(id)
@@ -260,10 +277,10 @@ test('320px mantém seleção pelo teclado e lista acessível após perda real d
   await expect(temperature).toContainText('6,5 °C')
   await temperature.focus()
   await page.keyboard.press('Enter')
-  await expect(details(page).getByRole('heading')).toHaveText('Temperatura ambiente')
+  await expect(details(page).getByRole('heading', { level: 2 }).first()).toHaveText('Temperatura ambiente')
   await page.keyboard.press('Tab')
   await page.keyboard.press('Space')
-  await expect(details(page).getByRole('heading')).toHaveText('Umidade')
+  await expect(details(page).getByRole('heading', { level: 2 }).first()).toHaveText('Umidade')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: '/tmp/coldsafe-b227/evidence/twin-mobile-320.png', fullPage: true })
   const lost = await page.evaluate(() => {
@@ -278,7 +295,62 @@ test('320px mantém seleção pelo teclado e lista acessível após perda real d
   const led = list.getByRole('button', { name: /^LED/ })
   await led.focus()
   await page.keyboard.press('Enter')
-  await expect(details(page).getByRole('heading')).toHaveText('LED')
+  await expect(details(page).getByRole('heading', { level: 2 }).first()).toHaveText('LED')
   await expect(details(page)).toContainText('Desligado')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
+test('painel por ID separa previsão do equipamento e controle LED respeita ACK, rejeição e timeout', async ({ page }) => {
+  await page.clock.install()
+  const mock = await mockTwin(page)
+  await page.goto('/digital-twin')
+  const list = components(page)
+  await list.getByRole('button', { name: /Temperatura ambiente/ }).click()
+  const panel = details(page)
+  await expect(panel).toContainText('Saúde/RUL deste item: não aplicável')
+  await expect(panel).toContainText(mock.inventory.equipment_id)
+  await expect(panel.getByRole('img', { name: 'Gráfico de linha da temperatura no período selecionado' })).toBeVisible()
+  await expect(panel.getByRole('region', { name: 'Previsão do equipamento', exact: true })).toContainText('0 h')
+  await list.getByRole('button', { name: /^LED/ }).click()
+  await expect(panel).toContainText('não possui histórico próprio')
+  const control = panel.getByRole('region', { name: 'Controle do LED selecionado' })
+  const toggle = control.getByRole('button', { name: 'Ligar Luz' })
+  await expect(toggle).toBeEnabled()
+  await toggle.click()
+  await expect(control).toContainText('Aguardando confirmação')
+  await expect(toggle).toBeDisabled()
+  await expect(list.getByRole('button', { name: /^LED/ })).toContainText('Desligado')
+  expect(mock.posts()).toBe(1)
+  mock.commandStatus('confirmed'); await page.clock.fastForward(1000)
+  await expect(control.getByRole('button', { name: 'Desligar Luz' })).toBeEnabled()
+  await expect(list.getByRole('button', { name: /^LED/ })).toContainText('Desligado')
+  await mock.update({ led: true })
+  await expect(list.getByRole('button', { name: /^LED/ })).toContainText('Ligado')
+  await control.getByRole('button', { name: 'Desligar Luz' }).click()
+  mock.commandStatus('rejected'); await page.clock.fastForward(1000)
+  await expect(control).toContainText('Comando rejeitado')
+  await control.getByRole('button', { name: 'Ligar Luz' }).click()
+  mock.commandStatus('unconfirmed'); await page.clock.fastForward(1000)
+  await expect(control.getByText('Sem confirmação', { exact: true })).toBeVisible()
+  await expect(control.getByRole('button', { name: 'Ligar Luz' })).toBeEnabled()
+  expect(mock.posts()).toBe(3)
+  await list.getByRole('button', { name: /^Buzzer/ }).click()
+  await expect(panel).toContainText('Buzzer segue a regra térmica')
+  await expect(panel.getByRole('button', { name: /Ligar Luz|Desligar Luz/ })).toHaveCount(0)
+  await page.screenshot({ path: '/tmp/coldsafe-b229/twin-item-desktop.png', fullPage: true })
+})
+
+test('visualizador inspeciona LED pelo teclado sem enviar comandos', async ({ page }) => {
+  const mock = await mockTwin(page)
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ json: { success: true, data: { user_id: 'test-user', email: 'test@example.com', role: 'viewer' } } }))
+  await page.setViewportSize({ width: 320, height: 812 })
+  await page.goto('/digital-twin')
+  const led = components(page).getByRole('button', { name: /^LED/ })
+  await led.focus(); await page.keyboard.press('Enter')
+  const panel = details(page)
+  await expect(panel).toContainText('Modo visualizador')
+  await expect(panel.getByRole('button', { name: 'Ligar Luz' })).toBeDisabled()
+  expect(mock.posts()).toBe(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({ path: '/tmp/coldsafe-b229/twin-item-mobile-320.png', fullPage: true })
 })

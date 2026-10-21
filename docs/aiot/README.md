@@ -9,7 +9,17 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-28](tasks/B2-28.md): giro/tremor do ventilador,
+A última entrega foi [B2-29](tasks/B2-29.md): painel por item com última
+leitura, idade e gráfico por ID; saúde/RUL próprias dos sensores/atuadores não
+aplicáveis, separadas da previsão do equipamento associado. Dashboard e gêmeo
+reutilizam controle LED/ACK e permissões. 408 testes frontend, seis cenários
+Chromium com HTTP/WS simulados e seis no percurso real descartável passaram;
+POST real foi recusado após revogar papel no banco e outra conta permaneceu isolada.
+Sem dependências novas, endpoints novos ou implantação pessoal. Histórico próprio
+de estado dos atuadores não existe; o gráfico contextual é identificado. Detalhes,
+limites e checkpoint no cartão e na [evidência](../evidence/b2-29.json).
+
+A [B2-28](tasks/B2-28.md) conserva giro/tremor do ventilador,
 brilho do LED e pulso visual do buzzer por telemetria; luz ambiente e barra térmica
 reativas. Loop reutiliza os objetos, congela após freshness de 30 s mesmo com
 WebSocket aberto e retoma por dados novos; preferência de movimento reduzido e
@@ -160,7 +170,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-29](tasks/B2-29.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-30](tasks/B2-30.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final
