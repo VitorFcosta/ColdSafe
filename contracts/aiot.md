@@ -890,7 +890,72 @@ no-store`, sem dados de contas/jobs:
 
 A consulta não carrega/baixa modelos e não aceita prompt, modelo ou URL do
 cliente. O estado é global da infraestrutura; não identifica o job nem seu dono.
-Chat, resumos privados e geração de resposta são posteriores.
+O resumo privado e streaming estão implementados na B2-31 abaixo; a página
+Assistente e sua avaliação de respostas pertencem à B2-32.
+
+## Assistente HTTP e streaming — B2-31
+
+`POST /api/v3/llm/ask`, Bearer de sessão válida, permite todos os papéis.
+Corpo fechado: `{"question":"Qual a saúde e RUL do equipamento?"}`. Pergunta
+não vazia, até **256 bytes UTF-8** (inclusive espaços antes de normalizar);
+campos como proprietário, contexto, histórico, modelo e ferramentas são recusados.
+Não existe memória de conversa: cada pergunta recebe um novo resumo privado.
+
+O backend consulta somente fatos do proprietário autenticado em transação
+`READ ONLY`: contagens de leituras ausentes/antigas, menores saúde e RUL entre
+previsões atuais, seis sensores do primeiro equipamento selecionado, contagens
+de alertas, MAE de teste de saúde/RUL do modelo ativo e arquitetura curta.
+IDs e versões são limitados; nomes livres, caminhos, credenciais e IDs de donos
+não entram no resumo. A seleção é amostra, não histórico completo; omissão é
+explícita. Após 30 s, números antigos não são apresentados como atuais.
+
+Sucesso: `200 text/event-stream`, `Cache-Control: no-store` e
+`X-Accel-Buffering: no`. Cada evento contém uma linha JSON, sem HTML interpretado:
+
+```text
+event: delta
+data: {"text":"A saúde informada é "}
+
+event: delta
+data: {"text":"20."}
+
+event: done
+data: {"request_id":"<uuid>"}
+
+```
+
+`done` confirma término e auditoria, sem certificar exatidão da linguagem natural.
+Após iniciar o SSE, falha termina com `event: error` e `data: {"code":"..."}`,
+sem `done`: `LLM_TIMEOUT`, `LLM_UNAVAILABLE` ou `UNAUTHORIZED`. O cliente deve
+tratar texto parcial e saída como não confiáveis; nunca executar HTML, links,
+imagens remotas ou instruções produzidas pelo modelo.
+
+Antes do SSE, erros seguem o envelope HTTP existente: 401 sem sessão; 422 para
+entrada inválida; 429 `RATE_LIMITED`, com `Retry-After: 60`; 503 `LLM_DISABLED`,
+`LLM_BUSY`, `LLM_NOT_READY` ou `LLM_UNAVAILABLE`. Há **cinco admissões por conta
+em janela móvel de 60 s**, compartilhadas entre processos/reinícios; tentativas
+admitidas que terminam indisponíveis também contam. Pedidos inválidos não contam.
+Uma geração global por vez, sem fila de espera, usando o lock dos jobs.
+
+Geração tem prazo de 60 s; HTTP tem conexão de 3 s e leitura de 15 s; consultas
+novas deste percurso têm limite de 3 s, e limpeza/descarga até 12 s. O prazo de
+60 s não inclui pré-validação nem limpeza. Saída: até 256 tokens gerados, 8 KiB
+por linha do protocolo, 64 KiB recebidos e 16 KiB de texto. Contexto 1.024 tokens:
+a tokenização varia; esses limites não garantem resposta integral para toda
+pergunta Unicode. O ensaio B2-31 mediu 289–429 tokens de entrada nos três casos.
+
+Desconexão fecha o HTTP e confirma descarga antes de liberar o slot. Sessão é
+revalidada por parte e antes de `done`. Falha ambígua de descarga ou perda da
+sessão PostgreSQL mantém `llm_memory_guard`: exige a recuperação segura descrita
+na B2-30, sem apagar o marcador enquanto Ollama puder continuar calculando.
+
+Auditoria local em `audit_events`: `assistant.requested` guarda autor, UUID,
+pergunta e modelo; `assistant.finished`, resultado; `assistant.limited`, hash da
+pergunta recusada. Não guarda token, resumo ou resposta. Auditoria inicial é
+obrigatória antes do modelo; auditoria terminal e retirada do marcador são
+atômicas. Falha de conexão pode deixar somente o pedido, com log de falha de
+auditoria e marcador conservado. Sem expurgo automático; não incluir segredos
+nas perguntas. Ollama só recebe resumo/pergunta, sem banco ou ferramentas.
 
 ## Verificação desta entrega
 

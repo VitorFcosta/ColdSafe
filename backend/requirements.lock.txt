@@ -5,7 +5,9 @@ annotated-doc==0.0.5
 annotated-types==0.8.0
     # via pydantic
 anyio==4.15.1
-    # via starlette
+    # via
+    #   httpx
+    #   starlette
 argon2-cffi==25.1.0
     # via pwdlib
 argon2-cffi-bindings==26.1.0
@@ -19,7 +21,10 @@ bcrypt==5.0.0
     #   -r backend/requirements.txt
     #   pwdlib
 certifi==2026.10.19
-    # via influxdb-client
+    # via
+    #   httpcore
+    #   httpx
+    #   influxdb-client
 cffi==2.1.1
     # via argon2-cffi-bindings
 click==8.5.0
@@ -29,9 +34,17 @@ cloudpickle==3.1.2
 fastapi==0.141.1
     # via -r backend/requirements.txt
 h11==0.16.0
-    # via uvicorn
+    # via
+    #   httpcore
+    #   uvicorn
+httpcore==1.0.9
+    # via httpx
+httpx==0.28.1
+    # via -r backend/requirements.txt
 idna==3.19
-    # via anyio
+    # via
+    #   anyio
+    #   httpx
 influxdb-client==1.50.0
     # via -r backend/requirements.txt
 joblib==1.6.0

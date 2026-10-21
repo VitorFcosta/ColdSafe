@@ -248,7 +248,7 @@ class AuthService:
             self._audit(connection, "auth.login_succeeded", row[0])
         return token, expires_at
 
-    def session_for_token(self, token: str) -> SessionPrincipal | None:
+    def session_for_token(self, token: str, *, statement_timeout_ms: int | None = None) -> SessionPrincipal | None:
         if not token or len(token) > 4096:
             return None
         now = self._clock()
@@ -256,6 +256,9 @@ class AuthService:
         if "." in token and claims is None:
             return None
         with connect(self._settings) as connection:
+            if statement_timeout_ms is not None:
+                connection.execute("SELECT set_config('statement_timeout', %s, true)",
+                                   (str(statement_timeout_ms),))
             row = connection.execute(
                 f"SELECT {SESSION_COLUMNS} FROM sessions s JOIN users u ON u.id=s.user_id "
                 f"WHERE s.token_hash=%s AND {ACTIVE_SESSION}",
@@ -281,8 +284,9 @@ class AuthService:
             ).fetchone()
         return SessionPrincipal(*row[:5]) if row else None
 
-    def current_user(self, token: str) -> UUID | None:
-        principal = self.session_for_token(token)
+    def current_user(self, token: str, *, statement_timeout_ms: int | None = None) -> UUID | None:
+        principal = (self.session_for_token(token) if statement_timeout_ms is None else
+                     self.session_for_token(token, statement_timeout_ms=statement_timeout_ms))
         return principal.user_id if principal else None
 
     def logout(self, token: str) -> bool:

@@ -55,6 +55,10 @@ ERRORS: dict[str, str] = {
     "UNAUTHORIZED": "Autenticação necessária ou sessão inválida.",
     "FORBIDDEN": "Seu papel não permite esta operação.",
     "RATE_LIMITED": "Muitas tentativas. Aguarde antes de tentar novamente.",
+    "LLM_DISABLED": "O assistente local não está habilitado.",
+    "LLM_BUSY": "O assistente está ocupado ou aguarda recuperação segura da memória.",
+    "LLM_NOT_READY": "O modelo local ainda não está pronto. Consulte seu estado e tente novamente.",
+    "LLM_UNAVAILABLE": "Não foi possível consultar o assistente local agora.",
     "USER_NOT_FOUND": "O usuário informado não foi encontrado.",
     "JOB_NOT_FOUND": "O job informado não foi encontrado.",
     "DATASET_NOT_FOUND": "O dataset informado não foi encontrado.",
@@ -69,12 +73,12 @@ ERRORS: dict[str, str] = {
 }
 
 
-def _error_response(*, status_code: int, code: str) -> JSONResponse:
+def _error_response(*, status_code: int, code: str, headers: dict | None = None) -> JSONResponse:
     response = ErrorResponse(
         error=ErrorDetail(code=code, message=ERRORS[code]),
         meta=ErrorMeta(request_id=str(uuid4())),
     )
-    return JSONResponse(status_code=status_code, content=response.model_dump())
+    return JSONResponse(status_code=status_code, content=response.model_dump(), headers=headers)
 
 
 def create_app(
@@ -164,7 +168,7 @@ def create_app(
     @app.exception_handler(HTTPException)
     def http_error_handler(_request: Request, exc: HTTPException) -> JSONResponse:
         code = exc.detail if isinstance(exc.detail, str) and exc.detail in ERRORS else "INTERNAL_ERROR"
-        return _error_response(status_code=exc.status_code, code=code)
+        return _error_response(status_code=exc.status_code, code=code, headers=exc.headers)
 
     @app.exception_handler(Exception)
     def internal_error_handler(_request: Request, _exc: Exception) -> JSONResponse:

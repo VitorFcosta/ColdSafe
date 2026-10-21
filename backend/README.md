@@ -53,6 +53,45 @@ O runtime é opcional, sem SDK Python novo; preparo offline, isolamento e
 retomada estão na [configuração do Ollama](../docs/configuration.md#ollama-local-e-memória-b2-30).
 Contrato: [estado local](../contracts/aiot.md#estado-do-modelo-local--b2-30).
 
+## Assistente privado B2-31
+
+`POST /api/v3/llm/ask` transmite SSE autenticado, usando resumo somente leitura
+filtrado pelo proprietário. Há cinco perguntas por minuto/conta, pergunta até
+256 bytes UTF-8, timeout/cancelamento, revalidação de sessão e auditoria no
+PostgreSQL. Não executa comandos ou ferramentas. O modelo compartilha o lock
+de memória dos jobs; cancelamento só libera o slot após descarga confirmada.
+O cliente HTTP `httpx==0.28.1`, antes apenas de desenvolvimento, integra agora
+o runtime; nenhuma versão anterior foi atualizada. A página pertence à B2-32.
+
+Com a pilha opt-in já preparada e sessão válida:
+
+```sh
+curl -N http://localhost:5173/api/v3/llm/ask \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"question":"Qual a saúde, RUL e limitações dos dados?"}'
+```
+
+Contrato e erros: [streaming](../contracts/aiot.md#assistente-http-e-streaming--b2-31).
+Testes sem infraestrutura:
+
+```sh
+.venv/bin/python -m pytest backend/tests/api/test_assistant_api.py \
+  backend/tests/services/test_assistant_context.py \
+  backend/tests/services/test_assistant_transport.py --no-cov -q
+```
+
+Com `POSTGRES_TEST_*` apontando **somente para PostgreSQL descartável**, executar
+`backend/tests/integration/test_assistant{,_context,_http}_integration.py`.
+Esses testes criam/removem bancos temporários e usam protocolo Ollama simulado;
+HTTP/SSE, desconexão, SQL e locks são reais. Não usar credenciais pessoais.
+`scripts/benchmark_assistant.py` verifica modelo real em cliente isolado, com
+variáveis runtime, banco novo `coldsafe_b231_<sufixo>`, `OLLAMA_URL=http://ollama:11434`,
+fontes backend/gateway/simulator/contracts disponíveis, `httpx/httpcore` instalados
+e diretório gravável `/evidence`. Usa fixtures declaradas para telemetria/previsão;
+afirma três respostas incrementais, auditoria e zero comandos. A evidência da
+sessão e suas limitações estão na [B2-31](../docs/aiot/tasks/B2-31.md).
+
 ## Laboratório e consulta de datasets B2-19
 
 O router de jobs oferece resumo privado em `GET /api/v3/datasets/{id}` e amostra

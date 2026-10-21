@@ -258,5 +258,6 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         app.include_router(create_models_router(auth, models))
     from backend.app.api.llm import create_llm_router
     from backend.app.services.llm import LlmService
-    app.include_router(create_llm_router(auth, LlmService(settings)))
+    from backend.app.services.assistant import AssistantService
+    app.include_router(create_llm_router(auth, LlmService(settings), AssistantService(settings)))
     return app

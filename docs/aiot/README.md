@@ -9,7 +9,21 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-30](tasks/B2-30.md): Ollama local em CPU, Llama 3.2
+A última entrega foi [B2-31](tasks/B2-31.md): resumo privado somente leitura,
+SSE autenticado, cinco admissões/minuto/conta, pergunta até 256 bytes UTF-8,
+timeout/cancelamento, revalidação de sessão e auditoria persistente. Lock dos
+jobs e marcador durável protegem geração/descarga. Backend sem integração:
+1.454 aprovações; 79 testes novos passaram e a rodada final API/contratos teve
+324 aprovações, cobertura combinada 86,18%. Grupos se sobrepõem. Ollama CPU real
+respondeu três casos de dados preparados, com recusa de acesso cruzado/LED,
+ausência de medidas para conta vazia, zero comandos e três auditorias. HTTP/SSE
+e desconexão também foram ensaiados em sockets reais com upstream controlado.
+HTTPX/HTTPcore foram promovidos do desenvolvimento ao runtime nas mesmas versões.
+Sem ativação pessoal; margem de memória pequena e qualidade geral da linguagem
+ainda não avaliada. Página Assistente permanece B2-32. Limites, falha inicial
+do Docker/recuperação e hashes em [evidência B2-31](../evidence/b2-31.json).
+
+A [B2-30](tasks/B2-30.md) conserva Ollama local em CPU, Llama 3.2
 1B Q4/contexto 1.024, pesos persistentes com preparo separado e runtime sem
 saída à internet. Coordenador e jobs compartilham lock PostgreSQL; marcador
 durável protege falha durante preload. Estado privado HTTP e avisos no
@@ -183,7 +197,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-31](tasks/B2-31.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-32](tasks/B2-32.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final
