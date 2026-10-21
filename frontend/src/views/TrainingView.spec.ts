@@ -13,7 +13,7 @@ const routing = vi.hoisted(() => ({ replace: vi.fn(), route: { query: {} as Reco
 vi.mock('vue-router', () => ({ useRouter: () => ({ replace: routing.replace }), useRoute: () => routing.route }))
 const job: TrainingJob = { id: fixture.job_id, owner_user_id: fixture.job_id, job_type: 'training', status: 'queued', completed_units: 0, total_units: 2, result_id: null, dataset_id: fixture.dataset_id, environment_id: null, error_code: null, config: { job_type: 'training', dataset_id: fixture.dataset_id, environment_id: null }, created_at: '2026-10-17T12:00:00Z', updated_at: '2026-10-17T12:00:00Z' }
 const summary = { id: fixture.dataset_id, generation_job_id: fixture.job_id, owner_user_id: fixture.job_id, row_count: 1000000, created_at: job.created_at, config: defaultGeneration(), storage_version: 'offline-numpy-v1' as const, units: {}, quality: { missing_by_sensor: {}, range_by_sensor: {}, rul_observed_rows: 600000, rul_censored_rows: 400000 } }
-const render = () => mount(TrainingView, { global: { stubs: { TrainingTarget: { template: '<div>Resultados de regressão</div>' }, RouterLink: { template: '<a><slot /></a>' } } } })
+const render = () => mount(TrainingView, { global: { stubs: { LlmStatus: true, TrainingTarget: { template: '<div>Resultados de regressão</div>' }, RouterLink: { template: '<a><slot /></a>' } } } })
 beforeEach(() => {
   vi.useFakeTimers(); routing.route = reactive({ query: {} }); routing.replace.mockReset().mockImplementation(async (location) => { if (typeof location === 'object') routing.route.query = location.query })
   sessionToken.value = 'admin-token'; sessionRole.value = 'admin'

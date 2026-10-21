@@ -17,6 +17,7 @@ MIGRATIONS = (
     (9, Path(__file__).resolve().parents[2] / "migrations" / "009_model_activation_outbox.sql"),
     (10, Path(__file__).resolve().parents[2] / "migrations" / "010_inference_events.sql"),
     (11, Path(__file__).resolve().parents[2] / "migrations" / "011_predictive_alerts.sql"),
+    (12, Path(__file__).resolve().parents[2] / "migrations" / "012_llm_memory_guard.sql"),
 )
 
 

@@ -3,6 +3,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { clearSession, logout, refreshSessionIdentity, sessionRole, sessionToken } from '../features/account/session'
 import { isUuid } from '../features/monitoring/aiot-api'
+import LlmStatus from '../features/llm/LlmStatus.vue'
 import { createGeneration, defaultGeneration, failureChoices, fetchDataset, fetchJob, fetchSample,
   isGenerationInput, LaboratoryAccessError, LaboratoryRequestError, operatingChoices, sensorChoices,
   type Dataset, type DatasetSample, type GenerationJob } from '../features/laboratory/laboratory-api'
@@ -163,6 +164,7 @@ async function signOut() {
       </section>
       <p v-if="!authorized" role="status">O laboratório está disponível apenas para administradores. Consulte o monitoramento para ver seus ambientes.</p>
       <template v-else>
+        <LlmStatus />
         <section class="panel" aria-labelledby="generation-title">
           <h2 id="generation-title">Gerar dataset</h2>
           <form novalidate @submit.prevent="generate">

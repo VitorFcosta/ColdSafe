@@ -1,6 +1,6 @@
 # Retomar a evolução AIoT
 
-## Situação em 20/10/2026
+## Situação em 21/10/2026
 
 O código continua na base v1/v2 descrita no [README](../../README.md).
 O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
@@ -9,7 +9,20 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-29](tasks/B2-29.md): painel por item com última
+A última entrega foi [B2-30](tasks/B2-30.md): Ollama local em CPU, Llama 3.2
+1B Q4/contexto 1.024, pesos persistentes com preparo separado e runtime sem
+saída à internet. Coordenador e jobs compartilham lock PostgreSQL; marcador
+durável protege falha durante preload. Estado privado HTTP e avisos no
+Laboratório/Treinamento explicam a pausa. 1.524 testes backend (92,21% de
+cobertura), 420 frontend e quatro cenários Chromium com HTTP simulado passaram;
+ensaio real descartável comprovou geração/treino de 1 milhão, descarga, recarga
+automática, reinício e indisponibilidade. Worker atingiu o teto de 1 GiB sem OOM;
+capacidade final continua B2-33. Falha ambígua de carga exige recuperação manual
+segura. Sem biblioteca Python/Node nova ou ativação pessoal; imagem Ollama e pesos
+são as dependências de infraestrutura. Detalhes/limites no cartão e nas
+[evidências](../evidence/b2-30.json).
+
+A [B2-29](tasks/B2-29.md) conserva painel por item com última
 leitura, idade e gráfico por ID; saúde/RUL próprias dos sensores/atuadores não
 aplicáveis, separadas da previsão do equipamento associado. Dashboard e gêmeo
 reutilizam controle LED/ACK e permissões. 408 testes frontend, seis cenários
@@ -170,7 +183,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-30](tasks/B2-30.md), somente após
+v3 está concluída no escopo B2-14. O próximo cartão é [B2-31](tasks/B2-31.md), somente após
 escolha do usuário; não iniciá-lo automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final

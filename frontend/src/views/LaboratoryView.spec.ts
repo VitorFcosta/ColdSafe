@@ -19,7 +19,7 @@ const dataset: Dataset = { id, generation_job_id: id, owner_user_id: owner, crea
   row_count: 1000000, config: { ...defaultGeneration(), sensor_types: ['humidity_percent'] }, storage_version: 'offline-numpy-v1',
   units: { humidity_percent: '%' }, quality: { missing_by_sensor: { humidity_percent: 10000 },
     range_by_sensor: { humidity_percent: { min: 20, max: 95 } }, rul_observed_rows: 600000, rul_censored_rows: 400000 } }
-const render = () => mount(LaboratoryView, { global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } } })
+const render = () => mount(LaboratoryView, { global: { stubs: { LlmStatus: true, RouterLink: { template: '<a><slot /></a>' } } } })
 beforeEach(() => {
   vi.useFakeTimers(); routing.route = reactive({ query: {} }); routing.replace.mockReset().mockImplementation(async (location) => {
     if (typeof location === 'object') routing.route.query = location.query

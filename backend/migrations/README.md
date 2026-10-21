@@ -62,7 +62,7 @@ serviços futuros. Labels de treino não são acrescentados à telemetria ao viv
    python -c 'from backend.app.config.settings import RuntimeSettings; from backend.app.repositories.postgres import initialize_schema; initialize_schema(RuntimeSettings())'
    ```
 
-3. Conferir `SELECT version FROM schema_migrations ORDER BY version` (1–9).
+3. Conferir `SELECT version FROM schema_migrations ORDER BY version` (1–12).
    Repetir o runner é seguro. Se falhar, toda a rodada de migrações pendentes
    volta ao estado anterior; corrigir a causa e tentar novamente. A versão 003
    continua recusando regras legadas conflitantes.
@@ -79,6 +79,21 @@ da versão 6 e à expiração/revogação própria; novas sessões são `jwt`.
 `login_rate_limits` persiste contadores por email/IP hasheados e
 `websocket_tickets` guarda somente hashes, prazo e consumo. O banco exige
 prazo máximo de 60 segundos; o serviço limita também à expiração da sessão.
+
+## B2-30: versão 012
+
+`012_llm_memory_guard.sql` acrescenta uma tabela operacional de uma única linha
+possível (`id=1`, `started_at`). O coordenador grava antes da chamada de
+pré-carga e remove somente depois da confirmação, na mesma sessão PostgreSQL
+que mantém o lock. Se a sessão cair ou o HTTP não confirmar, o marcador sobrevive
+e os jobs aguardam, mesmo com `/api/ps` vazio durante uma carga ainda invisível.
+Não altera dados, regras, sessões ou artefatos existentes. A migração não insere
+marcador e não carrega modelos; o baseline sem `OLLAMA_URL` continua desativado.
+
+Não tratar esse registro como resíduo descartável. A recuperação exige parar o
+coordenador e reiniciar o Ollama antes da limpeza SQL, conforme
+[operação B2-30](../../docs/configuration.md#ollama-local-e-memória-b2-30).
+Um job `running` órfão também conserva a pausa; retomar sua entrega original.
 
 ## Verificação reproduzível
 

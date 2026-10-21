@@ -156,6 +156,16 @@ class JobService:
                 raise ValueError('Unknown job or worker type mismatch')
             if job['status'] in TERMINAL:
                 return True
+            if self.settings.ollama_url is not None:
+                if connection.execute('SELECT EXISTS(SELECT 1 FROM llm_memory_guard)').fetchone()[0]:
+                    LOGGER.warning('Job waiting for local model lifecycle recovery: job_type=%s', job_type)
+                    return False
+                from backend.app.services.llm import OllamaClient, OllamaUnavailable
+                try:
+                    OllamaClient(self.settings.ollama_url).unload()
+                except OllamaUnavailable:
+                    LOGGER.warning('Job waiting for confirmed local model unload: job_type=%s', job_type)
+                    return False
             job = self._transition(connection, job_id, status='running', completed=job['completed_units'])
             def checkpoint(completed: int) -> None:
                 # The executor calls only after its durable block; this query also checks lock connection health.

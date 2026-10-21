@@ -96,6 +96,85 @@ Preparação, permissões, ritmo de simulação e comandos do operador estão em
 [`simulator/README.md`](../simulator/README.md). Nenhum segredo pessoal foi
 alterado na execução B2-09; integração usa credenciais descartáveis.
 
+## Ollama local e memória B2-30
+
+O overlay opcional `compose.ollama.yaml` deve acompanhar `compose.jobs.yaml`.
+Ele passa `OLLAMA_URL=http://ollama:11434` à API, aos dois workers pesados e ao
+coordenador `llm`. Sem essa variável, o runtime anterior permanece desativado
+para LLM. Fora do Compose, só são aceitos HTTP em `ollama` ou loopback, sem
+credenciais, caminho ou query; não apontar para servidores de nuvem.
+
+Prepare os pesos **antes da apresentação**, com `ollama` e `llm` parados:
+
+```sh
+docker compose -f compose.yaml -f compose.jobs.yaml -f compose.ollama.yaml run --rm --no-deps ollama-prepare
+```
+
+Somente esse serviço temporário possui saída de rede, baixa pesos públicos e
+grava em `ollama-data`; não recebe credenciais da aplicação nem monta datasets.
+Não executar o preparo em paralelo ao runtime sobre o mesmo volume.
+O runtime monta os pesos somente para leitura, não publica porta e usa apenas
+a rede interna `coldsafe-llm`. `OLLAMA_NO_CLOUD=1`, ausência de API key,
+transporte sem proxy/redirecionamento e ausência de saída de rede evitam
+envio de dados a serviços externos. O primeiro download exige internet; a
+operação posterior usa o volume local, inclusive após recriar o container.
+
+Para habilitar junto dos overlays AIoT/inferência já escolhidos:
+
+```sh
+docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml -f compose.inference.yaml -f compose.ollama.yaml config --quiet
+docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml -f compose.inference.yaml -f compose.ollama.yaml up -d --build ollama llm backend generation training frontend
+```
+
+O modelo é `llama3.2:1b-instruct-q4_K_M`, variante explícita Llama 3.2 **1B Q4**
+indicada pelo ensaio B2-03. A tag curta `llama3.2:1b` usa Q8; não foi usada como
+alias silencioso. Ollama `0.40.3`, CPU, contexto de 1.024 tokens, duas threads,
+uma requisição e um modelo por vez; limite de 2 GiB/2 CPUs. Esses limites não
+certificam a capacidade da pilha completa, reservada à B2-33.
+
+`python -m backend.app.llm_worker` tenta pré-carregar com prompt vazio sob o
+mesmo lock PostgreSQL que serializa geração/treino. Um marcador durável de
+pré-carga impede o início do cálculo mesmo se a sessão do coordenador cair
+enquanto o Ollama ainda estiver carregando. Antes de iniciar o cálculo,
+o worker descarrega os modelos residentes e confirma `/api/ps` vazio.
+Se não confirmar, conserva o job aguardando e a entrega AMQP pendente, sem
+iniciar o handler nem gastar retries por indisponibilidade do Ollama.
+O coordenador consulta novamente a cada dois segundos e recarrega após o job,
+inclusive quando o handler falha. Jobs ainda `running` impedem a recarga mesmo
+se o lock da sessão foi perdido. Um job órfão conserva o LLM pausado: retome
+o worker/entrega original e confira seu estado; não altere status manualmente
+para forçar recarga enquanto um cálculo puder estar vivo.
+
+Se houver timeout, interrupção do coordenador ou queda da sessão **durante a pré-carga**, o registro em
+`llm_memory_guard` permanece e bloqueia jobs e novas cargas. `/api/ps` vazio
+não prova ausência de carregamento em curso nessa situação. Para recuperar,
+pare `llm`, reinicie `ollama` para encerrar qualquer loader e só então remova
+o marcador via PostgreSQL; volte a iniciar `llm`. Preserve os mesmos arquivos
+`-f` usados na instalação. Não limpe o marcador com o carregador ainda vivo.
+No shell SQL do banco, depois dessas duas ações:
+
+```sql
+DELETE FROM llm_memory_guard WHERE id = 1;
+```
+
+Esse procedimento remove apenas a trava operacional, sem apagar jobs/modelos.
+O sistema prefere aguardar intervenção a arriscar sobreposição de memória.
+
+`GET /api/v3/llm/status` exige sessão e informa somente o estado da infraestrutura,
+sem IDs ou dados de jobs de outras contas. Laboratório e Treinamento explicam
+carregamento, pausa para liberar memória, ausência dos pesos e indisponibilidade.
+Ollama indisponível não derruba a readiness geral do monitoramento.
+Para diagnóstico: `docker compose ... logs llm ollama` e `docker compose ... exec ollama ollama ps`.
+Modelo ausente exige repetir o preparo; reinício normal não baixa pesos.
+Conversa/contexto autorizado/streaming pertencem às B2-31/B2-32.
+
+Sem dependência Python/Node nova, Redis ou Celery. A migração 012 acrescenta
+somente o marcador de coordenação, sem alterar dados de usuários/telemetria.
+Dependência de
+infraestrutura adicionada: imagem Ollama e pesos públicos persistentes.
+Semântica de pré-carga/descarga: [FAQ oficial](https://docs.ollama.com/faq).
+Quantização: [biblioteca oficial](https://ollama.com/library/llama3.2/tags).
+
 ## Jobs assíncronos B2-17
 
 Opt-in separado, sem modificar o ambiente pessoal automaticamente:
@@ -105,7 +184,7 @@ docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml up -d -
 ```
 
 Antes de usar em dados importantes, seguir backup/restauração no
-[guia de migrações](../backend/migrations/README.md); o runner aplicará até a 010.
+[guia de migrações](../backend/migrations/README.md); o runner aplicará até a 012.
 O exemplo combina AIoT existente com jobs, mas jobs não exigem catálogo/dispositivo.
 As credenciais `RABBITMQ_API_PASSWORD`, `RABBITMQ_GENERATION_PASSWORD` e
 `RABBITMQ_TRAINING_PASSWORD` já constam de `.env.example` e da topologia B2-07.

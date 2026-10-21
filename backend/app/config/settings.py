@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import Self
 from uuid import UUID
+from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -50,8 +51,21 @@ class RuntimeSettings(BaseSettings):
     rabbitmq_generation_password: SecretStr | None = Field(default=None, min_length=1)
     rabbitmq_training_password: SecretStr | None = Field(default=None, min_length=1)
     rabbitmq_inference_password: SecretStr | None = Field(default=None, min_length=1)
+    ollama_url: str | None = None
     job_artifact_root: Path = Path('/app/artifacts')
     training_artifact_root: Path = Path('/app/training-artifacts')
+
+    @field_validator("ollama_url")
+    @classmethod
+    def local_ollama_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        url = urlsplit(value)
+        if (url.scheme != "http" or url.hostname not in {"ollama", "localhost", "127.0.0.1", "::1"}
+                or (url.port is not None and not 1 <= url.port <= 65_535)
+                or url.username or url.password or url.path not in ("", "/") or url.query or url.fragment):
+            raise ValueError("Ollama must use HTTP on the private ollama service or loopback")
+        return value.rstrip("/")
 
     @model_validator(mode="after")
     def require_aiot_configuration(self) -> Self:

@@ -18,7 +18,7 @@ def test_inference_history_output_is_durable_and_constrained(database):
     initialize_schema(database)
     initialize_schema(database)
     with connect(database) as connection:
-        assert connection.execute('SELECT max(version) FROM schema_migrations').fetchone() == (11,)
+        assert connection.execute('SELECT max(version) FROM schema_migrations').fetchone() == (12,)
         assert connection.execute('SELECT count(*) FROM inference_events').fetchone() == (0,)
         with pytest.raises(psycopg.errors.ForeignKeyViolation), connection.transaction():
             connection.execute("INSERT INTO inference_events(source_event_id,owner_user_id,device_record_id,"

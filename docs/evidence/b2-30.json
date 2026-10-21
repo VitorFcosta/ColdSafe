@@ -1,0 +1,471 @@
+{
+  "task": "B2-30",
+  "date": "2026-10-21",
+  "timezone": "America/Sao_Paulo",
+  "status": "completed_with_declared_limits",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base": "c8d52ed87d8f73f07e2a875495904f38a4a2abab",
+    "initial_tree_clean": true,
+    "tests_run_before_commit": true,
+    "delivery_commit": "The Git commit containing this record identifies the final delivery; commit/push explicitly requested by the user."
+  },
+  "dependencies": {
+    "infrastructure_added": [
+      "ollama/ollama:0.40.3",
+      "llama3.2:1b-instruct-q4_K_M"
+    ],
+    "python_added": [],
+    "node_added": [],
+    "quantization_choice": "Explicit Q4 variant of Llama3.2 1B, following B2-03 memory recommendation; generic 1b/Q8 was not aliased."
+  },
+  "tests": {
+    "backend": {
+      "passed": 1524,
+      "skipped": 100,
+      "failed": 0,
+      "seconds": 182.43,
+      "coverage_with_branches": {
+        "covered_lines": 4651,
+        "num_statements": 4936,
+        "percent_covered": 92.21364221364222,
+        "percent_covered_display": "92",
+        "missing_lines": 285,
+        "excluded_lines": 35,
+        "percent_statements_covered": 94.22609400324149,
+        "percent_statements_covered_display": "94",
+        "num_branches": 1280,
+        "num_partial_branches": 135,
+        "covered_branches": 1081,
+        "missing_branches": 199,
+        "percent_branches_covered": 84.453125,
+        "percent_branches_covered_display": "84"
+      },
+      "command": "python -m pytest backend/tests -q --cov-report=term --cov-report=json:<output>",
+      "postgres": "disposable real PostgreSQL 17.11, per-test isolated databases, removed",
+      "warnings": [
+        "Existing Starlette/httpx deprecation",
+        "Existing AnyIO BlockingPortal alias deprecation"
+      ],
+      "skip_scope": "Other opt-in real AMQP/MQTT/InfluxDB/proxy/simulator/writer integration stacks were not enabled."
+    },
+    "frontend": {
+      "passed": 420,
+      "files": 39,
+      "coverage_statements_percent": 92.57,
+      "coverage_branches_percent": 89.14,
+      "coverage_lines_percent": 95.89,
+      "llm_component_lines_percent": 100,
+      "build_and_typecheck": "passed",
+      "warning": "Existing digital-twin production chunk exceeds 500kB."
+    },
+    "chromium": {
+      "passed": 4,
+      "seconds": 13.9,
+      "http": "explicitly mocked",
+      "specs": [
+        "frontend/e2e/llm-status.spec.ts",
+        "frontend/e2e/training.spec.ts"
+      ],
+      "scope": [
+        "loading/ready/paused/unavailable/model_missing",
+        "320px without horizontal overflow",
+        "Bearer validation",
+        "one job POST across reload",
+        "no chat input"
+      ]
+    },
+    "compose": {
+      "production_merged_config": "passed with synthetic env, without personal .env",
+      "isolated_ollama_tests": 3,
+      "shell_syntax": "sh -n infra/ollama/prepare.sh passed"
+    },
+    "precommit_backend": {
+      "passed": 147,
+      "skipped": 2,
+      "seconds": 24.74,
+      "scope": "LLM client/API/coordination/jobs focused suite after status-lock correction; real disposable PostgreSQL. RabbitMQ opt-in cases skipped.",
+      "new_modules_coverage_with_branches_percent": 95
+    }
+  },
+  "review": {
+    "final": "approved; no pending findings",
+    "fixed": [
+      "Invalid OLLAMA_URL port could escape transport error handling.",
+      "Session lock loss during preload could leave activeLoading invisible to /api/ps; migration012 durable guard now blocks handlers.",
+      "Status retained the global heavy-job lock during Ollama HTTP reads; probe now releases it immediately, covered by a real PostgreSQL regression test."
+    ],
+    "fault_test": "Real PostgreSQL pg_terminate_backend during blocked HTTP double proves guard survives and no handler enters. Real two-account authentication/revocation also passed."
+  },
+  "live_evidence": "docs/evidence/b2-30-live.json",
+  "limits": [
+    "Ambiguous preload failure requires stopping llm, restarting Ollama, then deleting llm_memory_guard id1 before resuming.",
+    "Orphan running jobs block model reload until original job recovery.",
+    "Complete business stack capacity remains B2-33; no physical calibration or semantic assistant evaluation.",
+    "Personal services/configuration/volumes were not activated or modified.",
+    "Real workload measurement invokes JobService and handlers directly; it is not an end-to-end AMQP benchmark.",
+    "Training client hit its 1GiB limit with 1733 max/reclaim events, zero OOM; full-stack memory margin is not approved."
+  ],
+  "source_sha256": {
+    "backend/app/api/llm.py": "fd30aa2eedcc92872a2099c0bfa53cb1c369dac7291bf62b3eee0c069cba3c37",
+    "backend/app/config/settings.py": "26044f67072a50c2f2aad5c6c1e9d2a8d804402a583a64f8b26f0c9630db628d",
+    "backend/app/llm_worker.py": "5887377b629188441009cb258626a9592780a99a179ef6eede1a71f647c8b7d8",
+    "backend/app/repositories/postgres.py": "03a9d185dcf4b4ec34741c820b7a07b702b5701ac83a4122c5b055b51fea9830",
+    "backend/app/runtime.py": "a14d9afaf6a6b1a3125e133c71aeff3e46d55aca221b97b49865ceab2712e5a9",
+    "backend/app/services/jobs.py": "7d1691f092780688a675c68724da566d91d523462cff33c8b4b5f46257b1b95d",
+    "backend/app/services/llm.py": "4bfb51c918cd3e36b5bcdaf6f8c6f4fd97ca9e18f119696f7386843f22084359",
+    "backend/migrations/012_llm_memory_guard.sql": "2cd85450f2adedc015cd2d1742d17db77bbb85872ddae7b1438a511ff3449391",
+    "backend/migrations/README.md": "ba2dd35990e084e83de811496b2e9e8f8f23e5ff1b51b817b9f982ab2ef62a5d",
+    "compose.ollama.yaml": "0e98d09e8537a6e470f44341729f1b730f0a1bb5a76ea2f61fbc1a8bd725b048",
+    "frontend/e2e/llm-status.spec.ts": "c4e4c5a3b350692da6d03085e5be9b84f62bf82081f55413b7ada4e935cc786c",
+    "frontend/src/features/llm/LlmStatus.spec.ts": "c7b1a833723d2daf2aeef5dd88b70e315085131b0442e5cf1475c7998a91af90",
+    "frontend/src/features/llm/LlmStatus.vue": "9b0101b40d3fc6d6e6cefd034d484fa37868a43f2cac24741f95323a583f6633",
+    "frontend/src/views/LaboratoryView.spec.ts": "86f8ac8c65f03a602c8d9dd9645c578d29f54e328369a823e77fdcf78813ef83",
+    "frontend/src/views/LaboratoryView.vue": "0b410fc910dac20d4ca992540af06ad3c340f6910e2ce9477edbaa985cdee2e9",
+    "frontend/src/views/TrainingView.spec.ts": "d3a1bddb5e8241e4800cf56887cfd752707fd6c71f582aa1ceab93d178e8114f",
+    "frontend/src/views/TrainingView.vue": "e4430d260aa17444eddb3fb70e9b21a902b896796d29b7d8353523f55e3233f9",
+    "infra/ollama/prepare.sh": "a46e443f531f6cfbdf794f34a7cfe2cc3011b120afed7a444bc9fa4fc4a0ef4a",
+    "scripts/benchmark_llm.py": "a97537e78f3c1555a83129c5ec6d1f749b4f3cbde6bc273b763bc1c713c79177"
+  },
+  "files": {
+    "modified": [
+      "backend/README.md",
+      "backend/app/config/settings.py",
+      "backend/app/repositories/postgres.py",
+      "backend/app/runtime.py",
+      "backend/app/services/jobs.py",
+      "backend/migrations/README.md",
+      "backend/tests/api/test_runtime_lifecycle.py",
+      "backend/tests/integration/test_aiot_migrations_integration.py",
+      "backend/tests/integration/test_inference_migrations.py",
+      "backend/tests/integration/test_postgres_schema_integration.py",
+      "backend/tests/integration/test_predictive_alerts_integration.py",
+      "contracts/aiot.md",
+      "docs/aiot/README.md",
+      "docs/aiot/tasks/B2-30.md",
+      "docs/aiot/tasks/README.md",
+      "docs/configuration.md",
+      "docs/version-matrix.md",
+      "frontend/src/views/LaboratoryView.spec.ts",
+      "frontend/src/views/LaboratoryView.vue",
+      "frontend/src/views/TrainingView.spec.ts",
+      "frontend/src/views/TrainingView.vue"
+    ],
+    "created": [
+      "backend/app/api/llm.py",
+      "backend/app/llm_worker.py",
+      "backend/app/services/llm.py",
+      "backend/migrations/012_llm_memory_guard.sql",
+      "backend/tests/api/test_llm_api.py",
+      "backend/tests/infra/test_llm.py",
+      "backend/tests/infra/test_llm_worker_cli.py",
+      "backend/tests/infra/test_ollama_compose.py",
+      "backend/tests/integration/test_llm_coordination_integration.py",
+      "compose.ollama.yaml",
+      "docs/evidence/b2-30-live.json",
+      "docs/evidence/b2-30.json",
+      "frontend/e2e/llm-status.spec.ts",
+      "frontend/src/features/llm/LlmStatus.spec.ts",
+      "frontend/src/features/llm/LlmStatus.vue",
+      "infra/ollama/prepare.sh",
+      "scripts/benchmark_llm.py"
+    ]
+  },
+  "acceptance": {
+    "compose_cpu": true,
+    "jobs_and_llm_memory_exclusion": true,
+    "no_operational_data_to_cloud": true,
+    "preload_unload_automatic_reload": true,
+    "status_interface": true
+  },
+  "live_summary": {
+    "phases": [
+      "initial",
+      "workloads",
+      "unavailable",
+      "recovered",
+      "restarted",
+      "automatic",
+      "model_missing"
+    ],
+    "generation_seconds": 1.38203,
+    "training_seconds": 153.99991,
+    "automatic_reload_seconds": 6.217059,
+    "resources": {
+      "ollama": {
+        "memory_peak_bytes": 1795923968,
+        "memory_events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "oom_killed": false,
+        "restart_count": 0,
+        "image_id": "sha256:adca95a12c2b386a8f9a995e7fa0600e187e3323b5e5522f5a6c3b1ec73eff99"
+      },
+      "postgres": {
+        "memory_peak_bytes": 86716416,
+        "memory_events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "oom_killed": false,
+        "restart_count": 0,
+        "image_id": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+      },
+      "client": {
+        "memory_peak_bytes": 1073754112,
+        "memory_events": {
+          "low": 0,
+          "high": 0,
+          "max": 1733,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "oom_killed": false,
+        "restart_count": 0,
+        "image_id": "sha256:058963d26cd7fdf48280af85678469370697d7bb74191fde74235aa36e1267b5"
+      }
+    },
+    "network_probe": {
+      "destination": "1.1.1.1:443",
+      "blocked": true,
+      "observed_error": "OSError",
+      "client_shares_ollama_internal_network": true
+    },
+    "full_details": "docs/evidence/b2-30-live.json"
+  },
+  "cleanup": {
+    "backend_test_postgres_removed": true,
+    "live": {
+      "removed_resource_ids": {
+        "containers": [
+          "6d23742f6dd5",
+          "9a6ec3181065",
+          "18530785a9bd",
+          "cda02cc39f3f"
+        ],
+        "volumes": [
+          "coldsafe-b230-bfd86ac5_job-artifacts",
+          "coldsafe-b230-bfd86ac5_ollama-data",
+          "coldsafe-b230-bfd86ac5_ollama-empty",
+          "coldsafe-b230-bfd86ac5_training-artifacts"
+        ],
+        "networks": [
+          "15d580919ffe",
+          "7e0a5c0c2bca"
+        ]
+      },
+      "remaining_resources": {
+        "containers": [],
+        "volumes": [],
+        "networks": []
+      },
+      "personal_container_state_preserved": true,
+      "personal_containers_compared": 14,
+      "private_temporary_compose_credentials_deleted": true,
+      "only_disposable_project_targeted": true
+    },
+    "personal_activation": false
+  },
+  "precommit_audit": {
+    "gitleaks": {
+      "scope": "staged task diff",
+      "leaks": 0
+    },
+    "pip_audit": {
+      "scope": "backend/requirements-dev.lock.txt",
+      "vulnerable_dependencies": 0,
+      "skipped_dependencies": 0,
+      "project_dependencies_added": false
+    },
+    "npm_audit": {
+      "all": {
+        "auditReportVersion": 2,
+        "vulnerabilities": {
+          "vite": {
+            "name": "vite",
+            "severity": "high",
+            "isDirect": true,
+            "via": [
+              {
+                "source": 1242625,
+                "name": "vite",
+                "dependency": "vite",
+                "title": "launch-editor: escapeCmdArgs() omits % escaping on Windows",
+                "url": "https://github.com/advisories/GHSA-698v-4r3x-3vcv",
+                "severity": "moderate",
+                "cwe": [
+                  "CWE-78"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": ">=8.2.0 <=8.2.3"
+              },
+              {
+                "source": 1242654,
+                "name": "vite",
+                "dependency": "vite",
+                "title": "launch-editor: Editor CLI flag misinterpretation causing arbitrary command execution for some editors",
+                "url": "https://github.com/advisories/GHSA-r825-w8mm-5pxw",
+                "severity": "moderate",
+                "cwe": [
+                  "CWE-88"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": ">=8.2.0 <=8.2.3"
+              },
+              {
+                "source": 1242661,
+                "name": "vite",
+                "dependency": "vite",
+                "title": "launch-editor: `fs.existsSync()` existence check can be bypassed on Windows",
+                "url": "https://github.com/advisories/GHSA-587h-7wmj-h5pm",
+                "severity": "high",
+                "cwe": [
+                  "CWE-77"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": ">=8.2.0 <=8.2.3"
+              }
+            ],
+            "effects": [],
+            "range": "8.2.0 - 8.2.2",
+            "nodes": [
+              "node_modules/vite"
+            ],
+            "fixAvailable": {
+              "name": "vite",
+              "version": "8.3.4",
+              "isSemVerMajor": false
+            }
+          }
+        },
+        "metadata": {
+          "vulnerabilities": {
+            "info": 0,
+            "low": 0,
+            "moderate": 0,
+            "high": 1,
+            "critical": 0,
+            "total": 1
+          },
+          "dependencies": {
+            "prod": 83,
+            "dev": 151,
+            "optional": 56,
+            "peer": 0,
+            "peerOptional": 0,
+            "total": 233
+          }
+        }
+      },
+      "omit_dev": {
+        "auditReportVersion": 2,
+        "vulnerabilities": {
+          "vite": {
+            "name": "vite",
+            "severity": "high",
+            "isDirect": true,
+            "via": [
+              {
+                "source": 1242625,
+                "name": "vite",
+                "dependency": "vite",
+                "title": "launch-editor: escapeCmdArgs() omits % escaping on Windows",
+                "url": "https://github.com/advisories/GHSA-698v-4r3x-3vcv",
+                "severity": "moderate",
+                "cwe": [
+                  "CWE-78"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": ">=8.2.0 <=8.2.3"
+              },
+              {
+                "source": 1242654,
+                "name": "vite",
+                "dependency": "vite",
+                "title": "launch-editor: Editor CLI flag misinterpretation causing arbitrary command execution for some editors",
+                "url": "https://github.com/advisories/GHSA-r825-w8mm-5pxw",
+                "severity": "moderate",
+                "cwe": [
+                  "CWE-88"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": ">=8.2.0 <=8.2.3"
+              },
+              {
+                "source": 1242661,
+                "name": "vite",
+                "dependency": "vite",
+                "title": "launch-editor: `fs.existsSync()` existence check can be bypassed on Windows",
+                "url": "https://github.com/advisories/GHSA-587h-7wmj-h5pm",
+                "severity": "high",
+                "cwe": [
+                  "CWE-77"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": ">=8.2.0 <=8.2.3"
+              }
+            ],
+            "effects": [],
+            "range": "8.2.0 - 8.2.2",
+            "nodes": [
+              "node_modules/vite"
+            ],
+            "fixAvailable": {
+              "name": "vite",
+              "version": "8.3.4",
+              "isSemVerMajor": false
+            }
+          }
+        },
+        "metadata": {
+          "vulnerabilities": {
+            "info": 0,
+            "low": 0,
+            "moderate": 0,
+            "high": 1,
+            "critical": 0,
+            "total": 1
+          },
+          "dependencies": {
+            "prod": 83,
+            "dev": 151,
+            "optional": 56,
+            "peer": 0,
+            "peerOptional": 0,
+            "total": 233
+          }
+        }
+      },
+      "decision": "Existing Vite8.2.2 Windows/WSL launch-editor advisories recorded; no manifest/lock change in B2-30; production image serves static Nginx. Dependency maintenance remains separate."
+    },
+    "security_review": "Approved after status-lock regression test passed."
+  }
+}

@@ -88,7 +88,7 @@ def test_migration_constraints_and_repeatable_registration(predictive):
     initialize_schema(settings)
     view(accounts[0])
     with connect(settings) as connection:
-        assert connection.execute('SELECT max(version) FROM schema_migrations').fetchone() == (11,)
+        assert connection.execute('SELECT max(version) FROM schema_migrations').fetchone() == (12,)
         for change in ('health_critical=40', "rul_recovery_hours='NaN'::float8", 'open_count=0'):
             with pytest.raises(psycopg.errors.CheckViolation), connection.transaction():
                 connection.execute(f'UPDATE predictive_rules SET {change}')

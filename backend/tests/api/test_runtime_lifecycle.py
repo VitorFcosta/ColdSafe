@@ -245,3 +245,9 @@ def test_v3_runtime_starts_consumer_and_closes_it(tmp_path):
             assert started.wait(2)
             assert '/api/v3/readings' in client.get('/openapi.json').json()['paths']
         factory.return_value.close.assert_called_once()
+
+
+def test_runtime_exposes_local_model_status_even_when_disabled():
+    with patch('backend.app.runtime.MqttSubscriber'), patch('backend.app.runtime.create_influx_repository'):
+        app = build_runtime_app(settings())
+    assert '/api/v3/llm/status' in app.openapi()['paths']

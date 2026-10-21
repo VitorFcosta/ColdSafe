@@ -6,6 +6,7 @@ import { fetchDataset, LaboratoryAccessError, sensorChoices, type Dataset } from
 import { isUuid } from '../features/monitoring/aiot-api'
 import { createTraining, fetchDatasets, fetchTrainingJob, fetchTrainingResult, TrainingAccessError, TrainingRequestError, type DatasetChoice, type TrainingJob, type TrainingResult } from '../features/training/training-api'
 import TrainingTarget from '../features/training/TrainingTarget.vue'
+import LlmStatus from '../features/llm/LlmStatus.vue'
 const route = useRoute()
 const router = useRouter()
 const datasets = ref<DatasetChoice[]>([])
@@ -135,6 +136,7 @@ async function signOut() { logoutError.value = ''; try { await logout() } catch 
       <section class="heading"><p class="eyebrow">Regressão offline</p><h1 id="training-title" tabindex="-1">Treinamento</h1><p>Compare saúde e vida útil restante com uma baseline e inspecione os erros. Treinar um pacote não o ativa no monitoramento.</p></section>
       <p v-if="!authorized" role="status">O treinamento está disponível apenas para administradores. Visualizadores e operadores não podem iniciar treinamentos nem consultar estes resultados.</p>
       <template v-else>
+        <LlmStatus />
         <section class="panel" aria-labelledby="training-config-title"><h2 id="training-config-title">Selecionar dataset concluído</h2>
           <p>Lista dos 50 datasets próprios concluídos mais recentes. <RouterLink to="/laboratory">Gerar dados no laboratório</RouterLink>.</p>
           <p v-if="loading" role="status">Consultando datasets…</p><p v-else-if="!datasets.length">Nenhum dataset concluído disponível na lista.</p>

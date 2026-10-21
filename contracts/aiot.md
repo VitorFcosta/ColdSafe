@@ -869,6 +869,29 @@ leituras novas sem uma estratégia explícita de identidade na migração.
 Campos extras são incompatíveis dentro desta versão fechada; mudanças de
 formato/unidade/semântica exigem nova versão e novos testes.
 
+## Estado do modelo local — B2-30
+
+`GET /api/v3/llm/status` exige Bearer de sessão válida (401 sem sessão ou após
+revogação); não exige papel administrativo. Resposta `200`, `Cache-Control:
+no-store`, sem dados de contas/jobs:
+
+```json
+{"success":true,"data":{"state":"ready","model":"llama3.2:1b-instruct-q4_K_M"},"meta":{"schema_version":3}}
+```
+
+| `state` | Significado |
+| --- | --- |
+| `disabled` | `OLLAMA_URL` não configurada |
+| `loading` | Pré-carga em curso ou necessária |
+| `ready` | Modelo residente em CPU/contexto 1.024 confirmado |
+| `paused` | Cálculo pesado reserva a memória; inclui job `running` sem lock vivo |
+| `model_missing` | Pesos locais ainda não preparados |
+| `unavailable` | Estado não confirmado no Ollama/PostgreSQL ou pré-carga ambígua exige recuperação operacional |
+
+A consulta não carrega/baixa modelos e não aceita prompt, modelo ou URL do
+cliente. O estado é global da infraestrutura; não identifica o job nem seu dono.
+Chat, resumos privados e geração de resposta são posteriores.
+
 ## Verificação desta entrega
 
 ```sh

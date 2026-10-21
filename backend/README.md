@@ -43,6 +43,16 @@ contrato em [HTTP de jobs](../contracts/aiot.md#jobs-http-e-progresso-sse--b2-17
 O worker de geração B2-18 produz datasets offline. A B2-23 integra o pacote
 saúde + RUL ao job de treino; a ativação explícita está na B2-24 abaixo.
 
+## Modelo local e coordenação B2-30
+
+O coordenador `python -m backend.app.llm_worker` pré-carrega o Llama 3.2 1B Q4
+em CPU sob o mesmo lock dos jobs. Geração/treino confirmam a descarga antes do
+handler; falha de infraestrutura conserva a entrega para tentar novamente.
+`GET /api/v3/llm/status` é autenticado e não envia dados operacionais ao modelo.
+O runtime é opcional, sem SDK Python novo; preparo offline, isolamento e
+retomada estão na [configuração do Ollama](../docs/configuration.md#ollama-local-e-memória-b2-30).
+Contrato: [estado local](../contracts/aiot.md#estado-do-modelo-local--b2-30).
+
 ## Laboratório e consulta de datasets B2-19
 
 O router de jobs oferece resumo privado em `GET /api/v3/datasets/{id}` e amostra
