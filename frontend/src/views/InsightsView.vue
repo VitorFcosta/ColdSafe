@@ -194,7 +194,7 @@ const format = (value: number | null | undefined) => value?.toLocaleString('pt-B
         <nav aria-label="Navegação principal">
           <RouterLink to="/dashboard">Monitoramento</RouterLink><RouterLink to="/insights" aria-current="page">Insights</RouterLink><RouterLink to="/digital-twin">Gêmeo digital</RouterLink>
           <RouterLink to="/manage">Ambientes e dispositivos</RouterLink><RouterLink to="/messaging">Mensageria</RouterLink>
-          <RouterLink to="/laboratory">Laboratório</RouterLink><RouterLink to="/training">Treinamento</RouterLink>
+          <RouterLink to="/laboratory">Laboratório</RouterLink><RouterLink to="/training">Treinamento</RouterLink><RouterLink to="/assistant">Assistente</RouterLink>
         </nav>
         <button type="button" @click="signOut">Sair</button>
       </header>

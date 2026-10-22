@@ -1,6 +1,6 @@
 # Retomar a evolução AIoT
 
-## Situação em 21/10/2026
+## Situação em 22/10/2026
 
 O código continua na base v1/v2 descrita no [README](../../README.md).
 O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
@@ -9,7 +9,17 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última entrega foi [B2-31](tasks/B2-31.md): resumo privado somente leitura,
+A [B2-32](tasks/B2-32.md) está **em andamento**: página Assistente, cliente SSE,
+estados, sugestões e isolamento de sessão implementados; 475 testes frontend,
+cinco cenários Chromium com HTTP simulado e percurso SQL/JWT/HTTP/SSE/Chromium
+real passaram. O protocolo Ollama desse percurso é simulado explicitamente.
+A avaliação CPU real encontrou recusas com dados disponíveis e afirmações
+incorretas sobre leituras antigas; instruções experimentais não resolveram a
+qualidade e foram revertidas. O aceite factual continua reprovado. Não há
+conclusão, ativação pessoal ou avanço para B2-33. Resultados, falhas e checkpoint
+estão no cartão e na [evidência B2-32](../evidence/b2-32.json).
+
+A última tarefa concluída foi [B2-31](tasks/B2-31.md): resumo privado somente leitura,
 SSE autenticado, cinco admissões/minuto/conta, pergunta até 256 bytes UTF-8,
 timeout/cancelamento, revalidação de sessão e auditoria persistente. Lock dos
 jobs e marcador durável protegem geração/descarga. Backend sem integração:
@@ -197,8 +207,8 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O próximo cartão é [B2-32](tasks/B2-32.md), somente após
-escolha do usuário; não iniciá-lo automaticamente.
+v3 está concluída no escopo B2-14. O cartão atual é [B2-32](tasks/B2-32.md), com
+aceite factual pendente; não avançar automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final
 com todos os serviços de negócio continua pertencendo à B2-33.

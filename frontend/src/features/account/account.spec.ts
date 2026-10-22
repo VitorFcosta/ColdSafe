@@ -27,6 +27,17 @@ describe('conta e catálogo', () => {
     expect(fetchMock.mock.calls[2]?.[1]?.headers.authorization).toBe('Bearer token-1')
   })
 
+  it.each([200, 401])('logout atrasado %s não apaga a nova conta', async (status) => {
+    let finish!: (value: { ok: boolean; status: number }) => void
+    setSession('old-token', '2099-01-01T00:00:00Z')
+    fetchMock.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+    const pending = logout()
+    setSession('new-token', '2099-01-01T00:00:00Z')
+    finish({ ok: status === 200, status })
+    await pending
+    expect(sessionToken.value).toBe('new-token')
+  })
+
   it('mostra erro de credenciais sem criar sessão', async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 401, json: async () => ({ success: false, error: { message: 'Email ou senha inválidos.' } }) })
     await expect(login('a@b.com', 'wrong')).rejects.toThrow('Email ou senha inválidos.')

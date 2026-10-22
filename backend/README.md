@@ -92,6 +92,37 @@ e diretório gravável `/evidence`. Usa fixtures declaradas para telemetria/prev
 afirma três respostas incrementais, auditoria e zero comandos. A evidência da
 sessão e suas limitações estão na [B2-31](../docs/aiot/tasks/B2-31.md).
 
+## Página e avaliação do Assistente B2-32
+
+`/assistant` usa o contrato B2-31 existente; não acrescenta endpoints, tabelas ou
+dependências. O navegador trata a resposta como texto não confiável e limpa a
+conversa ao trocar de sessão. Para reproduzir a integração, com Node 24,
+Chromium/dependências do lock e `POSTGRES_TEST_*` de PostgreSQL descartável:
+
+```sh
+COLDSAFE_ASSISTANT_BROWSER=1 python -m pytest backend/tests/integration/test_assistant_browser.py -q -s -o addopts=''
+python -m pytest backend/tests/services/test_assistant_evaluation.py -q -o addopts=''
+```
+
+O primeiro harness cria/remove banco e servidores temporários; usa login JWT,
+HTTP/SSE e Chromium reais. Apenas o protocolo Ollama é simulado explicitamente,
+para controlar primeiro fragmento, cancelamento/descarga e conteúdo hostil.
+`COLDSAFE_NODE_BINARY` e `COLDSAFE_FRONTEND_NODE_MODULES` são opcionais; capturas
+e relatório vão para `COLDSAFE_ASSISTANT_EVIDENCE_DIR` (padrão `/tmp/coldsafe-b232`).
+Esse ensaio não certifica qualidade da linguagem.
+
+Para avaliar o modelo CPU real, `python -m scripts.evaluate_assistant` exige
+um banco **novo e vazio** `coldsafe_b232_<sufixo>`, variáveis runtime e
+`OLLAMA_URL=http://ollama:11434` na rede interna descartável. Reutiliza o preparo
+isolado da B2-31 e as mesmas versões de Ollama/modelo/contexto. O relatório vai
+para `ASSISTANT_EVALUATION_OUTPUT` (padrão `/tmp/coldsafe-b232/evaluation.json`).
+O script compara o resumo com SQL, registra as seis perguntas e os casos sem
+dados/antigos, respeitando o limite real por conta. Telemetria, previsões, alerta
+e métricas são fixtures identificadas; a atualidade é congelada somente nelas.
+Cada resposta deve ser revisada contra sujeito, valor, unidade e limitações:
+o script **não aprova por palavras ou números presentes**. Resultados e falhas
+da sessão ficam no [cartão B2-32](../docs/aiot/tasks/B2-32.md).
+
 ## Laboratório e consulta de datasets B2-19
 
 O router de jobs oferece resumo privado em `GET /api/v3/datasets/{id}` e amostra

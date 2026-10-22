@@ -5,7 +5,7 @@ import { clearSession, sessionToken } from '../account/session'
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/+$/, '')
 const messages = {
   loading: 'Preparando o modelo local. O carregamento pode levar alguns segundos.',
-  ready: 'Modelo local carregado. A conversa com o assistente será disponibilizada em uma próxima etapa.',
+  ready: 'Modelo local carregado. O Assistente está disponível no menu.',
   paused: 'Modelo local pausado durante geração ou treinamento para liberar memória. Será recarregado automaticamente ao terminar.',
   unavailable: 'Modelo local indisponível. O estado será consultado novamente automaticamente; a geração e o treino aguardam se a liberação de memória não puder ser confirmada.',
   model_missing: 'Modelo local ainda não preparado. O administrador precisa fazer o download inicial antes de usar o assistente.',

@@ -7,6 +7,31 @@ autenticado. A leitura atual, os alertas e o estado do LED acompanham o
 dispositivo selecionado. Eventos WebSocket atualizam a tela; após reconexão,
 REST recupera o estado atual e o histórico.
 
+A B2-32 acrescenta `/assistant` (**Assistente**) à navegação autenticada. A página
+consulta o estado do modelo e recebe SSE por `fetch` com Bearer, exibindo cada
+fragmento como texto simples. As seis sugestões preenchem o campo; o envio é
+sempre uma ação do usuário. Cancelamento, erro e interrupção conservam o texto
+parcial identificado como incompleto. Há até oito perguntas em memória na página;
+navegação, saída ou troca de sessão apagam a conversa. Perguntas anteriores não
+são enviadas ao modelo; a auditoria do backend permanece persistente.
+
+Reutiliza Vue, sessão e tokens existentes, sem dependências novas. Requer o
+[Ollama opt-in](../docs/configuration.md#ollama-local-e-memória-b2-30) e a API B2-31;
+a entrega não ativa o runtime pessoal. A página distingue carregamento, pausa,
+indisponibilidade e limite de cinco perguntas/minuto. São até 256 bytes UTF-8,
+incluindo acentos; nenhum conteúdo do modelo é interpretado como HTML/Markdown.
+
+Testes rápidos, com Node 24 e dependências do lock, na pasta `frontend`:
+
+```sh
+npm run test:unit:run -- src/features/assistant src/views/AssistantView.spec.ts src/features/account/account.spec.ts
+npm run test:e2e -- assistant.spec.ts --workers=1
+```
+
+Os cinco cenários acima usam HTTP simulado. O [harness de navegador real e a
+avaliação factual](../backend/README.md#página-e-avaliação-do-assistente-b2-32)
+separam integração HTTP/SQL/SSE da qualidade das respostas do modelo.
+
 Na B2-14, `VITE_AIOT_ENABLED=true` seleciona explicitamente HTTP/WS v3. O
 dashboard mostra as seis medições, equipamento e estados observados dos atuadores;
 o seletor de grandeza reutiliza gráfico, tooltip e tabela. Zero é valor válido;

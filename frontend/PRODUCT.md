@@ -215,6 +215,16 @@ resposta como se fosse uma leitura nova.
 
 ## Restrições confirmadas
 
+Em `/assistant`, seis sugestões ajudam a perguntar sobre estado, pior equipamento,
+RUL, alertas, métricas e arquitetura. O estado do modelo precede o formulário;
+respostas chegam por partes, em texto simples. Cancelar ou perder o stream deixa
+a resposta explicitamente incompleta; só um novo envio do usuário repete a pergunta.
+O histórico de até oito perguntas existe apenas nesta página e é apagado na troca
+de sessão. Cada pergunta é independente para o modelo; a auditoria local do backend
+é persistente. Saúde/RUL sintéticas e possibilidade de erro ficam visíveis, com
+link para conferir em Insights. Layout, contraste e foco seguem os tokens
+operacionais existentes, inclusive em 320 px. Não há comandos ou ferramentas.
+
 - Vue 3, TypeScript e Vite.
 - Tailwind CSS com tokens próprios, sem Vuetify.
 - Chart.js por `vue-chartjs`.

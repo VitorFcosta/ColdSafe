@@ -69,6 +69,7 @@ export async function logout(): Promise<void> {
   } catch {
     throw new Error('Não foi possível encerrar a sessão na API. Tente novamente.')
   }
+  if (sessionToken.value !== token) return
   if (response.status === 401) { clearSession(); return }
   if (!response.ok) throw new Error('Não foi possível encerrar a sessão na API. Tente novamente.')
   clearSession()

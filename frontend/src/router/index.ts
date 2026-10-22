@@ -30,6 +30,12 @@ const router = createRouter({
       meta: { requiresAuth: true, title: 'Insights · ColdSafe' }
     },
     {
+      path: '/assistant',
+      name: 'assistant',
+      component: () => import('../views/AssistantView.vue'),
+      meta: { requiresAuth: true, title: 'Assistente · ColdSafe' }
+    },
+    {
       path: '/laboratory',
       name: 'laboratory',
       component: () => import('../views/LaboratoryView.vue'),

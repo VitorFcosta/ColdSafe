@@ -37,6 +37,15 @@ def client_for(body, *, status=200, headers=None):
     return AssistantTransport('http://ollama:11434', transport=httpx.MockTransport(handle)), requests
 
 
+def test_cpu_prefill_can_use_the_existing_total_generation_deadline():
+    async def run():
+        async with AssistantTransport('http://ollama:11434')._client() as client:
+            assert client.timeout.connect == 3
+            assert client.timeout.read == 60
+            assert client.trust_env is False and client.follow_redirects is False
+    asyncio.run(run())
+
+
 def test_stream_is_incremental_and_uses_fixed_private_cpu_payload():
     async def run():
         body = Chunks([frame('Olá'), frame(' mundo'), frame(done=True)])

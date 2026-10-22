@@ -26,7 +26,8 @@ class AssistantTransport:
     def _client(self) -> httpx.AsyncClient:
         return httpx.AsyncClient(
             trust_env=False, follow_redirects=False, transport=self.transport,
-            timeout=httpx.Timeout(15, connect=3), limits=httpx.Limits(max_connections=1),
+            # CPU prefill may be silent; AssistantService still bounds generation to 60 s.
+            timeout=httpx.Timeout(15, connect=3, read=60), limits=httpx.Limits(max_connections=1),
         )
 
     async def _rows(self, response):
