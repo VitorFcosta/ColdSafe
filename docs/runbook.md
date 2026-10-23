@@ -9,11 +9,11 @@ repositório.
 
 ## 1. Pré-requisitos
 
-- Git para obter o repositório.
+- Git para obter o checkout da entrega e Python 3 para os scripts de configuração.
 - Docker Desktop no macOS ou Docker Engine no Linux, com Docker Compose v2.
 - Porta `5173` livre no host. API, MQTT e bancos ficam internos por padrão.
-- Para simular o dispositivo: VS Code, PlatformIO IDE, Wokwi Simulator e uma
-  licença Wokwi válida. Esse passo é opcional para verificar apenas a aplicação.
+- O simulador Python v3 da pilha final roda no Compose. VS Code, PlatformIO e
+  licença Wokwi são opcionais, somente para os dois ESP32 do caminho legado.
 
 Confirme o ambiente:
 
@@ -33,12 +33,11 @@ Gere somente os segredos ausentes, preservando configuração já existente:
 
 ```bash
 python3 scripts/generate-secrets.py
-test -e firmware/include/secrets.h || cp firmware/include/secrets.example.h firmware/include/secrets.h
 ```
 
 O script cria `.env` a partir do exemplo quando necessário e preenche campos
 vazios/ausentes: JWT, PostgreSQL, MQTT, administração inicial do InfluxDB e as
-dez identidades RabbitMQ. Gera valores distintos com 32 bytes aleatórios e
+onze identidades RabbitMQ. Gera valores distintos com 32 bytes aleatórios e
 grava atomicamente com permissão `0600`, sem imprimir segredos. Valores existentes
 não são rotacionados; uma segunda execução conserva o conteúdo. O usuário inicial
 do InfluxDB recebe `coldsafe-admin` somente se estiver vazio/ausente.
@@ -52,9 +51,10 @@ temporário apenas no ambiente dos comandos de bootstrap. Ele não é salvo no
 `.env`, não é usado pelo InfluxDB e não inicia o backend. O token administrativo
 `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN` nunca deve ser usado como `INFLUXDB_TOKEN`.
 
-Depois, edite `firmware/include/secrets.h` e configure as senhas dos dois
-dispositivos conforme [`firmware/README.md`](../firmware/README.md). Preserve
-as configurações locais existentes. Mais detalhes estão em
+Se também usar ESP32/Wokwi, copie `firmware/include/secrets.example.h` para
+`firmware/include/secrets.h` somente se ausente e configure as duas senhas
+conforme [`firmware/README.md`](../firmware/README.md). Preserve a configuração
+local existente. A pilha Python v3 dispensa esse arquivo. Mais detalhes estão em
 [`configuration.md`](configuration.md).
 
 ## 3. Inicializar o InfluxDB e provisionar tokens restritos
@@ -96,8 +96,10 @@ Flags conferidas na documentação oficial de
 [autorizações](https://docs.influxdata.com/influxdb/v2/reference/cli/influx/auth/create/)
 e [buckets](https://docs.influxdata.com/influxdb/v2/reference/cli/influx/bucket/create/).
 
-## 4. Subir os serviços
+## 4. Subir a base para comissionamento
 
+Esta base permite criar conta/ambiente/dispositivo antes de ativar o v3. O
+comando da pilha final está na seção seguinte à verificação.
 Valide novamente a configuração e recrie os containers para carregar o token
 restrito salvo no `.env`:
 
@@ -133,8 +135,10 @@ curl -fsS -o /dev/null http://127.0.0.1:5173/dashboard
 
 Todos os comandos devem terminar com código `0`. Abra
 [http://localhost:5173/](http://localhost:5173/) no navegador, crie uma conta
-local e entre. No dashboard, crie dois ambientes e associe
-`esp32-lab-01` e `esp32-lab-02`, um a cada ambiente. Um resumo de dispositivo
+local e entre. Para AIoT v3, continue na seção da pilha final abaixo e cadastre
+`sim-lab-01` em `/manage`. Somente para o percurso ESP32 legado, crie dois
+ambientes e associe `esp32-lab-01` e `esp32-lab-02`, um a cada ambiente.
+Um resumo de dispositivo
 cadastrado exige sessão Bearer do proprietário: uma consulta anônima ou de
 outra conta deve ser recusada. Antes de chegar telemetria, o resumo autenticado
 pode representar ausência de leitura sem que a API esteja indisponível.
@@ -156,7 +160,7 @@ de transporte; a autorização operacional do painel pertence à B2-15.
 No Wokwi, MQTT usa `host.wokwi.internal`. Ao voltar ao modo normal, recrie com
 `docker compose up -d --build --force-recreate --wait`, sem apagar volumes.
 
-Para validar o fluxo completo, compile os dois alvos e abra as duas simulações
+Para validar o fluxo legado ESP32, compile os dois alvos e abra as duas simulações
 seguindo [`firmware/README.md`](../firmware/README.md). Cada ESP32 usa sua
 própria senha MQTT do `.env`. Confira leituras, luminosidade e alertas por
 dispositivo; solicite o LED pela interface e aguarde a confirmação. Altere a
@@ -169,7 +173,7 @@ Para testar persistência, anote um cadastro e uma leitura antes de
 existem. Interrompa e retome Mosquitto para observar perda/retorno de telemetria;
 um comando sem confirmação deve aparecer como `unconfirmed`, nunca como sucesso.
 
-## Pilha final B2-33: AIoT, jobs, inferência e assistente
+## Pilha final: AIoT, jobs, inferência e assistente
 
 As seções 1–5 preparam a base. Para habilitar o percurso completo, comissione
 primeiro a conta e o dispositivo; iniciar os perfis antes disso impede a validação
@@ -236,7 +240,7 @@ do proprietário. O bootstrap de infraestrutura não cria contas de aplicação.
    ```sh
    coldsafe stop llm ollama
    coldsafe --profile llm-setup run --rm --no-deps ollama-prepare
-   coldsafe up -d --build --wait --wait-timeout 240
+   coldsafe up -d --build --wait --wait-timeout 300
    coldsafe ps -a
    ```
 
@@ -254,10 +258,16 @@ do proprietário. O bootstrap de infraestrutura não cria contas de aplicação.
    Monitore `coldsafe stats --no-stream` e confira `.State.OOMKilled` por container
    (`docker inspect ...`); saúde isolada não comprova ausência de OOM.
 
-A capacidade medida e os limites do ensaio desta entrega ficam no
-[cartão B2-33](aiot/tasks/B2-33.md). Os limites do Compose não constituem medição
-de consumo. Para reproduzir o ensaio automatizado, use a pilha descartável descrita
-no cartão, sem apontar o teste para volumes/credenciais pessoais.
+A capacidade medida e os limites ficam nos cartões [B2-33](aiot/tasks/B2-33.md)
+e [B2-34](aiot/tasks/B2-34.md). A rodada B2-34/R4 passou com o Mac conectado à
+tomada (AC/60 W), sem OOM nas amostras; o treino ficou próximo de 1 GiB e as
+quatro respostas SSE levaram 35–67 s. Falhas anteriores foram preservadas, sem
+atribuir causalidade exclusiva à bateria. Use a máquina ligada à tomada e sem
+concorrência de testes pesados no ensaio. Os 300 s de espera do Compose são
+o limite de orquestração usado na R4; não alteram o timeout de geração do LLM.
+Os limites do Compose não constituem medição de consumo. Para reproduzir o
+ensaio automatizado, use a pilha descartável descrita no cartão, sem apontar o
+teste para volumes/credenciais pessoais.
 
 ### Reinício e recuperação preservando dados
 
@@ -269,7 +279,7 @@ O volume `gateway-state` guarda o diário de borda; `job-artifacts` e
 
 ```sh
 coldsafe down
-coldsafe up -d --wait --wait-timeout 240
+coldsafe up -d --wait --wait-timeout 300
 coldsafe ps -a
 ```
 
@@ -314,17 +324,17 @@ Pré-condições: catálogo comissionado, gateway/simulador/writer funcionando,
 token exclusivo do writer e Mensageria habilitada conforme
 [configuração](configuration.md#amostras-privadas-b2-16). A ativação somente de
 `compose.messaging.yaml` não inicia produtores nem o gravador.
-Use a mesma combinação de arquivos Compose da sua instalação. Os comandos abaixo
-pressupõem `compose.aiot.yaml`; se usa `compose.messaging.yaml`, substitua o nome.
+Use a função `coldsafe` da pilha final acima, na mesma sessão de terminal.
+Ela conserva arquivos, perfis, projeto e configuração durante a falha controlada.
 
 1. Entre como admin proprietário do ambiente e abra `/messaging`. Anote
    `coldsafe.writer`, horário da coleta e IDs das últimas mensagens.
 2. Pare **somente o gravador**, mantendo o produtor em execução por alguns segundos:
 
    ```sh
-   docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot stop writer
-   docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot ps -a writer
-   docker compose exec rabbitmq rabbitmqctl -q list_queues -p coldsafe name messages_ready messages_unacknowledged
+   coldsafe stop writer
+   coldsafe ps -a writer
+   coldsafe exec rabbitmq rabbitmqctl -q list_queues -p coldsafe name messages_ready messages_unacknowledged
    ```
 
 3. Confira aumento de mensagens prontas no writer e novos resumos na página.
@@ -333,13 +343,13 @@ pressupõem `compose.aiot.yaml`; se usa `compose.messaging.yaml`, substitua o no
 4. Retome o mesmo serviço, sem apagar fila ou volume:
 
    ```sh
-   docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot start writer
-   docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot logs --tail 30 writer
+   coldsafe start writer
+   coldsafe logs --tail 30 writer
    ```
 
 5. Confira redução do backlog e recibos `telemetry_persisted`. Para observar zero
-   estável, pare brevemente o simulador (`docker compose --profile simulator stop simulator`)
-   e retome-o depois (`docker compose --profile simulator start simulator`).
+   estável, pare brevemente o simulador (`coldsafe stop simulator`)
+   e retome-o depois (`coldsafe start simulator`).
    Fila vazia isoladamente não comprova persistência; o ensaio automatizado abaixo
    confere cada ID e as seis medições no InfluxDB.
 

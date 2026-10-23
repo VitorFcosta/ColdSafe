@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "task": "B2-35",
+  "status": "completed_documentation_acceptance",
+  "recorded_at": "2026-10-23T16:46:51.220315-03:00",
+  "scope": "README, implemented diagrams, final demonstration script and supporting existing docs; no B2-36 execution",
+  "git": {
+    "base_commit": "c6fa42d0314409610ab1dd4db14e4bfc9b55040f",
+    "branch": "codex/block-5-validation",
+    "delivery_has_uncommitted_changes": true,
+    "commits_authorship_checked": 74,
+    "registered_author": "vitor hugo",
+    "other_contributions": "User confirmed vitor hugo is the only project member and responsible contributor; no other contributors attributed.",
+    "commit_created": false,
+    "pushed": false
+  },
+  "changed_files": [
+    {
+      "path": "README.md",
+      "sha256": "2ab9a8be624b54823239b26e72d9ec4d60ba7d9bc619d039b4fec954a943a11e"
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "b921e4d265841d6a1ff17d9c50ffbac50399e8637ef5e73a5e0bc6b59cf68432"
+    },
+    {
+      "path": "docs/runbook.md",
+      "sha256": "e09676b5a69882612bc2c223b646837baf0875f2fd09ea971a21f901f2ea4e02"
+    },
+    {
+      "path": "docs/version-matrix.md",
+      "sha256": "94818275b1524b033d0dc83ae19a7acdebd4c522b1ec1c429b92b545f3269251"
+    },
+    {
+      "path": "docs/aiot/architecture.md",
+      "sha256": "f297b0e72970f9c3c66e7f02d665201e267b2bd3b1cd08b0dd27397323b58f5c"
+    },
+    {
+      "path": "docs/aiot/presentation.md",
+      "sha256": "c891ff60548473f236794ef1192cf18c0868975efb1a901e9b0f8fd94a1e01db"
+    },
+    {
+      "path": "simulator/README.md",
+      "sha256": "7a6e6b74f3c47480bbad7d184978031d87b076278dd2fe382b2eb2b88afb8a1f"
+    },
+    {
+      "path": "docs/aiot/README.md",
+      "sha256": "c3adc4d769ba656e6c83a060fc11a5a65a1c250a3d8295a937be79423edebfe2"
+    },
+    {
+      "path": "docs/aiot/tasks/README.md",
+      "sha256": "046c781b6348a9f54eaa54df7a64bc19630d1705e789d9d4c5e9c7483312600f"
+    },
+    {
+      "path": "docs/aiot/tasks/B2-35.md",
+      "sha256": "57b7325132a9690672a1e07fa8b32f92fbd98afb066be08ddb204227edae807e"
+    }
+  ],
+  "new_file": "docs/evidence/b2-35.json (this report; excluded from self-hash)",
+  "preserved_b234_files": [
+    {
+      "path": "backend/tests/infra/test_stack_integration.py",
+      "sha256": "ad308cc2d69f23fa8dbb6c1ef4dee59d2ff9e91cc0290ac224435895cc78a83a",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/e2e/dashboard.spec.ts",
+      "sha256": "968cbb2bc455cecdff6daac7e22b64acb1863c30dcad2d0949938455ece006a2",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/e2e/landing.spec.ts",
+      "sha256": "b6534fbb7b7402b6f38d4b262f3873d2dcb04e9b2d103da3e1412ccdf5e2b73b",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "sha256": "a5cfce2bbc25b24ab40c65a4cfe3aa2e05b4d1d3815201e67418ea19d56afc15",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "0b0934010d1713acb078caaed9a27aa88dc6adb3e1cf755cc4d9884f73197f54",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/src/views/FoundationView.vue",
+      "sha256": "196b1920cedcd0879f81f95dd15f78a7b06081c75b483431d42483b2d8b645d8",
+      "unchanged": true
+    },
+    {
+      "path": "docs/aiot/tasks/B2-34.md",
+      "sha256": "8b774ab24a993dd6c15fa1a97bde2afc7a2824dffd831c9907b1722710c37d96",
+      "unchanged": true
+    },
+    {
+      "path": "docs/evidence/b2-34.json",
+      "sha256": "be474275eec4c165e4e8f815b73ba97e4cf4fd9957dcf55b199b1286309d009c",
+      "unchanged": true
+    }
+  ],
+  "new_dependencies": [],
+  "checks": {
+    "markdown_files": 10,
+    "local_links_checked": 230,
+    "local_anchors_checked": 17,
+    "shell_blocks_syntax_checked": 31,
+    "canonical_compose_functions_identical": true,
+    "credential_literal_pattern_scan": "passed (source text only, no personal secrets read)",
+    "mermaid_diagrams_rendered": 7,
+    "mermaid_tool_version": "11.16.0 (existing cached tool)",
+    "mermaid_new_dependency": false,
+    "compose": {
+      "mode": "configuration_only_no_containers_started",
+      "files": [
+        "compose.yaml",
+        "compose.aiot.yaml",
+        "compose.jobs.yaml",
+        "compose.inference.yaml",
+        "compose.ollama.yaml"
+      ],
+      "profiles": [
+        "aiot",
+        "simulator"
+      ],
+      "continuous_services": [
+        "backend",
+        "frontend",
+        "gateway",
+        "generation",
+        "influxdb",
+        "llm",
+        "models",
+        "mosquitto",
+        "ollama",
+        "postgres",
+        "rabbitmq",
+        "simulator",
+        "training",
+        "writer"
+      ],
+      "healthchecks": 14,
+      "setup_default": [
+        "mosquitto-init",
+        "rabbitmq-init"
+      ],
+      "setup_separate": "ollama-prepare via llm-setup",
+      "inference_worker_command_verified": true,
+      "aiot_frontend_build_verified": true,
+      "published_ports": {
+        "frontend": [
+          {
+            "mode": "ingress",
+            "host_ip": "127.0.0.1",
+            "target": 8080,
+            "published": "5173",
+            "protocol": "tcp"
+          }
+        ]
+      },
+      "private_env_read_or_modified": false,
+      "temporary_secrets_removed": true,
+      "assertions_passed": true
+    },
+    "git_diff_check": "passed",
+    "independent_review": {
+      "scope": "documentation/code walkthrough; no runtime or human-install rehearsal",
+      "pending_findings": 0,
+      "fixed_findings": [
+        "SQL environment_rules join by environment",
+        "Flux group/sort before global two-row limit",
+        "stale latest-completed-task phrase"
+      ]
+    },
+    "assertions_passed": true
+  },
+  "corrections_during_validation": [
+    "Mermaid sequence labels used semicolons as statement separators; replaced with commas; final seven diagrams rendered successfully",
+    "PostgreSQL rules query uses current environment_rules rather than legacy device rules",
+    "Flux limit applies globally after pivot/group/sort",
+    "MQTT pause/resume preserves degradation before asking about the fault"
+  ],
+  "historical_evidence_not_reexecuted": [
+    "docs/evidence/b2-32-final-2026-10-22.json",
+    "docs/evidence/b2-33.json",
+    "docs/evidence/b2-34.json"
+  ],
+  "not_executed": [
+    "application containers or personal configuration changes",
+    "full-stack regression, build, model training or generation",
+    "actual SQL/Flux demonstration queries on personal data",
+    "full live fault-prediction-hysteresis-alert-3D-LLM trajectory",
+    "installation walkthrough by another human",
+    "external-link/network reachability checks",
+    "B2-36 rehearsal or next task",
+    "Notion access or publishing"
+  ],
+  "limitations": [
+    "documents reproduce the local dirty delivery; cloning the base alone omits B2-34/B2-35 changes",
+    "synthetic data and visual scales are uncalibrated",
+    "default live features require real causal history, about one hour; accelerated wear does not shorten UTC windows",
+    "only one live simulator identity provisioned, owned by one private account",
+    "last-admin/self-demotion protection is not implemented; preserve an administrator",
+    "B2-34 AC/60W passing run and LLM/training timings are historical measurements, not SLA"
+  ],
+  "resume_checkpoint": "B2-35 closed; B2-36 not started. Await user choice, then read its card and execute the pending final rehearsal on identified machine/version.",
+  "user_authorship_confirmation": {
+    "recorded_at": "2026-10-23T17:38:32.975805-03:00",
+    "sole_project_member": "vitor hugo",
+    "source": "direct user reply to authorship clarification",
+    "scope": "documentation attribution only; Git authorship/history unchanged",
+    "validation": "Text-only update; document hashes refreshed, original B2-34 preserved hashes verified, git diff --check passed. Prior diagrams/configuration checks not rerun."
+  },
+  "publication_authorization": {
+    "source": "explicit user request after B2-35 closure: faca o commit r push",
+    "branch": "codex/block-5-validation",
+    "remote": "origin",
+    "note": "Earlier commit_created/pushed flags record the documentation-acceptance snapshot before this authorization. Delivery commits and remote state are recorded by Git, not self-referential hashes."
+  }
+}

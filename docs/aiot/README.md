@@ -2,12 +2,20 @@
 
 ## Situação em 23/10/2026
 
-O código continua na base v1/v2 descrita no [README](../../README.md).
-O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
-O simulador MQTT v3, gateway MQTT/AMQP e gravador InfluxDB estão implementados;
-API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
-dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
+A implementação atual é AIoT v3: simulador, gateway, writer, API/WS, jobs,
+regressões/ativação/inferência, Insights, 3D e assistente local estão integrados.
+O caminho ESP32/v1/v2 continua legado opcional. O [README](../../README.md),
+os [diagramas](architecture.md) e o [runbook](../runbook.md) descrevem a pilha
+final; cada evidência datada limita o que foi efetivamente demonstrado.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
+
+A [B2-35](tasks/B2-35.md) concluiu a revisão documental: README da pilha v3,
+comissionamento/comando completo, versões, diagramas implementados e roteiro
+nos 12 passos do professor. Contas de demonstração são sugestões a cadastrar,
+sem senhas; autoria conferida no Git, sem atribuições inventadas. Validações e
+limites estão no cartão e na [evidência B2-35](../evidence/b2-35.json).
+**B2-35 concluída; B2-36 não iniciada.** O ensaio humano/integral da apresentação
+ainda deve ser executado na versão e máquina finais, por escolha do usuário.
 
 A [B2-32](tasks/B2-32.md) conserva página Assistente e aceite
 factual aprovados. Após falhas preservadas no histórico, a rodada final com
@@ -22,7 +30,7 @@ pessoal. Recursos descartáveis e credenciais foram removidos. Ressalvas de
 linguagem, ensaios reprovados e limites ficam no cartão e na
 [evidência final](../evidence/b2-32-final-2026-10-22.json).
 
-A última tarefa concluída é a [B2-33](tasks/B2-33.md): healthchecks dos
+A [B2-33](tasks/B2-33.md) conserva healthchecks dos
 executores, bootstrap InfluxDB idempotente e runbook completo. R5 aprovou a pilha
 real com 14 serviços saudáveis, sete páginas, recuperação de writer/brokers/Ollama,
 geração e treino de 1 milhão, ativação e `down/up` preservando dados/modelo/sessão.
@@ -34,7 +42,27 @@ não nova aprovação do corpus B2-32 ou SLA. Testes focados: 512 aprovações/9
 nos oito módulos medidos; grupo bootstrap/segredos: 43 aprovações, com sobreposição.
 Sem dependências novas, commit/push ou ativação pessoal; recursos próprios removidos.
 [Evidência consolidada](../evidence/b2-33.json) e cartão registram limites e hashes.
-B2-34 permanece não iniciada; aguardar escolha do usuário.
+B2-34 foi escolhida pelo usuário e concluída no cenário R4 descrito abaixo.
+
+A [B2-34](tasks/B2-34.md) conserva regressão e integração real: 1.626 testes backend e
+seleção de 184 testes (181 integrações SQL/RabbitMQ/segurança e três percursos
+browser); união de cobertura backend
+92,61%, edge 93,71% (265 testes sobrepostos), frontend 476 testes e linhas 96,11%.
+Corrigidos navegação móvel, espera do resize no teste de zoom e patches Vite/Vitest;
+auditorias npm/Python sem vulnerabilidades conhecidas. E2E simulado padrão:
+41 passaram/25 skips; AIoT 7 passaram/1 timeout, aprovado isoladamente sem mudar
+produto/timeout. R1/R2/R3 continuam reprovadas: preload na R1, `LLM_TIMEOUT` sem
+texto nas isoladas R2/R3; R3 comprovou prefill cinco vezes mais lento, com causa
+física ainda aberta. **R4 isolada com Mac em AC Power/60 W passou integralmente**:
+14 serviços saudáveis, telemetria/LED, 14 checks HTTP, recuperação de serviços,
+duas gerações de 1 milhão, treino/ativação e reinício preservando dados/sessão.
+Quatro SSE responderam corretamente em 35,24–66,85 s. Foram 1.208 amostras sem
+OOM; treino ficou próximo de 1 GiB. A condição de energia aprovada é registrada,
+sem atribuir causalidade exclusiva à bateria nem prometer SLA. Nenhum perfil/
+timeout/configuração pessoal alterado; containers/redes/volumes descartáveis
+removidos e os mesmos 11 volumes pessoais preservados; imagens/cache podem ficar.
+Resultado, limites e checkpoint no cartão e em [b2-34.json](../evidence/b2-34.json).
+**B2-34 concluída no escopo medido.**
 
 A [B2-31](tasks/B2-31.md): resumo privado somente leitura,
 SSE autenticado, cinco admissões/minuto/conta, pergunta até 256 bytes UTF-8,
@@ -224,7 +252,7 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O cartão atual é [B2-33](tasks/B2-33.md);
+v3 está concluída no escopo B2-14. O cartão atual é [B2-34](tasks/B2-34.md);
 não avançar automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final
@@ -235,8 +263,9 @@ descritos no cartão; isso não promete capacidade para qualquer carga.
 
 - Ventilador de refrigeração; LED manual, buzzer automático, ambientes privados.
 - Reaproveitar Vue 3/TypeScript/Vite/Chart.js, Python/FastAPI e os dois bancos;
-  Three.js direto para a cena futura. Node serve ao frontend.
-- Firmware/Wokwi e histórico v1/v2 continuam preservados; o alvo usa simulador Python.
+  Three.js direto para a cena implementada. Node é ferramenta de build/desenvolvimento;
+  Nginx serve o frontend na composição.
+- Firmware/Wokwi e histórico v1/v2 continuam preservados; a pilha AIoT usa simulador Python.
 - Apresentação em **16/11/2026**. Datas do plano são metas para 4–6 horas/dia.
 - Mac com 8 GB; perfil preliminar na B2-03 e cenário final medido na B2-33; sem promessa
   de capacidade para qualquer carga. A avaliação factual do assistente está na B2-32.

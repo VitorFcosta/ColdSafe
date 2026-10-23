@@ -4,7 +4,9 @@
 Status importados em 13/10/2026; cada cartão é o registro de execução.
 Este índice resume os cartões e deve acompanhar futuras mudanças de status.
 Ler só o cartão escolhido e suas dependências.
-B2-01–33 concluídas nos seus escopos; B2-34–36 não iniciadas.
+B2-01–35 concluídas nos seus escopos; B2-34 aprovada no cenário R4 com Mac
+conectado à tomada e limitações registradas. B2-35 encerra documentação;
+B2-36 não iniciada, com ensaio integral ainda pendente.
 A migração documental não executou tarefas técnicas.
 
 | Tarefa | Status atual | Dependências | Meta original |
@@ -42,6 +44,6 @@ A migração documental não executou tarefas técnicas.
 | [B2-31 — Resumo autorizado, streaming, limites e auditoria](B2-31.md) | Concluída | B2-06, B2-26, B2-30 | 2026-11-09 |
 | [B2-32 — Página Assistente e avaliação das respostas](B2-32.md) | Concluída | B2-31 | 2026-11-10 |
 | [B2-33 — Inicialização completa e recuperação](B2-33.md) | Concluída | B2-08, B2-16, B2-19, B2-24, B2-29, B2-32 | 2026-11-11 a 2026-11-12 |
-| [B2-34 — Regressão, integração real, segurança e cobertura](B2-34.md) | Não iniciada | B2-33 | 2026-11-12 a 2026-11-13 |
-| [B2-35 — README, diagramas e roteiro final](B2-35.md) | Não iniciada | B2-34 | 2026-11-14 |
+| [B2-34 — Regressão, integração real, segurança e cobertura](B2-34.md) | Concluída | B2-33 | 2026-11-12 a 2026-11-13 |
+| [B2-35 — README, diagramas e roteiro final](B2-35.md) | Concluída | B2-34 | 2026-11-14 |
 | [B2-36 — Ensaiar demonstração e corrigir bloqueadores](B2-36.md) | Não iniciada | B2-35 | 2026-11-15 |

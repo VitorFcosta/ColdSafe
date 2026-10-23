@@ -1,9 +1,11 @@
 # Simulador B2-09/10
 
-Produtor MQTT v3 independente do backend v1/v2. Publica seis medições por leitura,
-com IDs/unidades do [contrato](../contracts/aiot.md). O perfil Compose `simulator`
-é opcional: o dashboard atual ainda não recebe v3. O [gateway B2-11](../gateway/README.md)
-liga MQTT ao RabbitMQ; gravador e entrega continuam posteriores. O simulador não usa AMQP diretamente.
+Produtor MQTT v3 com seis medições por leitura e IDs/unidades do
+[contrato](../contracts/aiot.md). Integra a pilha final pelo [gateway](../gateway/README.md),
+RabbitMQ, writer e API v3 até o dashboard; não usa AMQP diretamente. O perfil
+`simulator` continua opcional para a base legada. Para o percurso integrado, siga
+o [comissionamento e comando completo](../docs/runbook.md#pilha-final-aiot-jobs-inferência-e-assistente);
+os comandos abaixo também permitem ensaio isolado da borda.
 
 ## Cadastro e execução
 
@@ -78,7 +80,7 @@ nunca são serializados em telemetria.
 Tópico operacional: `coldsafe/simulator/devices/sim-lab-01/control`.
 Somente `coldsafe-simulator-operator` publica; o dispositivo só lê.
 Esse canal controla a execução da simulação. Ele não é o `command` v3 de atuadores
-nem substitui a futura autenticação/propriedade HTTP. O backend e as identidades
+nem substitui a autenticação/propriedade HTTP da API v3. O backend e as identidades
 ESP32 não possuem acesso ao tópico ou às leituras deste simulador.
 
 Formato fechado: `command_id` UUID, `device_id`, `action=start|stop|inject_fault`,
@@ -135,7 +137,7 @@ LED altera `actual_state` e acrescenta 40 pontos percentuais à luminosidade,
 respeitando a faixa do schema. Buzzer altera `actual_state`; não inventa som ou
 valor de sensor. Leituras geradas depois da atuação refletem esses estados.
 Não há comando manual de ventilador nem regra automática de buzzer na borda:
-a regra autorizada será implementada no consumidor/API de negócio.
+a regra autorizada é executada no consumidor/API de negócio.
 
 ACK v3 usa comando/atuador/correlação corretos, UUID próprio, `received_at=null`,
 QoS 1 e sem retain. `applied` relata o estado explicitamente aplicado;
@@ -164,7 +166,7 @@ A callback publica ACK sem esperar PUBACK, para não bloquear o loop Paho. Se a
 fila estiver cheia, registra somente diagnóstico sanitizado; a atuação já realizada
 não é revertida nem declarada confirmada ao consumidor. Retry do mesmo comando
 válido pode recuperar o ACK original. Publicar comando no broker **não confirma
-atuação**: sem ACK compatível no prazo, o futuro serviço deve conservar ausência
+atuação**: sem ACK compatível no prazo, a API deve conservar ausência
 de confirmação. Um ACK tardio não autoriza transformar timeout persistido em sucesso.
 O simulador não emite `command_status` nem mantém a máquina de timeout da API.
 

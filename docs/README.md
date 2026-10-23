@@ -8,10 +8,10 @@ apontam para ele. A documentação está no projeto; o Notion é um índice lega
 | Entender o que a aplicação atual faz | [README principal](../README.md) |
 | Retomar a evolução AIoT | [Guia curto](aiot/README.md), depois a tarefa escolhida |
 | Consultar decisões e calendário aprovados | [Plano AIoT](aiot/plan.md) |
-| Entender os serviços previstos | [Arquitetura alvo](aiot/architecture.md) |
+| Entender os serviços implementados | [Arquitetura AIoT](aiot/architecture.md) |
 | Conferir o aceite do professor | [Requisitos](aiot/requirements.md) |
 | Consultar formatos e unidades | [Contratos](../contracts/README.md) |
-| Subir ou diagnosticar a base atual | [Runbook](runbook.md) |
+| Subir ou diagnosticar a base e a pilha final | [Runbook](runbook.md) |
 | Configurar credenciais | [Configuração](configuration.md) |
 | Conferir versões | [Matriz de versões](version-matrix.md) |
 | Ensaiar a apresentação AIoT | [Roteiro de novembro](aiot/presentation.md) |
