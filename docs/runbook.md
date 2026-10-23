@@ -57,60 +57,44 @@ dispositivos conforme [`firmware/README.md`](../firmware/README.md). Preserve
 as configurações locais existentes. Mais detalhes estão em
 [`configuration.md`](configuration.md).
 
-## 3. Inicializar o InfluxDB e criar o token do backend
+## 3. Inicializar o InfluxDB e provisionar tokens restritos
 
 Antes de subir a aplicação completa, inicie **somente** o InfluxDB:
 
-Se `INFLUXDB_TOKEN` já contém a autorização restrita válida do volume existente,
-vá à seção 4; não crie nem substitua tokens sem necessidade.
-
 ```bash
 INFLUXDB_TOKEN=bootstrap-not-used docker compose config --quiet
-INFLUXDB_TOKEN=bootstrap-not-used docker compose up -d influxdb
+INFLUXDB_TOKEN=bootstrap-not-used docker compose up -d --wait --wait-timeout 180 influxdb
 INFLUXDB_TOKEN=bootstrap-not-used docker compose ps influxdb
+python3 scripts/bootstrap-influx.py
 ```
 
-Aguarde até o estado do serviço aparecer como `healthy`. Em uma instalação
-nova, o container cria a organização e o bucket configurados no `.env`.
-
-Crie então uma autorização com leitura e escrita somente no bucket de
-telemetria:
-
-```bash
-INFLUXDB_TOKEN=bootstrap-not-used docker compose exec influxdb sh -ec '
-bucket_id="$(
-  influx bucket list \
-    --host http://127.0.0.1:8086 \
-    --org "$DOCKER_INFLUXDB_INIT_ORG" \
-    --token "$DOCKER_INFLUXDB_INIT_ADMIN_TOKEN" \
-    --name "$DOCKER_INFLUXDB_INIT_BUCKET" \
-    --hide-headers |
-  awk "NR == 1 { print \$1 }"
-)"
-test -n "$bucket_id"
-influx auth create \
-  --host http://127.0.0.1:8086 \
-  --org "$DOCKER_INFLUXDB_INIT_ORG" \
-  --token "$DOCKER_INFLUXDB_INIT_ADMIN_TOKEN" \
-  --description coldsafe-backend-telemetry \
-  --read-bucket "$bucket_id" \
-  --write-bucket "$bucket_id"
-'
-```
-
-O comando usa o token administrativo dentro do container, sem incluí-lo na
-linha de comando do host, e mostra a nova autorização. Copie o valor da coluna
-`Token` para `INFLUXDB_TOKEN` no `.env`. Não copie o token administrativo e não
-publique o token novo em documentação, mensagens, capturas de tela ou commits.
-
-Ao terminar, o `.env` deve conter dois tokens diferentes:
+Em uma instalação nova, o container cria organização e bucket legado do `.env`.
+Execute com o serviço `healthy`; o script cria `telemetry_live` com retenção de **168h**
+se ausente, provisiona as duas autorizações restritas e salva somente campos vazios
+do `.env` atomicamente com permissão `0600`. Nenhum token é mostrado na saída.
+As autorizações são separadas:
 
 - `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`: reservado à administração local;
-- `INFLUXDB_TOKEN`: leitura e escrita somente no bucket `telemetry`.
+- `INFLUXDB_TOKEN`: leitura e escrita somente no bucket legado configurado;
+- `INFLUXDB_WRITER_TOKEN`: somente escrita em `telemetry_live`.
+
+Reexecutar valida bucket, retenção, organização, status e permissões, conserva
+tokens existentes e recupera uma autorização criada antes de falha na gravação
+local. Tokens inválidos, amplos ou inativos causam erro; o script não os rotaciona,
+não muda retenção existente e não apaga dados. Execute uma instância por vez, sem
+editar o `.env` durante o bootstrap. O token admin é expandido somente dentro do
+container e o JSON da CLI é capturado, sem entrar na saída ou nos argumentos do host.
+Para outra composição, use `--env-file`, `--project-name` e um `--compose-file` por
+arquivo, na mesma ordem da subida. O script ignora overrides do shell para as chaves
+presentes no arquivo; mantenha o mesmo arquivo como fonte da composição.
 
 As variáveis `DOCKER_INFLUXDB_INIT_*` só inicializam um volume vazio. Em um
 volume existente, alterar esses valores não recria usuário, organização,
 bucket ou token.
+
+Flags conferidas na documentação oficial de
+[autorizações](https://docs.influxdata.com/influxdb/v2/reference/cli/influx/auth/create/)
+e [buckets](https://docs.influxdata.com/influxdb/v2/reference/cli/influx/bucket/create/).
 
 ## 4. Subir os serviços
 
@@ -184,6 +168,143 @@ Para testar persistência, anote um cadastro e uma leitura antes de
 `docker compose down`, suba novamente sem `--volumes` e confirme que ambos ainda
 existem. Interrompa e retome Mosquitto para observar perda/retorno de telemetria;
 um comando sem confirmação deve aparecer como `unconfirmed`, nunca como sucesso.
+
+## Pilha final B2-33: AIoT, jobs, inferência e assistente
+
+As seções 1–5 preparam a base. Para habilitar o percurso completo, comissione
+primeiro a conta e o dispositivo; iniciar os perfis antes disso impede a validação
+do proprietário. O bootstrap de infraestrutura não cria contas de aplicação.
+
+1. Com a base saudável, crie uma conta local, um ambiente e o dispositivo MQTT
+   **`sim-lab-01`** pela interface. Anote o UUID da conta (`/api/v1/auth/me` com a
+   sessão), do ambiente e do registro do dispositivo (respostas da API no
+   navegador ou OpenAPI autenticado). Esses UUIDs são identificadores, não tokens.
+   Em instalação nova, o cadastro começa como `operator`. Laboratório, Treinamento
+   e Mensageria exigem `admin`: obtenha esse papel do administrador da instalação
+   via `PATCH /api/v1/auth/users/{id}/role`. Não forneça papel no cadastro público.
+
+   **Somente no primeiro comissionamento local**, quando ainda não existe nenhum
+   admin, o operador da infraestrutura pode promover explicitamente a conta que
+   acabou de cadastrar. Substitua `UUID_DA_CONTA` pelo UUID conferido em `/auth/me`:
+
+   ```sh
+   docker compose exec -T postgres sh -ec \
+     'exec psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v owner_id="$1"' \
+     sh UUID_DA_CONTA <<'SQL'
+   UPDATE users SET role = 'admin'
+   WHERE id = :'owner_id'::uuid
+     AND NOT EXISTS (SELECT 1 FROM users WHERE role = 'admin')
+   RETURNING id, email, role;
+   SQL
+   ```
+
+   Confira exatamente uma linha, com o UUID/email esperados e `role=admin`.
+   Zero linhas significa conta ausente ou admin já existente: confira o cadastro
+   e use a API administrativa, sem remover a proteção SQL. O parâmetro do `psql`
+   evita interpolar o UUID como código. Este é um passo manual do proprietário
+   da instalação, não promoção automática pelo produto. Depois, confirme o papel
+   atual em `/auth/me`; os demais papéis passam pelo endpoint com auditoria.
+2. Copie `simulator/catalog.example.json` para `simulator/local/catalog.json` se
+   ainda não existir. Troque `device_record_id` e `environment_id` pelos registros
+   criados. Gere UUIDs próprios para equipamento, sensores e atuadores; mantenha
+   `device_id=sim-lab-01` e os nomes das seis medições/dois atuadores do exemplo.
+   O diretório e arquivo devem ser legíveis pelo UID `65532`, sem guardar segredos.
+   O [guia do simulador](../simulator/README.md#cadastro-e-execução) explica o contrato.
+3. Defina **o mesmo UUID da conta proprietária** em `GATEWAY_OWNER_USER_ID` e
+   `WRITER_OWNER_USER_ID` no `.env`. Preserve JWT, senhas e tokens existentes.
+   Reexecute `python3 scripts/bootstrap-influx.py` para verificar as permissões
+   de InfluxDB antes de ativar o writer.
+4. Nesta sessão de terminal, defina uma função que preserva os cinco arquivos
+   e os perfis em todos os comandos seguintes:
+
+   ```sh
+   coldsafe() {
+     docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml \
+       -f compose.inference.yaml -f compose.ollama.yaml \
+       --profile aiot --profile simulator "$@"
+   }
+   coldsafe config --quiet
+   ```
+
+   A função não modifica arquivos. Para `--project-name`/`--env-file` próprios,
+   acrescente-os na função e mantenha-os em todas as operações. Não publique
+   `docker compose config` sem `--quiet`: a configuração resolvida contém segredos.
+5. Prepare os pesos uma vez, com `llm` e `ollama` parados. Em atualização, aguarde
+   os jobs ativos terminarem antes de parar serviços. O preparo exige internet e
+   escreve somente no volume dos modelos; o runtime opera pela rede interna:
+
+   ```sh
+   coldsafe stop llm ollama
+   coldsafe --profile llm-setup run --rm --no-deps ollama-prepare
+   coldsafe up -d --build --wait --wait-timeout 240
+   coldsafe ps -a
+   ```
+
+   Esperado: bancos, brokers, API, frontend, simulador, gateway, writer,
+   geração, treino, inferência (`models`), `ollama` e coordenador `llm` saudáveis;
+   inicializadores com `Exited (0)`. O `ollama-prepare` termina após baixar
+   `llama3.2:3b-instruct-q4_K_M`; ele não é um serviço contínuo. Estar saudável
+   não significa que uma previsão já possui uma hora de histórico nem que um
+   modelo de inferência foi treinado/ativado.
+6. Confira `/health/live` e `/health/ready` pela porta `5173`. Entre na conta
+   proprietária e confira telemetria/LED no dashboard, filas em `/messaging`,
+   geração em `/laboratory`, treino em `/training` e assistente. Jobs precisam
+   chegar ao estado final persistido; uma resposta HTTP `202` é só aceite.
+   Durante geração/treino, o assistente deve pausar e voltar após o cálculo.
+   Monitore `coldsafe stats --no-stream` e confira `.State.OOMKilled` por container
+   (`docker inspect ...`); saúde isolada não comprova ausência de OOM.
+
+A capacidade medida e os limites do ensaio desta entrega ficam no
+[cartão B2-33](aiot/tasks/B2-33.md). Os limites do Compose não constituem medição
+de consumo. Para reproduzir o ensaio automatizado, use a pilha descartável descrita
+no cartão, sem apontar o teste para volumes/credenciais pessoais.
+
+### Reinício e recuperação preservando dados
+
+Use a função `coldsafe` acima também para recuperação. Antes de manutenção,
+anote conta/ambiente, um ID de evento persistido, um job concluído e o modelo
+ativo. Faça backup conforme o [guia de migrações](../backend/migrations/README.md).
+O volume `gateway-state` guarda o diário de borda; `job-artifacts` e
+`training-artifacts` guardam datasets e pacotes; `ollama-data` guarda pesos.
+
+```sh
+coldsafe down
+coldsafe up -d --wait --wait-timeout 240
+coldsafe ps -a
+```
+
+Confirme os mesmos cadastros, eventos, jobs e pacotes após a subida. Não execute
+`down --volumes`, não apague filas, não recrie credenciais como correção e não
+edite status de jobs para liberar a memória. O estado físico/desgaste do simulador
+reinicia; o histórico persistido continua no banco.
+
+- **MQTT/RabbitMQ:** pare/retome apenas um broker por vez (`coldsafe stop mosquitto`
+  e `coldsafe start mosquitto`, ou `rabbitmq`). Observe freshness e reconexão.
+  Eventos já persistidos devem continuar consultáveis; ausência de publicação
+  durante interrupção do simulador não é recuperada como dado histórico inventado.
+- **Writer:** use o ensaio de backlog da seção de Mensageria abaixo. Para/retoma
+  deve reduzir mensagens pendentes e produzir recibos `telemetry_persisted`.
+- **Geração/treino/inferência:** use `stop`/`start` do serviço correspondente
+  (`generation`, `training` ou `models`) e consulte o mesmo job/pedido. Preserve
+  IDs, outbox, AMQP e arquivos. Tentativas esgotadas/DLQ exigem recuperar a mensagem
+  original; não publique um novo pedido para disfarçar falha. Não reinicie
+  PostgreSQL durante cálculo real: sua sessão sustenta a exclusão mútua.
+- **Ollama/coordenador:** indisponibilidade pausa o assistente, conservando o
+  monitoramento. Para recuperação normal, `coldsafe start ollama llm` e confira
+  status autenticado em `/api/v3/llm/status`. Se houver marcador de carga ambígua,
+  pare `llm`, reinicie `ollama` e somente depois remova o marcador operacional:
+
+  ```sh
+  coldsafe stop llm
+  coldsafe restart ollama
+  coldsafe exec -T postgres sh -ec \
+    'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "DELETE FROM llm_memory_guard WHERE id = 1;"'
+  coldsafe start llm
+  ```
+
+  Não limpe a trava com um carregador ainda vivo. `/api/ps` vazio sozinho não
+  prova ausência de carga em curso. O procedimento remove uma trava, preservando
+  jobs, pesos e modelos ativos; ver [coordenação de memória](configuration.md#ollama-local-e-memória-b2-30).
 
 ## 6. Diagnóstico
 

@@ -20,13 +20,18 @@ services:
     mem_limit: 512m
     cpus: 1.0
     environment:
+      COLDSAFE_HEALTHCHECK: "1"
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_GENERATION_PASSWORD: "${RABBITMQ_GENERATION_PASSWORD:?Preencha a credencial privada de geracao}"
     depends_on:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      disable: true
+      test: [CMD, python, -m, simulator.health]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
   training:
     extends:
       file: compose.yaml
@@ -38,13 +43,18 @@ services:
     mem_limit: 1g
     cpus: 1.0
     environment:
+      COLDSAFE_HEALTHCHECK: "1"
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_TRAINING_PASSWORD: "${RABBITMQ_TRAINING_PASSWORD:?Preencha a credencial privada de treino}"
     depends_on:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      disable: true
+      test: [CMD, python, -m, simulator.health]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
   models:
     extends:
       file: compose.yaml
@@ -55,13 +65,18 @@ services:
     mem_limit: 512m
     cpus: 1.0
     environment:
+      COLDSAFE_HEALTHCHECK: "1"
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_INFERENCE_PASSWORD: "${RABBITMQ_INFERENCE_PASSWORD:?Preencha a credencial privada de inferencia}"
     depends_on:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      disable: true
+      test: [CMD, python, -m, simulator.health]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
 
 volumes:
   job-artifacts:

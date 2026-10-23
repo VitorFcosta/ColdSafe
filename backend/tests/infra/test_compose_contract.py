@@ -34,11 +34,12 @@ def test_model_worker_uses_private_read_only_artifacts_and_inference_identity():
     assert worker['mem_limit'] == '512m'
     assert worker['cpus'] == 1.0
     assert worker['environment'] == {
+        'COLDSAFE_HEALTHCHECK': '1',
         'RABBITMQ_HOST': 'rabbitmq',
         'RABBITMQ_INFERENCE_PASSWORD': '${RABBITMQ_INFERENCE_PASSWORD:?Preencha a credencial privada de inferencia}',
     }
     assert worker['depends_on']['rabbitmq']['condition'] == 'service_healthy'
-    assert worker['healthcheck']['disable'] is True
+    assert worker['healthcheck']['test'] == ['CMD', 'python', '-m', 'simulator.health']
 
 
 def test_messaging_overlay_keeps_legacy_dashboard_and_broker_private():

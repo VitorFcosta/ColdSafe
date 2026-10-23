@@ -9,6 +9,7 @@ import psycopg
 
 from backend.app.amqp.jobs import JobPublisher
 from gateway.bridge import PermanentError, encode
+from simulator.health import mark_healthy
 from simulator.model import SCHEMA, strict_json
 
 LOGGER = logging.getLogger(__name__)
@@ -71,6 +72,7 @@ class ModelWorker(ModelPublisher):
                     if self.connection is not None:
                         self.connection.process_data_events(time_limit=0)
                     self.flush_outputs(channel)
+                    mark_healthy()
         finally:
             # Reconnect must not start another loader while the previous one is still running.
             if not future.done():

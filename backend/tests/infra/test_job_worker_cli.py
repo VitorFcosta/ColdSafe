@@ -51,3 +51,14 @@ def test_job_artifact_volume_is_persistent_and_only_generation_can_write():
     assert services['training']['mem_limit'] == '1g'
     assert services['training']['cpus'] == 1.0
     assert services['generation']['mem_limit'] == '512m'
+
+
+@pytest.mark.parametrize('role', ['generation', 'training', 'models'])
+def test_compose_workers_check_their_own_successful_loop(role):
+    from pathlib import Path
+    import yaml
+    worker = yaml.safe_load(Path('compose.jobs.yaml').read_text())['services'][role]
+    assert worker['environment']['COLDSAFE_HEALTHCHECK'] == '1'
+    assert worker['healthcheck']['test'] == ['CMD', 'python', '-m', 'simulator.health']
+    assert worker['healthcheck']['interval'] == '10s'
+    assert worker['healthcheck']['timeout'] == '3s'

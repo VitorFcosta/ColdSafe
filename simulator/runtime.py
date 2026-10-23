@@ -14,6 +14,7 @@ from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 import paho.mqtt.client as mqtt
 
 from simulator.model import SCHEMA, Simulator, strict_json, utc
+from simulator.health import mark_healthy
 
 LOGGER = logging.getLogger(__name__)
 COMMAND = Draft202012Validator({**SCHEMA, '$ref': '#/$defs/command_event'}, format_checker=FormatChecker())
@@ -199,8 +200,12 @@ class MqttSimulator:
                                 info.wait_for_publish(timeout=5)
                                 if not info.is_published():
                                     LOGGER.warning('MQTT telemetry awaiting broker; outgoing queue limited to 16')
+                                else:
+                                    mark_healthy()
                             except RuntimeError:
                                 LOGGER.warning('MQTT disconnected before publish confirmation')
+                    else:
+                        mark_healthy()
                 shutdown.wait(self.interval)
         finally:
             self.client.disconnect()

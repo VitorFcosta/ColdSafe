@@ -48,4 +48,6 @@ def test_all_heavy_workers_and_coordinator_share_private_ollama_configuration():
     assert coordinator['command'] == ['python', '-m', 'backend.app.llm_worker']
     assert coordinator['extends'] == {'file': 'compose.yaml', 'service': 'backend'}
     assert coordinator['mem_limit'] == '128m'
-    assert coordinator['healthcheck']['disable'] is True
+    assert coordinator['environment']['COLDSAFE_HEALTHCHECK'] == '1'
+    assert coordinator['healthcheck']['test'] == ['CMD', 'python', '-m', 'simulator.health', '240']
+    assert coordinator['healthcheck']['start_period'] == '240s'

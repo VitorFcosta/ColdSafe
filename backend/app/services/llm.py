@@ -10,6 +10,7 @@ import psycopg
 
 from backend.app.repositories.postgres import connect
 from backend.app.services.jobs import HEAVY_JOB_LOCK
+from simulator.health import mark_healthy
 
 LOGGER = logging.getLogger(__name__)
 MODEL = 'llama3.2:3b-instruct-q4_K_M'
@@ -152,6 +153,7 @@ class LlmService:
         while not shutdown.is_set():
             try:
                 self.tick()
+                mark_healthy()
             except (psycopg.Error, OllamaUnavailable) as error:
                 LOGGER.warning('Local model preparation failed: type=%s', type(error).__name__)
             shutdown.wait(2)

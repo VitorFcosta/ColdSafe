@@ -20,6 +20,7 @@ from backend.app.repositories.influxdb import InfluxReadingRepository
 from backend.app.repositories.influxdb_client import InfluxSettings, create_influx_repository
 from gateway.bridge import PermanentError, PostgresScope, VALIDATORS as GATEWAY_VALIDATORS, encode
 from simulator.model import SCHEMA, strict_json, utc, validate_catalog
+from simulator.health import mark_healthy
 
 LOGGER = logging.getLogger(__name__)
 VALIDATORS = {**GATEWAY_VALIDATORS, 'telemetry_persisted': Draft202012Validator(
@@ -95,10 +96,10 @@ class Writer:
             pika.BasicProperties(content_type='application/json', delivery_mode=2,
                                  message_id=identifier, correlation_id=source['event_id']), mandatory=True)
 
-    def consume(self) -> None:
+    def consume(self) -> bool:
         method, properties, raw = self.channel.basic_get('coldsafe.writer', auto_ack=False)
         if method is None:
-            return
+            return True
         attempt = 1
         try:
             count = (properties.headers or {}).get('x-delivery-count', 0)
@@ -114,8 +115,10 @@ class Writer:
         except (DependencyUnavailableError, psycopg.Error):
             self.publish_error('RETRY_EXHAUSTED' if attempt == 3 else 'PROCESSING_FAILED', attempt)
             self.channel.basic_reject(method.delivery_tag, requeue=attempt < 3)
+            return False
         else:
             self.channel.basic_ack(method.delivery_tag)
+        return True
 
     def run(self, shutdown: Event) -> None:
         delay = 1
@@ -127,8 +130,10 @@ class Writer:
                         self.channel = self.connection.channel()
                         self.channel.confirm_delivery()
                         self.channel.basic_qos(prefetch_count=1)
-                    self.consume()
+                    consumed = self.consume()
                     self.connection.process_data_events(time_limit=0)
+                    if consumed:
+                        mark_healthy()
                     delay = 1
                 except (pika.exceptions.AMQPError, OSError):
                     LOGGER.warning('AMQP unavailable; unacknowledged telemetry remains with broker')

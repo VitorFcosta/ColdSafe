@@ -213,8 +213,11 @@ As credenciais `RABBITMQ_API_PASSWORD`, `RABBITMQ_GENERATION_PASSWORD` e
 API publica usando somente sua identidade; cada worker recebe somente a própria
 credencial AMQP. Não compartilhar senhas entre papéis. Workers reaproveitam imagem,
 ambiente PostgreSQL, usuário sem privilégios, filesystem read-only e rede interna
-do backend. Não publicam portas. As verificações de vida dos executores ficam
-para integração operacional B2-33; o healthcheck HTTP herdado é desativado neles.
+do backend. Não publicam portas. Na B2-33, o healthcheck HTTP herdado foi
+substituído por heartbeat do próprio laço AMQP, inclusive enquanto aguarda
+trabalhos longos. Ele indica atividade do laço; conclusão do cálculo e prontidão
+do assistente são estados separados. Limites e ensaio ficam no
+[cartão B2-33](aiot/tasks/B2-33.md).
 
 API instala as rotas de jobs e de consulta privada de datasets quando a sua credencial está presente; sem ela,
 o comportamento anterior permanece. `202` significa solicitação persistida;

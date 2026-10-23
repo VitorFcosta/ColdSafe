@@ -1,6 +1,6 @@
 # Retomar a evolução AIoT
 
-## Situação em 22/10/2026
+## Situação em 23/10/2026
 
 O código continua na base v1/v2 descrita no [README](../../README.md).
 O contrato v3 foi fechado; migrações 004–006 e metadados privados estão preparados.
@@ -9,7 +9,7 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A última tarefa concluída é a [B2-32](tasks/B2-32.md): página Assistente e aceite
+A [B2-32](tasks/B2-32.md) conserva página Assistente e aceite
 factual aprovados. Após falhas preservadas no histórico, a rodada final com
 Llama 3.2 3B Q4, quatro threads, lote 128 e 3,25 GiB/4 CPUs aprovou 14 perguntas e dois
 extras mistos por revisão principal/independente. Serviço/SSE/SQL/Ollama CPU reais,
@@ -20,7 +20,21 @@ e build AIoT passaram. Os dois percursos são evidências distintas. Pesos 3B s�
 nova dependência de infraestrutura; sem biblioteca Python/Node nova ou ativação
 pessoal. Recursos descartáveis e credenciais foram removidos. Ressalvas de
 linguagem, ensaios reprovados e limites ficam no cartão e na
-[evidência final](../evidence/b2-32-final-2026-10-22.json). B2-33 não foi iniciada.
+[evidência final](../evidence/b2-32-final-2026-10-22.json).
+
+A última tarefa concluída é a [B2-33](tasks/B2-33.md): healthchecks dos
+executores, bootstrap InfluxDB idempotente e runbook completo. R5 aprovou a pilha
+real com 14 serviços saudáveis, sete páginas, recuperação de writer/brokers/Ollama,
+geração e treino de 1 milhão, ativação e `down/up` preservando dados/modelo/sessão.
+Foram 1.058 amostras, sem OOM; treino atingiu o teto de 1 GiB. Quatro SSE completas
+responderam corretamente à pergunta sobre equipamentos em 32–43 s. R3/R4 continuam
+reprovadas: uma confirmou timeout de 92 s numa pergunta válida sobre ambientes,
+ainda sem causa isolada/correção. R5 é smoke factual mais restrito de recuperação,
+não nova aprovação do corpus B2-32 ou SLA. Testes focados: 512 aprovações/90,20%
+nos oito módulos medidos; grupo bootstrap/segredos: 43 aprovações, com sobreposição.
+Sem dependências novas, commit/push ou ativação pessoal; recursos próprios removidos.
+[Evidência consolidada](../evidence/b2-33.json) e cartão registram limites e hashes.
+B2-34 permanece não iniciada; aguardar escolha do usuário.
 
 A [B2-31](tasks/B2-31.md): resumo privado somente leitura,
 SSE autenticado, cinco admissões/minuto/conta, pergunta até 256 bytes UTF-8,
@@ -210,11 +224,12 @@ dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache 
 simulador ainda são em memória. A B2-13 isola status/timeout v3 do legado e
 mantém o catálogo comissionado de um equipamento por runtime. A B2-09 conserva
 sensores/desgaste; B2-08, frontend estático/proxy. A integração do dashboard
-v3 está concluída no escopo B2-14. O cartão atual é [B2-32](tasks/B2-32.md), com
-aceite factual pendente; não avançar automaticamente.
+v3 está concluída no escopo B2-14. O cartão atual é [B2-33](tasks/B2-33.md);
+não avançar automaticamente.
 
 A capacidade preliminar foi medida na [B2-03](tasks/B2-03.md). O ensaio final
-com todos os serviços de negócio continua pertencendo à B2-33.
+com os 14 serviços foi concluído na [B2-33](tasks/B2-33.md), no cenário e limites
+descritos no cartão; isso não promete capacidade para qualquer carga.
 
 ## Decisões preservadas
 
@@ -223,8 +238,8 @@ com todos os serviços de negócio continua pertencendo à B2-33.
   Three.js direto para a cena futura. Node serve ao frontend.
 - Firmware/Wokwi e histórico v1/v2 continuam preservados; o alvo usa simulador Python.
 - Apresentação em **16/11/2026**. Datas do plano são metas para 4–6 horas/dia.
-- Mac com 8 GB; perfil e limites medidos estão na B2-03, sem promessa de capacidade
-  para a pilha final nem aprovação da qualidade do assistente.
+- Mac com 8 GB; perfil preliminar na B2-03 e cenário final medido na B2-33; sem promessa
+  de capacidade para qualquer carga. A avaliação factual do assistente está na B2-32.
 - Papéis, JWT/bcrypt e ticket WS implementados na B2-06. Hashes Argon2 antigos
   continuam utilizáveis; sessões opacas têm janela transitória limitada e a
   revogação permanece no PostgreSQL. Configurar chave JWT privada antes de subir.

@@ -151,6 +151,7 @@ services:
       mosquitto:
         condition: service_healthy
     environment:
+      COLDSAFE_HEALTHCHECK: "1"
       MQTT_HOST: mosquitto
       MQTT_PORT: 1883
       MQTT_SIMULATOR_PASSWORD: "${MQTT_SIMULATOR_PASSWORD:-}"
@@ -167,6 +168,14 @@ services:
       - coldsafe-internal
     user: "65532:65532"
     read_only: true
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=1m,uid=65532,gid=65532"
+    healthcheck:
+      test: ["CMD", "python", "-m", "simulator.health", "90"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     init: true
     security_opt:
       - no-new-privileges:true
@@ -189,6 +198,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
+      COLDSAFE_HEALTHCHECK: "1"
       MQTT_HOST: mosquitto
       MQTT_PORT: 1883
       MQTT_GATEWAY_PASSWORD: "${MQTT_GATEWAY_PASSWORD:-}"
@@ -213,6 +223,14 @@ services:
       - coldsafe-internal
     user: "65532:65532"
     read_only: true
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=1m,uid=65532,gid=65532"
+    healthcheck:
+      test: ["CMD", "python", "-m", "simulator.health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     init: true
     security_opt:
       - no-new-privileges:true
@@ -235,6 +253,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
+      COLDSAFE_HEALTHCHECK: "1"
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_WRITER_PASSWORD: "${RABBITMQ_WRITER_PASSWORD}"
@@ -259,6 +278,14 @@ services:
       - coldsafe-internal
     user: "65532:65532"
     read_only: true
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=1m,uid=65532,gid=65532"
+    healthcheck:
+      test: ["CMD", "python", "-m", "simulator.health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     init: true
     security_opt:
       - no-new-privileges:true

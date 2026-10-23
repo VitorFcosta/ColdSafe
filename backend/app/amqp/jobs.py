@@ -9,6 +9,7 @@ import pika
 import psycopg
 
 from gateway.bridge import PermanentError, encode
+from simulator.health import mark_healthy
 from simulator.model import SCHEMA, strict_json
 
 LOGGER = logging.getLogger(__name__)
@@ -67,6 +68,7 @@ class JobPublisher:
                     self.connection.process_data_events(time_limit=0)
                     self.step(self.channel)
                     self.connection.process_data_events(time_limit=0)
+                    mark_healthy()
                     delay = 1
                 except (pika.exceptions.AMQPError, OSError, psycopg.Error) as error:
                     LOGGER.warning('Job dependency unavailable; durable work remains pending')
@@ -126,6 +128,7 @@ class JobWorker(JobPublisher):
                     if self.connection is not None:
                         self.connection.process_data_events(time_limit=0)
                     self.flush_outputs(channel)
+                    mark_healthy()
         finally:
             # A lost broker connection must not leave a second live handler behind on reconnect.
             if not future.done():

@@ -18,6 +18,7 @@ from jsonschema import ValidationError
 
 from gateway.bridge import Bridge, PermanentError, PostgresScope
 from simulator.model import strict_json
+from simulator.health import mark_healthy
 
 LOGGER = logging.getLogger(__name__)
 
@@ -113,10 +114,10 @@ class Gateway:
         with self.bridge.db:
             self.bridge.db.execute('UPDATE commands SET sent=1 WHERE command_id=?', (identifier,))
 
-    def consume_command(self) -> None:
+    def consume_command(self) -> bool:
         method, properties, raw = self.channel.basic_get('coldsafe.gateway', auto_ack=False)
         if method is None:
-            return
+            return True
         count = (properties.headers or {}).get('x-delivery-count', 0)
         attempt = min(3, 1 + count) if isinstance(count, int) and count >= 0 else 1
         try:
@@ -134,8 +135,10 @@ class Gateway:
             self.bridge.record_error('amqp', method.routing_key, raw,
                                      'RETRY_EXHAUSTED' if attempt == 3 else 'PROCESSING_FAILED', attempt=attempt)
             self.channel.basic_reject(method.delivery_tag, requeue=attempt < 3)
+            return False
         else:
             self.channel.basic_ack(method.delivery_tag)
+        return True
 
     def run(self, shutdown: Event) -> None:
         properties = mqtt.Properties(mqtt.PacketTypes.CONNECT)
@@ -180,8 +183,10 @@ class Gateway:
                         self.channel.confirm_delivery()
                         self.channel.basic_qos(prefetch_count=1)
                     self.bridge.flush(self.publish_bus)
-                    self.consume_command()
+                    consumed = self.consume_command()
                     self.connection.process_data_events(time_limit=0)
+                    if consumed and self.ready.is_set():
+                        mark_healthy()
                 except (pika.exceptions.AMQPError, OSError):
                     LOGGER.warning('AMQP unavailable; journal and broker preserve pending messages')
                     self.close_amqp()

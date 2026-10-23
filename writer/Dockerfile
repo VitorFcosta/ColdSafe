@@ -6,7 +6,7 @@ COPY writer/requirements.txt /app/writer/requirements.txt
 RUN pip install --no-cache-dir -r writer/requirements.txt
 COPY backend/app/ /app/backend/app/
 COPY contracts/aiot.schema.json /app/contracts/aiot.schema.json
-COPY simulator/model.py /app/simulator/model.py
+COPY simulator/model.py simulator/health.py /app/simulator/
 COPY gateway/bridge.py /app/gateway/bridge.py
 COPY writer/ /app/writer/
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
