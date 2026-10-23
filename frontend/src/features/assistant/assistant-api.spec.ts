@@ -96,8 +96,24 @@ describe('cliente do Assistente', () => {
     })))
     const pending = askAssistant('t', 'estado', vi.fn()).catch((error: unknown) => error)
     await vi.advanceTimersByTimeAsync(100_000)
+    expect(cancel).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(30_000)
     expect(await pending).toMatchObject({ code: 'LLM_TIMEOUT' })
     expect(cancel).toHaveBeenCalledOnce()
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('aceita terminal após 100 segundos dentro do prazo total', async () => {
+    vi.useFakeTimers()
+    let write!: ReadableStreamDefaultController<Uint8Array>
+    const body = new ReadableStream<Uint8Array>({ start(controller) { write = controller } })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, {
+      headers: { 'content-type': 'text/event-stream' },
+    })))
+    const pending = askAssistant('t', 'estado', vi.fn()).catch((error: unknown) => error)
+    await vi.advanceTimersByTimeAsync(110_000)
+    write.enqueue(bytes.encode(event('delta', { text: 'Saúde 20 pontos/100' }) + event('done', { request_id: id })))
+    expect(await pending).toBe(id)
     expect(vi.getTimerCount()).toBe(0)
   })
 

@@ -44,7 +44,7 @@ for (const path of ['laboratory', 'training'] as const) {
       expect(request.headers().authorization).toBe('Bearer llm-status-test')
       if (endpoint === '/api/v3/llm/status') {
         statusRequests++; expect(request.method()).toBe('GET')
-        return route.fulfill({ json: envelope({ state, model: 'llama3.2:1b-instruct-q4_K_M' }) })
+        return route.fulfill({ json: envelope({ state, model: 'llama3.2:3b-instruct-q4_K_M' }) })
       }
       if (endpoint === '/api/v3/jobs' && request.method() === 'POST') {
         posts++; expect(request.postDataJSON()).toEqual(jobConfig)

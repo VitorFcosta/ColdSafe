@@ -27,6 +27,24 @@ def test_explicitly_unavailable_prediction_never_exposes_numbers():
     assert item['health'] is item['rul_h'] is None
 
 
+@pytest.mark.parametrize('elapsed,reading,display_age', [
+    (-.5, 'fresh', 0), (0, 'fresh', 0), (30, 'fresh', 30),
+    (30.000001, 'stale', 30), (30.5, 'stale', 30), (31, 'stale', 31),
+])
+def test_freshness_uses_exact_age_while_display_age_remains_whole_seconds(elapsed, reading, display_age):
+    now = datetime.now(UTC)
+    item = equipment({
+        'device': 'boundary-device', 'received_at': now - timedelta(seconds=elapsed),
+        'reading': {'data': {'measurements': {'ambient_temperature': {'value': 7.25, 'unit': 'degC'}}}},
+        'prediction': {'status': 'available', 'health_score': 32.5, 'rul_hours': 18.75},
+    }, now)
+    assert item['reading'] == reading
+    assert item['age_s'] == display_age
+    assert item['health'] == (32.5 if reading == 'fresh' else None)
+    assert item['rul_h'] == (18.75 if reading == 'fresh' else None)
+    assert item['sensors'] == ({'ambient_temperature': [7.25, 'degC']} if reading == 'fresh' else {})
+
+
 def test_maximum_sized_context_stays_bounded_and_only_known_fields_survive(monkeypatch):
     now = datetime.now(UTC)
     row = {'device': 'a' * 64, 'reading': {'data': {'measurements': {

@@ -21,7 +21,7 @@ fonte exata; esta tabela facilita a conferência no computador da apresentação
 | Frontend estático B2-08 | Nginx unprivileged `1.31.6`, base `1.31-alpine3.24` fixada pelo digest `sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434` | `frontend/Dockerfile`, `frontend/nginx.conf` |
 | Frontend | Vue `3.5.42`, Vue Router `5.3.0`, Vite `8.2.2`, TypeScript `6.0.3`, Chart.js `4.5.1`, Playwright `1.63.0`, Vitest `4.1.11` | `frontend/package.json`, `frontend/package-lock.json` |
 | Cena 3D B2-27 | Three.js `0.186.1`; desenvolvimento: `@types/three 0.186.0` | `frontend/package.json`, `frontend/package-lock.json` |
-| LLM local B2-30 | Ollama `0.40.3`; `llama3.2:1b-instruct-q4_K_M`, CPU/contexto 1.024 | `compose.ollama.yaml`, `backend/app/services/llm.py`; pesos no volume local |
+| LLM local B2-30/B2-32 | Ollama `0.40.3`; `llama3.2:3b-instruct-q4_K_M`, CPU/contexto 1.024, quatro threads, lote 128, 3,25 GiB/4 CPUs | `compose.ollama.yaml`, `backend/app/services/llm.py`; pesos no volume local; aceite factual no cartão B2-32 |
 | Firmware | espressif32 `7.0.1`, DHT sensor library for ESPx `1.19`, MQTT `2.5.3`, ArduinoJson `7.4.3` | `firmware/platformio.ini` |
 | Containers | Mosquitto `2.0.22`, InfluxDB `2.7.12-alpine`, PostgreSQL `17.11-alpine3.24`, Python `3.13.15-slim`, Node `24.20.0-alpine3.24` | `compose.yaml`, Dockerfiles |
 

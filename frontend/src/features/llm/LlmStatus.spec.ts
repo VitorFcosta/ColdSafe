@@ -6,7 +6,7 @@ import LlmStatus from './LlmStatus.vue'
 
 const request = vi.fn<typeof fetch>()
 const response = (state: string) => new Response(JSON.stringify({ success: true,
-  data: { state, model: 'llama3.2:1b-instruct-q4_K_M' }, meta: { schema_version: 3 } }))
+  data: { state, model: 'llama3.2:3b-instruct-q4_K_M' }, meta: { schema_version: 3 } }))
 let wrapper: VueWrapper | undefined
 beforeEach(() => {
   vi.useFakeTimers(); request.mockReset(); vi.stubGlobal('fetch', request)

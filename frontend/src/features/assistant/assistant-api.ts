@@ -66,7 +66,7 @@ export async function askAssistant(token: string, question: string, onDelta: (te
   }
   const abort = () => { controller.abort(); cancelReader() }
   signal?.addEventListener('abort', abort, { once: true })
-  const deadline = setTimeout(() => { timedOut = true; abort() }, 100_000)
+  const deadline = setTimeout(() => { timedOut = true; abort() }, 130_000)
   try {
     if (signal?.aborted) abort()
     if (controller.signal.aborted) throw new DOMException('Cancelled', 'AbortError')

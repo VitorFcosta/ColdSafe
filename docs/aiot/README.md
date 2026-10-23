@@ -9,17 +9,20 @@ API, regras de temperatura e entrega WebSocket v3 estão implementadas na B2-13;
 dashboard v3 está integrado na B2-14; demais consumidores continuam posteriores.
 O [índice de tarefas](tasks/README.md) e cada cartão são o registro de execução.
 
-A [B2-32](tasks/B2-32.md) está **em andamento**: página Assistente, cliente SSE,
-estados, sugestões e isolamento de sessão implementados; 475 testes frontend,
-cinco cenários Chromium com HTTP simulado e percurso SQL/JWT/HTTP/SSE/Chromium
-real passaram. O protocolo Ollama desse percurso é simulado explicitamente.
-A avaliação CPU real encontrou recusas com dados disponíveis e afirmações
-incorretas sobre leituras antigas; instruções experimentais não resolveram a
-qualidade e foram revertidas. O aceite factual continua reprovado. Não há
-conclusão, ativação pessoal ou avanço para B2-33. Resultados, falhas e checkpoint
-estão no cartão e na [evidência B2-32](../evidence/b2-32.json).
+A última tarefa concluída é a [B2-32](tasks/B2-32.md): página Assistente e aceite
+factual aprovados. Após falhas preservadas no histórico, a rodada final com
+Llama 3.2 3B Q4, quatro threads, lote 128 e 3,25 GiB/4 CPUs aprovou 14 perguntas e dois
+extras mistos por revisão principal/independente. Serviço/SSE/SQL/Ollama CPU reais,
+com fixtures declaradas; 16 auditorias concluídas e zero comandos. Regressão:
+237 testes backend (96,14% nos cinco módulos alterados), 66 frontend, sete cenários
+Chromium com HTTP simulado, percurso JWT/HTTP/SSE/SQL/Chromium com Ollama simulado
+e build AIoT passaram. Os dois percursos são evidências distintas. Pesos 3B são a
+nova dependência de infraestrutura; sem biblioteca Python/Node nova ou ativação
+pessoal. Recursos descartáveis e credenciais foram removidos. Ressalvas de
+linguagem, ensaios reprovados e limites ficam no cartão e na
+[evidência final](../evidence/b2-32-final-2026-10-22.json). B2-33 não foi iniciada.
 
-A última tarefa concluída foi [B2-31](tasks/B2-31.md): resumo privado somente leitura,
+A [B2-31](tasks/B2-31.md): resumo privado somente leitura,
 SSE autenticado, cinco admissões/minuto/conta, pergunta até 256 bytes UTF-8,
 timeout/cancelamento, revalidação de sessão e auditoria persistente. Lock dos
 jobs e marcador durável protegem geração/descarga. Backend sem integração:
@@ -30,7 +33,7 @@ ausência de medidas para conta vazia, zero comandos e três auditorias. HTTP/SS
 e desconexão também foram ensaiados em sockets reais com upstream controlado.
 HTTPX/HTTPcore foram promovidos do desenvolvimento ao runtime nas mesmas versões.
 Sem ativação pessoal; margem de memória pequena e qualidade geral da linguagem
-ainda não avaliada. Página Assistente permanece B2-32. Limites, falha inicial
+ainda não avaliada. A página Assistente foi entregue na B2-32. Limites, falha inicial
 do Docker/recuperação e hashes em [evidência B2-31](../evidence/b2-31.json).
 
 A [B2-30](tasks/B2-30.md) conserva Ollama local em CPU, Llama 3.2

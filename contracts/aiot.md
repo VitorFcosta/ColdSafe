@@ -876,7 +876,7 @@ revogação); não exige papel administrativo. Resposta `200`, `Cache-Control:
 no-store`, sem dados de contas/jobs:
 
 ```json
-{"success":true,"data":{"state":"ready","model":"llama3.2:1b-instruct-q4_K_M"},"meta":{"schema_version":3}}
+{"success":true,"data":{"state":"ready","model":"llama3.2:3b-instruct-q4_K_M"},"meta":{"schema_version":3}}
 ```
 
 | `state` | Significado |
@@ -937,12 +937,17 @@ em janela móvel de 60 s**, compartilhadas entre processos/reinícios; tentativa
 admitidas que terminam indisponíveis também contam. Pedidos inválidos não contam.
 Uma geração global por vez, sem fila de espera, usando o lock dos jobs.
 
-Geração tem prazo de 60 s; HTTP tem conexão de 3 s e leitura de 15 s; consultas
+Geração tem prazo de 90 s no perfil 3B da B2-32; HTTP tem conexão de 3 s e leitura
+de até 90 s, limitada pelo mesmo prazo total; consultas
 novas deste percurso têm limite de 3 s, e limpeza/descarga até 12 s. O prazo de
-60 s não inclui pré-validação nem limpeza. Saída: até 256 tokens gerados, 8 KiB
+90 s não inclui pré-validação nem limpeza. Saída: até 256 tokens gerados, 8 KiB
 por linha do protocolo, 64 KiB recebidos e 16 KiB de texto. Contexto 1.024 tokens:
 a tokenização varia; esses limites não garantem resposta integral para toda
 pergunta Unicode. O ensaio B2-31 mediu 289–429 tokens de entrada nos três casos.
+O proxy usa inatividade de até 120 s para permitir a geração de 90 s e a limpeza
+antes do terminal SSE; isso não amplia o prazo de geração do backend.
+O navegador limita a chamada completa a 130 s, incluindo rede e pré-validação,
+para não abortar uma geração válida durante a limpeza do servidor.
 
 Desconexão fecha o HTTP e confirma descarga antes de liberar o slot. Sessão é
 revalidada por parte e antes de `done`. Falha ambígua de descarga ou perda da

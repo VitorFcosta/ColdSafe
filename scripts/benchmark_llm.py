@@ -42,7 +42,7 @@ def response_probe(client):
     from backend.app.services.llm import MODEL
     payload = {'model': MODEL, 'prompt': 'Responda apenas com a palavra pronto.',
                'keep_alive': -1, 'stream': True,
-               'options': {'num_ctx': 1024, 'num_gpu': 0, 'num_thread': 2,
+               'options': {'num_ctx': 1024, 'num_gpu': 0, 'num_thread': 4, 'num_batch': 128,
                            'num_predict': 32, 'temperature': 0, 'seed': 42}}
     request = Request(client.url + '/api/generate', data=json.dumps(payload).encode(),
                       headers={'Content-Type': 'application/json'})

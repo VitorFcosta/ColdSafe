@@ -12,7 +12,7 @@ from backend.app.repositories.postgres import connect
 from backend.app.services.jobs import HEAVY_JOB_LOCK
 
 LOGGER = logging.getLogger(__name__)
-MODEL = 'llama3.2:1b-instruct-q4_K_M'
+MODEL = 'llama3.2:3b-instruct-q4_K_M'
 LOADING_LOCK = 2026103001
 
 
@@ -62,7 +62,7 @@ class OllamaClient:
     def preload(self) -> None:
         self.request('/api/generate', {
             'model': MODEL, 'prompt': '', 'stream': False, 'keep_alive': -1,
-            'options': {'num_ctx': 1024, 'num_gpu': 0, 'num_thread': 2},
+            'options': {'num_ctx': 1024, 'num_gpu': 0, 'num_thread': 4, 'num_batch': 128},
         }, timeout=180)
         if not self.ready(self.loaded()):
             raise OllamaUnavailable('Local CPU model not ready')

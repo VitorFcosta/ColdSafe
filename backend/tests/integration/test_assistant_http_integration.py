@@ -92,7 +92,7 @@ def runtime(jobs):
                         'role': 'assistant', 'content': 'Primeira parte'}}) + '\n').encode())
                     self.wfile.flush()
                 assert state.release.wait(8)
-                self.wfile.write((json.dumps({'model': MODEL, 'done': True, 'message': {
+                self.wfile.write((json.dumps({'model': MODEL, 'done': True, 'done_reason': 'stop', 'message': {
                     'role': 'assistant', 'content': ''}}) + '\n').encode())
                 self.wfile.flush()
             except (BrokenPipeError, ConnectionResetError):
@@ -200,9 +200,10 @@ def test_real_upstream_failures_have_private_sse_and_audit(runtime, failure):
 
 def test_total_timeout_cancels_real_pending_http_and_recovers(runtime, monkeypatch):
     import backend.app.services.assistant as module
-    # Keep the production 60-second boundary; shorten only this test's clock budget.
+    assert module.GENERATION_TIMEOUT == 90
+    # Keep the production boundary; shorten only this test's clock budget.
     monkeypatch.setattr(module, 'asyncio', SimpleNamespace(
-        timeout=lambda seconds: asyncio.timeout(.15 if seconds == 60 else seconds)))
+        timeout=lambda seconds: asyncio.timeout(.15 if seconds == 90 else seconds)))
     runtime.state.failure = 'timeout'
     started = time.monotonic()
     response = runtime.client.post('/api/v3/llm/ask', json={'question': 'Estado?'})

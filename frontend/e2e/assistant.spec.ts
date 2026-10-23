@@ -16,7 +16,7 @@ async function account(page: Page, state: () => string = () => 'ready') {
     success: true, data: { user_id: requestId, email: 'viewer@example.invalid', role: 'viewer' },
   } }))
   await page.route('**/api/v3/llm/status', (route) => route.fulfill({ json: envelope({
-    state: state(), model: 'llama3.2:1b-instruct-q4_K_M',
+    state: state(), model: 'llama3.2:3b-instruct-q4_K_M',
   }) }))
 }
 

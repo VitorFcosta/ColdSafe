@@ -14,4 +14,4 @@ until ollama list >/dev/null 2>&1; do
     fi
     sleep 1
 done
-ollama pull llama3.2:1b-instruct-q4_K_M
+ollama pull llama3.2:3b-instruct-q4_K_M

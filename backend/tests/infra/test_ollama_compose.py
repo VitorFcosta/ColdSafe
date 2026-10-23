@@ -16,7 +16,7 @@ def test_ollama_is_bounded_cpu_private_and_offline_with_persistent_weights():
     assert runtime['environment']['OLLAMA_NUM_PARALLEL'] == '1'
     assert runtime['environment']['OLLAMA_MAX_LOADED_MODELS'] == '1'
     assert runtime['environment']['OLLAMA_CONTEXT_LENGTH'] == '1024'
-    assert runtime['mem_limit'] == '2g' and runtime['cpus'] == 2.0
+    assert runtime['mem_limit'] == '3328m' and runtime['cpus'] == 4.0
     assert runtime['volumes'] == ['ollama-data:/models:ro']
     assert runtime['read_only'] is True
     assert not {'ports', 'devices', 'gpus', 'privileged'} & runtime.keys()
@@ -34,7 +34,7 @@ def test_only_explicit_preparation_can_download_weights_and_has_no_private_data(
     assert set(setup['environment']) == {'OLLAMA_MODELS', 'OLLAMA_HOST', 'OLLAMA_NO_CLOUD'}
     assert not {'ports', 'depends_on', 'secrets', 'env_file'} & setup.keys()
     script = (ROOT / 'infra/ollama/prepare.sh').read_text()
-    assert 'ollama pull llama3.2:1b-instruct-q4_K_M' in script
+    assert 'ollama pull llama3.2:3b-instruct-q4_K_M' in script
     assert 'trap ' in script
 
 

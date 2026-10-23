@@ -9,8 +9,10 @@ from backend.app.repositories.postgres import connect
 
 SENSORS = ('ambient_temperature', 'humidity', 'light', 'motor_temperature',
            'vibration', 'motor_current')
-ARCHITECTURE = ('Simulador→MQTT→gateway→RabbitMQ; InfluxDB guarda leituras; PostgreSQL '
-                'guarda contas, alertas e modelos; API→Vue/3D; Ollama local, sem ferramentas.')
+ARCHITECTURE = ('O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as '
+                'encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos '
+                'ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. '
+                'O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.')
 
 # shortcut: two worst devices and six sensors, expand only with a larger measured LLM context.
 DEVICES = """
@@ -68,13 +70,13 @@ def number(value):
 
 def equipment(row, now):
     reading = row['reading']
-    age = max(0, int((now - row['received_at']).total_seconds())) if reading else None
+    age = max(0, (now - row['received_at']).total_seconds()) if reading else None
     state = 'no_data' if age is None else 'fresh' if age <= 30 else 'stale'
     prediction = row['prediction'] or {}
     status = prediction.get('status', 'no_data') if state == 'fresh' else state
     sensors = (reading.get('data', {}).get('measurements', {}) if state == 'fresh' else {})
     return {
-        'device': row['device'][:64], 'reading': state, 'age_s': age,
+        'device': row['device'][:64], 'reading': state, 'age_s': int(age) if age is not None else None,
         'prediction': status, 'model': str(prediction.get('model_version') or '')[:32],
         'reason': prediction.get('reason') if state == 'fresh' else None,
         'health': number(prediction.get('health_score')) if status == 'available' else None,

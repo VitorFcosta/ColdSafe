@@ -45,7 +45,7 @@ saúde + RUL ao job de treino; a ativação explícita está na B2-24 abaixo.
 
 ## Modelo local e coordenação B2-30
 
-O coordenador `python -m backend.app.llm_worker` pré-carrega o Llama 3.2 1B Q4
+O coordenador `python -m backend.app.llm_worker` pré-carrega o Llama 3.2 3B Q4
 em CPU sob o mesmo lock dos jobs. Geração/treino confirmam a descarga antes do
 handler; falha de infraestrutura conserva a entrega para tentar novamente.
 `GET /api/v3/llm/status` é autenticado e não envia dados operacionais ao modelo.
@@ -60,6 +60,19 @@ filtrado pelo proprietário. Há cinco perguntas por minuto/conta, pergunta até
 256 bytes UTF-8, timeout/cancelamento, revalidação de sessão e auditoria no
 PostgreSQL. Não executa comandos ou ferramentas. O modelo compartilha o lock
 de memória dos jobs; cancelamento só libera o slot após descarga confirmada.
+
+O resumo canônico continua privado e somente leitura. Antes do envio, ele é
+formatado em português com unidades e estados explícitos, preservando todos os
+blocos para perguntas mistas. Essa formatação organiza fatos; a resposta continua
+sendo gerada pelo LLM em streaming.
+
+O bloco de métricas esclarece que MAE não corrige previsões nem define intervalo
+de erro individual; somá-lo/subtraí-lo da saúde/RUL atual seria interpretação errada.
+O perfil da correção B2-32 usa quatro threads, 3,25 GiB/4 CPUs, contexto 1.024
+e lote de entrada `num_batch=128` no chat e na pré-carga; seu aceite factual fica registrado no cartão.
+Geração e leitura HTTP compartilham o prazo de 90 s. Conexão continua em 3 s,
+descarga/limpeza em até 12 s, com proxy de 120 s de inatividade para receber o
+terminal SSE e limite total de 130 s no navegador.
 O cliente HTTP `httpx==0.28.1`, antes apenas de desenvolvimento, integra agora
 o runtime; nenhuma versão anterior foi atualizada. A página pertence à B2-32.
 
@@ -95,7 +108,7 @@ sessão e suas limitações estão na [B2-31](../docs/aiot/tasks/B2-31.md).
 ## Página e avaliação do Assistente B2-32
 
 `/assistant` usa o contrato B2-31 existente; não acrescenta endpoints, tabelas ou
-dependências. O navegador trata a resposta como texto não confiável e limpa a
+bibliotecas Python/Node. O navegador trata a resposta como texto não confiável e limpa a
 conversa ao trocar de sessão. Para reproduzir a integração, com Node 24,
 Chromium/dependências do lock e `POSTGRES_TEST_*` de PostgreSQL descartável:
 
@@ -114,14 +127,35 @@ Esse ensaio não certifica qualidade da linguagem.
 Para avaliar o modelo CPU real, `python -m scripts.evaluate_assistant` exige
 um banco **novo e vazio** `coldsafe_b232_<sufixo>`, variáveis runtime e
 `OLLAMA_URL=http://ollama:11434` na rede interna descartável. Reutiliza o preparo
-isolado da B2-31 e as mesmas versões de Ollama/modelo/contexto. O relatório vai
+isolado da B2-31, Ollama 0.40.3 e contexto 1.024; usa o perfil 3B/lote 128
+descrito acima. O relatório vai
 para `ASSISTANT_EVALUATION_OUTPUT` (padrão `/tmp/coldsafe-b232/evaluation.json`).
-O script compara o resumo com SQL, registra as seis perguntas e os casos sem
-dados/antigos, respeitando o limite real por conta. Telemetria, previsões, alerta
+O script compara o resumo com SQL e registra 14 casos: seis perguntas principais,
+ausência de dados, leituras antigas e seis perguntas com novos valores. Nos novos
+valores, os mínimos de saúde e RUL ficam em equipamentos diferentes. Respeita o
+limite real por conta. Telemetria, previsões, alerta
 e métricas são fixtures identificadas; a atualidade é congelada somente nelas.
 Cada resposta deve ser revisada contra sujeito, valor, unidade e limitações:
 o script **não aprova por palavras ou números presentes**. Resultados e falhas
 da sessão ficam no [cartão B2-32](../docs/aiot/tasks/B2-32.md).
+
+A correção final de 22/10 aprovou 14 perguntas e 2 extras mistos com revisão
+principal/independente, preservando as falhas anteriores. Perfil 3B/lote 128/3328m,
+SSE/payloads/SQL, hashes, testes e limites ficam na
+[evidência final](../docs/evidence/b2-32-final-2026-10-22.json).
+A validação real de linguagem percorre serviço/SSE/SQL/Ollama; o navegador
+com protocolo Ollama simulado é outro ensaio, sem misturar as alegações.
+
+A rodada integral histórica com 1B, factualmente reprovada, está em
+[`b2-32-full14-2026-10-22.json`](../docs/evidence/b2-32-full14-2026-10-22.json),
+com respostas, resumo efetivamente enviado, fatos SQL, SSE e julgamento por caso.
+O harness temporário, preservado nessa evidência, chama o coordenador existente
+antes de cada caso e conserva fragmentos se o `probe` original lançar
+`INCOMPLETE_SSE`. Não apaga guard/auditoria nem modifica o perfil. Nesta rodada,
+todos os 14 terminaram normalmente; não houve interrupção para exercitar essa
+captura parcial. `completed` na auditoria significa transporte concluído, não
+aprovação factual. A rodada chama o serviço diretamente; HTTP/JWT/Chromium
+continuam cobertos pelos ensaios separados descritos acima.
 
 ## Laboratório e consulta de datasets B2-19
 

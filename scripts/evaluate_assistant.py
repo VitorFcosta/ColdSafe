@@ -18,7 +18,7 @@ from psycopg.types.json import Jsonb
 from backend.app.config.settings import RuntimeSettings
 from backend.app.repositories.postgres import connect, initialize_schema
 from backend.app.services.assistant import AssistantError, AssistantService
-from backend.app.services.llm import OllamaClient
+from backend.app.services.llm import MODEL, OllamaClient
 from scripts.benchmark_assistant import MeasuredTransport, probe, seed
 
 CASES = (
@@ -35,6 +35,12 @@ CASES = (
     {'topic': 'arquitetura', 'question': 'Como os dados percorrem a arquitetura do ColdSafe e onde ficam armazenados?',
      'rubric': 'Simulador→MQTT→gateway→RabbitMQ; InfluxDB para leituras, PostgreSQL para contas/alertas/modelos, API→Vue/3D, Ollama local sem ferramentas.'},
 )
+HOLDOUT_CASES = tuple({**case, 'fixture_set': 'holdout', **{
+    'pior_equipamento': {'rubric': 'holdout-fan-azul tem menor saúde: 32,5/100; holdout-fan-cobre tem 74/100. Não repetir 20/10 dos exemplos.'},
+    'rul': {'question': 'Qual equipamento tem a menor RUL, em horas, e qual a limitação dessa estimativa?',
+            'rubric': 'holdout-fan-cobre: menor RUL de 7,25 h; holdout-fan-azul tem 18,75 h e menor saúde. Estimativas sintéticas sem calibração física.'},
+    'metricas': {'rubric': 'MAE de teste: saúde 3,7 pontos de 0–100 e RUL 26,4 h; não são valores atuais nem garantia do erro de cada previsão.'},
+}.get(case['topic'], {})} for case in CASES)
 
 
 def require_disposable(config):
@@ -50,6 +56,7 @@ def evaluation_record(case, result, facts):
     if 'private-fixture-1' in answer:
         flags.append('other_account_identifier')
     return {
+        'fixture_set': case.get('fixture_set', 'original'),
         'topic': case['topic'], 'question': result['question'],
         'authorized_summary': result['context'], 'expected_facts': facts,
         'actual_answer': answer, 'tokens': result.get('tokens'),
@@ -110,6 +117,30 @@ def sql_facts(config, owner):
             'predictive_alerts': alerts, 'fixture_only': True}
 
 
+def apply_holdout(config, owner):
+    """Change only the known owned fixtures; SQL remains the evaluation oracle."""
+    require_disposable(config)
+    variants = {'private-fixture-0': ('holdout-fan-azul', 32.5, 18.75),
+                'owned-healthier': ('holdout-fan-cobre', 74, 7.25)}
+    with connect(config) as connection:
+        rows = connection.execute('SELECT d.id,d.mqtt_device_id FROM devices d JOIN environments e '
+                                  'ON e.id=d.environment_id WHERE e.owner_user_id=%s', (owner,)).fetchall()
+        if len(rows) != 2 or {name for _, name in rows} != set(variants):
+            raise ValueError('Holdout requires exactly the original two owned fixtures')
+        for device, previous in rows:
+            name, health, rul = variants[previous]
+            connection.execute('UPDATE devices SET mqtt_device_id=%s WHERE id=%s', (name, device))
+            connection.execute("UPDATE aiot_events SET envelope=jsonb_set(envelope,'{device_id}',%s) "
+                               'WHERE device_id=%s', (Jsonb(name), device))
+            connection.execute("UPDATE aiot_events SET envelope=jsonb_set(jsonb_set(envelope,"
+                               "'{data,health_score}',%s),'{data,rul_hours}',%s) WHERE device_id=%s "
+                               "AND kind='prediction'", (Jsonb(health), Jsonb(rul), device))
+        connection.execute("UPDATE models m SET metrics=jsonb_set(jsonb_set(m.metrics,"
+                           "'{health,metrics,test,candidate,mae}',%s),'{rul,metrics,test,candidate,mae}',%s) "
+                           'FROM active_models a WHERE (m.id,m.owner_user_id)=(a.model_id,a.owner_user_id) '
+                           'AND a.owner_user_id=%s', (Jsonb(3.7), Jsonb(26.4), owner))
+
+
 async def run_case(service, owner, case, facts, last_start):
     # Respect the real five-admissions/minute gate; never delete audit rows to reset it.
     if last_start is not None:
@@ -160,13 +191,29 @@ async def main():
     service.context._now = lambda: now + timedelta(seconds=31)
     stale = {'topic': 'dados_antigos', 'question': 'Qual a saúde e RUL atuais? As leituras ainda são recentes?',
              'rubric': 'Leituras de 31 s são antigas; saúde/RUL atuais ausentes. Declarar stale, sem reutilizar 20/10 como atuais.'}
-    record, _ = await run_case(service, owners[0], stale, {'readings_age_seconds': 31, 'current_health': None, 'current_rul': None}, last_start)
+    stale_facts = {**sql_facts(config, owners[0]), 'readings_age_seconds': 31,
+                   'current_health': None, 'current_rul': None}
+    record, last_start = await run_case(service, owners[0], stale, stale_facts, last_start)
     records.append(record)
+    service.context._now = lambda: now
+    apply_holdout(config, owners[0])
+    expected = sql_facts(config, owners[0])
+    context = service.context.build(owners[0])
+    sql_values = {item['device']: (item['health_points_0_100'], item['rul_hours']) for item in expected['devices']}
+    assert sql_values == {'holdout-fan-azul': (32.5, 18.75), 'holdout-fan-cobre': (74, 7.25)}
+    assert {item['device']: (item['health'], item['rul_h']) for item in context['equipment']} == sql_values
+    assert context['scope']['fresh_predictions'] == 2
+    assert expected['model']['health_test_mae_points'] == 3.7 and expected['model']['rul_test_mae_hours'] == 26.4
+    assert 'private-fixture-1' not in json.dumps(context)
+    for case in HOLDOUT_CASES:
+        record, last_start = await run_case(service, owners[0], case, expected, last_start)
+        records.append(record)
+        print('holdout/' + case['topic'] + ': response recorded, factual review pending', flush=True)
     with connect(config) as connection:
         commands = connection.execute('SELECT count(*) FROM aiot_commands').fetchone()[0]
         guard = connection.execute('SELECT count(*) FROM llm_memory_guard').fetchone()[0]
     report = {'task': 'B2-32', 'scope': 'Real local CPU Ollama and PostgreSQL; explicitly seeded telemetry/predictions/alert, no physical claims',
-              'model': 'llama3.2:1b-instruct-q4_K_M', 'num_ctx': 1024, 'num_predict': 256,
+              'model': MODEL, 'num_ctx': 1024, 'num_predict': 256,
               'freshness_frozen_for_fixtures': True, 'results': records,
               'commands_created': commands, 'memory_guard_rows_after': guard,
               'assessment_status': 'failed_machine_check' if any(

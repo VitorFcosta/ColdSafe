@@ -11,7 +11,8 @@ from backend.app.services.llm import MODEL, OllamaUnavailable
 
 def frame(text='', *, done=False, **extra):
     return json.dumps({'model': MODEL, 'message': {'role': 'assistant', 'content': text},
-                       'done': done, **extra}, ensure_ascii=False).encode() + b'\n'
+                       'done': done, **({'done_reason': 'stop'} if done is True else {}),
+                       **extra}, ensure_ascii=False).encode() + b'\n'
 
 
 class Chunks(httpx.AsyncByteStream):
@@ -41,7 +42,7 @@ def test_cpu_prefill_can_use_the_existing_total_generation_deadline():
     async def run():
         async with AssistantTransport('http://ollama:11434')._client() as client:
             assert client.timeout.connect == 3
-            assert client.timeout.read == 60
+            assert client.timeout.read == 90
             assert client.trust_env is False and client.follow_redirects is False
     asyncio.run(run())
 
@@ -59,7 +60,7 @@ def test_stream_is_incremental_and_uses_fixed_private_cpu_payload():
         assert requests[0].url.path == '/api/chat'
         assert payload['model'] == MODEL
         assert payload['stream'] is True
-        assert payload['options'] == {'num_ctx': 1024, 'num_gpu': 0, 'num_thread': 2,
+        assert payload['options'] == {'num_ctx': 1024, 'num_gpu': 0, 'num_thread': 4, 'num_batch': 128,
                                       'num_predict': 256, 'temperature': 0}
         assert 'tools' not in payload and len(payload['messages']) == 2
         assert payload['messages'][0]['role'] == 'system'
@@ -75,6 +76,25 @@ def test_parser_handles_split_utf8_and_final_line_without_newline():
         split = raw.index('ç'.encode()) + 1
         client, _ = client_for(Chunks([raw[:split], raw[split:]]))
         assert [s async for s in client.stream('estado?', {})] == ['temperatura ç']
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize('terminal_fields', [
+    {}, {'done_reason': 'length'}, {'done_reason': 'load'}, {'done_reason': 'unload'},
+    {'done_reason': 'unexpected'}, {'done_reason': ''}, {'done_reason': None}, {'done_reason': 1},
+])
+def test_only_explicit_stop_completes_stream_and_other_terminals_preserve_partial_text(terminal_fields):
+    async def run():
+        terminal = {'model': MODEL, 'done': True, 'message': {'role': 'assistant', 'content': ' final parcial'},
+                    **terminal_fields}
+        body = Chunks([frame('Primeira parte'), json.dumps(terminal).encode() + b'\n', frame('Não ler')])
+        client, _ = client_for(body)
+        received = []
+        with pytest.raises(OllamaUnavailable, match='Local model service unavailable'):
+            async for text in client.stream('estado?', {}):
+                received.append(text)
+        assert received == ['Primeira parte', ' final parcial']
+        assert body.closed and body.reads == 2
     asyncio.run(run())
 
 

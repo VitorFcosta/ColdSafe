@@ -81,7 +81,7 @@ def test_assistant_real_http_streaming_text_safety_cancel_and_private_accounts(j
             assert self.path == '/api/chat'
             summary = json.loads(payload['messages'][1]['content'])['resumo']
             state.summaries.append(summary)
-            device = summary['equipment'][0]['device']
+            device = next(name for name in ('browser-private-a', 'browser-private-b') if name in summary)
             state.entered.set()
             self.send_response(200)
             self.send_header('Content-Type', 'application/x-ndjson')
@@ -91,7 +91,8 @@ def test_assistant_real_http_streaming_text_safety_cancel_and_private_accounts(j
             try:
                 text = f'Contexto: {device}. <script>window.__assistantExecuted=1</script> <img src="https://remote.invalid/pixel">'
                 for text, completed in ((text, False), (' Concluído.', True)):
-                    self.wfile.write((json.dumps({'model': MODEL, 'done': completed, 'message': {
+                    self.wfile.write((json.dumps({'model': MODEL, 'done': completed,
+                        **({'done_reason': 'stop'} if completed else {}), 'message': {
                         'role': 'assistant', 'content': text}}) + '\n').encode())
                     self.wfile.flush()
                     if not completed:
@@ -165,8 +166,8 @@ def test_assistant_real_http_streaming_text_safety_cancel_and_private_accounts(j
                 assert connection.execute('SELECT count(*) FROM llm_memory_guard').fetchone() == (0,)
             assert len(state.summaries) == 3
             for summary, suffix in zip(state.summaries, ('a', 'a', 'b'), strict=True):
-                assert summary['equipment'][0]['device'] == f'browser-private-{suffix}'
-                assert f'browser-private-{"b" if suffix == "a" else "a"}' not in json.dumps(summary)
+                assert f'browser-private-{suffix}' in summary
+                assert f'browser-private-{"b" if suffix == "a" else "a"}' not in summary
             evidence = json.loads((output / 'browser-wire.json').read_text())
             evidence.update(completed_audits=2, cancelled_audits=1, commands_created=0,
                             memory_guard_rows=0, owner_contexts_checked=3)

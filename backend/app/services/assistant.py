@@ -12,7 +12,7 @@ from psycopg.types.json import Jsonb
 
 from backend.app.repositories.postgres import connect
 from backend.app.services.assistant_context import AssistantContext
-from backend.app.services.assistant_transport import AssistantTransport
+from backend.app.services.assistant_transport import AssistantTransport, GENERATION_TIMEOUT
 from backend.app.services.jobs import HEAVY_JOB_LOCK
 from backend.app.services.llm import MODEL, OllamaClient, OllamaUnavailable
 
@@ -107,7 +107,7 @@ class AssistantService:
     async def events(self, lease, authorized):
         outcome, completed = 'cancelled', False
         try:
-            async with asyncio.timeout(60):
+            async with asyncio.timeout(GENERATION_TIMEOUT):
                 async with aclosing(self.transport.stream(lease.question, lease.context)) as output:
                     async for delta in output:
                         await anyio.to_thread.run_sync(lease.check)

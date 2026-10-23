@@ -14,6 +14,8 @@ sempre uma ação do usuário. Cancelamento, erro e interrupção conservam o te
 parcial identificado como incompleto. Há até oito perguntas em memória na página;
 navegação, saída ou troca de sessão apagam a conversa. Perguntas anteriores não
 são enviadas ao modelo; a auditoria do backend permanece persistente.
+O cliente limita a chamada completa a 130 s; a geração no backend tem 90 s e
+limpeza de até 12 s. O proxy admite 120 s de inatividade para receber o terminal.
 
 Reutiliza Vue, sessão e tokens existentes, sem dependências novas. Requer o
 [Ollama opt-in](../docs/configuration.md#ollama-local-e-memória-b2-30) e a API B2-31;

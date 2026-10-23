@@ -126,11 +126,33 @@ docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml -f comp
 docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml -f compose.inference.yaml -f compose.ollama.yaml up -d --build ollama llm backend generation training frontend
 ```
 
-O modelo é `llama3.2:1b-instruct-q4_K_M`, variante explícita Llama 3.2 **1B Q4**
-indicada pelo ensaio B2-03. A tag curta `llama3.2:1b` usa Q8; não foi usada como
-alias silencioso. Ollama `0.40.3`, CPU, contexto de 1.024 tokens, duas threads,
-uma requisição e um modelo por vez; limite de 2 GiB/2 CPUs. Esses limites não
-certificam a capacidade da pilha completa, reservada à B2-33.
+O modelo configurado na correção B2-32 é `llama3.2:3b-instruct-q4_K_M`, variante
+explícita Llama 3.2 **3B Q4**. O perfil 1B anterior reprovou a avaliação factual;
+as comparações e o aceite do perfil novo ficam no
+[cartão B2-32](aiot/tasks/B2-32.md). Ollama `0.40.3`, CPU, contexto de 1.024
+tokens, quatro threads, uma requisição e um modelo por vez; limite de
+**3,25 GiB/4 CPUs** (`3328m`). A margem de 256 MiB sobre 3 GiB foi introduzida
+na correção após eventos de teto de memória e um timeout na rodada repetida.
+Os resultados medidos ficam no cartão; isso não prova causalidade isolada.
+Esses limites não certificam a capacidade da pilha completa,
+reservada à B2-33. Os registros antigos B2-03/B2-30 descrevem seus perfis originais.
+Pré-carga e chat fixam `num_batch=128` em vez do padrão 512 para medir menor
+pressão no processamento da entrada; benchmark usa o mesmo lote. O parâmetro
+é de carregamento do executor, conforme
+[o código oficial 0.40.3](https://github.com/ollama/ollama/blob/v0.40.3/api/types.go)
+e [seu encaminhamento ao executor](https://github.com/ollama/ollama/blob/v0.40.3/llm/llama_server.go).
+
+O perfil 3B tem prazo total de geração de 90 s e leitura HTTP limitada pelo mesmo
+prazo; conexão continua em 3 s e descarga/limpeza em até 12 s. O proxy admite
+120 s de inatividade para receber o terminal após a limpeza; o navegador admite
+130 s no total, incluindo rede e pré-validação. O limite anterior
+de 60 s interrompeu uma resposta com dois equipamentos no ensaio da correção.
+
+Os pesos 3B são uma dependência de infraestrutura diferente dos pesos 1B:
+repita o preparo explícito acima antes de subir este perfil. O runtime não faz
+download. O preparo acrescenta os pesos novos ao volume; não apague volumes ou
+modelos pessoais para atualizar. Modelo e quantização:
+[biblioteca oficial](https://ollama.com/library/llama3.2:3b-instruct-q4_K_M).
 
 `python -m backend.app.llm_worker` tenta pré-carregar com prompt vazio sob o
 mesmo lock PostgreSQL que serializa geração/treino. Um marcador durável de

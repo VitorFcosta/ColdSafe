@@ -60,6 +60,7 @@ def test_frontend_serves_static_build_non_root_with_no_source_mounts():
 
 def test_proxy_handles_api_docs_health_and_websocket_without_logging_credentials():
     config = (ROOT / "frontend/nginx.conf").read_text()
+    assert 'proxy_read_timeout 120s;' in config
     for location in ("api/", "health/", "docs", "redoc", "openapi\\.json"):
         assert location in config
     assert "proxy_pass http://api_backend;" in config
