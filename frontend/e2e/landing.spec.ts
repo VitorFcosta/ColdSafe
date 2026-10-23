@@ -120,7 +120,7 @@ test('ampliação de 200% preserva conteúdo e controles nas duas rotas', async 
     await page.goto(route)
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await page.evaluate(() => { document.documentElement.style.zoom = '2' })
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440)
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440)
     const control = route === '/' ? page.getByRole('link', { name: 'Ver demonstração', exact: true }) : page.getByRole('button', { name: '24h', exact: true })
     await control.focus()
     await expect(control).toBeFocused()

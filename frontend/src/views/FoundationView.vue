@@ -419,7 +419,7 @@ function formatDateTime(value: string | undefined) {
 .dashboard { padding: var(--cs-space-48); }
 .dashboard-shell { max-width: 1200px; margin-inline: auto; }
 .dashboard-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--cs-space-24); padding-bottom: var(--cs-space-32); border-bottom: 1px solid var(--cs-color-line); }
-.nav-actions { display: flex; flex-wrap: wrap; gap: var(--cs-space-16); font-size: var(--cs-type-14); }
+.nav-actions { display: flex; flex-wrap: wrap; min-width: 0; max-width: 100%; gap: var(--cs-space-16); font-size: var(--cs-type-14); }
 .nav-actions a, .sign-out { display: inline-flex; align-items: center; min-height: 44px; }
 .nav-actions a:hover, .sign-out:hover { text-decoration: underline; }
 .sign-out { color: var(--cs-color-accent); text-decoration: underline; cursor: pointer; }
@@ -459,8 +459,8 @@ h1 { margin-top: var(--cs-space-8); font-size: var(--cs-type-32); font-weight: 6
 @media (max-width: 767px) {
   .dashboard { padding: var(--cs-space-24); }
   .dashboard-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--cs-space-8); padding-bottom: var(--cs-space-16); }
-  .nav-actions { display: grid; grid-column: 1 / -1; grid-row: 2; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cs-space-8); }
-  .nav-actions a { min-width: 0; overflow-wrap: anywhere; }
+  .nav-actions { grid-column: 1 / -1; grid-row: 2; flex-wrap: nowrap; gap: var(--cs-space-16); overflow-x: auto; }
+  .nav-actions a { flex-shrink: 0; }
   .dashboard-nav .eyebrow { max-width: 132px; text-align: right; font-size: 10px; }
   .dashboard-heading { margin-block: var(--cs-space-16); }
   .dashboard-heading p { overflow-wrap: anywhere; }

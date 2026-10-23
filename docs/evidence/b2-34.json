@@ -1,0 +1,1509 @@
+{
+  "task": "B2-34",
+  "date": "2026-10-23",
+  "timezone": "America/Sao_Paulo",
+  "status": "passed_with_documented_limits",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base": "c6fa42d0314409610ab1dd4db14e4bfc9b55040f",
+    "initial_worktree_clean": true,
+    "committed": false,
+    "pushed": false,
+    "code_config_test_sha256": {
+      "backend/tests/infra/test_stack_integration.py": "ad308cc2d69f23fa8dbb6c1ef4dee59d2ff9e91cc0290ac224435895cc78a83a",
+      "frontend/e2e/dashboard.spec.ts": "968cbb2bc455cecdff6daac7e22b64acb1863c30dcad2d0949938455ece006a2",
+      "frontend/e2e/landing.spec.ts": "b6534fbb7b7402b6f38d4b262f3873d2dcb04e9b2d103da3e1412ccdf5e2b73b",
+      "frontend/package-lock.json": "a5cfce2bbc25b24ab40c65a4cfe3aa2e05b4d1d3815201e67418ea19d56afc15",
+      "frontend/package.json": "0b0934010d1713acb078caaed9a27aa88dc6adb3e1cf755cc4d9884f73197f54",
+      "frontend/src/views/FoundationView.vue": "196b1920cedcd0879f81f95dd15f78a7b06081c75b483431d42483b2d8b645d8"
+    }
+  },
+  "dependencies": {
+    "added": [],
+    "removed": [],
+    "updates": {
+      "@vitest/coverage-v8": {
+        "before": "4.1.11",
+        "after": "4.1.12"
+      },
+      "@vitest/expect": {
+        "before": "4.1.11",
+        "after": "4.1.12"
+      },
+      "@vitest/mocker": {
+        "before": "4.1.11",
+        "after": "4.1.12"
+      },
+      "@vitest/pretty-format": {
+        "before": "4.1.11",
+        "after": "4.1.12"
+      },
+      "@vitest/runner": {
+        "before": "4.1.11",
+        "after": "4.1.12"
+      },
+      "@vitest/snapshot": {
+        "before": "4.1.11",
+        "after": "4.1.12"
+      },
+      "@vitest/spy": {
+        "before": "4.1.11",
+        "after": "4.1.12"
+      },
+      "@vitest/utils": {
+        "before": "4.1.11",
+        "after": "4.1.12"
+      },
+      "chai": {
+        "before": "6.2.2",
+        "after": "6.3.0"
+      },
+      "std-env": {
+        "before": "4.2.0",
+        "after": "4.3.0"
+      },
+      "tinyrainbow": {
+        "before": "3.1.1",
+        "after": "3.2.0"
+      },
+      "vite": {
+        "before": "8.2.2",
+        "after": "8.2.4"
+      },
+      "vitest": {
+        "before": "4.1.11",
+        "after": "4.1.12"
+      }
+    },
+    "tools_only": [
+      "npm 11 via npx, no global installation",
+      "pip-audit via uvx with existing Python 3.13.15"
+    ]
+  },
+  "tests": {
+    "backend_unit": {
+      "passed": 1626,
+      "integration_deselected": 249,
+      "duration_seconds": 195.07,
+      "coverage": {
+        "totals": {
+          "covered_lines": 4419,
+          "num_statements": 5334,
+          "percent_covered": 80.34811068134483,
+          "percent_covered_display": "80",
+          "missing_lines": 915,
+          "excluded_lines": 35,
+          "percent_statements_covered": 82.8458942632171,
+          "percent_statements_covered_display": "83",
+          "num_branches": 1388,
+          "num_partial_branches": 118,
+          "covered_branches": 982,
+          "missing_branches": 406,
+          "percent_branches_covered": 70.7492795389049,
+          "percent_branches_covered_display": "71"
+        },
+        "areas_lines_plus_branches_percent": {
+          "amqp": 95.8132,
+          "api": 85.4478,
+          "config": 100.0,
+          "domain": 97.7528,
+          "errors.py": 100.0,
+          "inference_worker.py": 86.9565,
+          "job_worker.py": 86.6667,
+          "llm_worker.py": 80.0,
+          "main.py": 0.0,
+          "model_worker.py": 83.7838,
+          "mqtt": 90.3846,
+          "repositories": 83.0097,
+          "runtime.py": 86.3388,
+          "security": 100.0,
+          "services": 72.5
+        },
+        "report_sha256": "4d49f66f5bb2c436e44a6e75fc58524752e36875bc7ad0dd639d4bfdc64de328"
+      }
+    },
+    "backend_integration": {
+      "status": "passed",
+      "version": "c6fa42d0314409610ab1dd4db14e4bfc9b55040f",
+      "tests": 184,
+      "failures": 0,
+      "skipped": 0,
+      "duration_seconds": 328.83,
+      "modules": {
+        "backend.tests.integration.test_postgres_schema_integration": 1,
+        "backend.tests.integration.test_aiot_migrations_integration": 25,
+        "backend.tests.integration.test_inference_migrations": 2,
+        "backend.tests.integration.test_catalog_integration": 2,
+        "backend.tests.integration.test_authenticated_monitoring_integration": 1,
+        "backend.tests.integration.test_aiot_dashboard_integration": 2,
+        "backend.tests.integration.test_auth_security_integration": 6,
+        "backend.tests.integration.test_role_permissions_integration": 5,
+        "backend.tests.integration.test_ws_security_integration": 9,
+        "backend.tests.integration.test_jobs_integration": 17,
+        "backend.tests.integration.test_models_integration": 11,
+        "backend.tests.integration.test_inference_integration": 8,
+        "backend.tests.integration.test_predictive_alerts_integration": 9,
+        "backend.tests.integration.test_llm_coordination_integration": 18,
+        "backend.tests.integration.test_assistant_context_integration": 9,
+        "backend.tests.integration.test_assistant_integration": 16,
+        "backend.tests.integration.test_assistant_http_integration": 6,
+        "backend.tests.infra.test_rabbitmq_integration": 34,
+        "backend.tests.integration.test_assistant_browser": 1,
+        "backend.tests.integration.test_insights_browser": 1,
+        "backend.tests.integration.test_inference_browser": 1
+      },
+      "pytest_warnings": [
+        "Starlette httpx TestClient deprecation",
+        "AnyIO BlockingPortal alias deprecation"
+      ],
+      "code_changes": [],
+      "new_dependencies": [],
+      "coverage": {
+        "covered_lines": 3475,
+        "num_statements": 5334,
+        "percent_covered": 61.57393632847367,
+        "percent_covered_display": "62",
+        "missing_lines": 1859,
+        "excluded_lines": 35,
+        "percent_statements_covered": 65.14810648668916,
+        "percent_statements_covered_display": "65",
+        "num_branches": 1388,
+        "num_partial_branches": 262,
+        "covered_branches": 664,
+        "missing_branches": 724,
+        "percent_branches_covered": 47.83861671469741,
+        "percent_branches_covered_display": "48"
+      },
+      "coverage_file": "/tmp/coldsafe-b234-integration.coverage",
+      "coverage_json": "/tmp/coldsafe-b234-integration-coverage.json",
+      "infrastructure": "Dedicated ephemeral PostgreSQL17.11; per-module RabbitMQ4.3.6 fixtures; only localhost dynamic ports; random temporary credentials not retained",
+      "cleanup": {
+        "postgres_removed": true,
+        "rabbitmq_projects": "all fixture Compose projects removed with volumes",
+        "no_own_resources_left": true
+      },
+      "browser_tests": {
+        "assistant": {
+          "count": 1,
+          "real": "PostgreSQL,JWT,HTTP,SSE,Chromium",
+          "double": "Ollama protocol upstream; no language model used",
+          "assertions": [
+            "delta precedes terminal",
+            "HTML and remote images plain text; zero external requests",
+            "cancel confirmed unload",
+            "two JWT owners isolated",
+            "session switch wipes prior history",
+            "mobile320 no overflow",
+            "2 completed audits;1 cancelled;0 commands;0 memory guards"
+          ],
+          "evidence": "/tmp/coldsafe-b234-integration-qa/final/assistant/browser-wire.json"
+        },
+        "insights": {
+          "count": 1,
+          "real": "PostgreSQL,RabbitMQ,HTTP,Chromium",
+          "fixture": "telemetry,receipt,prediction boundary messages; no InfluxDB or actual inference",
+          "assertions": [
+            "three critical to open;ten recovery to close",
+            "oscillation,missing/stale gap,duplicate deliveries,refresh and service recreation",
+            "private owner denied",
+            "one opened/one closed audited;zero thermal buzzer requests",
+            "mobile320 no overflow"
+          ],
+          "evidence": "/tmp/coldsafe-b234-integration-qa/final/insights/integration.json"
+        },
+        "inference": {
+          "count": 1,
+          "real": "PostgreSQL,RabbitMQ,HTTP,WebSocket,Chromium,model predictions",
+          "fixture": "720-row trained models use2second window;simulated clock-current1Hz telemetry and writer persistence receipts;no InfluxDB",
+          "assertions": [
+            "hot swap A to B without worker/browser restart",
+            "broken candidate retains B",
+            "two account privacy",
+            "durable publication no pending outbox"
+          ],
+          "evidence": "/tmp/coldsafe-b234-integration-qa/final/inference/integration.json"
+        }
+      },
+      "limitations": [
+        "181 SQL/broker/integration tests plus3 browser harnesses; no physical calibration or hardware validation",
+        "Assistant upstream is a protocol double; does not establish LLM response quality or runtime SLA",
+        "Insights predictions are contract fixtures; inference browser uses720-row fixture and2s window; production900/3600s defaults unchanged",
+        "No personal environment or credentials used; no mass generation or heavy training",
+        "Partial earlier88pass run and secondary9pass interrupted run overlap completed184; never sum them"
+      ],
+      "command": "/tmp/coldsafe-precommit-venv/bin/python -m pytest -q --cov=backend/app --cov-branch --cov-fail-under=0 --cov-report=json:/tmp/coldsafe-b234-integration-coverage.json -ra --junitxml=/tmp/coldsafe-b234-integration-qa/final/integration.xml backend/tests/integration/test_postgres_schema_integration.py backend/tests/integration/test_aiot_migrations_integration.py backend/tests/integration/test_inference_migrations.py backend/tests/integration/test_catalog_integration.py backend/tests/integration/test_authenticated_monitoring_integration.py backend/tests/integration/test_aiot_dashboard_integration.py backend/tests/integration/test_auth_security_integration.py backend/tests/integration/test_role_permissions_integration.py backend/tests/integration/test_ws_security_integration.py backend/tests/integration/test_jobs_integration.py backend/tests/integration/test_models_integration.py backend/tests/integration/test_inference_integration.py backend/tests/integration/test_predictive_alerts_integration.py backend/tests/integration/test_llm_coordination_integration.py backend/tests/integration/test_assistant_context_integration.py backend/tests/integration/test_assistant_integration.py backend/tests/integration/test_assistant_http_integration.py backend/tests/infra/test_rabbitmq_integration.py backend/tests/integration/test_assistant_browser.py backend/tests/integration/test_insights_browser.py backend/tests/integration/test_inference_browser.py",
+      "logs": "/tmp/coldsafe-b234-integration-qa/final/integration.log",
+      "junit": "/tmp/coldsafe-b234-integration-qa/final/integration.xml",
+      "hashes": {
+        "/tmp/coldsafe-b234-integration-qa/final/integration.log": "c92ca3c51e487858202fbe5678fe1f29298e32fa13783e4b272dc2d900c65eaa",
+        "/tmp/coldsafe-b234-integration-qa/final/integration.xml": "f5da133487ec1241ae4ea52b3e906a271f60cfde76d8ab5000dc0a5c2697725b",
+        "/tmp/coldsafe-b234-integration.coverage": "e13aab13eb47027ecbcbe717f35948eb957fd9d91a127b76013e575d0724d9e1",
+        "/tmp/coldsafe-b234-integration-coverage.json": "41aa0d4cca122743298b783f24bde9347d6833d8405870bf2c907f52efd416f7"
+      }
+    },
+    "backend_combined_coverage": {
+      "totals": {
+        "covered_lines": 5037,
+        "num_statements": 5334,
+        "percent_covered": 92.60636715263314,
+        "percent_covered_display": "93",
+        "missing_lines": 297,
+        "excluded_lines": 35,
+        "percent_statements_covered": 94.43194600674916,
+        "percent_statements_covered_display": "94",
+        "num_branches": 1388,
+        "num_partial_branches": 138,
+        "covered_branches": 1188,
+        "missing_branches": 200,
+        "percent_branches_covered": 85.5907780979827,
+        "percent_branches_covered_display": "86"
+      },
+      "areas_lines_plus_branches_percent": {
+        "amqp": 98.3897,
+        "api": 95.1493,
+        "config": 100.0,
+        "domain": 97.7528,
+        "errors.py": 100.0,
+        "inference_worker.py": 86.9565,
+        "job_worker.py": 86.6667,
+        "llm_worker.py": 80.0,
+        "main.py": 0.0,
+        "model_worker.py": 83.7838,
+        "mqtt": 90.3846,
+        "repositories": 96.6019,
+        "runtime.py": 86.3388,
+        "security": 100.0,
+        "services": 90.5556
+      },
+      "report_sha256": "2f59ebf38b1f5c12b7ce96392ec36045bffc980399656c7fa81ae99e59dbb42e"
+    },
+    "edge_unit": {
+      "passed": 265,
+      "duration_seconds": 10.25,
+      "overlaps_backend_unit": true,
+      "coverage": {
+        "totals": {
+          "covered_lines": 756,
+          "num_statements": 793,
+          "percent_covered": 93.70698131760079,
+          "percent_covered_display": "94",
+          "missing_lines": 37,
+          "excluded_lines": 0,
+          "percent_statements_covered": 95.33417402269862,
+          "percent_statements_covered_display": "95",
+          "num_branches": 224,
+          "num_partial_branches": 23,
+          "covered_branches": 197,
+          "missing_branches": 27,
+          "percent_branches_covered": 87.94642857142857,
+          "percent_branches_covered_display": "88"
+        },
+        "areas_lines_plus_branches_percent": {
+          "gateway": 93.8725,
+          "simulator": 91.4943,
+          "writer": 98.8506
+        },
+        "report_sha256": "1585d08d2bcf19039fb7608c594f0dc3c82d540b19dd0ca629dd91a7a6a5f4a4"
+      }
+    },
+    "frontend_unit": {
+      "passed": 476,
+      "files": 41,
+      "duration_seconds": 53.41,
+      "coverage_scope": [
+        "src/features/**/*.{ts,vue}",
+        "src/views/**/*.vue"
+      ],
+      "statements_percent": 92.84,
+      "branches_percent": 89.43,
+      "functions_percent": 90.48,
+      "lines_percent": 96.11,
+      "statements": [
+        2894,
+        3117
+      ],
+      "branches": [
+        3402,
+        3804
+      ],
+      "functions": [
+        647,
+        715
+      ],
+      "lines": [
+        2203,
+        2292
+      ]
+    },
+    "frontend_e2e": {
+      "standard_baseline": {
+        "passed": 37,
+        "skipped": 25,
+        "failed": 3
+      },
+      "standard_final": {
+        "passed": 41,
+        "skipped": 25,
+        "failed": 0
+      },
+      "aiot_concurrent": {
+        "passed": 7,
+        "failed": 1,
+        "failure": "10s initial-data timeout in reduced-motion scenario"
+      },
+      "aiot_isolated_retry": {
+        "passed": 1,
+        "failed": 0,
+        "duration_seconds": 4.9,
+        "product_or_timeout_changed": false
+      },
+      "http_ws": "declared fixtures; not real brokers or database"
+    },
+    "build": {
+      "typecheck": "passed",
+      "aiot_build": "passed",
+      "vite": "8.2.4",
+      "warning": "DigitalTwin chunk 552.28 kB"
+    },
+    "integration_aborted": {
+      "passed": 88,
+      "failed": 0,
+      "duration_seconds": 442.81,
+      "complete": false,
+      "not_added_to_final_counts": true
+    },
+    "coverage_aborted": {
+      "passed": 9,
+      "complete": false,
+      "not_added_to_final_counts": true
+    },
+    "full_stack_r1": {
+      "started_at": "2026-10-23T17:38:54.116642+00:00",
+      "ended_at": "2026-10-23T17:53:23.264865+00:00",
+      "project": "coldsafe-b233-cd5a42ee",
+      "git": "c6fa42d0314409610ab1dd4db14e4bfc9b55040f",
+      "question": "Quantos equipamentos tenho?",
+      "phases": [
+        {
+          "name": "clean_bootstrap_idempotent",
+          "at": "2026-10-23T17:39:43.627468+00:00"
+        },
+        {
+          "name": "weights_prepared",
+          "at": "2026-10-23T17:41:47.960567+00:00"
+        },
+        {
+          "name": "all_services_healthy",
+          "at": "2026-10-23T17:47:54.728207+00:00",
+          "count": 14
+        },
+        {
+          "name": "live_telemetry_led",
+          "at": "2026-10-23T17:48:12.957214+00:00",
+          "event_id": "9a1a0195-01f0-40f8-bbc5-3bfa1d984cfb",
+          "led_seconds": 11.87
+        }
+      ],
+      "result": "failed",
+      "cleaned_up": true,
+      "failure": "Final stack did not reach the expected state before timeout",
+      "assistant_requests": [],
+      "resources": {
+        "samples": 881,
+        "peak_mib_by_service": {
+          "influxdb": 173.508,
+          "mosquitto": 6.949,
+          "postgres": 92.105,
+          "rabbitmq": 297.723,
+          "ollama": 2583.551,
+          "simulator": 30.961,
+          "backend": 189.387,
+          "gateway": 58.723,
+          "generation": 79.125,
+          "models": 189.91,
+          "training": 79.102,
+          "writer": 90.387,
+          "frontend": 12.379,
+          "llm": 72.23
+        },
+        "oom_killed": false,
+        "oom_event": false,
+        "restarts_max": 0,
+        "monitor_errors": []
+      },
+      "report_sha256": "46729bc7a944e5facece526967ea528c990ea4e6e7fae971c94b0daf219a7b7b"
+    },
+    "full_stack_r2": {
+      "started_at": "2026-10-23T17:57:15.025454+00:00",
+      "ended_at": "2026-10-23T18:04:58.091958+00:00",
+      "project": "coldsafe-b233-9bc13fe7",
+      "git": "c6fa42d0314409610ab1dd4db14e4bfc9b55040f",
+      "question": "Quantos equipamentos tenho?",
+      "phases": [
+        {
+          "name": "clean_bootstrap_idempotent",
+          "at": "2026-10-23T17:57:31.207785+00:00"
+        },
+        {
+          "name": "weights_prepared",
+          "at": "2026-10-23T18:01:11.469406+00:00"
+        },
+        {
+          "name": "all_services_healthy",
+          "at": "2026-10-23T18:03:09.907353+00:00",
+          "count": 14
+        },
+        {
+          "name": "live_telemetry_led",
+          "at": "2026-10-23T18:03:13.455084+00:00",
+          "event_id": "f2797905-d076-45fa-baad-2abf1151a0de",
+          "led_seconds": 1.109
+        }
+      ],
+      "result": "failed",
+      "cleaned_up": true,
+      "failure": "{'first_token_seconds': None, 'total_seconds': 92.49, 'delta_count': 0, 'errors': [{'code': 'LLM_TIMEOUT'}], ...}\nassert ('done' in ['error'])",
+      "assistant_requests": [
+        {
+          "first_token_seconds": null,
+          "total_seconds": 92.49,
+          "delta_count": 0,
+          "errors": [
+            {
+              "code": "LLM_TIMEOUT"
+            }
+          ],
+          "completed": false,
+          "question": "Quantos equipamentos tenho?",
+          "text": ""
+        }
+      ],
+      "resources": {
+        "samples": 272,
+        "peak_mib_by_service": {
+          "influxdb": 159.93,
+          "mosquitto": 7.738,
+          "postgres": 92.402,
+          "rabbitmq": 218.555,
+          "ollama": 2594.691,
+          "backend": 184.148,
+          "gateway": 51.145,
+          "generation": 83.09,
+          "models": 196.934,
+          "simulator": 28.441,
+          "training": 82.605,
+          "writer": 84.605,
+          "frontend": 10.199,
+          "llm": 71.77
+        },
+        "oom_killed": false,
+        "oom_event": false,
+        "restarts_max": 0,
+        "monitor_errors": []
+      },
+      "report_sha256": "128fc2f56a1462584ca0a48d89e0139d99000dc9ec5beda999cf89ba9de36395"
+    },
+    "full_stack_r3": {
+      "started_at": "2026-10-23T18:08:38.286807+00:00",
+      "ended_at": "2026-10-23T18:18:07.916326+00:00",
+      "project": "coldsafe-b233-86ab48c9",
+      "git": "c6fa42d0314409610ab1dd4db14e4bfc9b55040f",
+      "question": "Quantos equipamentos tenho?",
+      "phases": [
+        {
+          "name": "clean_bootstrap_idempotent",
+          "at": "2026-10-23T18:09:04.636499+00:00"
+        },
+        {
+          "name": "weights_prepared",
+          "at": "2026-10-23T18:12:59.686672+00:00"
+        },
+        {
+          "name": "all_services_healthy",
+          "at": "2026-10-23T18:16:07.694391+00:00",
+          "count": 14
+        },
+        {
+          "name": "live_telemetry_led",
+          "at": "2026-10-23T18:16:12.112456+00:00",
+          "event_id": "ebaef80d-2130-498b-bcc2-be486afab21e",
+          "led_seconds": 1.101
+        }
+      ],
+      "result": "failed",
+      "cleaned_up": true,
+      "failure": "{'first_token_seconds': None, 'total_seconds': 95.297, 'delta_count': 0, 'errors': [{'code': 'LLM_TIMEOUT'}], ...}\nassert ('done' in ['error'])",
+      "assistant_requests": [
+        {
+          "first_token_seconds": null,
+          "total_seconds": 95.297,
+          "delta_count": 0,
+          "errors": [
+            {
+              "code": "LLM_TIMEOUT"
+            }
+          ],
+          "completed": false,
+          "question": "Quantos equipamentos tenho?",
+          "text": ""
+        }
+      ],
+      "resources": {
+        "samples": 340,
+        "peak_mib_by_service": {
+          "influxdb": 160.984,
+          "postgres": 116.371,
+          "rabbitmq": 227.062,
+          "mosquitto": 7.844,
+          "ollama": 2502.824,
+          "backend": 184.137,
+          "gateway": 54.098,
+          "generation": 78.352,
+          "models": 188.539,
+          "simulator": 28.832,
+          "training": 78.266,
+          "writer": 85.652,
+          "frontend": 8.773,
+          "llm": 71.844
+        },
+        "oom_killed": false,
+        "oom_event": false,
+        "restarts_max": 0,
+        "monitor_errors": []
+      },
+      "report_sha256": "e23a9fa454d836b0e8da8d1646bf27b16b681210ec50d7fa314efaa629d8d32b",
+      "ollama_log_excerpts": [
+        "ollama-1  | time=2026-10-23T18:13:31.669Z level=INFO source=sched.go:1166 msg=\"disabling mmap for llama-server load by default\" model=/models/blobs/sha256-dde5aa3fc5ffc17176b5e8bdc82f587b24b2678c6c66101bf7da77af9f7ccdff reason=cpu",
+        "ollama-1  | srv    load_model: prompt cache is enabled, size limit: 8192 MiB",
+        "ollama-1  | srv    load_model: use `--cache-ram 0` to disable the prompt cache",
+        "ollama-1  | srv          init: idle slots will be saved to prompt cache upon starting a new task",
+        "ollama-1  | srv  get_availabl: updating prompt cache",
+        "ollama-1  | srv          load:  - looking for better prompt, base f_keep = -1.000, f_sim = 0.000",
+        "ollama-1  | srv        update:  - cache state: 0 prompts, 0.000 MiB (limits: 8192.000 MiB, 1024 tokens, 8589934592 est)",
+        "ollama-1  | srv  get_availabl: prompt cache update took 0.50 ms",
+        "ollama-1  | slot   operator(): id  0 | task 0 | new prompt, n_ctx_slot = 1024, n_keep = 4, task.n_tokens = 457",
+        "ollama-1  | slot print_timing: id  0 | task 0 | prompt processing, n_tokens =    128, progress = 0.28, t =  25.99 s / 4.92 tokens per second",
+        "ollama-1  | slot print_timing: id  0 | task 0 | prompt processing, n_tokens =    256, progress = 0.56, t =  88.40 s / 2.90 tokens per second",
+        "ollama-1  | srv          stop: cancel task, id_task = 0",
+        "ollama-1  | time=2026-10-23T18:17:51.473Z level=INFO source=sched.go:1166 msg=\"disabling mmap for llama-server load by default\" model=/models/blobs/sha256-dde5aa3fc5ffc17176b5e8bdc82f587b24b2678c6c66101bf7da77af9f7ccdff reason=cpu"
+      ]
+    },
+    "full_stack_r4": {
+      "started_at": "2026-10-23T18:57:14.512009+00:00",
+      "ended_at": "2026-10-23T19:15:33.690085+00:00",
+      "project": "coldsafe-b233-53ec2ce7",
+      "git": "c6fa42d0314409610ab1dd4db14e4bfc9b55040f",
+      "question": "Quantos equipamentos tenho?",
+      "phases": [
+        {
+          "name": "clean_bootstrap_idempotent",
+          "at": "2026-10-23T18:57:37.776078+00:00"
+        },
+        {
+          "name": "weights_prepared",
+          "at": "2026-10-23T19:04:19.705422+00:00"
+        },
+        {
+          "name": "all_services_healthy",
+          "at": "2026-10-23T19:05:12.588310+00:00",
+          "count": 14
+        },
+        {
+          "name": "live_telemetry_led",
+          "at": "2026-10-23T19:05:16.261881+00:00",
+          "event_id": "892fe101-a0ff-42ea-b28e-7ebedf5075d1",
+          "led_seconds": 1.1
+        },
+        {
+          "name": "assistant_preloaded",
+          "at": "2026-10-23T19:05:53.272927+00:00",
+          "first_token_seconds": 33.63819512500777,
+          "total_seconds": 36.891,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        },
+        {
+          "name": "browser_routes",
+          "at": "2026-10-23T19:05:57.795229+00:00",
+          "pages": [
+            {
+              "route": "/dashboard",
+              "heading": "Diagnóstico do ambiente"
+            },
+            {
+              "route": "/digital-twin",
+              "heading": "Gêmeo digital"
+            },
+            {
+              "route": "/insights",
+              "heading": "Insights"
+            },
+            {
+              "route": "/laboratory",
+              "heading": "Laboratório de Dados"
+            },
+            {
+              "route": "/training",
+              "heading": "Treinamento"
+            },
+            {
+              "route": "/messaging",
+              "heading": "Mensageria"
+            },
+            {
+              "route": "/assistant",
+              "heading": "Assistente"
+            }
+          ]
+        },
+        {
+          "name": "security_http_sql",
+          "at": "2026-10-23T19:05:58.760640+00:00",
+          "checks": [
+            {
+              "method": "GET",
+              "path": "/api/v3/models",
+              "status": 401
+            },
+            {
+              "method": "GET",
+              "path": "/api/v3/models",
+              "status": 401
+            },
+            {
+              "method": "POST",
+              "path": "/api/v1/auth/register",
+              "status": 201
+            },
+            {
+              "method": "POST",
+              "path": "/api/v1/auth/login",
+              "status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/api/v3/monitoring/summary?device_id=sim-lab-01",
+              "status": 404
+            },
+            {
+              "method": "POST",
+              "path": "/api/v3/devices/sim-lab-01/led/commands",
+              "status": 404
+            },
+            {
+              "method": "GET",
+              "path": "/api/v3/monitoring/summary?device_id=sim-lab-01",
+              "status": 200
+            },
+            {
+              "method": "POST",
+              "path": "/api/v3/devices/sim-lab-01/led/commands",
+              "status": 403
+            },
+            {
+              "method": "POST",
+              "path": "/api/v3/jobs",
+              "status": 403
+            },
+            {
+              "method": "GET",
+              "path": "/api/v3/messaging",
+              "status": 403
+            },
+            {
+              "method": "POST",
+              "path": "/api/v3/jobs",
+              "status": 403
+            },
+            {
+              "method": "GET",
+              "path": "/api/v3/messaging",
+              "status": 200
+            },
+            {
+              "method": "POST",
+              "path": "/api/v1/auth/logout",
+              "status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/api/v3/models",
+              "status": 401
+            }
+          ],
+          "denied_commands_created": 0
+        },
+        {
+          "name": "writer_recovered",
+          "at": "2026-10-23T19:06:10.484486+00:00"
+        },
+        {
+          "name": "mosquitto_recovered",
+          "at": "2026-10-23T19:06:17.738905+00:00",
+          "led_seconds": 1.137
+        },
+        {
+          "name": "rabbitmq_recovered",
+          "at": "2026-10-23T19:06:30.746341+00:00",
+          "led_seconds": 1.082
+        },
+        {
+          "name": "ollama_recovered",
+          "at": "2026-10-23T19:07:30.817576+00:00",
+          "first_token_seconds": 30.155649249994894,
+          "total_seconds": 35.238,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        },
+        {
+          "name": "jobs_serialized",
+          "at": "2026-10-23T19:07:33.292008+00:00",
+          "led_seconds": 1.2
+        },
+        {
+          "name": "generation_completed",
+          "at": "2026-10-23T19:07:34.403097+00:00",
+          "rows": 1000000,
+          "seconds": 3.585
+        },
+        {
+          "name": "training_completed",
+          "at": "2026-10-23T19:10:56.049812+00:00",
+          "seconds": 201.645
+        },
+        {
+          "name": "model_activated_assistant_reloaded",
+          "at": "2026-10-23T19:13:08.751750+00:00",
+          "first_token_seconds": 54.64496487499855,
+          "total_seconds": 66.851,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        },
+        {
+          "name": "volumes_preserved_before_last_assistant",
+          "at": "2026-10-23T19:14:18.369429+00:00"
+        },
+        {
+          "name": "volumes_restart_preserved",
+          "at": "2026-10-23T19:15:20.632331+00:00",
+          "led_seconds": 1.107,
+          "first_token_seconds": 37.82553466600075,
+          "total_seconds": 61.154,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        }
+      ],
+      "result": "passed",
+      "cleaned_up": true,
+      "failure": null,
+      "assistant_requests": [
+        {
+          "first_token_seconds": 33.63819512500777,
+          "total_seconds": 36.89,
+          "delta_count": 7,
+          "errors": [],
+          "completed": true,
+          "question": "Quantos equipamentos tenho?",
+          "text": "Você tem 1 equipamento."
+        },
+        {
+          "first_token_seconds": 30.155649249994894,
+          "total_seconds": 35.237,
+          "delta_count": 7,
+          "errors": [],
+          "completed": true,
+          "question": "Quantos equipamentos tenho?",
+          "text": "Você tem 1 equipamento."
+        },
+        {
+          "first_token_seconds": 54.64496487499855,
+          "total_seconds": 66.847,
+          "delta_count": 7,
+          "errors": [],
+          "completed": true,
+          "question": "Quantos equipamentos tenho?",
+          "text": "Você tem 1 equipamento."
+        },
+        {
+          "first_token_seconds": 37.82553466600075,
+          "total_seconds": 61.151,
+          "delta_count": 7,
+          "errors": [],
+          "completed": true,
+          "question": "Quantos equipamentos tenho?",
+          "text": "Você tem 1 equipamento."
+        }
+      ],
+      "resources": {
+        "samples": 1208,
+        "peak_mib_by_service": {
+          "influxdb": 178.395,
+          "mosquitto": 8.656,
+          "postgres": 135.25,
+          "rabbitmq": 288.066,
+          "ollama": 2720.863,
+          "backend": 194.988,
+          "gateway": 58.695,
+          "generation": 227.934,
+          "models": 196.863,
+          "simulator": 29.586,
+          "training": 1023.66,
+          "writer": 90.312,
+          "frontend": 14.094,
+          "llm": 72.699
+        },
+        "oom_killed": false,
+        "oom_event": false,
+        "restarts_max": 0,
+        "monitor_errors": [],
+        "training_memory_max_events": 2
+      },
+      "report_sha256": "ae3dac37be7e1d739f6ad0bad779c40f1685aa1fb7bc4c37191dd4765d3fda4b",
+      "ollama_log_excerpts": [
+        "ollama-1  | time=2026-10-23T19:13:46.971Z level=INFO source=sched.go:1166 msg=\"disabling mmap for llama-server load by default\" model=/models/blobs/sha256-dde5aa3fc5ffc17176b5e8bdc82f587b24b2678c6c66101bf7da77af9f7ccdff reason=cpu",
+        "ollama-1  | srv    load_model: prompt cache is enabled, size limit: 8192 MiB",
+        "ollama-1  | srv    load_model: use `--cache-ram 0` to disable the prompt cache",
+        "ollama-1  | srv          init: idle slots will be saved to prompt cache upon starting a new task",
+        "ollama-1  | srv  get_availabl: updating prompt cache",
+        "ollama-1  | srv          load:  - looking for better prompt, base f_keep = -1.000, f_sim = 0.000",
+        "ollama-1  | srv        update:  - cache state: 0 prompts, 0.000 MiB (limits: 8192.000 MiB, 1024 tokens, 8589934592 est)",
+        "ollama-1  | srv  get_availabl: prompt cache update took 0.64 ms",
+        "ollama-1  | slot   operator(): id  0 | task 0 | new prompt, n_ctx_slot = 1024, n_keep = 4, task.n_tokens = 456",
+        "ollama-1  | slot print_timing: id  0 | task 0 | prompt processing, n_tokens =    128, progress = 0.28, t =  10.58 s / 12.10 tokens per second",
+        "ollama-1  | slot print_timing: id  0 | task 0 | prompt processing, n_tokens =    256, progress = 0.56, t =  19.48 s / 13.14 tokens per second",
+        "ollama-1  | slot print_timing: id  0 | task 0 | prompt processing, n_tokens =    384, progress = 0.84, t =  28.44 s / 13.50 tokens per second",
+        "ollama-1  | slot print_timing: id  0 | task 0 | prompt eval time =   36976.21 ms /   456 tokens (   81.09 ms per token,    12.33 tokens per second)",
+        "ollama-1  | slot print_timing: id  0 | task 0 |        eval time =   23114.06 ms /     8 tokens ( 3302.01 ms per token,     0.30 tokens per second)"
+      ]
+    }
+  },
+  "security": {
+    "npm": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "npm_omit_dev": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "python_audits": {
+      "pip": {
+        "packages": 60,
+        "vulnerabilities": 0,
+        "report_sha256": "cdc90e526e4f51fa20dd2fb612c23d375c3a8328e99eb0a50614a73be48866dc"
+      },
+      "writer": {
+        "packages": 20,
+        "vulnerabilities": 0,
+        "report_sha256": "39cebbe9d91e9bfcbc6662f94ac55885946359633806ff2d82c9a736757d4b58"
+      },
+      "gateway": {
+        "packages": 10,
+        "vulnerabilities": 0,
+        "report_sha256": "a85d09c565acdeba2134acebbb72ea5304098eef04b483d336c15897292ae841"
+      },
+      "simulator": {
+        "packages": 6,
+        "vulnerabilities": 0,
+        "report_sha256": "8ea3e18fdb27e7f63c2697c01b5f234cc87b6245a7d8dc5d10e77b83a5e52ad5"
+      }
+    },
+    "tracked_text_files_secret_scan": 606,
+    "secret_pattern_matches": 0,
+    "independent_review_blockers": 0,
+    "advisories": [
+      "https://github.com/vitejs/vite/security/advisories/GHSA-rq7h-c2jc-7f22",
+      "https://github.com/advisories/GHSA-587h-7wmj-h5pm",
+      "https://github.com/vitest-dev/vitest/security/advisories/GHSA-qxg6-89mg-rqv8"
+    ]
+  },
+  "browser_evidence": {
+    "assistant": {
+      "real_postgres_http_sse_browser": true,
+      "ollama": "explicit local protocol double; no language-model quality claim",
+      "delta_visible_before_upstream_terminal": true,
+      "html_and_remote_images_plain_text": true,
+      "remote_image_requests": 0,
+      "cancellation_confirmed_unload": true,
+      "real_jwt_accounts_isolated": true,
+      "session_switch_wipes_history": true,
+      "mobile320_without_overflow": true,
+      "completed_audits": 2,
+      "cancelled_audits": 1,
+      "commands_created": 0,
+      "memory_guard_rows": 0,
+      "owner_contexts_checked": 3
+    },
+    "insights": {
+      "opened": {
+        "device_id": "insights-7e277470620c",
+        "equipment_id": "00000000-0000-4000-8000-000000000003",
+        "rules": {
+          "health_critical": 32,
+          "health_recovery": 42,
+          "rul_critical_hours": 22,
+          "rul_recovery_hours": 44,
+          "open_count": 3,
+          "close_count": 10
+        },
+        "prediction": {
+          "data": {
+            "reason": null,
+            "status": "available",
+            "model_id": "67037af0-4588-43b2-bc2f-0cd7f6baa173",
+            "rul_hours": 16,
+            "equipment_id": "00000000-0000-4000-8000-000000000003",
+            "health_score": 27,
+            "model_version": "demo-v1",
+            "source_event_id": "918fe855-75c6-43b0-a3e9-76a393820d81",
+            "features_version": "fan-v1",
+            "input_received_at": "2026-10-23T17:55:35.844541Z"
+          },
+          "type": "prediction",
+          "event_id": "6c2cb595-9dea-4dad-bca4-bc011f8b502b",
+          "device_id": "insights-7e277470620c",
+          "occurred_at": "2026-10-23T17:55:35.857215Z",
+          "received_at": "2026-10-23T17:55:35.857215Z",
+          "correlation_id": "918fe855-75c6-43b0-a3e9-76a393820d81",
+          "environment_id": "2af5ad18-9886-43cb-8b0f-f5b1286b571a",
+          "schema_version": 3,
+          "device_record_id": "9a647d42-e6fd-453b-b68f-0cf96d632677"
+        },
+        "availability": "available",
+        "age_seconds": 0.847046,
+        "trend": "declining",
+        "active_alerts": [
+          {
+            "alert_id": "fbd0cdfa-0878-496a-91ec-798f36e62027",
+            "opened_at": "2026-10-23T17:55:36.140958Z",
+            "source_event_id": "918fe855-75c6-43b0-a3e9-76a393820d81",
+            "prediction_event_id": "6c2cb595-9dea-4dad-bca4-bc011f8b502b",
+            "kind": "predictive_failure"
+          }
+        ]
+      },
+      "recovered": {
+        "device_id": "insights-7e277470620c",
+        "equipment_id": "00000000-0000-4000-8000-000000000003",
+        "rules": {
+          "health_critical": 32,
+          "health_recovery": 42,
+          "rul_critical_hours": 22,
+          "rul_recovery_hours": 44,
+          "open_count": 3,
+          "close_count": 10
+        },
+        "prediction": {
+          "data": {
+            "reason": null,
+            "status": "available",
+            "model_id": "67037af0-4588-43b2-bc2f-0cd7f6baa173",
+            "rul_hours": 110,
+            "equipment_id": "00000000-0000-4000-8000-000000000003",
+            "health_score": 90,
+            "model_version": "demo-v1",
+            "source_event_id": "90e7c2ec-f2d9-4803-ac63-8179fd48704a",
+            "features_version": "fan-v1",
+            "input_received_at": "2026-10-23T17:56:20.900775Z"
+          },
+          "type": "prediction",
+          "event_id": "8c94def9-5921-4ded-a519-8cfb53c9439d",
+          "device_id": "insights-7e277470620c",
+          "occurred_at": "2026-10-23T17:56:20.913819Z",
+          "received_at": "2026-10-23T17:56:20.913819Z",
+          "correlation_id": "90e7c2ec-f2d9-4803-ac63-8179fd48704a",
+          "environment_id": "2af5ad18-9886-43cb-8b0f-f5b1286b571a",
+          "schema_version": 3,
+          "device_record_id": "9a647d42-e6fd-453b-b68f-0cf96d632677"
+        },
+        "availability": "available",
+        "age_seconds": 0.837713,
+        "trend": "improving",
+        "active_alerts": []
+      },
+      "unavailable": {
+        "device_id": "insights-7e277470620c",
+        "equipment_id": "00000000-0000-4000-8000-000000000003",
+        "rules": {
+          "health_critical": 32,
+          "health_recovery": 42,
+          "rul_critical_hours": 22,
+          "rul_recovery_hours": 44,
+          "open_count": 3,
+          "close_count": 10
+        },
+        "prediction": {
+          "data": {
+            "reason": "insufficient_history",
+            "status": "unavailable",
+            "model_id": "67037af0-4588-43b2-bc2f-0cd7f6baa173",
+            "rul_hours": null,
+            "equipment_id": "00000000-0000-4000-8000-000000000003",
+            "health_score": null,
+            "model_version": "demo-v1",
+            "source_event_id": "c410f5d5-aed0-4e71-871a-b27ac36e64eb",
+            "features_version": "fan-v1",
+            "input_received_at": "2026-10-23T17:55:40.968707Z"
+          },
+          "type": "prediction",
+          "event_id": "41290ed5-ac3d-4a9c-97b7-40653c2e769a",
+          "device_id": "insights-7e277470620c",
+          "occurred_at": "2026-10-23T17:55:40.977342Z",
+          "received_at": "2026-10-23T17:55:40.977342Z",
+          "correlation_id": "c410f5d5-aed0-4e71-871a-b27ac36e64eb",
+          "environment_id": "2af5ad18-9886-43cb-8b0f-f5b1286b571a",
+          "schema_version": 3,
+          "device_record_id": "9a647d42-e6fd-453b-b68f-0cf96d632677"
+        },
+        "availability": "unavailable",
+        "age_seconds": 0.360195,
+        "trend": "unknown",
+        "active_alerts": [
+          {
+            "alert_id": "fbd0cdfa-0878-496a-91ec-798f36e62027",
+            "opened_at": "2026-10-23T17:55:36.140958Z",
+            "source_event_id": "918fe855-75c6-43b0-a3e9-76a393820d81",
+            "prediction_event_id": "6c2cb595-9dea-4dad-bca4-bc011f8b502b",
+            "kind": "predictive_failure"
+          }
+        ]
+      },
+      "rules": {
+        "health_critical": 32,
+        "health_recovery": 42,
+        "rul_critical_hours": 22,
+        "rul_recovery_hours": 44,
+        "open_count": 3,
+        "close_count": 10
+      },
+      "active_alert_id": "fbd0cdfa-0878-496a-91ec-798f36e62027",
+      "duplicate_republished": true,
+      "neutral_resets_open_sequence": true,
+      "recovery_requires_ten_consecutive": true,
+      "oscillation_no_flicker": true,
+      "no_prediction_not_recovery": true,
+      "real_telemetry_interruption_stale": true,
+      "reload_preserves_alert_and_rules": true,
+      "private_owner_denied": true,
+      "mobile_320_without_overflow": true,
+      "real_postgres_rabbitmq_http_chromium": true,
+      "service_recreated_preserves_state": true,
+      "audit_open_count": 1,
+      "audit_close_count": 1,
+      "predictive_alert_does_not_request_thermal_buzzer": true,
+      "prediction_source": "contract-valid boundary fixture; model inference not executed",
+      "influxdb_exercised": false,
+      "physical_accuracy_validated": false
+    },
+    "inference": {
+      "versions": [
+        {
+          "activation": {
+            "id": "1194b8b8-d71f-49b7-8e34-b04d4bc3d414",
+            "model_id": "1a27a22a-24d1-5e2e-bb10-de8899214ffe",
+            "previous_model_id": null,
+            "status": "active",
+            "error_code": null,
+            "created_at": "2026-10-23T17:56:41.050466Z",
+            "updated_at": "2026-10-23T17:56:41.474703Z",
+            "model_version": "training-de316388-9d23-43dd-b60e-51d72f66cc5b",
+            "features_version": "rolling-v1-8bfb1d20cdbc9a81+median-clip-v1"
+          },
+          "prediction": {
+            "data": {
+              "reason": null,
+              "status": "available",
+              "model_id": "1a27a22a-24d1-5e2e-bb10-de8899214ffe",
+              "rul_hours": 19.034411803787755,
+              "equipment_id": "00000000-0000-4000-8000-000000000003",
+              "health_score": 9.524723608944123,
+              "model_version": "training-de316388-9d23-43dd-b60e-51d72f66cc5b",
+              "source_event_id": "6140e898-af9f-415f-b5e6-c3182fb77251",
+              "features_version": "rolling-v1-8bfb1d20cdbc9a81+median-clip-v1",
+              "input_received_at": "2026-10-23T17:56:41Z"
+            },
+            "type": "prediction",
+            "event_id": "29ef8f77-7420-5fb3-8aa7-a57fbeb1116a",
+            "device_id": "inference-ff55ed5f50c5",
+            "occurred_at": "2026-10-23T17:56:41.872539Z",
+            "received_at": "2026-10-23T17:56:41.872539Z",
+            "correlation_id": "6140e898-af9f-415f-b5e6-c3182fb77251",
+            "environment_id": "a7a32430-bed7-4286-8ca5-6177c833b33a",
+            "schema_version": 3,
+            "device_record_id": "f02ac037-a78d-4e38-aa3e-a02102182206"
+          },
+          "telemetry_event_id": "6140e898-af9f-415f-b5e6-c3182fb77251"
+        },
+        {
+          "activation": {
+            "id": "100f3f31-751f-4131-9dbe-474bae1628ef",
+            "model_id": "e47754dc-a583-5fe7-968c-4154008420dc",
+            "previous_model_id": "1a27a22a-24d1-5e2e-bb10-de8899214ffe",
+            "status": "active",
+            "error_code": null,
+            "created_at": "2026-10-23T17:56:43.463706Z",
+            "updated_at": "2026-10-23T17:56:43.874446Z",
+            "model_version": "training-3d69e3c4-4f6b-4501-9a03-055ec8113665",
+            "features_version": "rolling-v1-8bfb1d20cdbc9a81+median-clip-v1"
+          },
+          "prediction": {
+            "data": {
+              "reason": null,
+              "status": "available",
+              "model_id": "e47754dc-a583-5fe7-968c-4154008420dc",
+              "rul_hours": 19.034411803787755,
+              "equipment_id": "00000000-0000-4000-8000-000000000003",
+              "health_score": 9.524723608944123,
+              "model_version": "training-3d69e3c4-4f6b-4501-9a03-055ec8113665",
+              "source_event_id": "6751cf06-86db-446c-8c94-3bea8a7e957c",
+              "features_version": "rolling-v1-8bfb1d20cdbc9a81+median-clip-v1",
+              "input_received_at": "2026-10-23T17:56:46Z"
+            },
+            "type": "prediction",
+            "event_id": "cb869dd9-f0ae-50fc-a7dd-0131b4bbf263",
+            "device_id": "inference-ff55ed5f50c5",
+            "occurred_at": "2026-10-23T17:56:46.872717Z",
+            "received_at": "2026-10-23T17:56:46.872717Z",
+            "correlation_id": "6751cf06-86db-446c-8c94-3bea8a7e957c",
+            "environment_id": "a7a32430-bed7-4286-8ca5-6177c833b33a",
+            "schema_version": 3,
+            "device_record_id": "f02ac037-a78d-4e38-aa3e-a02102182206"
+          },
+          "telemetry_event_id": "6751cf06-86db-446c-8c94-3bea8a7e957c"
+        }
+      ],
+      "failed_activation": {
+        "id": "03635bd0-bee8-4e96-a978-d33a3f90945d",
+        "model_id": "f9ceaad7-a894-5e7a-8d41-e1b7a6952f98",
+        "previous_model_id": "e47754dc-a583-5fe7-968c-4154008420dc",
+        "status": "failed",
+        "error_code": "MODEL_LOAD_FAILED",
+        "created_at": "2026-10-23T17:56:48.162746Z",
+        "updated_at": "2026-10-23T17:56:48.376359Z",
+        "model_version": "training-96799947-9f6f-4077-9266-16b99e52f58b",
+        "features_version": "rolling-v1-8bfb1d20cdbc9a81+median-clip-v1"
+      },
+      "no_model_visible": true,
+      "browser_not_reloaded": true,
+      "navigations": 1,
+      "websocket_predictions": [
+        {
+          "event_id": "a623249d-1e26-588b-add7-319c6d994bdb",
+          "model_version": null,
+          "source_event_id": "aa1f9bbf-6481-468e-856c-74db7b72c358"
+        },
+        {
+          "event_id": "8a691aaf-8a70-59ab-b8ac-ba8c4561c081",
+          "model_version": null,
+          "source_event_id": "2e95ac18-d7bf-480c-a1b4-eed5bde3265d"
+        },
+        {
+          "event_id": "29ef8f77-7420-5fb3-8aa7-a57fbeb1116a",
+          "model_version": "training-de316388-9d23-43dd-b60e-51d72f66cc5b",
+          "source_event_id": "6140e898-af9f-415f-b5e6-c3182fb77251"
+        },
+        {
+          "event_id": "e9a63caf-2385-55a0-a17f-0670520c2e8e",
+          "model_version": "training-3d69e3c4-4f6b-4501-9a03-055ec8113665",
+          "source_event_id": "1202bccd-9ea7-4184-a873-19b7cecec287"
+        },
+        {
+          "event_id": "93bb96bd-bc97-58d3-82a8-33f77c61072f",
+          "model_version": "training-3d69e3c4-4f6b-4501-9a03-055ec8113665",
+          "source_event_id": "31be3767-d3a1-40be-9e4c-1942ade11830"
+        },
+        {
+          "event_id": "cb869dd9-f0ae-50fc-a7dd-0131b4bbf263",
+          "model_version": "training-3d69e3c4-4f6b-4501-9a03-055ec8113665",
+          "source_event_id": "6751cf06-86db-446c-8c94-3bea8a7e957c"
+        }
+      ],
+      "private_owner_denied": true,
+      "revoked_session_denied": true,
+      "mobile_320_without_overflow": true,
+      "mobile_before_layout_settle": {
+        "width": 320,
+        "scrollWidth": 1151,
+        "overflow": [
+          {
+            "tag": "A",
+            "className": "",
+            "right": 475.015625,
+            "text": "Ambientes e dispositivos"
+          },
+          {
+            "tag": "A",
+            "className": "",
+            "right": 568.765625,
+            "text": "Mensageria"
+          },
+          {
+            "tag": "A",
+            "className": "",
+            "right": 660.671875,
+            "text": "Laboratório"
+          },
+          {
+            "tag": "A",
+            "className": "",
+            "right": 759.1875,
+            "text": "Treinamento"
+          },
+          {
+            "tag": "A",
+            "className": "",
+            "right": 843.890625,
+            "text": "Assistente"
+          },
+          {
+            "tag": "A",
+            "className": "",
+            "right": 1006.578125,
+            "text": "Documentação da API"
+          },
+          {
+            "tag": "CANVAS",
+            "className": "",
+            "right": 1151,
+            "text": ""
+          },
+          {
+            "tag": "CANVAS",
+            "className": "",
+            "right": 571,
+            "text": ""
+          }
+        ]
+      },
+      "worker_pid": 98600,
+      "worker_thread": 6186774528,
+      "worker_not_restarted": true,
+      "real_postgres_rabbitmq_http_websocket_chromium": true,
+      "source_fixture": "current-clock Simulator telemetry at 1 Hz, timestamps floored to seconds, AMQP gateway identity",
+      "persistence_boundary_fixture": "telemetry_persisted AMQP writer identity; InfluxDB not exercised",
+      "training_fixture_rows": 720,
+      "training_fixture_windows_seconds": [
+        2
+      ],
+      "production_windows_unchanged": true,
+      "physical_accuracy_validated": false,
+      "failure_injection": "third bundle RUL file removed by test barrier immediately before real execute",
+      "prediction_count": 6,
+      "available_model_versions": [
+        "training-3d69e3c4-4f6b-4501-9a03-055ec8113665",
+        "training-de316388-9d23-43dd-b60e-51d72f66cc5b"
+      ],
+      "prediction_reasons": [
+        "insufficient_history",
+        "no_model"
+      ]
+    }
+  },
+  "limitations": [
+    "No physical hardware or industrial calibration",
+    "No SLA, soak or scale certification",
+    "Full B2-32 LLM corpus not repeated; known environment-count timeout remains uncorrected",
+    "Initial concurrent QA load timed out Ollama preload; R1 retained as failed",
+    "AIoT fixture E2E initial-data timeout passed isolated retry; concurrency instability retained",
+    "Public registration lacks rate limiting; review before untrusted exposure",
+    "Bearer sessionStorage and no CSP; no confirmed XSS found, no public deployment approval",
+    "Pickle model packages trust private workers and volume; hashes alone do not authenticate producer",
+    "Coverage is measured aggregate, not 80 percent for every file; main.py wrapper not instrumented",
+    "Edge 265 tests overlap 1626 baseline; interrupted runs and retries must not be summed",
+    "64 other opt-in integration tests not rerun; selected 184 plus full-stack test are distinct scopes",
+    "Browser protocol/telemetry/persistence fixtures declared per harness",
+    "No screen-reader or complete WCAG audit",
+    "No change to timeout, model, prompt or personal Docker/host settings to force acceptance",
+    "R1/R2/R3 failed and remain preserved; R4 AC-powered full-stack run passed without product/profile/timeout changes",
+    "AC power correlates with improved result; physical cause of previous CPU degradation not isolated",
+    "Full-stack browser step is seven-page smoke with session injection, not seven full UI workflows",
+    "All coverage/test results from earlier same-source runs retained, not rerun or counted twice in AC resumption",
+    "No one-hour numerical live inference warm-up waited in full stack; real SQL/browser fixture coverage is separate",
+    "Training peak 1023.66 MiB with two memory max events; zero oom/oom_kill but little memory headroom",
+    "Compose down completed; four empty download-profile networks required supplemental removal after owner labels/endpoints checks; images/build cache may remain"
+  ],
+  "commands": {
+    "backend_unit": "python -m pytest -m 'not integration' --override-ini='addopts=--cov=backend/app --cov-branch --cov-fail-under=80' --cov-report=json:/tmp/coldsafe-b234-backend-coverage.json",
+    "integration": "/tmp/coldsafe-precommit-venv/bin/python -m pytest -q --cov=backend/app --cov-branch --cov-fail-under=0 --cov-report=json:/tmp/coldsafe-b234-integration-coverage.json -ra --junitxml=/tmp/coldsafe-b234-integration-qa/final/integration.xml backend/tests/integration/test_postgres_schema_integration.py backend/tests/integration/test_aiot_migrations_integration.py backend/tests/integration/test_inference_migrations.py backend/tests/integration/test_catalog_integration.py backend/tests/integration/test_authenticated_monitoring_integration.py backend/tests/integration/test_aiot_dashboard_integration.py backend/tests/integration/test_auth_security_integration.py backend/tests/integration/test_role_permissions_integration.py backend/tests/integration/test_ws_security_integration.py backend/tests/integration/test_jobs_integration.py backend/tests/integration/test_models_integration.py backend/tests/integration/test_inference_integration.py backend/tests/integration/test_predictive_alerts_integration.py backend/tests/integration/test_llm_coordination_integration.py backend/tests/integration/test_assistant_context_integration.py backend/tests/integration/test_assistant_integration.py backend/tests/integration/test_assistant_http_integration.py backend/tests/infra/test_rabbitmq_integration.py backend/tests/integration/test_assistant_browser.py backend/tests/integration/test_insights_browser.py backend/tests/integration/test_inference_browser.py",
+    "integration_environment": {
+      "POSTGRES_TEST_HOST": "127.0.0.1",
+      "POSTGRES_TEST_PORT": "57876",
+      "POSTGRES_TEST_USER": "coldsafe_qa",
+      "POSTGRES_TEST_DB": "coldsafe_qa",
+      "POSTGRES_TEST_PASSWORD": "random temporary secret, not retained",
+      "COLDSAFE_RABBITMQ_INTEGRATION": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "COVERAGE_FILE": "/tmp/coldsafe-b234-integration.coverage",
+      "COLDSAFE_ASSISTANT_BROWSER": "1",
+      "COLDSAFE_INSIGHTS_INTEGRATION": "1",
+      "COLDSAFE_INFERENCE_INTEGRATION": "1",
+      "COLDSAFE_NODE_BINARY": "/Users/vitorhugofernandescosta/.npm/_npx/460b723c8ad28bd7/node_modules/node/bin/node"
+    },
+    "frontend": [
+      "npm run test:coverage",
+      "npm run test:e2e -- --workers=2",
+      "VITE_AIOT_ENABLED=true npm run test:e2e -- --workers=2 digital-twin.spec.ts inference.spec.ts",
+      "VITE_AIOT_ENABLED=true npm run test:e2e -- --workers=1 --grep 'ambiente e atuadores reagem'",
+      "VITE_AIOT_ENABLED=true npm run build",
+      "npm audit --json",
+      "npm audit --omit=dev --json"
+    ],
+    "stack": "COLDSAFE_STACK_INTEGRATION=1 COLDSAFE_STACK_EVIDENCE=/tmp/coldsafe-b234-stack-r2.json COLDSAFE_NODE_BINARY=<existing Node24 executable> python -m pytest backend/tests/infra/test_stack_integration.py -q -s --no-cov -o addopts=",
+    "audits": [
+      "uvx --python <existing Python3.13 executable> pip-audit -r backend/requirements-dev.lock.txt --format json",
+      "uvx --python <existing Python3.13 executable> pip-audit -r writer/requirements.txt --format json",
+      "uvx --python <existing Python3.13 executable> pip-audit -r gateway/requirements.txt --format json",
+      "uvx --python <existing Python3.13 executable> pip-audit -r simulator/requirements.txt --format json"
+    ],
+    "stack_r4": "COLDSAFE_NODE_BINARY=/Users/vitorhugofernandescosta/.npm/_npx/460b723c8ad28bd7/node_modules/node/bin/node COLDSAFE_STACK_INTEGRATION=1 COLDSAFE_STACK_EVIDENCE=/tmp/coldsafe-b234-stack-r4.json /tmp/coldsafe-precommit-venv/bin/python -m pytest backend/tests/infra/test_stack_integration.py -q -s --no-cov -o addopts=''"
+  },
+  "diagnosis": {
+    "baseline_historical": {
+      "task": "B2-33 R5",
+      "prompt_tokens": 455,
+      "prompt_eval_seconds": 30.76,
+      "tokens_per_second": 14.79
+    },
+    "current_r3": {
+      "prompt_tokens": 457,
+      "processed_tokens_before_cancellation": 256,
+      "elapsed_prompt_seconds": 88.4,
+      "tokens_per_second": 2.9,
+      "load_seconds_approx": 149,
+      "generation_deadline_seconds": 90,
+      "total_request_seconds": 95.297,
+      "sampled_question_window_utc": [
+        "2026-10-23T18:16:12.94Z",
+        "2026-10-23T18:17:41.03Z"
+      ],
+      "sampled_wall_seconds": 88.09,
+      "cpu_usage_seconds": 252.67,
+      "cpu_user_seconds": 212.36,
+      "cpu_system_seconds": 40.31,
+      "average_cpu_cores": 2.87,
+      "cpu_throttle_delta_seconds": 0.49,
+      "cpu_pressure_some_delta_seconds": 16.397,
+      "cpu_pressure_full_delta_seconds": 14.786,
+      "cgroup_memory_pressure_some_delta_seconds": 0.0376,
+      "cgroup_memory_pressure_full_delta_seconds": 0.019,
+      "global_memory_pressure_some_delta_seconds": 0.785,
+      "global_memory_pressure_full_delta_seconds": 0.586,
+      "ollama_swap_mib_approx": 39.7,
+      "load_global_memory_some_avg10_max_percent": 42.84,
+      "load_global_memory_full_avg10_max_percent": 35.62
+    },
+    "proven": "CPU prefill did not complete before deadline; effective throughput about five times below historical baseline",
+    "not_proven": "Physical cause of CPU degradation; memory pressure during load does not establish memory as cause during prompt",
+    "mmap": "Disabled in real CPU runner logs",
+    "same_ollama_image_as_baseline": "sha256:adca95a12c2b386a8f9a995e7fa0600e187e3323b5e5522f5a6c3b1ec73eff99",
+    "host_power_observation": {
+      "source": "Battery Power",
+      "battery_percent": 19,
+      "low_power_mode": 0,
+      "causal_link_to_timeout": "not demonstrated"
+    },
+    "next": "QA accepted in measured R4 AC-powered scenario; keep earlier failures and operational limits; wait for user choice before B2-35"
+  },
+  "unexecuted_new_stack_checks": [],
+  "personal_resources": {
+    "containers_left_running": 0,
+    "personal_volumes_before": 11,
+    "personal_volumes_after": 11,
+    "volume_name_sets_identical": true,
+    "docker_vm_settings_changed": false,
+    "host_power_settings_changed": false
+  },
+  "resumption_r4": {
+    "date": "2026-10-23",
+    "user_confirmed_ac": true,
+    "observed_power": "AC Power",
+    "battery_percent": 13,
+    "charging_state": "AC attached, not charging",
+    "same_six_source_hashes": true,
+    "product_or_timeout_or_model_or_vm_config_changed": false,
+    "other_heavy_suites": false,
+    "status": "passed",
+    "raw_report": "/tmp/coldsafe-b234-stack-r4.json",
+    "charger_watts_later_observed": 60,
+    "charging_later_confirmed": true,
+    "training_observation": {
+      "llm_status": {
+        "state": "paused",
+        "model": "llama3.2:3b-instruct-q4_K_M"
+      },
+      "loaded_models": []
+    },
+    "end_observed_power": "AC Power",
+    "end_battery_percent": 38,
+    "end_charging": true,
+    "pytest_passed": 1,
+    "pytest_duration_seconds": 1100.22,
+    "new_dependency_or_product_changes": false
+  },
+  "supplemental_cleanup": {
+    "removed_empty_networks": [
+      {
+        "project": "coldsafe-b233-cd5a42ee",
+        "network": "coldsafe-b233-cd5a42ee_coldsafe-llm-download",
+        "empty_and_label_verified": true
+      },
+      {
+        "project": "coldsafe-b233-9bc13fe7",
+        "network": "coldsafe-b233-9bc13fe7_coldsafe-llm-download",
+        "empty_and_label_verified": true
+      },
+      {
+        "project": "coldsafe-b233-86ab48c9",
+        "network": "coldsafe-b233-86ab48c9_coldsafe-llm-download",
+        "empty_and_label_verified": true
+      },
+      {
+        "project": "coldsafe-b233-53ec2ce7",
+        "network": "coldsafe-b233-53ec2ce7_coldsafe-llm-download",
+        "empty_and_label_verified": true
+      }
+    ]
+  }
+}

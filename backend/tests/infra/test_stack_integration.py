@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import subprocess
 import sys
@@ -105,6 +106,13 @@ class Stack:
                 if probe.returncode == 0 and len(lines) >= 2:
                     sample.update(current=int(lines[0]), peak=int(lines[1]),
                                   events={key: int(value) for key, value in (line.split() for line in lines[2:])})
+                if name == 'ollama':
+                    diagnostic = subprocess.run(['docker', 'exec', row['Id'], 'sh', '-c',
+                        'cat /sys/fs/cgroup/cpu.stat /sys/fs/cgroup/cpu.pressure '
+                        '/sys/fs/cgroup/memory.pressure /sys/fs/cgroup/memory.swap.current '
+                        '/proc/pressure/memory'], capture_output=True, text=True, timeout=15)
+                    sample['cpu_pressure_swap'] = diagnostic.stdout
+                    sample['diagnostic_exit_code'] = diagnostic.returncode
             self.report['resources'].append(sample)
 
     def monitor(self):
@@ -167,6 +175,8 @@ class Stack:
         self.report.setdefault('assistant_requests', []).append(metric)
         assert 'done' in events and 'error' not in events, metric
         assert first is not None, 'Assistant completed without any text delta'
+        answer = metric['text'].replace('*', '').replace('`', '').lower()
+        assert re.search(r'\b(?:1|um)\s+equipamento\b', answer), metric
         return {'first_token_seconds': first, 'total_seconds': round(time.monotonic() - start, 3), 'events': events}
 
     def browser(self):
@@ -288,6 +298,7 @@ def exercise(stack):
     stack.llm_ready()
     stack.phase('assistant_preloaded', **stack.assistant())
     stack.phase('browser_routes', pages=stack.browser())
+    exercise_security(stack)
     stack.command('stop', 'writer')
     time.sleep(5)
     stack.command('start', 'writer')
@@ -359,6 +370,57 @@ def exercise(stack):
                    for row in stack.report['resources'])
 
 
+def exercise_security(stack):
+    """B2-34: real HTTP/SQL, current roles, ownership and revoked sessions."""
+    checks = []
+
+    def request(method, path, expected, token=None, data=None):
+        response = httpx.request(method, stack.url + path, json=data,
+            headers={'Authorization': 'Bearer ' + token} if token else {},
+            timeout=30, trust_env=False)
+        assert response.status_code == expected, (path, response.status_code)
+        checks.append({'method': method, 'path': path, 'status': expected})
+        return response
+
+    request('GET', '/api/v3/models', 401)
+    request('GET', '/api/v3/models', 401, token='invalid')
+    password = secrets.token_urlsafe(24)
+    request('POST', '/api/v1/auth/register', 201,
+            data={'email': 'other-stack@example.invalid', 'password': password})
+    login = request('POST', '/api/v1/auth/login', 200,
+        data={'email': 'other-stack@example.invalid', 'password': password}).json()['data']
+    other = login['token']
+    request('GET', '/api/v3/monitoring/summary?device_id=sim-lab-01', 404, other)
+    request('POST', '/api/v3/devices/sim-lab-01/led/commands', 404, other,
+            {'desired_state': True})
+    with psycopg.connect(**stack.pg) as connection:
+        owner = connection.execute('SELECT owner_user_id FROM environments WHERE id=%s',
+                                    (stack.catalog['environment_id'],)).fetchone()[0]
+        commands_before = connection.execute('SELECT count(*) FROM aiot_commands').fetchone()[0]
+        connection.execute("UPDATE users SET role='viewer' WHERE id=%s", (owner,))
+    try:
+        request('GET', '/api/v3/monitoring/summary?device_id=sim-lab-01', 200, stack.token)
+        request('POST', '/api/v3/devices/sim-lab-01/led/commands', 403, stack.token,
+                {'desired_state': False})
+        request('POST', '/api/v3/jobs', 403, stack.token,
+                {'job_type': 'generation', 'total_units': 1_000_000})
+        request('GET', '/api/v3/messaging', 403, stack.token)
+        with psycopg.connect(**stack.pg) as connection:
+            assert connection.execute('SELECT count(*) FROM aiot_commands').fetchone()[0] == commands_before
+            connection.execute("UPDATE users SET role='operator' WHERE id=%s", (owner,))
+        request('POST', '/api/v3/jobs', 403, stack.token,
+                {'job_type': 'generation', 'total_units': 1_000_000})
+    finally:
+        with psycopg.connect(**stack.pg) as connection:
+            connection.execute("UPDATE users SET role='admin' WHERE id=%s", (owner,))
+    request('GET', '/api/v3/messaging', 200, stack.token)
+    request('POST', '/api/v1/auth/logout', 200, other)
+    request('GET', '/api/v3/models', 401, other)
+    with psycopg.connect(**stack.pg) as connection:
+        assert connection.execute('SELECT count(*) FROM audit_events').fetchone()[0] > 0
+    stack.phase('security_http_sql', checks=checks, denied_commands_created=0)
+
+
 def test_final_stack_clean_start_recovery_persistence_and_capacity():
     if os.environ.get('COLDSAFE_STACK_INTEGRATION') != '1':
         pytest.skip('Set COLDSAFE_STACK_INTEGRATION=1 for disposable full-stack checks')
@@ -380,6 +442,7 @@ def test_final_stack_clean_start_recovery_persistence_and_capacity():
             try:
                 stack.resources()
                 stack.report['logs'] = stack.clean(stack.command('logs', '--no-color', '--tail', '12'))[-12000:]
+                stack.report['ollama_logs'] = stack.clean(stack.command('logs', '--no-color', 'ollama'))
             finally:
                 # Only this uniquely named project's newly created resources are disposable.
                 stack.command('down', '--volumes', '--remove-orphans')

@@ -175,6 +175,23 @@ for (const scenario of [
   })
 }
 
+test('navegação móvel mantém todos os destinos acessíveis por foco sem alargar a página', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await mockMonitoringApi(page, { status: 'normal' })
+  await page.goto('/dashboard')
+
+  const navigation = page.getByRole('navigation', { name: 'Navegação principal' })
+  const lastLink = navigation.getByRole('link', { name: 'Documentação da API' })
+  await navigation.getByRole('link', { name: 'Monitoramento', exact: true }).focus()
+  for (let index = 1; index < await navigation.getByRole('link').count(); index++) {
+    await page.keyboard.press('Tab')
+  }
+  await expect(lastLink).toBeFocused()
+  await expect(lastLink).toBeInViewport()
+  expect(await navigation.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+})
+
 test('mantém nomes longos e temperatura extrema legíveis em 320 px', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 })
   await mockMonitoringApi(page, {
