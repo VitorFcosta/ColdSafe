@@ -1,0 +1,82 @@
+[
+  {
+    "Service": "backend",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "frontend",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "gateway",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "generation",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "influxdb",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "llm",
+    "State": "exited",
+    "Health": ""
+  },
+  {
+    "Service": "models",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "mosquitto",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "mosquitto-init",
+    "State": "exited",
+    "Health": ""
+  },
+  {
+    "Service": "ollama",
+    "State": "exited",
+    "Health": ""
+  },
+  {
+    "Service": "postgres",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "rabbitmq",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "rabbitmq-init",
+    "State": "exited",
+    "Health": ""
+  },
+  {
+    "Service": "simulator",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "training",
+    "State": "running",
+    "Health": "healthy"
+  },
+  {
+    "Service": "writer",
+    "State": "running",
+    "Health": "healthy"
+  }
+]

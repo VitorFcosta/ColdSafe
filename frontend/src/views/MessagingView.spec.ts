@@ -26,7 +26,7 @@ const samples: MessageSamplesSnapshot = { sampled_at: snapshot.sampled_at, conne
     environment_id: 'environment-safe', correlation_id: 'correlation-safe', source_queue: 'coldsafe.writer',
     reason: 'rejected', error_code: 'INVALID_SCHEMA' }],
 }
-const mount = () => shallowMount(MessagingView, { global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } } })
+const mount = () => shallowMount(MessagingView, { global: { stubs: { LiveDataRegion: false, RouterLink: { template: '<a><slot /></a>' } } } })
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -52,6 +52,55 @@ describe('MessagingView', () => {
     expect(wrapper.text()).toContain('há 0 s')
     expect(wrapper.text()).toContain('infraestrutura compartilhada')
     wrapper.unmount()
+  })
+  it('resume as filas listadas sem trocar seus contadores ou confundir assinaturas com serviços', async () => {
+    vi.mocked(fetchMessaging).mockResolvedValue({ ...snapshot, queues: [
+      { ...snapshot.queues[0]!, publish_rate: 1.2 },
+      { name: 'writer.q', messages: 12, messages_ready: 8, messages_unacknowledged: 4, consumers: 2, publish_rate: 2.3, deliver_rate: 0 },
+    ] })
+    const wrapper = mount()
+    try {
+      await flushPromises()
+      const region = wrapper.get('[aria-labelledby="global-metrics-title"]')
+      expect(region.findAll('dd').map(cell => cell.text())).toEqual(['10', '5', '3', '3,5 /s'])
+      expect(region.text()).toContain('filas listadas')
+      expect(wrapper.get('tbody').findAll('tr')).toHaveLength(2)
+      expect(wrapper.text()).toContain('assinaturas ativas')
+    } finally { wrapper.unmount() }
+  })
+  it('taxa parcialmente desconhecida não vira soma parcial no resumo', async () => {
+    vi.mocked(fetchMessaging).mockResolvedValue({ ...snapshot, queues: [snapshot.queues[0]!,
+      { ...snapshot.queues[0]!, name: 'writer.q', publish_rate: 9 },
+    ] })
+    const wrapper = mount()
+    try {
+      await flushPromises()
+      expect(wrapper.get('[aria-labelledby="global-metrics-title"]').findAll('dd').map(cell => cell.text()))
+        .toEqual(['4', '2', '2', 'Indisponível'])
+    } finally { wrapper.unmount() }
+  })
+  it.each([false, true])('distingue ausência de filas de zeros reais (vazio=%s)', async (empty) => {
+    vi.mocked(fetchMessaging).mockResolvedValue({ ...snapshot, queues: empty ? [] : [
+      { ...snapshot.queues[0]!, messages: 0, messages_ready: 0, messages_unacknowledged: 0, consumers: 0, publish_rate: 0, deliver_rate: 0 },
+    ] })
+    const wrapper = mount()
+    try {
+      await flushPromises()
+      expect(wrapper.get('[aria-labelledby="global-metrics-title"]').findAll('dd').map(cell => cell.text()))
+        .toEqual(empty ? Array(4).fill('Indisponível') : ['0', '0', '0', '0 /s'])
+    } finally { wrapper.unmount() }
+  })
+  it('não exibe contagem agregada inexata quando a soma ultrapassa inteiro seguro', async () => {
+    vi.mocked(fetchMessaging).mockResolvedValue({ ...snapshot, queues: [
+      { ...snapshot.queues[0]!, messages_ready: Number.MAX_SAFE_INTEGER, publish_rate: Number.MAX_VALUE },
+      { ...snapshot.queues[0]!, name: 'writer.q', publish_rate: Number.MAX_VALUE },
+    ] })
+    const wrapper = mount()
+    try {
+      await flushPromises()
+      expect(wrapper.get('[aria-labelledby="global-metrics-title"]').findAll('dd').map(cell => cell.text()))
+        .toEqual(['Indisponível', '2', '2', 'Indisponível'])
+    } finally { wrapper.unmount() }
   })
   it.each(['viewer', 'operator', null] as const)('não consulta nem exibe métricas com papel %s', async (role) => {
     sessionRole.value = role
@@ -153,27 +202,8 @@ describe('MessagingView', () => {
     expect(wrapper.text()).toContain('Nenhuma fila disponível')
     wrapper.unmount()
   })
-  it('sair encerra a sessão e remove os dados administrativos', async () => {
-    const wrapper = mount()
-    await flushPromises()
-    await wrapper.get('button.sign-out').trigger('click')
-    await flushPromises()
-    expect(logout).toHaveBeenCalled()
-    expect(sessionToken.value).toBeNull()
-    expect(wrapper.find('table').exists()).toBe(false)
-    wrapper.unmount()
-  })
-  it('sair com falha mantém a sessão e explica como repetir', async () => {
-    vi.mocked(logout).mockRejectedValueOnce(new Error('private diagnostic'))
-    const wrapper = mount()
-    await flushPromises()
-    await wrapper.get('button.sign-out').trigger('click')
-    await flushPromises()
-    expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível encerrar a sessão')
-    expect(wrapper.text()).not.toContain('private diagnostic')
-    expect(sessionToken.value).toBe('admin-token')
-    wrapper.unmount()
-  })
+
+
   it('uma consulta que excede 8s é cancelada e o polling consegue recuperar', async () => {
     vi.mocked(fetchMessaging).mockImplementationOnce((_token, signal) => new Promise((_, reject) => {
       signal!.addEventListener('abort', () => reject(new Error('timeout')))
@@ -221,7 +251,7 @@ describe('amostras privadas de mensagens', () => {
     expect(wrapper.text()).toContain('seus ambientes')
     expect(wrapper.text()).toContain('terminal')
     expect(wrapper.get('[aria-labelledby="writer-title"]').text()).toContain('coldsafe.writer')
-    expect(wrapper.findAll('button')).toHaveLength(1)
+    expect(wrapper.findAll('button').map(button => button.text())).toEqual(['Ocultar dados ao vivo'])
     wrapper.unmount()
   })
   it('distingue vazio de falha, desconexão e amostra desatualizada', async () => {

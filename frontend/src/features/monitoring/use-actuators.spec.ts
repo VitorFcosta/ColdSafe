@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { flushPromises, mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, ref } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { sessionRole, sessionToken } from '../account/session'
@@ -7,6 +7,9 @@ import { fetchActuators, fetchCommand, requestLed, type ActuatorCommand } from '
 import { actuatorLabel, useActuators } from './use-actuators'
 import type { MonitoringEvent } from './use-monitoring-summary'
 
+enableAutoUnmount(afterEach)
+
+vi.mock('./monitoring-version', () => ({ aiotEnabled: true }))
 vi.mock('./actuators', async (original) => ({ ...await original<typeof import('./actuators')>(), fetchActuators: vi.fn(), fetchCommand: vi.fn(), requestLed: vi.fn() }))
 const pending: ActuatorCommand = { schema_version: 2, command_id: 'command-a', device_id: 'mqtt-a', actuator: 'led', desired_state: true, confirmed_state: null, status: 'pending' }
 beforeEach(() => {
@@ -77,4 +80,134 @@ describe('shared actuator control', () => {
     await control.loadActuators('device-a')
     expect(fetchActuators).toHaveBeenCalledOnce()
   })
+  it('mantém um snapshot vazio pronto durante uma atualização lenta e agrupa eventos concorrentes', async () => {
+    const { wrapper, control, revision } = setup(); await flushPromises()
+    let resolve!: (result: { led: null; buzzer: null }) => void
+    vi.mocked(fetchActuators).mockImplementationOnce(() => new Promise((done) => { resolve = done }))
+    revision.value++; await flushPromises()
+    expect(control.actuatorPhase.value).toBe('ready')
+    for (let index = 0; index < 4; index++) {
+      revision.value++; await flushPromises()
+    }
+    expect(fetchActuators).toHaveBeenCalledTimes(2)
+    expect(control.led.value).toBeNull()
+    resolve({ led: null, buzzer: null }); await flushPromises()
+    expect(control.actuatorPhase.value).toBe('ready')
+    expect(requestLed).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+  it('mantém o estado e o erro durante novas tentativas, e permite recuperação', async () => {
+    const confirmed = { ...pending, status: 'confirmed' as const, confirmed_state: true }
+    vi.mocked(fetchActuators).mockResolvedValueOnce({ led: confirmed, buzzer: null })
+    const { wrapper, control, revision } = setup(); await flushPromises()
+    vi.mocked(fetchActuators).mockRejectedValueOnce(new Error('offline'))
+    revision.value++; await flushPromises()
+    expect(control.actuatorPhase.value).toBe('error')
+    expect(control.led.value).toEqual(confirmed)
+    let resolve!: (result: { led: typeof confirmed; buzzer: null }) => void
+    vi.mocked(fetchActuators).mockImplementationOnce(() => new Promise((done) => { resolve = done }))
+    revision.value++; await flushPromises()
+    expect(control.actuatorPhase.value).toBe('error')
+    expect(control.led.value).toEqual(confirmed)
+    resolve({ led: confirmed, buzzer: null }); await flushPromises()
+    expect(control.actuatorPhase.value).toBe('ready')
+    expect(requestLed).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+  it('não sobrescreve um POST com a consulta iniciada antes dele', async () => {
+    const { wrapper, control } = setup(); await flushPromises()
+    let resolve!: (result: { led: null; buzzer: null }) => void
+    vi.mocked(fetchActuators).mockImplementationOnce(() => new Promise((done) => { resolve = done }))
+    const loading = control.loadActuators('device-a')
+    await control.toggleLed()
+    resolve({ led: null, buzzer: null }); await loading
+    expect(control.led.value).toEqual(pending)
+    expect(control.actuatorPhase.value).toBe('ready')
+    expect(requestLed).toHaveBeenCalledOnce()
+    wrapper.unmount()
+  })
+  it.each(['poll', 'legacy'])('não sobrescreve um ACK recebido via %s com snapshot anterior', async (source) => {
+    vi.mocked(fetchActuators).mockResolvedValueOnce({ led: pending, buzzer: null })
+    const { wrapper, control, legacyEvent } = setup(); await flushPromises()
+    let resolve!: (result: { led: typeof pending; buzzer: null }) => void
+    vi.mocked(fetchActuators).mockImplementationOnce(() => new Promise((done) => { resolve = done }))
+    const loading = control.loadActuators('device-a')
+    const confirmed = { ...pending, status: 'confirmed' as const, confirmed_state: true }
+    if (source === 'poll') {
+      vi.mocked(fetchCommand).mockResolvedValue(confirmed)
+      await vi.advanceTimersByTimeAsync(1_000)
+    } else {
+      legacyEvent.value = { schema_version: 2, type: 'command_status', device_id: 'mqtt-a',
+        environment_id: 'environment-a', occurred_at: '2026-10-20T18:00:00Z', data: confirmed }
+    }
+    resolve({ led: pending, buzzer: null }); await loading
+    expect(control.led.value).toEqual(confirmed)
+    expect(control.actuatorPhase.value).toBe('ready')
+    expect(requestLed).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+  it.each(['token', 'device', 'unmount'])('descarta respostas tardias e libera a seleção nova em %s', async (scope) => {
+    const { wrapper, control, device } = setup(); await flushPromises()
+    let resolve!: (result: { led: typeof pending; buzzer: null }) => void
+    vi.mocked(fetchActuators).mockImplementationOnce(() => new Promise((done) => { resolve = done }))
+    const loading = control.loadActuators('device-a')
+    if (scope === 'token') sessionToken.value = 'token-b'
+    else if (scope === 'device') device.value = 'device-b'
+    else wrapper.unmount()
+    await flushPromises()
+    resolve({ led: pending, buzzer: null }); await loading
+    expect(control.led.value).toBeNull()
+    expect(control.actuatorPhase.value).toBe('ready')
+    expect(fetchActuators).toHaveBeenCalledTimes(scope === 'unmount' ? 2 : 3)
+    if (scope !== 'unmount') wrapper.unmount()
+  })
+
+  it('conclui o primeiro carregamento mesmo recebendo revisões antes da resposta', async () => {
+    let resolve!: (result: { led: null; buzzer: null }) => void
+    vi.mocked(fetchActuators).mockImplementationOnce(() => new Promise((done) => { resolve = done }))
+    const { wrapper, control, revision } = setup()
+    expect(control.actuatorPhase.value).toBe('loading')
+    for (let index = 0; index < 4; index++) { revision.value++; await flushPromises() }
+    expect(fetchActuators).toHaveBeenCalledOnce()
+    resolve({ led: null, buzzer: null }); await flushPromises()
+    expect(control.actuatorPhase.value).toBe('ready')
+    wrapper.unmount()
+  })
+  it('permite repetir manualmente uma consulta inicial que falhou', async () => {
+    vi.mocked(fetchActuators).mockRejectedValueOnce(new Error('offline'))
+    const { wrapper, control } = setup(); await flushPromises()
+    expect(control.actuatorPhase.value).toBe('error')
+    await control.loadActuators('device-a')
+    expect(control.actuatorPhase.value).toBe('ready')
+    expect(fetchActuators).toHaveBeenCalledTimes(2)
+    expect(requestLed).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+  it('não reinicia a espera do ACK ao receber o mesmo pending em atualizações rápidas', async () => {
+    vi.mocked(fetchActuators).mockResolvedValue({ led: pending, buzzer: null })
+    vi.mocked(fetchCommand).mockResolvedValue({ ...pending, status: 'confirmed', confirmed_state: true })
+    const { wrapper, control, revision } = setup(); await flushPromises()
+    await vi.advanceTimersByTimeAsync(500)
+    revision.value++; await flushPromises()
+    await vi.advanceTimersByTimeAsync(450)
+    revision.value++; await flushPromises()
+    await vi.advanceTimersByTimeAsync(50)
+    expect(fetchCommand).toHaveBeenCalledOnce()
+    expect(actuatorLabel(control.led.value)).toBe('Ligado')
+    wrapper.unmount()
+  })
+
+  it('mostra o ACK legado mesmo quando ele chega antes do primeiro snapshot', async () => {
+    let resolve!: (result: { led: null; buzzer: null }) => void
+    vi.mocked(fetchActuators).mockImplementationOnce(() => new Promise((done) => { resolve = done }))
+    const { wrapper, control, legacyEvent } = setup()
+    const confirmed = { ...pending, status: 'confirmed' as const, confirmed_state: true }
+    legacyEvent.value = { schema_version: 2, type: 'command_status', device_id: 'mqtt-a',
+      environment_id: 'environment-a', occurred_at: '2026-10-20T18:00:00Z', data: confirmed }
+    resolve({ led: null, buzzer: null }); await flushPromises()
+    expect(control.led.value).toEqual(confirmed)
+    expect(control.actuatorPhase.value).toBe('ready')
+    wrapper.unmount()
+  })
+
 })

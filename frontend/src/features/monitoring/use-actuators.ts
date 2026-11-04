@@ -23,6 +23,7 @@ export function useActuators(
   const commandError = ref('')
   const commandSubmitting = ref(false)
   let latestActuatorRequest = 0
+  let loadingActuatorRequest: number | null = null
   let commandRevision = 0
   let pendingTimer: ReturnType<typeof setInterval> | null = null
   let pendingChecks = 0
@@ -47,6 +48,7 @@ export function useActuators(
       try {
         const result = await fetchCommand(currentToken, commandId)
         if (!current()) return
+        if (result.status !== 'pending') latestActuatorRequest += 1
         led.value = result
         if (result.status !== 'pending') stopPendingCheck()
       } catch {
@@ -57,19 +59,26 @@ export function useActuators(
 
   async function loadActuators(id: string) {
     const currentToken = token.value
-    if (disposed || !currentToken || deviceId.value !== id || commandSubmitting.value) return
+    if (disposed || !currentToken || deviceId.value !== id || commandSubmitting.value || loadingActuatorRequest !== null) return
     const requestId = ++latestActuatorRequest
-    actuatorPhase.value = 'loading'
+    loadingActuatorRequest = requestId
+    if (actuatorPhase.value === 'idle') actuatorPhase.value = 'loading'
+    const current = () => !disposed && requestId === latestActuatorRequest &&
+      deviceId.value === id && token.value === currentToken
     try {
       const result = await fetchActuators(currentToken, id)
-      if (requestId !== latestActuatorRequest || deviceId.value !== id || token.value !== currentToken) return
+      if (!current()) return
+      const checkingPending = pendingTimer !== null && led.value?.command_id === result.led?.command_id
       led.value = result.led
       buzzer.value = result.buzzer
       actuatorPhase.value = 'ready'
-      if (result.led?.status === 'pending') startPendingCheck(result.led.command_id, id)
-      else stopPendingCheck()
+      if (result.led?.status === 'pending') {
+        if (!checkingPending) startPendingCheck(result.led.command_id, id)
+      } else stopPendingCheck()
     } catch {
-      if (requestId === latestActuatorRequest) actuatorPhase.value = 'error'
+      if (current()) actuatorPhase.value = 'error'
+    } finally {
+      if (loadingActuatorRequest === requestId) loadingActuatorRequest = null
     }
   }
 
@@ -96,6 +105,7 @@ export function useActuators(
 
   watch([token, deviceId], ([currentToken, id]) => {
     latestActuatorRequest += 1
+    loadingActuatorRequest = null
     commandRevision += 1
     led.value = null; buzzer.value = null
     commandError.value = ''; commandSubmitting.value = false
@@ -113,8 +123,10 @@ export function useActuators(
   if (legacyEvent) watch(legacyEvent, (event) => {
     // v3 events invalidate REST state; a redelivery must not overwrite a newer ACK.
     if (!event || event.schema_version === 3 || event.type !== 'command_status' || !isCommand(event.data)) return
+    latestActuatorRequest += 1
     if (event.data.actuator === 'led') led.value = event.data
     else buzzer.value = event.data
+    actuatorPhase.value = 'ready'
     if (event.data.actuator === 'led' && event.data.status !== 'pending') stopPendingCheck()
   }, { flush: 'sync' })
   onUnmounted(() => {

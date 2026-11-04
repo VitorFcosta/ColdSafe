@@ -1,28 +1,43 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { listDevices, listEnvironments, type Device, type Environment } from '../features/account/catalog'
-import { canWrite, clearSession, logout, refreshSessionIdentity, sessionToken } from '../features/account/session'
+import LiveDataRegion from '../features/monitoring/LiveDataRegion.vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
+import { useMonitoringContext } from '../features/monitoring/use-monitoring-context'
+import { canWrite, clearSession, refreshSessionIdentity, sessionToken } from '../features/account/session'
 import { fetchInsights, InsightsAccessError, parsePredictiveRules, savePredictiveRules, type InsightsSnapshot, type PredictiveRules } from '../features/insights/insights-api'
 import { STALE_AFTER_SECONDS } from '../features/monitoring/monitoring-state'
+import { useDraftProtection } from '../features/editing/draft-protection'
+import AreaNavigation from '../features/navigation/AreaNavigation.vue'
+import { formatFreshness } from '../features/monitoring/use-monitoring-summary'
+import { formatReadingTime } from '../features/monitoring/temperature-chart'
 
-const router = useRouter()
-const environments = ref<Environment[]>([])
-const devices = ref<Device[]>([])
-const environmentId = ref('')
-const deviceUuid = ref('')
-const selectedDevice = computed(() => devices.value.find((device) => device.id === deviceUuid.value && device.is_active))
-const catalogLoading = ref(false)
-const catalogFailed = ref(false)
+const { environments, devices, environmentId, deviceUuid, selectedDevice,
+  selectionNotice, catalogLoading, catalogFailed, loadEnvironments, revokeSelection } = useMonitoringContext()
 const snapshot = ref<InsightsSnapshot | null>(null)
 const failed = ref(false)
 const denied = ref(false)
 const loading = ref(false)
 const draft = ref<PredictiveRules | null>(null)
-const dirty = ref(false)
+const baseline = ref<PredictiveRules | null>(null)
+const dirty = computed(() => Boolean(draft.value && baseline.value && JSON.stringify(draft.value) !== JSON.stringify(baseline.value)))
 const saving = ref(false)
 const saveNotice = ref('')
-const logoutError = ref('')
+const validationAttempted = ref(false)
+const rulesForm = ref<HTMLFormElement | null>(null)
+const draftGuard = useDraftProtection({
+  dirty: computed(() => canWrite.value && dirty.value && !saving.value),
+  label: computed(() => `Regras preditivas de ${selectedDevice.value?.name ?? 'equipamento selecionado'}`),
+  discard: () => { draft.value = baseline.value ? { ...baseline.value } : null },
+})
+
+function changeScope(event: Event, target: 'environment' | 'device') {
+  const control = event.target as HTMLSelectElement
+  const id = control.value
+  control.value = target === 'environment' ? environmentId.value : deviceUuid.value
+  void draftGuard.request(() => {
+    if (target === 'environment') environmentId.value = id
+    else deviceUuid.value = id
+  })
+}
 const now = ref(Date.now())
 const fetchedAt = ref(Date.now())
 let selectionRevision = 0
@@ -47,7 +62,7 @@ const statusMessage = computed(() => {
 })
 const trendLabels = { improving: 'Em recuperação', declining: 'Em queda', stable: 'Estável', unknown: 'Desconhecida' }
 const reasonLabels = {
-  no_model: 'Nenhum modelo ativo.', insufficient_history: 'Histórico insuficiente.', invalid_features: 'Variáveis inválidas.',
+  no_model: 'Nenhum modelo ativo.', insufficient_history: 'Histórico insuficiente. Aguardando leituras para completar a janela da previsão.', invalid_features: 'Variáveis inválidas.',
   model_unavailable: 'Não foi possível executar o modelo ativo.', stale_input: 'Entrada desatualizada.',
 }
 const ruleFields: { key: keyof PredictiveRules; label: string; min: number; max?: number; step: string }[] = [
@@ -58,49 +73,43 @@ const ruleFields: { key: keyof PredictiveRules; label: string; min: number; max?
   { key: 'open_count', label: 'Previsões para abrir', min: 1, max: 100, step: '1' },
   { key: 'close_count', label: 'Previsões para encerrar', min: 1, max: 100, step: '1' },
 ]
+const ruleGroups = [
+  { label: 'Saúde estimada (/100)', fields: ruleFields.slice(0, 2) },
+  { label: 'Vida útil restante (h)', fields: ruleFields.slice(2, 4) },
+  { label: 'Persistência do alerta', fields: ruleFields.slice(4) },
+]
+const ruleErrors = computed(() => {
+  const errors: Partial<Record<keyof PredictiveRules, string>> = {}
+  const rules = draft.value
+  if (!validationAttempted.value || !rules) return errors
+  for (const field of ruleFields) {
+    const value = rules[field.key]
+    if (typeof value !== 'number' || !Number.isFinite(value)) errors[field.key] = 'Informe um número válido.'
+    else if (field.step === '1' && !Number.isInteger(value)) errors[field.key] = 'Informe um número inteiro entre 1 e 100.'
+    else if (value < field.min || (field.max !== undefined && value > field.max)) {
+      errors[field.key] = field.max === undefined ? `Informe um valor maior ou igual a ${field.min}.` : `Informe um valor entre ${field.min} e ${field.max}.`
+    }
+  }
+  if (!errors.health_critical && !errors.health_recovery && rules.health_recovery <= rules.health_critical) errors.health_recovery = 'A saúde de recuperação deve superar a saúde crítica.'
+  if (!errors.rul_critical_hours && !errors.rul_recovery_hours && rules.rul_recovery_hours <= rules.rul_critical_hours) errors.rul_recovery_hours = 'A RUL de recuperação deve superar a RUL crítica.'
+  return errors
+})
+function cancelRules() {
+  if (saving.value || !baseline.value) return
+  draft.value = { ...baseline.value }
+  validationAttempted.value = false
+  saveNotice.value = 'Alterações descartadas. Valores confirmados restaurados.'
+}
 const clock = setInterval(() => { now.value = Date.now() }, 1000)
 onUnmounted(() => { selectionRevision += 1; clearInterval(clock); saveController?.abort() })
 
-watch(sessionToken, (token, _old, onCleanup) => {
-  let active = true
-  environments.value = []
-  devices.value = []
-  environmentId.value = ''
-  deviceUuid.value = ''
-  catalogFailed.value = false
-  catalogLoading.value = Boolean(token)
-  onCleanup(() => { active = false })
-  if (!token) { void router.replace('/login'); return }
-  void listEnvironments(token).then((result) => {
-    if (!active) return
-    environments.value = result
-    environmentId.value = result[0]?.id ?? ''
-  }).catch(() => { if (active) catalogFailed.value = true })
-    .finally(() => { if (active && !environmentId.value) catalogLoading.value = false })
-}, { immediate: true, flush: 'sync' })
-
-watch([sessionToken, environmentId], ([token, id], _old, onCleanup) => {
-  let active = true
-  devices.value = []
-  deviceUuid.value = ''
-  onCleanup(() => { active = false })
-  if (!token || !id) return
-  catalogLoading.value = true
-  catalogFailed.value = false
-  void listDevices(token, id).then((result) => {
-    if (!active) return
-    devices.value = result.filter((device) => device.environment_id === id && device.is_active)
-    deviceUuid.value = devices.value[0]?.id ?? ''
-  }).catch(() => { if (active) catalogFailed.value = true })
-    .finally(() => { if (active) catalogLoading.value = false })
-}, { immediate: true, flush: 'sync' })
-
 function revokeAccess(error: InsightsAccessError) {
   snapshot.value = null
+  baseline.value = null
   draft.value = null
   denied.value = true
   if (error.status === 401) clearSession()
-  else void refreshSessionIdentity().catch(() => { /* Unknown permissions remain read-only. */ })
+  else void revokeSelection().then(() => refreshSessionIdentity()).catch(() => { /* Unknown permissions remain read-only. */ })
 }
 
 watch([sessionToken, selectedDevice], ([token, device], _old, onCleanup) => {
@@ -108,12 +117,13 @@ watch([sessionToken, selectedDevice], ([token, device], _old, onCleanup) => {
   saveController?.abort()
   snapshot.value = null
   draft.value = null
-  dirty.value = false
+  baseline.value = null
   failed.value = false
   denied.value = false
   loading.value = false
   saving.value = false
   saveNotice.value = ''
+  validationAttempted.value = false
   if (!token || !device) return
   let active = true
   let pending = false
@@ -133,7 +143,7 @@ watch([sessionToken, selectedDevice], ([token, device], _old, onCleanup) => {
       failed.value = false
       fetchedAt.value = Date.now()
       now.value = Date.now()
-      if (!dirty.value) draft.value = { ...result.rules }
+      if (!dirty.value) { baseline.value = { ...result.rules }; draft.value = { ...result.rules } }
     } catch (error) {
       if (!active) return
       failed.value = true
@@ -155,7 +165,15 @@ async function saveRules() {
   if (!canWrite.value || !token || !device || saving.value || denied.value) return
   const rules = parsePredictiveRules(draft.value)
   saveNotice.value = ''
-  if (!rules) { saveNotice.value = 'Regras inválidas. Recuperação deve superar o limite crítico; contagens inteiras entre 1 e 100.'; return }
+  if (!rules) {
+    validationAttempted.value = true
+    saveNotice.value = 'Regras inválidas. Confira os campos indicados.'
+    await nextTick()
+    const first = ruleFields.find((field) => ruleErrors.value[field.key])
+    if (first) rulesForm.value?.querySelector<HTMLInputElement>(`[name="${first.key}"]`)?.focus()
+    return
+  }
+  validationAttempted.value = false
   const revision = selectionRevision
   saveController = new AbortController()
   const deadline = setTimeout(() => saveController?.abort(), 8000)
@@ -166,7 +184,7 @@ async function saveRules() {
     rulesRevision += 1
     draft.value = { ...saved }
     if (snapshot.value) snapshot.value = { ...snapshot.value, rules: saved }
-    dirty.value = false
+    baseline.value = { ...saved }
     saveNotice.value = 'Regras salvas. As próximas previsões usarão os limites confirmados.'
   } catch (error) {
     if (revision !== selectionRevision) return
@@ -178,91 +196,193 @@ async function saveRules() {
   }
 }
 
-async function signOut() {
-  logoutError.value = ''
-  try { await logout() } catch { logoutError.value = 'Não foi possível encerrar a sessão. Tente novamente.' }
-}
 const format = (value: number | null | undefined) => value?.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) ?? '—'
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+const formatTime = (value: string) => formatReadingTime(value, timeZone)
+const inputAgeLabel = computed(() => ageSeconds.value === null ? 'Sem entrada confirmada' : formatFreshness(ageSeconds.value))
 </script>
 
 <template>
   <main class="insights">
-    <a class="skip-link" href="#insights-title">Ir para o conteúdo</a>
     <div class="shell">
-      <header class="nav">
-        <RouterLink to="/" class="brand"><span aria-hidden="true">◉</span> ColdSafe</RouterLink>
-        <nav aria-label="Navegação principal">
-          <RouterLink to="/dashboard">Monitoramento</RouterLink><RouterLink to="/insights" aria-current="page">Insights</RouterLink><RouterLink to="/digital-twin">Gêmeo digital</RouterLink>
-          <RouterLink to="/manage">Ambientes e dispositivos</RouterLink><RouterLink to="/messaging">Mensageria</RouterLink>
-          <RouterLink to="/laboratory">Laboratório</RouterLink><RouterLink to="/training">Treinamento</RouterLink><RouterLink to="/assistant">Assistente</RouterLink>
-        </nav>
-        <button type="button" @click="signOut">Sair</button>
+      <header class="heading">
+        <h1 id="insights-title" tabindex="-1">Saúde e previsões</h1>
+        <p>Saúde estimada, vida útil restante e alertas persistentes por equipamento.</p>
       </header>
-      <p v-if="logoutError" role="alert">{{ logoutError }}</p>
-      <section class="heading"><p class="eyebrow">Manutenção preditiva</p><h1 id="insights-title" tabindex="-1">Insights</h1><p>Saúde estimada, vida útil restante e alertas persistentes por equipamento.</p></section>
-      <section class="panel" aria-label="Selecionar equipamento">
+      <section class="selection" aria-label="Selecionar equipamento">
         <div class="fields">
-          <label>Ambiente<select v-model="environmentId" name="environment"><option v-for="environment in environments" :key="environment.id" :value="environment.id">{{ environment.name }}</option></select></label>
-          <label>Equipamento<select v-model="deviceUuid" name="device"><option v-for="device in devices" :key="device.id" :value="device.id">{{ device.name }}</option></select></label>
+          <label for="insights-environment">Ambiente
+            <select id="insights-environment" :value="environmentId" name="environment" @change="changeScope($event, 'environment')" :disabled="catalogLoading || !environments.length">
+              <option value="" disabled>Selecione um ambiente</option><option v-for="environment in environments" :key="environment.id" :value="environment.id">{{ environment.name }}</option>
+            </select>
+          </label>
+          <label for="insights-device">Equipamento
+            <select id="insights-device" :value="deviceUuid" name="device" @change="changeScope($event, 'device')" :disabled="catalogLoading || !devices.length">
+              <option value="" disabled>Selecione um dispositivo</option><option v-for="device in devices" :key="device.id" :value="device.id">{{ device.name }}</option>
+            </select>
+          </label>
         </div>
-        <p v-if="catalogFailed" role="alert">Não foi possível carregar o catálogo. Reabra esta página para tentar novamente.</p>
+        <p v-if="selectionNotice" role="status">{{ selectionNotice }}</p>
+        <p v-if="catalogFailed" role="alert" class="notice error">Não foi possível carregar o catálogo. <button type="button" @click="loadEnvironments">Tentar novamente</button></p>
         <p v-else-if="catalogLoading" role="status">Carregando equipamentos autorizados…</p>
         <p v-else-if="environments.length === 0" role="status">Nenhum ambiente autorizado. <RouterLink to="/manage">Gerenciar ambientes</RouterLink></p>
         <p v-else-if="devices.length === 0" role="status">Nenhum equipamento ativo neste ambiente.</p>
       </section>
-      <template v-if="selectedDevice">
-        <section class="panel" aria-label="Insights do equipamento" :aria-busy="loading">
-          <h2>{{ selectedDevice.name }}</h2>
-          <p role="status" aria-live="polite">{{ statusMessage }}</p>
-          <p v-if="failed && !denied" role="alert">Não foi possível atualizar os Insights. Ausência de dados não significa recuperação. Alertas da última consulta confirmada são mantidos.</p>
-          <p v-if="!available && !denied">Ausência de previsão válida não significa recuperação.</p>
-          <p v-if="snapshot?.prediction?.data.reason && !failed">{{ reasonLabels[snapshot.prediction.data.reason] }}</p>
-          <dl>
-            <div><dt>Saúde</dt><dd>{{ available ? `${format(snapshot?.prediction?.data.health_score)} / 100` : '—' }}</dd></div>
-            <div><dt>RUL</dt><dd>{{ available ? `${format(snapshot?.prediction?.data.rul_hours)} h` : '—' }}</dd></div>
-            <div><dt>Tendência</dt><dd>{{ available && snapshot ? trendLabels[snapshot.trend] : 'Desconhecida' }}</dd></div>
+      <AreaNavigation />
+      <LiveDataRegion v-if="selectedDevice" :reset-key="deviceUuid">
+        <section aria-label="Insights do equipamento" :aria-busy="loading" class="estimates">
+          <div class="section-heading"><h2>{{ selectedDevice.name }}</h2><p class="availability" role="status" aria-live="polite">{{ statusMessage }}</p></div>
+          <p v-if="failed && !denied" role="alert" class="notice error">Não foi possível atualizar os Insights. Ausência de dados não significa recuperação. Alertas da última consulta confirmada são mantidos.</p>
+          <p v-if="snapshot?.prediction?.data.reason && !failed" class="notice">{{ reasonLabels[snapshot.prediction.data.reason] }}</p>
+          <dl class="estimate-values">
+            <div><dt>Saúde estimada</dt><dd>{{ available ? `${format(snapshot?.prediction?.data.health_score)} / 100` : '—' }}</dd></div>
+            <div><dt>Vida útil restante estimada</dt><dd>{{ available ? `${format(snapshot?.prediction?.data.rul_hours)} h` : '—' }}</dd></div>
             <div><dt>Versão do modelo</dt><dd>{{ snapshot?.prediction?.data.model_version ?? 'Sem modelo confirmado' }}</dd></div>
-            <div><dt>Idade da previsão</dt><dd>{{ ageSeconds !== null && snapshot?.prediction ? `há ${ageSeconds} s (desde a entrada)` : 'Sem previsão confirmada' }}</dd></div>
-            <div v-if="!snapshot?.prediction && ageSeconds !== null"><dt>Idade da entrada</dt><dd>há {{ ageSeconds }} s</dd></div>
+            <div><dt>Idade da entrada</dt><dd>{{ inputAgeLabel }}</dd></div>
           </dl>
-          <p>Estimativas do modelo para a entrada recebida. Uma previsão não renova a atualidade dos sensores.</p>
+          <p class="origin">Estimativas baseadas em dados sintéticos, sem calibração física. Condição térmica não é diagnóstico global.</p>
+          <p v-if="!available && !denied">Ausência de previsão válida não significa recuperação.</p>
+          <details class="origin-details">
+            <summary>Origem da previsão e horários</summary>
+            <dl class="metadata">
+              <div><dt>Equipamento</dt><dd>{{ snapshot?.equipment_id ?? 'Não identificado' }}</dd></div>
+              <div><dt>Versão das variáveis</dt><dd>{{ snapshot?.prediction?.data.features_version ?? 'Sem versão confirmada' }}</dd></div>
+              <div><dt>Entrada recebida em</dt><dd><time v-if="snapshot?.prediction" :datetime="snapshot.prediction.data.input_received_at">{{ formatTime(snapshot.prediction.data.input_received_at) }}</time><span v-else>Sem entrada de previsão identificada</span></dd></div>
+              <div><dt>Previsão calculada em</dt><dd><time v-if="snapshot?.prediction" :datetime="snapshot.prediction.occurred_at">{{ formatTime(snapshot.prediction.occurred_at) }}</time><span v-else>Sem previsão confirmada</span></dd></div>
+            </dl>
+            <p>Horários no fuso {{ timeZone }}. Última previsão recebida para este equipamento, referente à sua própria entrada de dados. Uma previsão não renova a atualidade dos sensores.</p>
+          </details>
         </section>
-        <section class="panel" aria-label="Alertas preditivos ativos">
-          <h2>Alertas preditivos ativos</h2>
-          <ul v-if="snapshot?.active_alerts.length"><li v-for="alert in snapshot.active_alerts" :key="alert.alert_id"><strong>Alerta preditivo persistente</strong> · Aberto em <time :datetime="alert.opened_at">{{ new Date(alert.opened_at).toLocaleString('pt-BR') }}</time></li></ul>
-          <p v-else-if="available">Nenhum alerta preditivo ativo na última consulta confirmada.</p>
-          <p v-else>Situação atual dos alertas não confirmada. Aguardando previsão válida e consulta disponível.</p>
-          <p>Este alerta indica falha estimada do equipamento. O buzzer térmico continua separado e segue as regras de temperatura.</p>
-        </section>
-        <section v-if="snapshot && draft && !denied" class="panel" aria-label="Limites preditivos">
+        <div class="analysis-grid">
+          <section class="panel" aria-label="Tendência das estimativas">
+            <h2>Tendência das estimativas</h2>
+            <p>Saúde e vida útil restante do mesmo equipamento.</p>
+            <dl class="trend-rows">
+              <div><dt>Situação na última consulta</dt><dd>{{ available && snapshot ? trendLabels[snapshot.trend] : 'Desconhecida' }}</dd></div>
+              <div><dt>Entrada da previsão</dt><dd>{{ inputAgeLabel }}</dd></div>
+            </dl>
+            <p v-if="!available">A tendência depende de uma previsão válida e recente.</p>
+          </section>
+          <section class="panel" aria-label="Alertas preditivos ativos">
+            <h2>Alertas preditivos ativos</h2>
+            <ul v-if="snapshot?.active_alerts.length" class="events">
+              <li v-for="alert in snapshot.active_alerts" :key="alert.alert_id">
+                <strong class="persistent-alert">Alerta preditivo persistente</strong>
+                <p>Aberto em <time :datetime="alert.opened_at">{{ formatTime(alert.opened_at) }}</time></p>
+                <details><summary>Identificadores do evento</summary>
+                  <dl class="event-ids">
+                    <div><dt>Alerta</dt><dd>{{ alert.alert_id }}</dd></div>
+                    <div><dt>Leitura de origem</dt><dd>{{ alert.source_event_id }}</dd></div>
+                    <div><dt>Previsão de origem</dt><dd>{{ alert.prediction_event_id }}</dd></div>
+                  </dl>
+                </details>
+              </li>
+            </ul>
+            <p v-else-if="available">Nenhum alerta preditivo ativo na última consulta confirmada.</p>
+            <p v-else>Situação atual dos alertas não confirmada. Aguardando previsão válida e consulta disponível.</p>
+            <p>Indisponibilidade da previsão não encerra um alerta existente. O buzzer térmico continua separado e segue as regras de temperatura.</p>
+          </section>
+        </div>
+        <section v-if="snapshot && draft && !denied" class="panel rules-panel" aria-label="Limites preditivos">
           <h2>Regras preditivas</h2>
-          <p>Limites iniciais de protótipo, configuráveis e não calibrados para equipamentos reais. Valide os valores com dados do equipamento antes de usá-los operacionalmente.</p>
-          <p>{{ snapshot.rules.open_count }} previsões críticas consecutivas para abrir; {{ snapshot.rules.close_count }} recuperadas consecutivas para encerrar.</p>
-          <p>Abre quando saúde ≤ {{ snapshot.rules.health_critical }} ou RUL ≤ {{ snapshot.rules.rul_critical_hours }} h. Recupera quando saúde ≥ {{ snapshot.rules.health_recovery }} e RUL ≥ {{ snapshot.rules.rul_recovery_hours }} h.</p>
-          <form v-if="canWrite" aria-label="Regras preditivas" @submit.prevent="saveRules">
-            <div class="fields"><label v-for="field in ruleFields" :key="field.key">{{ field.label }}<input v-model.number="draft[field.key]" :name="field.key" type="number" :min="field.min" :max="field.max" :step="field.step" required :disabled="saving" @input="dirty = true; saveNotice = ''" /></label></div>
-            <button type="submit" :disabled="saving">{{ saving ? 'Salvando…' : 'Salvar regras' }}</button>
+          <p>Limites de protótipo, configuráveis e não calibrados para equipamentos reais. Valide os valores com dados do equipamento antes de usá-los operacionalmente.</p>
+          <details class="rules-explanation">
+            <summary>Como os limites abrem e encerram alertas</summary>
+            <p>Valores confirmados: {{ snapshot.rules.open_count }} previsões críticas consecutivas para abrir; {{ snapshot.rules.close_count }} recuperadas consecutivas para encerrar.</p>
+            <p>Abre quando saúde ≤ {{ snapshot.rules.health_critical }} ou RUL ≤ {{ snapshot.rules.rul_critical_hours }} h. Recupera quando saúde ≥ {{ snapshot.rules.health_recovery }} e RUL ≥ {{ snapshot.rules.rul_recovery_hours }} h.</p>
+            <p>Recuperação deve superar o limite crítico. As contagens aceitam somente números inteiros entre 1 e 100.</p>
+          </details>
+          <form v-if="canWrite" ref="rulesForm" aria-label="Regras preditivas" novalidate :aria-busy="saving" @submit.prevent="saveRules">
+            <p v-if="dirty && !saving" role="status" class="notice unsaved">Há alterações não salvas neste equipamento. Atualizações automáticas preservam a edição.</p>
+            <div class="rule-groups">
+              <fieldset v-for="group in ruleGroups" :key="group.label">
+                <legend>{{ group.label }}</legend>
+                <div v-for="field in group.fields" :key="field.key" class="rule-field">
+                  <label :for="`rule-${field.key}`">{{ field.label }}</label>
+                  <input :id="`rule-${field.key}`" v-model.number="draft[field.key]" :name="field.key" type="number" :min="field.min" :max="field.max" :step="field.step" required :disabled="saving" :aria-invalid="Boolean(ruleErrors[field.key])" :aria-describedby="`rule-${field.key}-hint${ruleErrors[field.key] ? ` rule-${field.key}-error` : ''}`" @input="saveNotice = ''" />
+                  <p :id="`rule-${field.key}-hint`" class="field-hint">{{ field.step === '1' ? 'Inteiro de 1 a 100.' : field.max === 100 ? 'Valor de 0 a 100.' : 'Horas, a partir de zero.' }}</p>
+                  <p v-if="ruleErrors[field.key]" :id="`rule-${field.key}-error`" class="field-error">{{ ruleErrors[field.key] }}</p>
+                </div>
+              </fieldset>
+            </div>
+            <div class="actions">
+              <button type="submit" class="primary" :disabled="saving">{{ saving ? 'Salvando…' : 'Salvar regras' }}</button>
+              <button type="button" :disabled="saving || !dirty" @click="cancelRules">Cancelar alterações</button>
+            </div>
           </form>
-          <p v-else>Somente operadores e administradores podem alterar as regras. Seu acesso é de leitura.</p>
-          <p v-if="saveNotice" role="status">{{ saveNotice }}</p>
+          <template v-else>
+            <dl class="read-only-rules"><div v-for="field in ruleFields" :key="field.key"><dt>{{ field.label }}</dt><dd>{{ format(snapshot.rules[field.key]) }}</dd></div></dl>
+            <p>Somente operadores e administradores podem alterar as regras. Seu acesso é de leitura.</p>
+          </template>
+          <p v-if="saveNotice" role="status" class="save-notice">{{ saveNotice }}</p>
         </section>
-      </template>
+      </LiveDataRegion>
     </div>
   </main>
 </template>
 
 <style scoped>
-.insights { min-height: 100vh; padding: var(--cs-space-48); color: var(--cs-color-ink); background: var(--cs-color-canvas); }
-.shell { max-width: 1280px; margin: auto; display: grid; gap: var(--cs-space-24); min-width: 0; }
-.nav { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--cs-space-24); padding-bottom: var(--cs-space-32); border-bottom: 1px solid var(--cs-color-line); }
-.brand { font-weight: 700; }.nav nav { display: flex; flex-wrap: wrap; gap: var(--cs-space-16); font-size: var(--cs-type-14); }
-a, button { color: var(--cs-color-accent); }.nav a, button { display: inline-flex; align-items: center; min-height: 44px; }button { cursor: pointer; }button:disabled { opacity: .6; cursor: not-allowed; }a:hover, button:hover { text-decoration: underline; }
-h1 { font-size: var(--cs-type-32); font-weight: 600; }h2 { font-size: var(--cs-type-20); font-weight: 600; }.eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: var(--cs-type-12); color: var(--cs-color-ink-muted); }
+.insights { min-height: 100vh; padding: var(--cs-space-32); color: var(--cs-color-ink); background: var(--cs-color-canvas); line-height: 1.5; overflow-wrap: anywhere; }
+.shell { max-width: 1280px; margin: auto; min-width: 0; }
+.heading { margin-bottom: var(--cs-space-24); }
+h1 { font-size: var(--cs-type-32); line-height: 1.25; font-weight: 650; letter-spacing: -.025em; }
+h2 { font-size: var(--cs-type-20); font-weight: 650; }
+p { margin-top: var(--cs-space-12); color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); line-height: 1.6; }
+a { color: var(--cs-color-accent); text-decoration: underline; }
+button, input, select { min-height: var(--cs-control-min-height); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); color: var(--cs-color-ink); }
+input, select { width: 100%; min-width: 0; padding: var(--cs-space-8) var(--cs-space-12); font-size: var(--cs-type-16); }
+button { padding: var(--cs-space-12) var(--cs-space-16); font-size: var(--cs-type-14); font-weight: 600; cursor: pointer; }
+button:hover:enabled { background: var(--cs-color-surface-muted); }
+button:disabled { background: var(--cs-color-surface-muted); color: var(--cs-color-ink-muted); cursor: not-allowed; }
+.primary { border-color: var(--cs-color-accent); background: var(--cs-color-accent); color: var(--cs-color-accent-ink); }
+.primary:hover:enabled { background: var(--cs-color-accent-hover); }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cs-space-24); }
+.fields label, .rule-field label { display: grid; gap: var(--cs-space-8); color: var(--cs-color-ink); font-size: var(--cs-type-14); font-weight: 600; }
+.selection { margin-bottom: var(--cs-space-24); }
 .panel { min-width: 0; padding: var(--cs-space-24); background: var(--cs-color-surface); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-panel); }
-p { margin-top: var(--cs-space-12); line-height: 1.7; overflow-wrap: anywhere; }[role=alert] { border-left: 3px solid var(--cs-color-status-attention); padding-left: var(--cs-space-12); }
-.fields, dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cs-space-16); }label { display: grid; gap: var(--cs-space-8); font-weight: 600; }input, select { width: 100%; min-width: 0; min-height: 44px; padding: var(--cs-space-8); background: var(--cs-color-canvas); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-4); }
-dl, form { margin-top: var(--cs-space-24); }dt { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }dd { margin-top: var(--cs-space-8); font-size: var(--cs-type-20); overflow-wrap: anywhere; }form button { margin-top: var(--cs-space-16); padding: var(--cs-space-8) var(--cs-space-16); border: 1px solid var(--cs-color-accent); border-radius: var(--cs-radius-4); }ul { padding-left: var(--cs-space-24); margin-top: var(--cs-space-16); list-style: disc; }li { overflow-wrap: anywhere; }
-.skip-link { position: absolute; transform: translateY(-200%); }.skip-link:focus { transform: none; background: var(--cs-color-surface); padding: var(--cs-space-12); }
-@media (max-width: 800px) { .insights { padding: var(--cs-space-24); }.nav { gap: var(--cs-space-8); }.nav nav { order: 3; width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }.nav a { min-width: 0; overflow-wrap: anywhere; }.panel { padding: var(--cs-space-16); }h1 { font-size: var(--cs-type-24); } }
-@media (max-width: 420px) { .fields, dl { grid-template-columns: minmax(0, 1fr); } }
+.estimates { margin-bottom: var(--cs-space-24); }
+.section-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--cs-space-8) var(--cs-space-24); margin-bottom: var(--cs-space-16); }
+.section-heading p { margin: 0; }
+.estimate-values { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--cs-space-12); }
+.estimate-values > div { min-width: 0; padding: var(--cs-space-16); background: var(--cs-color-surface); border-radius: var(--cs-radius-8); }
+dt { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
+dd { margin-top: var(--cs-space-8); }
+.estimate-values dd { font-size: var(--cs-type-24); font-weight: 650; }
+.origin { color: var(--cs-color-status-stale); }
+summary { min-height: var(--cs-control-min-height); padding-block: var(--cs-space-12); color: var(--cs-color-accent); font-size: var(--cs-type-14); font-weight: 600; cursor: pointer; }
+.origin-details { margin-top: var(--cs-space-12); border-block: 1px solid var(--cs-color-line); }
+.metadata, .read-only-rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cs-space-16); padding-bottom: var(--cs-space-16); }
+.analysis-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; gap: var(--cs-space-24); }
+.trend-rows { margin-top: var(--cs-space-24); }
+.trend-rows > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--cs-space-8) var(--cs-space-16); padding-block: var(--cs-space-12); border-bottom: 1px solid var(--cs-color-line); }
+.trend-rows dd { margin: 0; font-weight: 600; }
+.events li { margin-top: var(--cs-space-16); padding-top: var(--cs-space-16); border-top: 1px solid var(--cs-color-line); }
+.events li:first-child { padding-top: 0; border-top: 0; }
+.persistent-alert { color: var(--cs-color-status-attention); }
+.event-ids { display: grid; gap: var(--cs-space-12); }
+.rules-panel { margin-top: var(--cs-space-24); }
+.rules-explanation { margin-top: var(--cs-space-12); }
+.rule-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cs-space-24); margin-top: var(--cs-space-24); }
+fieldset { min-width: 0; }
+legend { padding: 0; margin-bottom: var(--cs-space-16); font-weight: 600; }
+.rule-field + .rule-field { margin-top: var(--cs-space-16); }
+.rule-field input { margin-top: var(--cs-space-8); }
+.field-hint, .field-error { margin-top: var(--cs-space-4); font-size: var(--cs-type-14); }
+.field-error { color: var(--cs-color-status-critical); }
+input[aria-invalid='true'] { border-color: var(--cs-color-status-critical); }
+.notice { padding: var(--cs-space-16); border: 1px solid var(--cs-color-status-stale); border-radius: var(--cs-radius-8); background: var(--cs-color-stale-surface); color: var(--cs-color-status-stale); }
+.notice.error { border-color: var(--cs-color-status-critical); background: var(--cs-color-critical-surface); color: var(--cs-color-status-critical); }
+.notice.unsaved { border-color: var(--cs-color-status-attention); background: var(--cs-color-attention-surface); color: var(--cs-color-status-attention); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--cs-space-12); margin-top: var(--cs-space-24); }
+.read-only-rules { margin-top: var(--cs-space-24); }
+.save-notice { color: var(--cs-color-ink); }
+@media (max-width: 74rem) { .estimate-values { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 50rem) {
+  .insights { padding: var(--cs-space-16); }
+  h1 { font-size: var(--cs-type-24); }
+  .fields, .analysis-grid, .rule-groups { grid-template-columns: minmax(0, 1fr); }
+  .fields, .rule-groups { gap: var(--cs-space-16); }
+  .panel { padding: var(--cs-space-16); }
+}
+@media (max-width: 374px) { .metadata, .read-only-rules { grid-template-columns: minmax(0, 1fr); } }
 </style>

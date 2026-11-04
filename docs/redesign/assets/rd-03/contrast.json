@@ -1,0 +1,82 @@
+{
+  "browser": "153.0.8010.12",
+  "measured": [
+    {
+      "name": "Navegação normal",
+      "front": "rgb(18, 46, 51)",
+      "back": "rgb(255, 255, 255)",
+      "ratio": 14.34,
+      "minimum": 4.5
+    },
+    {
+      "name": "Área selecionada",
+      "front": "rgb(12, 109, 101)",
+      "back": "rgb(233, 240, 238)",
+      "ratio": 5.36,
+      "minimum": 4.5
+    },
+    {
+      "name": "Borda de seleção / canvas",
+      "front": "rgb(12, 109, 101)",
+      "back": "rgb(255, 255, 255)",
+      "ratio": 6.19,
+      "minimum": 3
+    },
+    {
+      "name": "Navegação hover",
+      "front": "rgb(18, 46, 51)",
+      "back": "rgb(233, 240, 238)",
+      "ratio": 12.4,
+      "minimum": 4.5
+    },
+    {
+      "name": "Identidade secundária",
+      "front": "rgb(82, 108, 112)",
+      "back": "rgb(255, 255, 255)",
+      "ratio": 5.62,
+      "minimum": 4.5
+    },
+    {
+      "name": "Link local selecionado",
+      "front": "rgb(12, 109, 101)",
+      "back": "rgb(243, 246, 245)",
+      "ratio": 5.69,
+      "minimum": 4.5
+    },
+    {
+      "name": "Indicador local / canvas",
+      "front": "rgb(12, 109, 101)",
+      "back": "rgb(243, 246, 245)",
+      "ratio": 5.69,
+      "minimum": 3
+    },
+    {
+      "name": "Texto do diálogo",
+      "front": "rgb(18, 46, 51)",
+      "back": "rgb(255, 255, 255)",
+      "ratio": 14.34,
+      "minimum": 4.5
+    },
+    {
+      "name": "Ação de fechar",
+      "front": "rgb(18, 46, 51)",
+      "back": "rgb(255, 255, 255)",
+      "ratio": 14.34,
+      "minimum": 4.5
+    },
+    {
+      "name": "Borda do controle",
+      "front": "rgb(104, 126, 126)",
+      "back": "rgb(255, 255, 255)",
+      "ratio": 4.31,
+      "minimum": 3
+    },
+    {
+      "name": "Foco no diálogo",
+      "front": "rgb(8, 108, 104)",
+      "back": "rgb(255, 255, 255)",
+      "ratio": 6.26,
+      "minimum": 3
+    }
+  ]
+}

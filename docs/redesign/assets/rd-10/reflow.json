@@ -1,0 +1,63 @@
+{
+  "width": 320,
+  "scrollWidth": 320,
+  "fontSize": "32px",
+  "overflow": [
+    {
+      "tag": "TABLE",
+      "className": "w-full border-collapse text-left text-sm",
+      "id": "",
+      "right": 357.9375,
+      "width": 325.9375
+    },
+    {
+      "tag": "CAPTION",
+      "className": "mb-2 text-left text-ink-muted",
+      "id": "",
+      "right": 357.9375,
+      "width": 325.9375
+    },
+    {
+      "tag": "THEAD",
+      "className": "",
+      "id": "",
+      "right": 357.9375,
+      "width": 325.9375
+    },
+    {
+      "tag": "TR",
+      "className": "border-b border-line",
+      "id": "",
+      "right": 357.9375,
+      "width": 325.9375
+    },
+    {
+      "tag": "TH",
+      "className": "py-2 text-right",
+      "id": "",
+      "right": 357.9375,
+      "width": 120.984375
+    },
+    {
+      "tag": "TBODY",
+      "className": "",
+      "id": "",
+      "right": 357.9375,
+      "width": 325.9375
+    },
+    {
+      "tag": "TR",
+      "className": "border-b border-line",
+      "id": "",
+      "right": 357.9375,
+      "width": 325.9375
+    },
+    {
+      "tag": "TD",
+      "className": "py-2 text-right",
+      "id": "",
+      "right": 357.9375,
+      "width": 120.984375
+    }
+  ]
+}

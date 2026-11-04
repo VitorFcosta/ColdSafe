@@ -1,0 +1,8 @@
+{
+  "source": "Computed styles recorded by E2E desktop-layout.json; focus and all adjacent colors not exhaustively audited",
+  "ratios": {
+    "input_text_on_surface": 14.34,
+    "input_border_on_surface": 4.31,
+    "primary_text_on_accent": 6.19
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "sourceCheckpoint": "RD-09 \u2014 31/10/2026",
+  "newBenchmark": false,
+  "checkedSceneSources": {
+    "frontend/src/features/digital-twin/DigitalTwinScene.vue": {
+      "sha256": "0d01ecad3672fa4706ca946435eeef5d5ecd67711704e933e48eb2b8c30fb9a3",
+      "matchesRD09": true
+    },
+    "frontend/src/features/digital-twin/fan-model.ts": {
+      "sha256": "a4565e8e786b82f9dd95c583311687592763ff5a1e27537477be6f786107c88f",
+      "matchesRD09": true
+    },
+    "frontend/experiments/rd02/Experiment.vue": {
+      "sha256": "a1ee42f642c28c7c5d605d2ffa597ec9a375c6c171ab2fa3fbd5f1152e7b7fc2",
+      "matchesRD09": true
+    },
+    "frontend/experiments/rd02/LegacyScene.vue": {
+      "sha256": "7d394a0680acc2b50b081ec9e14d3786699d4e97624d6191845fa8bd1a0fd8f3",
+      "matchesRD09": true
+    },
+    "frontend/experiments/rd02/visibility-native.mjs": {
+      "sha256": "27bd050687abf702abc2ed54d010230bca81e7bb46c0998dce4cea3bc0cbcd12",
+      "matchesRD09": true
+    }
+  },
+  "limitations": [
+    "Raw passedDesktopCriteria=false remains preserved; visibility-native evidence is complementary.",
+    "No new mobile physical GPU measurement or performance claim.",
+    "Current digital-twin.spec.ts gained a scenario, which does not alter renderer sources."
+  ]
+}

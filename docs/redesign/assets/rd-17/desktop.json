@@ -1,0 +1,58 @@
+{
+  "scenario": {
+    "width": 1440,
+    "height": 1024,
+    "text": 100
+  },
+  "browser": "153.0.8010.12",
+  "styles": {
+    ".presentation": {
+      "color": "rgb(237, 246, 243)",
+      "background": "rgb(8, 27, 32)",
+      "outline": "#b7f9e8",
+      "fontSize": "16px"
+    },
+    "h1": {
+      "color": "rgb(237, 246, 243)",
+      "background": "rgb(8, 27, 32)",
+      "outline": "#b7f9e8",
+      "fontSize": "48px"
+    },
+    ".lead": {
+      "color": "rgb(168, 191, 189)",
+      "background": "rgb(8, 27, 32)",
+      "outline": "#b7f9e8",
+      "fontSize": "20px"
+    },
+    ".button-primary": {
+      "color": "rgb(11, 48, 46)",
+      "background": "rgb(155, 241, 217)",
+      "outline": "#b7f9e8",
+      "fontSize": "14px"
+    },
+    ".hero-actions .button:not(.button-primary)": {
+      "color": "rgb(237, 246, 243)",
+      "background": "rgb(16, 42, 48)",
+      "outline": "#b7f9e8",
+      "fontSize": "14px"
+    },
+    ".hero-preview figcaption": {
+      "color": "rgb(82, 108, 112)",
+      "background": "rgb(243, 246, 245)",
+      "outline": "#b7f9e8",
+      "fontSize": "14px"
+    },
+    ".architecture-step p": {
+      "color": "rgb(168, 191, 189)",
+      "background": "rgb(16, 42, 48)",
+      "outline": "#b7f9e8",
+      "fontSize": "14px"
+    },
+    ".footer p": {
+      "color": "rgb(168, 191, 189)",
+      "background": "rgb(8, 27, 32)",
+      "outline": "#b7f9e8",
+      "fontSize": "14px"
+    }
+  }
+}

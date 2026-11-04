@@ -1,0 +1,52 @@
+
+> coldsafe-frontend@0.1.0 build
+> npm run typecheck && vite build
+
+
+> coldsafe-frontend@0.1.0 typecheck
+> vue-tsc --noEmit -p tsconfig.app.json
+
+vite v8.2.4 building client environment for production...
+transforming...
+✓ 507 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                      0.68 kB │ gzip:   0.38 kB
+dist/assets/laboratory-api-BlFaRGN6.css              0.90 kB │ gzip:   0.34 kB
+dist/assets/AccessView-C-BqYIsv.css                  1.46 kB │ gzip:   0.51 kB
+dist/assets/MessagingView-BtcpRVAj.css               2.17 kB │ gzip:   0.63 kB
+dist/assets/TemperatureHistoryChart-B64xlGf0.css     2.79 kB │ gzip:   0.71 kB
+dist/assets/AssistantView-DCm39aPV.css               3.69 kB │ gzip:   0.97 kB
+dist/assets/LaboratoryView-DPlhKFI9.css              3.92 kB │ gzip:   0.99 kB
+dist/assets/TrainingView-BtL1fjjT.css                4.26 kB │ gzip:   1.07 kB
+dist/assets/ManageView-CqwucAKE.css                  5.52 kB │ gzip:   1.27 kB
+dist/assets/FoundationView-D-02bkkw.css              6.07 kB │ gzip:   1.21 kB
+dist/assets/InsightsView-Dh4xv8Gd.css                6.32 kB │ gzip:   1.24 kB
+dist/assets/LandingView-C4T8avSy.css                 8.68 kB │ gzip:   1.68 kB
+dist/assets/DigitalTwinView-BvZXZJc2.css             9.82 kB │ gzip:   1.86 kB
+dist/assets/index-DyYrAYbf.css                      22.93 kB │ gzip:   5.60 kB
+dist/assets/AccessView-aNIviNOl.js                   3.08 kB │ gzip:   1.47 kB
+dist/assets/insights-api-C3z2AHF3.js                 3.58 kB │ gzip:   1.44 kB
+dist/assets/laboratory-api-LzAc0E5N.js               7.74 kB │ gzip:   3.28 kB
+dist/assets/temperature-chart-uPp9IUvd.js            8.09 kB │ gzip:   3.38 kB
+dist/assets/MessagingView--TJ8wjOn.js               10.76 kB │ gzip:   3.92 kB
+dist/assets/AssistantView-DzrKjFWt.js               12.67 kB │ gzip:   5.23 kB
+dist/assets/session-H6HLtf3b.js                     14.74 kB │ gzip:   5.05 kB
+dist/assets/InsightsView-Xg5f-HkF.js                15.39 kB │ gzip:   5.80 kB
+dist/assets/LaboratoryView-Bjmx9mM9.js              15.93 kB │ gzip:   5.98 kB
+dist/assets/TemperatureHistoryChart-B1lkwI6S.js     17.40 kB │ gzip:   6.56 kB
+dist/assets/ManageView-DOFiVdyx.js                  22.91 kB │ gzip:   6.98 kB
+dist/assets/TrainingView-BwnmsQvx.js                24.98 kB │ gzip:   8.89 kB
+dist/assets/FoundationView-BwOPn1TS.js              25.00 kB │ gzip:   8.76 kB
+dist/assets/index-qfvtAiA0.js                       53.93 kB │ gzip:  20.86 kB
+dist/assets/_plugin-vue_export-helper-CqIuT_Wi.js   62.09 kB │ gzip:  24.33 kB
+dist/assets/LandingView-CRm7j1uP.js                133.81 kB │ gzip:  43.39 kB
+dist/assets/dist-D2UVVBzz.js                       163.94 kB │ gzip:  57.25 kB
+dist/assets/DigitalTwinView-CL_xNEhg.js            598.55 kB │ gzip: 154.69 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 502ms

@@ -1,0 +1,170 @@
+ Image coldsafe-rabbitmq:4.3.6-management-alpine Building 
+ Image coldsafe-rabbitmq-init:3.13.15 Building 
+ Image coldsafe-backend Building 
+ Image coldsafe-mosquitto:2.0.22 Building 
+ Image coldsafe-frontend Building 
+ Image coldsafe-mosquitto:2.0.22 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 3.23kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.39kB 0.0s done
+#2 DONE 0.1s
+
+#3 [context contracts] load .dockerignore
+#3 transferring contracts: 2B done
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/nginxinc/nginx-unprivileged:1.31-alpine3.24@sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434
+#4 DONE 0.1s
+
+#5 [internal] load metadata for docker.io/library/node:24.20.0-alpine3.24
+#5 DONE 1.3s
+
+#6 [internal] load .dockerignore
+#6 transferring context: 104B done
+#6 DONE 0.0s
+
+#7 [context contracts] load from client
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 ...
+
+#9 [dependencies 1/4] FROM docker.io/library/node:24.20.0-alpine3.24@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf
+#9 resolve docker.io/library/node:24.20.0-alpine3.24@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf 0.1s done
+#9 DONE 0.2s
+
+#10 [runtime 1/7] FROM docker.io/nginxinc/nginx-unprivileged:1.31-alpine3.24@sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434
+#10 resolve docker.io/nginxinc/nginx-unprivileged:1.31-alpine3.24@sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434 0.1s done
+#10 DONE 0.2s
+
+#7 [context contracts] load from client
+#7 transferring contracts: 367B done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 3.68MB 0.2s done
+#8 DONE 0.2s
+
+#11 [dependencies 2/4] WORKDIR /app
+#11 CACHED
+
+#12 [dependencies 3/4] COPY package.json package-lock.json ./
+#12 CACHED
+
+#13 [dependencies 4/4] RUN SCARF_ANALYTICS=false npm ci
+#13 CACHED
+
+#14 [build 3/7] COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
+#14 CACHED
+
+#15 [build 4/7] COPY --chown=node:node . .
+#15 DONE 0.3s
+
+#16 [build 5/7] COPY --from=contracts /examples /contracts/examples
+#16 DONE 0.0s
+
+#17 [build 6/7] RUN chown node:node /app
+#17 DONE 0.2s
+
+#18 [build 7/7] RUN npm run build
+#18 0.834 
+#18 0.834 > coldsafe-frontend@0.1.0 build
+#18 0.834 > npm run typecheck && vite build
+#18 0.834 
+#18 0.977 
+#18 0.977 > coldsafe-frontend@0.1.0 typecheck
+#18 0.977 > vue-tsc --noEmit -p tsconfig.app.json
+#18 0.977 
+#18 12.15 vite v8.2.4 building client environment for production...
+#18 12.30 transforming...
+#18 14.75 ✓ 137 modules transformed.
+#18 15.03 rendering chunks...
+#18 15.15 computing gzip size...
+#18 15.16 dist/index.html                                      0.68 kB │ gzip:   0.38 kB
+#18 15.16 dist/assets/laboratory-api-BlFaRGN6.css              0.90 kB │ gzip:   0.34 kB
+#18 15.16 dist/assets/LiveDataRegion-6Gha1IIw.css              0.95 kB │ gzip:   0.39 kB
+#18 15.16 dist/assets/AccessView-D-lhFxU3.css                  2.65 kB │ gzip:   0.75 kB
+#18 15.16 dist/assets/TemperatureHistoryChart-B64xlGf0.css     2.79 kB │ gzip:   0.71 kB
+#18 15.16 dist/assets/MessagingView-CuhrjKJl.css               3.74 kB │ gzip:   0.92 kB
+#18 15.16 dist/assets/LaboratoryView-DVbXsuzA.css              4.55 kB │ gzip:   1.15 kB
+#18 15.16 dist/assets/AssistantView-DT3URcVU.css               4.89 kB │ gzip:   1.17 kB
+#18 15.16 dist/assets/ManageView-CqwucAKE.css                  5.52 kB │ gzip:   1.27 kB
+#18 15.16 dist/assets/FoundationView-CCrR9tRl.css              6.07 kB │ gzip:   1.21 kB
+#18 15.16 dist/assets/InsightsView-CoFYFAAO.css                6.32 kB │ gzip:   1.24 kB
+#18 15.16 dist/assets/TrainingView-C7BR4SuX.css                7.03 kB │ gzip:   1.52 kB
+#18 15.16 dist/assets/LandingView-Cg-n8ZXE.css                 8.88 kB │ gzip:   1.78 kB
+#18 15.16 dist/assets/DigitalTwinView-kKUgGGmF.css             9.82 kB │ gzip:   1.86 kB
+#18 15.16 dist/assets/index-C0cZOrMG.css                      25.90 kB │ gzip:   6.12 kB
+#18 15.16 dist/assets/LiveDataRegion-COk0i9zB.js               1.11 kB │ gzip:   0.68 kB
+#18 15.16 dist/assets/insights-api-Bz_acUi1.js                 3.56 kB │ gzip:   1.42 kB
+#18 15.16 dist/assets/AccessView-V1OCdR2f.js                   4.49 kB │ gzip:   1.99 kB
+#18 15.16 dist/assets/temperature-chart-DPFhI25K.js            7.47 kB │ gzip:   3.22 kB
+#18 15.16 dist/assets/laboratory-api-DaWScTuX.js               7.70 kB │ gzip:   3.27 kB
+#18 15.16 dist/assets/LandingView-zACcOZF8.js                 10.14 kB │ gzip:   3.97 kB
+#18 15.16 dist/assets/MessagingView-D-5nXu1A.js               12.59 kB │ gzip:   4.49 kB
+#18 15.16 dist/assets/AssistantView-lqeSrQYZ.js               14.45 kB │ gzip:   5.81 kB
+#18 15.16 dist/assets/session-yTQTtOXb.js                     15.13 kB │ gzip:   5.14 kB
+#18 15.16 dist/assets/InsightsView-CODPqzrZ.js                15.50 kB │ gzip:   5.85 kB
+#18 15.16 dist/assets/TemperatureHistoryChart-CDvKWp6u.js     17.83 kB │ gzip:   6.67 kB
+#18 15.16 dist/assets/LaboratoryView-Dsf4y9af.js              18.90 kB │ gzip:   6.72 kB
+#18 15.16 dist/assets/ManageView-DQkxk0r4.js                  22.91 kB │ gzip:   6.97 kB
+#18 15.16 dist/assets/FoundationView-lUsRMcFt.js              25.35 kB │ gzip:   8.87 kB
+#18 15.16 dist/assets/TrainingView-C0bRI2y6.js                26.18 kB │ gzip:   9.26 kB
+#18 15.16 dist/assets/index-BgYCSdCW.js                       54.64 kB │ gzip:  21.11 kB
+#18 15.16 dist/assets/_plugin-vue_export-helper-DJ3nX9Sp.js   62.05 kB │ gzip:  24.32 kB
+#18 15.16 dist/assets/dist-D_hjZ45B.js                       163.94 kB │ gzip:  57.26 kB
+#18 15.16 dist/assets/DigitalTwinView-im-5U6wr.js            599.56 kB │ gzip: 154.99 kB
+#18 15.16 
+#18 15.16 [plugin builtin:vite-reporter] 
+#18 15.16 (!) Some chunks are larger than 500 kB after minification. Consider:
+#18 15.16 - Using dynamic import() to code-split the application
+#18 15.16 - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+#18 15.16 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+#18 15.16 ✓ built in 3.01s
+#18 15.33 npm notice
+#18 15.33 npm notice New major version of npm available! 11.19.0 -> 12.2.1
+#18 15.33 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+#18 15.33 npm notice To update run: npm install -g npm@12.2.1
+#18 15.33 npm notice
+#18 DONE 15.6s
+
+#10 [runtime 1/7] FROM docker.io/nginxinc/nginx-unprivileged:1.31-alpine3.24@sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434
+#10 CACHED
+
+#19 [runtime 2/7] COPY --from=build /app/dist /usr/share/nginx/html
+#19 DONE 0.1s
+
+#20 [runtime 3/7] COPY --from=build /app/node_modules/swagger-ui-dist/swagger-ui-bundle.js /usr/share/nginx/html/docs-assets/swagger-ui-bundle.js
+#20 DONE 0.0s
+
+#21 [runtime 4/7] COPY --from=build /app/node_modules/swagger-ui-dist/swagger-ui.css /usr/share/nginx/html/docs-assets/swagger-ui.css
+#21 DONE 0.0s
+
+#22 [runtime 5/7] COPY --from=build /app/node_modules/swagger-ui-dist/favicon-32x32.png /usr/share/nginx/html/docs-assets/favicon-32x32.png
+#22 DONE 0.0s
+
+#23 [runtime 6/7] COPY --from=build /app/node_modules/swagger-ui-dist/LICENSE /usr/share/nginx/html/docs-assets/LICENSE
+#23 DONE 0.0s
+
+#24 [runtime 7/7] COPY nginx.conf /etc/nginx/nginx.conf
+#24 DONE 0.0s
+
+#25 exporting to image
+#25 exporting layers
+#25 exporting layers 0.9s done
+#25 exporting manifest sha256:47720251fdf6aefd84cec5606bcfd63229a4b8bb251a59075cbd1155c713f54d 0.0s done
+#25 exporting config sha256:c54cc7da04c4182ca9e36a5aa357082759f25ffad5c3f030894bfbf3b3a3fc36 0.0s done
+#25 exporting attestation manifest sha256:649e46eb63a9163c7db5287e1c34b484c35af44feefa1c143ee5424db898df7b 0.0s done
+#25 exporting manifest list sha256:742737ab36e68f4efefca546a0ad226aac8550166866aa0128aecf92580d3f8e 0.0s done
+#25 naming to docker.io/library/coldsafe-frontend:latest
+#25 naming to docker.io/library/coldsafe-frontend:latest done
+#25 unpacking to docker.io/library/coldsafe-frontend:latest
+#25 unpacking to docker.io/library/coldsafe-frontend:latest 0.4s done
+#25 DONE 1.6s
+
+#26 resolving provenance for metadata file
+#26 DONE 0.1s
+ Image coldsafe-frontend Built 

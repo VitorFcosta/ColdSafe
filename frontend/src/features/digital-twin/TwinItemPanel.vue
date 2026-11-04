@@ -21,6 +21,7 @@ const { led, buzzer, actuatorPhase, commandError, commandSubmitting, loadActuato
   useActuators(toRef(props, 'token'), mqttId, toRef(props, 'revision'), toRef(props, 'connectionState'))
 const metricIndex = computed(() => sensorMetrics.findIndex((metric) => metric.key === props.item.key))
 const metric = computed(() => sensorMetrics[metricIndex.value] ?? sensorMetrics[0])
+const condition = computed(() => props.item.kind === 'sensor' && metricIndex.value > 0 && props.item.status === 'normal' ? 'Leitura atual' : twinStatusLabels[props.item.status])
 const equipmentId = computed(() => props.summary.inventory?.equipment_id ?? props.summary.equipment?.equipment_id ?? props.summary.reading?.equipment_id)
 const history = ref<MonitoringHistory | null>(null)
 const historyPhase = ref<'loading' | 'ready' | 'error'>('loading')
@@ -82,7 +83,7 @@ watch([() => props.token, () => props.device.id, () => props.device.mqtt_device_
     <h2>{{ item.label }}</h2>
     <dl>
       <div><dt>ID</dt><dd>{{ item.id }}</dd></div>
-      <div><dt>Estado atual</dt><dd>{{ twinStatusLabels[item.status] }}</dd></div>
+      <div><dt>Estado atual</dt><dd>{{ condition }}</dd></div>
       <div><dt>Valor atual</dt><dd>{{ item.value }}</dd></div>
       <div><dt>Última leitura recebida</dt><dd>{{ lastValue }}</dd></div>
       <div><dt>Idade da leitura</dt><dd>{{ formatFreshness(ageSeconds ?? undefined) }}</dd></div>
@@ -90,13 +91,9 @@ watch([() => props.token, () => props.device.id, () => props.device.mqtt_device_
     </dl>
     <p v-if="!fresh" role="status">Leitura histórica; situação atual não confirmada. Aguarde dados recentes.</p>
     <p v-if="item.kind !== 'equipment'">Saúde/RUL deste item: não aplicável — este {{ item.kind === 'sensor' ? 'sensor' : 'atuador' }} não possui modelo próprio.</p>
-    <section aria-label="Equipamento associado">
-      <h3>Previsão do equipamento associado</h3>
-      <p>Ventilador · ID: {{ equipmentId ?? 'Não confirmado' }}. A previsão abaixo pertence ao equipamento, não aos sensores ou atuadores.</p>
-      <PredictionPanel :summary="summary" :age-seconds="ageSeconds" />
-    </section>
+    <div class="detail-grid">
     <section class="mini-history" aria-label="Histórico do componente">
-      <h3>Histórico de {{ metric.label.toLocaleLowerCase('pt-BR') }} · últimos 15 minutos</h3>
+      <h3>Histórico {{ item.kind === 'sensor' ? 'de' : 'contextual de' }} {{ metric.label.toLocaleLowerCase('pt-BR') }} · últimos 15 minutos</h3>
       <p v-if="item.kind !== 'sensor'">Este item não possui histórico próprio de estado disponível. Exibindo temperatura ambiente do equipamento associado.</p>
       <p>Consulta autorizada a cada 5 s, limitada a 300 leituras; histórico não renova a leitura atual.</p>
       <p v-if="historyPhase === 'loading'" role="status">Carregando histórico…</p>
@@ -104,9 +101,17 @@ watch([() => props.token, () => props.device.id, () => props.device.mqtt_device_
       <TemperatureHistoryChart v-if="history && readings.length" :readings="readings" period="15m" :start="history.start" :end="history.end" :limit="history.limit" :thresholds="summary.thresholds" :metric="metric.key" />
       <p v-else-if="historyPhase === 'ready'" role="status">Sem leituras históricas para este ID no período.</p>
     </section>
+    <section aria-label="Equipamento associado">
+      <h3>Previsão do equipamento associado</h3>
+      <p>Ventilador · ID: {{ equipmentId ?? 'Não confirmado' }}. A previsão abaixo pertence ao equipamento, não aos sensores ou atuadores.</p>
+      <PredictionPanel :summary="summary" :age-seconds="ageSeconds" />
+    </section>
+    </div>
     <section v-if="item.key === 'led'" aria-label="Controle do LED selecionado">
       <h3>LED · comando manual</h3>
-      <LedControl :led="led" :phase="actuatorPhase" :submitting="commandSubmitting" :error="commandError" @toggle="toggleLed" @refresh="loadActuators(mqttId)" />
+      <LedControl :led="led" :phase="actuatorPhase" :submitting="commandSubmitting" :error="commandError"
+        :observation="summary.equipment && summary.reading ? { state: summary.equipment.led.actual_state, receivedAt: summary.reading.received_at, ageSeconds } : undefined"
+        @toggle="toggleLed" @refresh="loadActuators(mqttId)" />
       <p>Confirmação do comando e estado observado são informações separadas; enviar não confirma o LED.</p>
     </section>
     <section v-else-if="item.key === 'buzzer'" aria-label="Buzzer automático">
@@ -117,7 +122,10 @@ watch([() => props.token, () => props.device.id, () => props.device.mqtt_device_
 </template>
 
 <style scoped>
-.item-panel { min-width: 0; padding: var(--cs-space-24); background: var(--cs-color-surface); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-panel); }
-h2 { font-size: var(--cs-type-20); font-weight: 600; }h3 { font-weight: 600; }section, dl { margin-top: var(--cs-space-24); }dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cs-space-16); }dt { color: var(--cs-color-ink-muted); }dd { margin-top: var(--cs-space-8); }p { margin-top: var(--cs-space-12); line-height: 1.7; }dd, p { overflow-wrap: anywhere; }.mini-history :deep([role=img]) { height: 180px; }
+.item-panel { min-width: 0; padding: var(--cs-space-24); background: var(--cs-color-surface); border-radius: var(--cs-radius-panel); }
+h2 { font-size: var(--cs-type-24); font-weight: 600; }h3 { font-size: var(--cs-type-16); font-weight: 600; }section, dl { margin-top: var(--cs-space-24); }dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cs-space-24); font-size: var(--cs-type-14); }dt { color: var(--cs-color-ink-muted); }dd { margin-top: var(--cs-space-8); font-variant-numeric: tabular-nums; }p { margin-top: var(--cs-space-12); line-height: 1.6; font-size: var(--cs-type-14); }dd, p, h3 { overflow-wrap: anywhere; }
+.detail-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--cs-space-32); margin-top: var(--cs-space-32); }.detail-grid > section { margin-top: 0; min-width: 0; }.mini-history :deep([role=img]) { height: 240px; }
+.mini-history :deep(canvas) { max-width: 100%; }
+@media (max-width: 1100px) { .detail-grid { grid-template-columns: minmax(0, 1fr); }dl { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 420px) { .item-panel { padding: var(--cs-space-16); }dl { grid-template-columns: minmax(0, 1fr); } }
 </style>

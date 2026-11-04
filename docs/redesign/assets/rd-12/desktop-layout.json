@@ -1,0 +1,96 @@
+{
+  "width": 1440,
+  "scrollWidth": 1440,
+  "fontSize": "16px",
+  "fields": [
+    {
+      "name": "total_units",
+      "width": 329.328125
+    },
+    {
+      "name": "seed",
+      "width": 329.328125
+    },
+    {
+      "name": "equipment_count",
+      "width": 329.328125
+    },
+    {
+      "name": "days",
+      "width": 329.328125
+    },
+    {
+      "name": "failure_fraction",
+      "width": 329.328125
+    },
+    {
+      "name": "noise_scale",
+      "width": 329.328125
+    },
+    {
+      "name": "missing_rate",
+      "width": 329.328125
+    },
+    {
+      "name": "outlier_rate",
+      "width": 329.328125
+    },
+    {
+      "name": "environment_id",
+      "width": 682.65625
+    },
+    {
+      "name": "sensor_types",
+      "width": 18
+    },
+    {
+      "name": "sensor_types",
+      "width": 18
+    },
+    {
+      "name": "sensor_types",
+      "width": 18
+    },
+    {
+      "name": "sensor_types",
+      "width": 18
+    },
+    {
+      "name": "sensor_types",
+      "width": 18
+    },
+    {
+      "name": "sensor_types",
+      "width": 18
+    },
+    {
+      "name": "failure_modes",
+      "width": 18
+    },
+    {
+      "name": "failure_modes",
+      "width": 18
+    },
+    {
+      "name": "operating_modes",
+      "width": 18
+    },
+    {
+      "name": "operating_modes",
+      "width": 18
+    },
+    {
+      "name": "operating_modes",
+      "width": 18
+    }
+  ],
+  "input": {
+    "color": "rgb(18, 46, 51)",
+    "background": "rgb(255, 255, 255)",
+    "border": "rgb(104, 126, 126)"
+  },
+  "button": {
+    "color": "rgb(255, 255, 255)",
+    "background": "rgb(12, 109, 101)"
+  }
+}

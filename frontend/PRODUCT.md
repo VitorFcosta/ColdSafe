@@ -1,5 +1,24 @@
 # ColdSafe — definição do produto frontend
 
+## Estado vigente — 03/11/2026
+
+O redesign Precisão operacional tem RD-01 a RD-17 concluídas e **RD-18
+concluída por aceite do usuário, com ressalvas técnicas**. Visão geral, Saúde e
+previsões, Gêmeo e Mensageria permitem ocultar os dados ao vivo, incluindo seus
+relógios e estados automáticos. Coleta, autorização e confirmação de comandos
+continuam; mostrar novamente apresenta os dados mais recentes recebidos. No
+Gêmeo, ocultar também suspende a animação e preserva a seleção e a pausa manual.
+O ensaio integrado atual com leitor de tela foi dispensado pelo usuário nesta
+retomada; não há conformidade assistiva presumida. O [guia local](../docs/redesign/README.md), o
+[design system](../docs/redesign/design-system/README.md), as
+[composições](../docs/redesign/compositions/README.md) e o
+[roadmap](../docs/redesign/tasks/README.md) orientam a interface; código e
+[contratos](../contracts/README.md) determinam comportamento, dados e permissões.
+Consulte o [checkpoint RD-18](../docs/redesign/tasks/RD-18.md#checkpoint) para
+testes executados e limites atuais. As seções B2 e de setembro abaixo preservam
+contexto histórico; não representam aceite integrado nem conformidade WCAG AA
+concluída. A avaliação com participantes prevista na P-03 ainda não foi executada.
+
 ## Integração AIoT B2-14 — 15/10/2026
 
 O modo AIoT explícito conserva o dashboard e os seletores de conta, ambiente,
@@ -90,11 +109,12 @@ FastAPI → InfluxDB → API → Vue.
 > O ColdSafe é um protótipo acadêmico. Ele não é equipamento médico, sistema
 > sanitário certificado nem substitui procedimentos oficiais de controle.
 
-## Contrato vigente para o redesign visual (27/09/2026)
+## Histórico: contrato do redesign visual de 27/09/2026
 
 As seções sobre o primeiro bimestre abaixo registram o escopo histórico do MVP.
-Para o redesign, prevalecem o [roadmap visual](https://app.notion.com/p/3e8d67001da981d4a27fed1418af291e),
-o código atual e os [contratos compartilhados](../contracts/README.md).
+O roadmap visual no Notion pertence ao planejamento legado. Para o estado atual,
+prevalecem as referências locais do início deste documento, o código e os
+[contratos compartilhados](../contracts/README.md).
 
 | Rota | Função atual a preservar |
 | --- | --- |
@@ -229,7 +249,8 @@ operacionais existentes, inclusive em 320 px. Não há comandos ou ferramentas.
 - Tailwind CSS com tokens próprios, sem Vuetify.
 - Chart.js por `vue-chartjs`.
 - `fetch` para REST e WebSocket para eventos; REST recupera o estado ao reconectar.
-- Contraste WCAG AA, foco visível e HTML semântico.
+- Meta de contraste WCAG AA, foco visível e HTML semântico; o alcance verificado
+  deve ser consultado nos cartões, sem presumir conformidade integral.
 - Suporte a redução de movimento.
 - Gráfico acompanhado de resumo textual e tooltips acessíveis.
 - Cobertura mínima de 80% para a lógica do frontend.
@@ -287,9 +308,39 @@ secundária e histórico amplo. Uma leitura antiga é explicitamente a última
 leitura conhecida, sem confirmar a situação atual. Eventos chegam por WebSocket;
 REST recupera o estado ao reconectar. Falha do histórico preserva o resumo válido.
 
-Motion for Vue executa entradas uma vez; com redução de movimento, o conteúdo
-aparece imediatamente. Medições não têm contadores animados. Vídeo com
+Na entrega de setembro, Motion for Vue executava entradas uma vez. Desde RD-17,
+a apresentação usa uma entrada CSS breve, com conteúdo sempre visível e sem
+movimento quando solicitado pelo sistema. `motion-v` continua instalado.
+Medições não têm contadores animados. Vídeo com
 controles nativos, legendas descritivas e sem reprodução automática.
 
 Figma, mapa de componentes, dependências, mídia, testes e justificativas:
 [Relatório da entrega](../docs/testing/redesign-portfolio.md).
+
+
+## Apresentação pública RD-17 — 02/11/2026
+
+A rota `/` aplica a composição M-01 aprovada: narrativa “Da leitura do sensor à
+compreensão do equipamento”, tema escuro, ações de demonstração/código/acesso e
+ilustração conceitual identificada. O fluxo AIoT atual começa no simulador Python,
+passa por MQTT/gateway/RabbitMQ e apresenta leituras, histórico e inspeção 3D.
+InfluxDB armazena telemetria; a API v3 recupera a projeção PostgreSQL. ESP32/Wokwi
+é o caminho legado opcional. Saúde/RUL sintéticas e movimento 3D ilustrativo
+não comprovam desempenho de equipamento real.
+
+A imagem P-05, gerada por IA, foi copiada sem alterar pixels para
+`public/media/equipamento-conceitual-p05.png`; sua origem/prompt estão em
+[3d-strategy.md](../docs/redesign/compositions/3d-strategy.md#ilustração-usada-nas-composições).
+É ilustração pública; a cena selecionável em `/digital-twin` continua 3D real.
+
+Vídeo, legendas e galeria existentes são preservados e identificados como versão
+anterior documentada em setembro de 2026, com respostas HTTP simuladas. O vídeo
+não tem áudio e não demonstra a pilha AIoT atual. Possui controles nativos, sem
+autoplay, recuperação após erro, downloads externos ao player e alternativa
+textual dos oito cenários. Atualizar a gravação para o redesign/AIoT atual fica
+para trabalho futuro; não apresentar esta mídia como demonstração atual.
+
+A apresentação permanece independente da API operacional para visitantes. Há
+uma entrada decorativa breve no texto principal; todo conteúdo nasce visível e
+movimento reduzido elimina o deslocamento. Âncoras nativas orientam foco e
+rolagem. Autoria/repositório, contexto acadêmico e limites são preservados.

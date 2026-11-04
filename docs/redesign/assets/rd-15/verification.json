@@ -1,0 +1,276 @@
+{
+  "task": "RD-15",
+  "date": "2026-10-31",
+  "status": "completed",
+  "git_base": "27bba6f",
+  "environment": {
+    "os": "macOS",
+    "node": "24.22.1",
+    "declared_node": "24.20.0",
+    "browser": "Chromium153.0.8010.12",
+    "vitest": "4.1.12",
+    "playwright": "1.63.0"
+  },
+  "dependencies_added": [],
+  "implementation_files_changed": [
+    "frontend/src/views/AssistantView.vue"
+  ],
+  "test_files_changed": [
+    "frontend/src/views/AssistantView.spec.ts"
+  ],
+  "documentation_files_changed": [
+    "docs/redesign/tasks/RD-15.md",
+    "docs/redesign/tasks/README.md"
+  ],
+  "files_created": [
+    "frontend/e2e/assistant-redesign.spec.ts",
+    "docs/redesign/assets/rd-15/contrast.json",
+    "docs/redesign/assets/rd-15/desktop-incomplete.png",
+    "docs/redesign/assets/rd-15/desktop-layout.json",
+    "docs/redesign/assets/rd-15/desktop-leave.png",
+    "docs/redesign/assets/rd-15/desktop-stream.png",
+    "docs/redesign/assets/rd-15/desktop.png",
+    "docs/redesign/assets/rd-15/detector.json",
+    "docs/redesign/assets/rd-15/mobile-320-text-200-incomplete.png",
+    "docs/redesign/assets/rd-15/mobile-320-text-200-layout.json",
+    "docs/redesign/assets/rd-15/mobile-320-text-200-leave.png",
+    "docs/redesign/assets/rd-15/mobile-320-text-200-stream.png",
+    "docs/redesign/assets/rd-15/mobile-320-text-200.png",
+    "docs/redesign/assets/rd-15/mobile-incomplete.png",
+    "docs/redesign/assets/rd-15/mobile-layout.json",
+    "docs/redesign/assets/rd-15/mobile-leave.png",
+    "docs/redesign/assets/rd-15/mobile-stream.png",
+    "docs/redesign/assets/rd-15/mobile.png",
+    "docs/redesign/assets/rd-15/review.json",
+    "docs/redesign/assets/rd-15/verification.json"
+  ],
+  "checks": {
+    "baseline": {
+      "passed": 54,
+      "files": 2
+    },
+    "red": {
+      "failed": 8,
+      "passed": 18,
+      "limit": "not all eight added tests were RED; concurrent navigation case added later"
+    },
+    "focused": {
+      "passed": 62,
+      "files": 2
+    },
+    "coverage": {
+      "command": "npm run test:coverage -- --pool=threads --maxWorkers=1",
+      "exit_code": 0,
+      "files": 53,
+      "passed": 740,
+      "statements": 94.84,
+      "branches": 91.34,
+      "functions": 92.56,
+      "lines": 97.51,
+      "scope_configuration_changed": false,
+      "prior_incomplete_run": {
+        "passed": 693,
+        "files": 52,
+        "errors": 1,
+        "reason": "timeout starting Laboratory worker; not treated as a full pass"
+      }
+    },
+    "build_typecheck": {
+      "exit_code": 0,
+      "result": "passed final npm run build (vue-tsc + vite)",
+      "modules_transformed": 507,
+      "bundle_seconds": 70,
+      "assistant_js_kb": 14.47,
+      "assistant_js_gzip_kb": 5.83,
+      "existing_warning": "DigitalTwinView minified chunk598.55kB exceeds500kB",
+      "build_warning": "plugin hook timing diagnostic; not a build error"
+    },
+    "e2e": {
+      "new_first": {
+        "passed": 9
+      },
+      "expanded": {
+        "passed": 53,
+        "failed": 2,
+        "command": "VITE_AIOT_ENABLED=true npm run test:e2e -- assistant-redesign.spec.ts assistant.spec.ts app-shell.spec.ts draft-transitions.spec.ts --workers=2",
+        "failure": "first viewer/operator dashboard startup showed page not found; cause not conclusively established"
+      },
+      "shell_confirmation": {
+        "passed": 25,
+        "failed": 0,
+        "command": "VITE_AIOT_ENABLED=true npm run test:e2e -- app-shell.spec.ts --workers=1",
+        "code_changed_for_confirmation": false
+      },
+      "other30_passed_in_expanded_run": {
+        "new_assistant": 9,
+        "existing_assistant": 5,
+        "draft_transitions": 16
+      },
+      "transport": "controlled HTTP + browser Response/ReadableStream; real frontend App/Router/assistant client and SSE parser",
+      "not_evidence_of": "real backend or factual LLM quality"
+    },
+    "diff_check": "passed entire existing working tree"
+  },
+  "visual": {
+    "rounds": 2,
+    "captures": 12,
+    "viewports": [
+      {
+        "width": 1440,
+        "height": 1024,
+        "text_percent": 100
+      },
+      {
+        "width": 390,
+        "height": 1024,
+        "text_percent": 100
+      },
+      {
+        "width": 320,
+        "height": 1024,
+        "text_percent": 200
+      }
+    ],
+    "states": [
+      "initial",
+      "stream",
+      "incomplete",
+      "leave"
+    ],
+    "page_horizontal_overflow": false,
+    "panel_horizontal_overflow": false,
+    "reduced_motion": true,
+    "keyboard": [
+      "suggestion fills and focuses field without request",
+      "Tab/Enter sends",
+      "deltas preserve focus",
+      "cancel focuses field and marks incomplete",
+      "native modal safe autofocus and inert background",
+      "Escape restores navigation trigger",
+      "beforeunload dismiss preserves stream"
+    ],
+    "contrast": "10 pairs passed: text minimum4.86:1; control borders minimum3.73:1",
+    "detector": {
+      "runs": 1,
+      "findings": [],
+      "target": "frontend/src/views/AssistantView.vue"
+    },
+    "capture_limit": "first-round initial images did not fully wait for enlarged text; final images settled CSS/fonts and replaced all first-round evidence"
+  },
+  "review": {
+    "disposition": "ship",
+    "scope": "implementation/visual; reviewer did not certify pending final checks",
+    "role": "fresh code-reviewer substituting unavailable impeccable_finish_reviewer",
+    "findings": [],
+    "final_validation": "full coverage740/53 and final build confirmed separately after review, no implementation change"
+  },
+  "preservation": {
+    "method": "SHA256 baseline of923 project files plus before-edit source copies",
+    "files_in_baseline": 923,
+    "changed": [
+      "docs/redesign/tasks/RD-15.md",
+      "docs/redesign/tasks/README.md",
+      "frontend/src/views/AssistantView.spec.ts",
+      "frontend/src/views/AssistantView.vue"
+    ],
+    "unchanged_count": 919,
+    "unexpected_changes": [],
+    "working_tree": "many preexisting changes; no reset or commit"
+  },
+  "evidence_files": [
+    {
+      "path": "contrast.json",
+      "sha256": "0f45d05ddad98fb68adda62179434337ed6eb5e0d6e4193185251df21d9da360"
+    },
+    {
+      "path": "desktop-incomplete.png",
+      "sha256": "f52f0e9817a46ea08e5323dd002573e4fb6cbe8561420eeaa228e7126490cf6f"
+    },
+    {
+      "path": "desktop-layout.json",
+      "sha256": "f98eadd227885025319acf86f2915527a4f359d2bd855b9c5bbe078840ef5172"
+    },
+    {
+      "path": "desktop-leave.png",
+      "sha256": "7e7cac05d7068b5910cb05d38f870154d4ff71a4aadfee9442f2d4d1cc5fd8ff"
+    },
+    {
+      "path": "desktop-stream.png",
+      "sha256": "209a8844ffba484ae5ad04a96ff1d52944411f83f1165748082fa112515c3832"
+    },
+    {
+      "path": "desktop.png",
+      "sha256": "83d692cb521e132a33bca6f5c23e4731868e8a65e4f9d4eba6c2ec99f852315f"
+    },
+    {
+      "path": "detector.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "mobile-320-text-200-incomplete.png",
+      "sha256": "c3ccde117ca3b8a51a9aad255b01f430c38bf471be1c38f9cacd462484473877"
+    },
+    {
+      "path": "mobile-320-text-200-layout.json",
+      "sha256": "1a2914292a5034f9a4c9aa995c50d9f9a15b1071ab33ce97ed3c37351c64ac98"
+    },
+    {
+      "path": "mobile-320-text-200-leave.png",
+      "sha256": "e16d0e3683f179155bd8f52aeac5267b407bab740533ba70973512289f178410"
+    },
+    {
+      "path": "mobile-320-text-200-stream.png",
+      "sha256": "9f338cbb7677115a9f50c03fe56662ec3ebab95e545a989c45f109bb0c22974d"
+    },
+    {
+      "path": "mobile-320-text-200.png",
+      "sha256": "52a886b038c551f098be40ca0f927dc603a28240566f7cc1c00a52f61f79b225"
+    },
+    {
+      "path": "mobile-incomplete.png",
+      "sha256": "59d48a37e802ef2baecdeeb3f221d9f1ebe5177f142b27de40b1bc57bad96344"
+    },
+    {
+      "path": "mobile-layout.json",
+      "sha256": "e0a142f210b51ef3be41a373617c968c387dd885a36202a7f20f6a8ec726d370"
+    },
+    {
+      "path": "mobile-leave.png",
+      "sha256": "030afb19ef36e6ed244a765bfb544f66e07e3276a7e51171a29c6668b5acd082"
+    },
+    {
+      "path": "mobile-stream.png",
+      "sha256": "ef0dc95a5a6d3a7cb1e176966719d41e423644d7c9284702619a3716454b5b3d"
+    },
+    {
+      "path": "mobile.png",
+      "sha256": "2347fa22cddcdd87e0dab1bcc51ec3a517df62da5f8d6fcf1b37b95b81234200"
+    },
+    {
+      "path": "review.json",
+      "sha256": "300f1ca05b3016b5d3c9267a3f3a9c628ef9fd1e500beed5d8a46b6d3e5be72a"
+    }
+  ],
+  "local_logs": ".impeccable/review/rd-15/",
+  "limits": [
+    "No real backend/LLM, physical mobile device, screen reader, other browsers or independent participants",
+    "A11y assertions plus visual/static review; no full WCAG certification",
+    "Preexisting shell ColdSafe/Menu wrap at320px/text200% outside task",
+    "No persistent conversation, context inheritance, attachments, voice or remote commands introduced",
+    "No commit/push/publication/credential changes",
+    "RD-16 not started"
+  ],
+  "next_task": "RD-16 — Entrada/cadastro; await user choice",
+  "documentation_review": {
+    "role": "doc-updater",
+    "substitution": "impeccable_documenter unavailable; project documentation only, approved P05 system preserved",
+    "local_links_checked": 54,
+    "missing": 0,
+    "trailing_whitespace": 0
+  },
+  "implementation_hashes": {
+    "frontend/src/views/AssistantView.vue": "e82ac534b5de379fc3a7fbde7353464478d2aa775630c4f0defd172f2582edfa",
+    "frontend/src/views/AssistantView.spec.ts": "a60c8da593319363e9e09875af12019bce2b8dbaf039707c74da606d14762b9e",
+    "frontend/e2e/assistant-redesign.spec.ts": "faeb2f1e1252fb06caa9396c8e59a7aaee60094441e72d4b3af6ee5edbfc9272"
+  }
+}

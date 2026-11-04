@@ -1,0 +1,87 @@
+{
+  "date": "2026-11-02",
+  "boundary": "UI/Router/client real; controlled HTTP/WS/SSE; WebGL real where applicable",
+  "scenarios": {
+    "C-01": {
+      "flow": "Saúde/RUL, sintético, zero/ausência/idade",
+      "specs": [
+        "insights-redesign.spec.ts",
+        "inference.spec.ts"
+      ]
+    },
+    "C-02": {
+      "flow": "Gêmeo, nove IDs, seleção e fallback",
+      "specs": [
+        "digital-twin.spec.ts"
+      ]
+    },
+    "C-03": {
+      "flow": "Viewer consulta cadastro sem escrita",
+      "specs": [
+        "manage.spec.ts",
+        "manage-redesign.spec.ts"
+      ]
+    },
+    "C-04": {
+      "flow": "Gerar/treinar/retomar conhecido sem POST",
+      "specs": [
+        "job-resume.spec.ts",
+        "laboratory-redesign.spec.ts",
+        "training-redesign.spec.ts"
+      ]
+    },
+    "C-05": {
+      "flow": "Filas globais e amostras privadas/efêmeras",
+      "specs": [
+        "messaging-redesign.spec.ts"
+      ]
+    },
+    "C-06": {
+      "flow": "Conversa local, stream, cancelamento, conferência",
+      "specs": [
+        "assistant-redesign.spec.ts"
+      ]
+    },
+    "C-07": {
+      "flow": "Identidade pendente, falha/retry, sessão antiga",
+      "specs": [
+        "app-shell.spec.ts",
+        "access-redesign.spec.ts"
+      ]
+    },
+    "C-08": {
+      "flow": "URL inválida/inacessível e relação job/dataset",
+      "specs": [
+        "monitoring-context.spec.ts",
+        "job-resume.spec.ts",
+        "app-shell.spec.ts"
+      ]
+    },
+    "C-09": {
+      "flow": "320px, texto200, foco/teclado",
+      "specs": [
+        "app-shell.spec.ts",
+        "monitoring-context.spec.ts",
+        "foundations.spec.ts",
+        "insights-redesign.spec.ts"
+      ],
+      "limitations": [
+        "Reader session not validated",
+        "No physical mobile device"
+      ]
+    },
+    "C-10": {
+      "flow": "Rascunhos permanecer/descartar; revogação prevalece",
+      "specs": [
+        "draft-transitions.spec.ts"
+      ]
+    },
+    "C-11": {
+      "flow": "LED pending → Visão geral → Gêmeo, same ID, one POST, terminal unconfirmed",
+      "specs": [
+        "digital-twin.spec.ts"
+      ],
+      "newScenario": true
+    }
+  }
+}

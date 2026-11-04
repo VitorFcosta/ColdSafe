@@ -24,6 +24,11 @@ describe('PredictionPanel', () => {
     expect(wrapper.text()).toContain('0 h')
     expect(wrapper.text()).toContain('model-1')
     expect(wrapper.text()).toContain('features-1+one')
+    expect(wrapper.text()).toContain('equipment-id')
+    expect(wrapper.text()).toContain('dados sintéticos')
+    expect(wrapper.text()).toContain('Idade da entrada')
+    expect(wrapper.text()).toContain('Agora mesmo')
+    expect(wrapper.text()).toContain(Intl.DateTimeFormat().resolvedOptions().timeZone)
     expect(wrapper.findAll('time').map((item) => item.attributes('datetime'))).toEqual(['2026-10-12T18:00:00.100Z', '2026-10-12T18:00:00.200Z'])
   })
 
@@ -63,4 +68,102 @@ describe('PredictionPanel', () => {
     expect(wrapper.text()).not.toContain('0 / 100')
     expect(wrapper.text()).not.toContain('Modelo:')
   })
+
+  it('conserva a última previsão identificada durante a espera da próxima leitura', async () => {
+    const wrapper = mount(PredictionPanel, { props: { summary, ageSeconds: 4 } })
+    const values = wrapper.get('.prediction-values').element
+    const metadata = wrapper.get('.prediction-meta').element
+    const message = wrapper.get('[role="status"]').text()
+    await wrapper.setProps({ summary: { ...summary, prediction: null } })
+    expect(wrapper.get('.prediction-values').element).toBe(values)
+    expect(wrapper.get('.prediction-meta').element).toBe(metadata)
+    expect(wrapper.text()).toContain('0 / 100')
+    expect(wrapper.text()).toContain('model-1')
+    expect(wrapper.text()).toContain('Última previsão recebida')
+    expect(wrapper.get('[role="status"]').text()).toBe(message)
+    expect(wrapper.findAll('time')[0]!.attributes('datetime')).toBe(prediction.data.input_received_at)
+    wrapper.unmount()
+  })
+
+  it('não alterna ausência de modelo com espera entre eventos do mesmo equipamento', async () => {
+    const noModel: Prediction = { ...prediction, data: { ...prediction.data, status: 'unavailable', model_id: null,
+      model_version: null, health_score: null, rul_hours: null, reason: 'no_model' } }
+    const wrapper = mount(PredictionPanel, { props: { summary: { ...summary, prediction: noModel }, ageSeconds: 4 } })
+    const before = wrapper.text()
+    await wrapper.setProps({ summary: { ...summary, prediction: null } })
+    expect(wrapper.text()).toBe(before)
+    expect(wrapper.get('[role="status"]').text()).toContain('Nenhum modelo ativo')
+    expect(wrapper.text()).not.toContain('0 / 100')
+    wrapper.unmount()
+  })
+
+  it.each(['dispositivo', 'ambiente', 'equipamento'] as const)('descarta a previsão ao trocar %s', async (selection) => {
+    const equipment = { equipment_id: 'equipment-id', running: true,
+      led: { actuator_id: 'led', actual_state: false }, buzzer: { actuator_id: 'buzzer', actual_state: false } }
+    const wrapper = mount(PredictionPanel, { props: { summary: { ...summary, equipment }, ageSeconds: 4 } })
+    await wrapper.setProps({ summary: { ...summary, prediction: null, equipment,
+      ...(selection === 'dispositivo' ? { device: { id: 'outro' } } : {}),
+      ...(selection === 'ambiente' ? { environment: { id: 'outro', name: 'Outro' } } : {}),
+      ...(selection === 'equipamento' ? { equipment: { ...equipment, equipment_id: 'outro' } } : {}),
+    } })
+    expect(wrapper.text()).not.toContain('model-1')
+    expect(wrapper.text()).not.toContain('0 / 100')
+    expect(wrapper.findAll('time')).toHaveLength(0)
+    wrapper.unmount()
+  })
+
+  it('expira a previsão antiga mesmo com sensores enviando leituras novas', async () => {
+    const wrapper = mount(PredictionPanel, { props: { summary, ageSeconds: 1 } })
+    await wrapper.setProps({ summary: { ...summary, prediction: null,
+      reading: { temperature_c: 5, humidity_percent: 60, received_at: '2026-10-12T18:00:31.100Z' } } })
+    expect(wrapper.get('[role="status"]').text()).toContain('Previsão desatualizada')
+    expect(wrapper.text()).not.toContain('0 / 100')
+    expect(wrapper.text()).not.toContain('0 h')
+    expect(wrapper.findAll('time')[0]!.attributes('datetime')).toBe(prediction.data.input_received_at)
+    wrapper.unmount()
+  })
+
+  it('um motivo explícito novo prevalece sobre a previsão guardada', async () => {
+    const wrapper = mount(PredictionPanel, { props: { summary, ageSeconds: 1 } })
+    await wrapper.setProps({ summary: { ...summary, prediction: null, prediction_unavailable_reason: 'model_unavailable' } })
+    expect(wrapper.get('[role="status"]').text()).toContain('Modelo indisponível')
+    expect(wrapper.text()).not.toContain('model-1')
+    expect(wrapper.text()).not.toContain('0 / 100')
+    wrapper.unmount()
+  })
+
+  it('atualiza pelo evento validado mesmo quando o resumo da leitura mais nova não tem previsão', async () => {
+    if (prediction.data.status !== 'available') throw new Error('Fixture deve conter uma previsão disponível')
+    const wrapper = mount(PredictionPanel, { props: { summary: { ...summary, prediction: null,
+      reading: { temperature_c: 5, humidity_percent: 60, equipment_id: 'equipment-id',
+        device_record_id: 'device-id', received_at: '2026-10-12T18:00:01.100Z' } }, ageSeconds: 1 } })
+    await wrapper.setProps({ streamedPrediction: prediction })
+    expect(wrapper.text()).toContain('model-1')
+    expect(wrapper.text()).toContain('0 / 100')
+    await wrapper.setProps({ summary: { ...summary, prediction: null,
+      reading: { temperature_c: 5, humidity_percent: 60, equipment_id: 'equipment-id',
+        device_record_id: 'device-id', received_at: '2026-10-12T18:00:02.100Z' } } })
+    expect(wrapper.text()).toContain('0 / 100')
+    await wrapper.setProps({ streamedPrediction: { ...prediction, event_id: 'new-prediction',
+      occurred_at: '2026-10-12T18:00:01.200Z', data: { ...prediction.data,
+        input_received_at: '2026-10-12T18:00:01.100Z', health_score: 95 } } })
+    expect(wrapper.text()).toContain('95 / 100')
+    await wrapper.setProps({ streamedPrediction: prediction })
+    expect(wrapper.text()).toContain('95 / 100')
+    expect(wrapper.text()).not.toContain('0 / 100')
+    wrapper.unmount()
+  })
+
+  it.each(['device_id', 'environment_id', 'device_record_id', 'equipment_id'] as const)(
+    'não aceita evento do stream com %s diferente do selecionado', async (key) => {
+      const wrapper = mount(PredictionPanel, { props: { summary: { ...summary, prediction: null,
+        reading: { temperature_c: 5, humidity_percent: 60, equipment_id: 'equipment-id',
+          device_record_id: 'device-id', received_at: '2026-10-12T18:00:01.100Z' } }, ageSeconds: 1 } })
+      const foreign = key === 'equipment_id' ? { ...prediction, data: { ...prediction.data, equipment_id: 'foreign' } }
+        : { ...prediction, [key]: 'foreign' }
+      await wrapper.setProps({ streamedPrediction: foreign })
+      expect(wrapper.text()).not.toContain('model-1')
+      expect(wrapper.text()).not.toContain('0 / 100')
+      wrapper.unmount()
+    })
 })

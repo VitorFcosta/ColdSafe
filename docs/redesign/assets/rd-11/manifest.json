@@ -1,0 +1,123 @@
+{
+  "task": "RD-11",
+  "checkpoint": "31/10/2026",
+  "gitBase": "27bba6f",
+  "preservation": {
+    "baselineFiles": 834,
+    "changedExisting": 5,
+    "untouchedFiles": 829,
+    "deleted": 0,
+    "outsideTaskChanged": 0
+  },
+  "changed": [
+    "docs/redesign/tasks/RD-11.md",
+    "docs/redesign/tasks/README.md",
+    "frontend/e2e/manage.spec.ts",
+    "frontend/src/views/ManageView.spec.ts",
+    "frontend/src/views/ManageView.vue"
+  ],
+  "createdTest": "frontend/e2e/manage-redesign.spec.ts",
+  "dependenciesAdded": [],
+  "tests": {
+    "unit": 704,
+    "files": 53,
+    "focused": 34,
+    "e2eDistinct": 25,
+    "coverage": {
+      "statements": 94.74,
+      "branches": 91.02,
+      "functions": 92.31,
+      "lines": 97.48
+    },
+    "buildAndTypecheck": "passed",
+    "codeReview": "findings resolved, confirmed read-only plus executed tests",
+    "visualReview": "manual substitute: ship; independent reviewer hit usage limit before final report; observed label mismatch corrected and tested"
+  },
+  "images": [
+    {
+      "file": "desktop-viewport.png",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "file": "desktop.png",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "file": "dialog-320-text-200-title.png",
+      "width": 320,
+      "height": 812
+    },
+    {
+      "file": "dialog-320-text-200.png",
+      "width": 320,
+      "height": 812
+    },
+    {
+      "file": "dialog-desktop.png",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "file": "dialog-mobile.png",
+      "width": 390,
+      "height": 1024
+    },
+    {
+      "file": "hero-repro.png",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "file": "mobile-viewport.png",
+      "width": 390,
+      "height": 1024
+    },
+    {
+      "file": "mobile.png",
+      "width": 390,
+      "height": 1604
+    },
+    {
+      "file": "viewer-no-devices.png",
+      "width": 390,
+      "height": 931
+    },
+    {
+      "file": "viewer-no-environments.png",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "sha256": {
+    "docs/redesign/assets/rd-11/README.md": "3400bff4ce0681bfa1013ed664bc65c86316f231861b705769b478a84275fddd",
+    "docs/redesign/assets/rd-11/build.log": "b5acee205ecc15e2dba03a28042d06fed6011b564a0c58219dad957219198832",
+    "docs/redesign/assets/rd-11/contrast.json": "87367ae16bf787d8c6f9ee47bed8202337505413c696bb439f592a225bc3f21b",
+    "docs/redesign/assets/rd-11/coverage.log": "f3d82453a938e7fcf29855ae5a9c84e959a95d2f1ff26a520f5078ed8cc5e80c",
+    "docs/redesign/assets/rd-11/desktop-viewport.png": "2d8f74e238315efc84ad06dc7142a7583149f079098a3787669cc48080aa1b1b",
+    "docs/redesign/assets/rd-11/desktop.png": "2d8f74e238315efc84ad06dc7142a7583149f079098a3787669cc48080aa1b1b",
+    "docs/redesign/assets/rd-11/detector.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "docs/redesign/assets/rd-11/dialog-320-text-200-title.png": "ca4706ed9ca8f2008062a79788cf9729793e5fb5a0d0e8219662240739d3bde2",
+    "docs/redesign/assets/rd-11/dialog-320-text-200.png": "38d13df1e3161f6e7d9c155a37ebb3b9d87c12325b447bcf92d9c1dd649f66b4",
+    "docs/redesign/assets/rd-11/dialog-desktop.png": "c83d0c695c395c53d2d9c53172a884312fc73adcf45bda00149deb818bb7b9d6",
+    "docs/redesign/assets/rd-11/dialog-mobile.png": "7b9429f70df7145e621f42f4d82dd5e178eaa8062774bcd11c8434db35e5339c",
+    "docs/redesign/assets/rd-11/e2e-25.log": "c647730473720037fbd3bacc91b46de698a329b62d8fbeb71f7299023f03d1b9",
+    "docs/redesign/assets/rd-11/e2e-final-9.log": "9563065c78b7d951e850394780a929e63b9df73b21091dcfa4994f9813f278a3",
+    "docs/redesign/assets/rd-11/e2e-text-200.log": "6a61ae42a983a8fe2016a2c6c2d9637dcf4870ff6b5af3cfe6ebd2ce91c06d92",
+    "docs/redesign/assets/rd-11/hero-repro.png": "2d8f74e238315efc84ad06dc7142a7583149f079098a3787669cc48080aa1b1b",
+    "docs/redesign/assets/rd-11/mobile-viewport.png": "67790e46ca3707b89d36e5c765c27062d4206c5f3b7e16f7ab0f5cdc7fb0a409",
+    "docs/redesign/assets/rd-11/mobile.png": "b04359e4acaa52365cc3f160609ece26692f71d5739a2e942ab3f8598af7d376",
+    "docs/redesign/assets/rd-11/reflow-dialog.json": "d63d478a4756f2be1bda67ca320c3a854c52bc5ac2a04cddb7a94386ee5343ea",
+    "docs/redesign/assets/rd-11/review.md": "a46e1b907308fab2bbed81e3b31cd61b7da890ca0bc237984e9dfa5f6b885aa3",
+    "docs/redesign/assets/rd-11/unit-focused.log": "13c8c90eb0bdcb7111b90c3016244d5e2306d8776db2282272255e4d41ef44fd",
+    "docs/redesign/assets/rd-11/viewer-no-devices.png": "f502c0820f87234fe04a78b6e6d137ee233e1be6eab8f96854edfe208a629b86",
+    "docs/redesign/assets/rd-11/viewer-no-environments.png": "8412658e121d041651e7808bd91010a436cb98e7da92da338070048a6a555b42",
+    "docs/redesign/tasks/RD-11.md": "9094b33eef6bde54fc849b734eb516419e951fb2384053911a274e8ebfb32f2f",
+    "docs/redesign/tasks/README.md": "bafd37d9246162bcdbafa5b0b9546826cb5db78d6b25a9a879fd810510c8fd9f",
+    "frontend/e2e/manage-redesign.spec.ts": "132f203ac2f48b45bd1329349b7a57ca8e8143fed9d686b4ea6539c381fc965a",
+    "frontend/e2e/manage.spec.ts": "be13e9149998cabfa2648dac4c351eff286c7678c89e3e01fd0115122364d1b9",
+    "frontend/src/views/ManageView.spec.ts": "a873266a863628544ab220160f76652df04733f52cb9ec8bbe86bfc9e90ddf70",
+    "frontend/src/views/ManageView.vue": "7f1321d0b1ddb2ebfddf831533549eea61464f4edca7942da325e3674cc88984"
+  }
+}

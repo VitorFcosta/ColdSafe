@@ -1,0 +1,2034 @@
+{
+  "date": "2026-10-31T02:31:45.430Z",
+  "hardware": "MacBookPro17,1 / Apple M1 / 8 GB / macOS 27.0.1",
+  "os": {
+    "type": "Darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "browser": "153.0.8010.12",
+  "headed": true,
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "requestedDpr": 2,
+  "durationPerSceneSeconds": 60,
+  "warmupSeconds": 3,
+  "build": "RD-09 integrado / Vite otimizado index-Do4J_PBK.js / base 27bba6f com alterações locais",
+  "data": "Fixtures controladas no harness; sem API, atuadores ou medição física.",
+  "scenes": {
+    "baseline": {
+      "frames": 3593,
+      "durationMs": 60127,
+      "fps": 59.756848005055964,
+      "p95IntervalMs": 17.600000023841858,
+      "maxCalls": 14,
+      "maxTriangles": 1140,
+      "renders": 3781,
+      "totalRenders": 3792,
+      "resources": {
+        "geometries": 14,
+        "textures": 1,
+        "programs": 1
+      },
+      "render": {
+        "calls": 14,
+        "triangles": 1140
+      },
+      "dpr": 2,
+      "gpu": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "vendor": "Google Inc. (Apple)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "liveContexts": 1,
+      "trackingTruncated": false,
+      "disposed": [
+        {
+          "resources": {
+            "geometries": 0,
+            "textures": 1,
+            "programs": 1
+          },
+          "contextLost": true
+        }
+      ],
+      "hardwareAccelerationObserved": true,
+      "criteria": {
+        "hardwareObserved": true,
+        "duration": true,
+        "fps": true,
+        "p95": true,
+        "triangles": true,
+        "calls": true,
+        "dpr": true
+      }
+    },
+    "candidate": {
+      "frames": 3604,
+      "durationMs": 60076.60000002384,
+      "fps": 59.99007933202894,
+      "p95IntervalMs": 17.5,
+      "maxCalls": 55,
+      "maxTriangles": 23334,
+      "renders": 3789,
+      "totalRenders": 7600,
+      "resources": {
+        "geometries": 44,
+        "textures": 3,
+        "programs": 4
+      },
+      "render": {
+        "calls": 55,
+        "triangles": 23334
+      },
+      "dpr": 2,
+      "gpu": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "vendor": "Google Inc. (Apple)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "liveContexts": 1,
+      "trackingTruncated": false,
+      "disposed": [
+        {
+          "resources": {
+            "geometries": 0,
+            "textures": 1,
+            "programs": 1
+          },
+          "contextLost": true
+        },
+        {
+          "resources": null,
+          "contextLost": true
+        }
+      ],
+      "hardwareAccelerationObserved": true,
+      "criteria": {
+        "hardwareObserved": true,
+        "duration": true,
+        "fps": true,
+        "p95": true,
+        "triangles": true,
+        "calls": true,
+        "dpr": true
+      }
+    }
+  },
+  "selection": [
+    {
+      "key": "temperature_c",
+      "id": "00000000-0000-4000-8000-000000000010",
+      "actual": "00000000-0000-4000-8000-000000000010",
+      "pointerupToNextFrameMs": 43,
+      "passed": true
+    },
+    {
+      "key": "humidity_percent",
+      "id": "00000000-0000-4000-8000-000000000011",
+      "actual": "00000000-0000-4000-8000-000000000011",
+      "pointerupToNextFrameMs": 4.600000023841858,
+      "passed": true
+    },
+    {
+      "key": "light_percent",
+      "id": "00000000-0000-4000-8000-000000000012",
+      "actual": "00000000-0000-4000-8000-000000000012",
+      "pointerupToNextFrameMs": 12.300000011920929,
+      "passed": true
+    },
+    {
+      "key": "vibration_rms_mm_s",
+      "id": "00000000-0000-4000-8000-000000000013",
+      "actual": "00000000-0000-4000-8000-000000000013",
+      "pointerupToNextFrameMs": 14.299999952316284,
+      "passed": true
+    },
+    {
+      "key": "motor_current_a",
+      "id": "00000000-0000-4000-8000-000000000014",
+      "actual": "00000000-0000-4000-8000-000000000014",
+      "pointerupToNextFrameMs": 14.799999952316284,
+      "passed": true
+    },
+    {
+      "key": "motor_temperature_c",
+      "id": "00000000-0000-4000-8000-000000000015",
+      "actual": "00000000-0000-4000-8000-000000000015",
+      "pointerupToNextFrameMs": 13.399999976158142,
+      "passed": true
+    },
+    {
+      "key": "led",
+      "id": "00000000-0000-4000-8000-000000000020",
+      "actual": "00000000-0000-4000-8000-000000000020",
+      "pointerupToNextFrameMs": 14,
+      "passed": true
+    },
+    {
+      "key": "buzzer",
+      "id": "00000000-0000-4000-8000-000000000021",
+      "actual": "00000000-0000-4000-8000-000000000021",
+      "pointerupToNextFrameMs": 13.699999988079071,
+      "passed": true
+    },
+    {
+      "key": "fan",
+      "id": "00000000-0000-4000-8000-000000000003",
+      "actual": "00000000-0000-4000-8000-000000000003",
+      "pointerupToNextFrameMs": 14.699999988079071,
+      "passed": true
+    }
+  ],
+  "inactivity": [
+    {
+      "name": "pausa manual",
+      "rendersDuring1s": 0,
+      "passed": true,
+      "before": {
+        "animating": false,
+        "paused": true,
+        "reducedMotion": false,
+        "hidden": false,
+        "unavailable": false,
+        "angle": 6.207387712816358,
+        "rotorX": -0.010542472466894718
+      },
+      "after": {
+        "animating": false,
+        "paused": true,
+        "reducedMotion": false,
+        "hidden": false,
+        "unavailable": false,
+        "angle": 6.207387712816358,
+        "rotorX": -0.010542472466894718
+      }
+    },
+    {
+      "name": "leitura vencida",
+      "rendersDuring1s": 0,
+      "passed": true,
+      "before": {
+        "animating": false,
+        "paused": false,
+        "reducedMotion": false,
+        "hidden": false,
+        "unavailable": false,
+        "angle": 6.207387712816358,
+        "rotorX": -0.010542472466894718
+      },
+      "after": {
+        "animating": false,
+        "paused": false,
+        "reducedMotion": false,
+        "hidden": false,
+        "unavailable": false,
+        "angle": 6.207387712816358,
+        "rotorX": -0.010542472466894718
+      }
+    },
+    {
+      "name": "equipamento parado",
+      "rendersDuring1s": 0,
+      "passed": true,
+      "before": {
+        "animating": false,
+        "paused": false,
+        "reducedMotion": false,
+        "hidden": false,
+        "unavailable": false,
+        "angle": 6.207387712816358,
+        "rotorX": 0
+      },
+      "after": {
+        "animating": false,
+        "paused": false,
+        "reducedMotion": false,
+        "hidden": false,
+        "unavailable": false,
+        "angle": 6.207387712816358,
+        "rotorX": 0
+      }
+    },
+    {
+      "name": "movimento reduzido",
+      "rendersDuring1s": 0,
+      "passed": true,
+      "before": {
+        "animating": false,
+        "paused": false,
+        "reducedMotion": true,
+        "hidden": false,
+        "unavailable": false,
+        "angle": 6.207387712816358,
+        "rotorX": 0
+      },
+      "after": {
+        "animating": false,
+        "paused": false,
+        "reducedMotion": true,
+        "hidden": false,
+        "unavailable": false,
+        "angle": 6.207387712816358,
+        "rotorX": 0
+      }
+    },
+    {
+      "name": "aba realmente oculta",
+      "passed": null,
+      "reason": "Navegador não ocultou a aba; não simular como prova real."
+    }
+  ],
+  "cycles": [
+    {
+      "cycle": 1,
+      "mounted": {
+        "renders": 13,
+        "totalRenders": 7783,
+        "resources": {
+          "geometries": 45,
+          "textures": 3,
+          "programs": 5
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendor": "Google Inc. (Apple)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "liveContexts": 1,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      },
+      "unmounted": {
+        "renders": 13,
+        "totalRenders": 7783,
+        "resources": {
+          "geometries": 0,
+          "textures": 1,
+          "programs": 1
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": null,
+          "vendor": null,
+          "version": null
+        },
+        "liveContexts": 0,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      }
+    },
+    {
+      "cycle": 2,
+      "mounted": {
+        "renders": 13,
+        "totalRenders": 7796,
+        "resources": {
+          "geometries": 45,
+          "textures": 3,
+          "programs": 5
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendor": "Google Inc. (Apple)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "liveContexts": 1,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      },
+      "unmounted": {
+        "renders": 13,
+        "totalRenders": 7796,
+        "resources": {
+          "geometries": 0,
+          "textures": 1,
+          "programs": 1
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": null,
+          "vendor": null,
+          "version": null
+        },
+        "liveContexts": 0,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      }
+    },
+    {
+      "cycle": 3,
+      "mounted": {
+        "renders": 14,
+        "totalRenders": 7810,
+        "resources": {
+          "geometries": 45,
+          "textures": 3,
+          "programs": 5
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendor": "Google Inc. (Apple)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "liveContexts": 1,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      },
+      "unmounted": {
+        "renders": 14,
+        "totalRenders": 7810,
+        "resources": {
+          "geometries": 0,
+          "textures": 1,
+          "programs": 1
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": null,
+          "vendor": null,
+          "version": null
+        },
+        "liveContexts": 0,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      }
+    },
+    {
+      "cycle": 4,
+      "mounted": {
+        "renders": 14,
+        "totalRenders": 7824,
+        "resources": {
+          "geometries": 45,
+          "textures": 3,
+          "programs": 5
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendor": "Google Inc. (Apple)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "liveContexts": 1,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      },
+      "unmounted": {
+        "renders": 14,
+        "totalRenders": 7824,
+        "resources": {
+          "geometries": 0,
+          "textures": 1,
+          "programs": 1
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": null,
+          "vendor": null,
+          "version": null
+        },
+        "liveContexts": 0,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      }
+    },
+    {
+      "cycle": 5,
+      "mounted": {
+        "renders": 13,
+        "totalRenders": 7837,
+        "resources": {
+          "geometries": 45,
+          "textures": 3,
+          "programs": 5
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendor": "Google Inc. (Apple)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "liveContexts": 1,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      },
+      "unmounted": {
+        "renders": 13,
+        "totalRenders": 7837,
+        "resources": {
+          "geometries": 0,
+          "textures": 1,
+          "programs": 1
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": null,
+          "vendor": null,
+          "version": null
+        },
+        "liveContexts": 0,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      }
+    },
+    {
+      "cycle": 6,
+      "mounted": {
+        "renders": 14,
+        "totalRenders": 7851,
+        "resources": {
+          "geometries": 45,
+          "textures": 3,
+          "programs": 5
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendor": "Google Inc. (Apple)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "liveContexts": 1,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      },
+      "unmounted": {
+        "renders": 14,
+        "totalRenders": 7851,
+        "resources": {
+          "geometries": 0,
+          "textures": 1,
+          "programs": 1
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": null,
+          "vendor": null,
+          "version": null
+        },
+        "liveContexts": 0,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      }
+    },
+    {
+      "cycle": 7,
+      "mounted": {
+        "renders": 14,
+        "totalRenders": 7865,
+        "resources": {
+          "geometries": 45,
+          "textures": 3,
+          "programs": 5
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendor": "Google Inc. (Apple)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "liveContexts": 1,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      },
+      "unmounted": {
+        "renders": 14,
+        "totalRenders": 7865,
+        "resources": {
+          "geometries": 0,
+          "textures": 1,
+          "programs": 1
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": null,
+          "vendor": null,
+          "version": null
+        },
+        "liveContexts": 0,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      }
+    },
+    {
+      "cycle": 8,
+      "mounted": {
+        "renders": 13,
+        "totalRenders": 7878,
+        "resources": {
+          "geometries": 45,
+          "textures": 3,
+          "programs": 5
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendor": "Google Inc. (Apple)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "liveContexts": 1,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      },
+      "unmounted": {
+        "renders": 13,
+        "totalRenders": 7878,
+        "resources": {
+          "geometries": 0,
+          "textures": 1,
+          "programs": 1
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": null,
+          "vendor": null,
+          "version": null
+        },
+        "liveContexts": 0,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      }
+    },
+    {
+      "cycle": 9,
+      "mounted": {
+        "renders": 13,
+        "totalRenders": 7891,
+        "resources": {
+          "geometries": 45,
+          "textures": 3,
+          "programs": 5
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendor": "Google Inc. (Apple)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "liveContexts": 1,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      },
+      "unmounted": {
+        "renders": 13,
+        "totalRenders": 7891,
+        "resources": {
+          "geometries": 0,
+          "textures": 1,
+          "programs": 1
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": null,
+          "vendor": null,
+          "version": null
+        },
+        "liveContexts": 0,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      }
+    },
+    {
+      "cycle": 10,
+      "mounted": {
+        "renders": 13,
+        "totalRenders": 7904,
+        "resources": {
+          "geometries": 45,
+          "textures": 3,
+          "programs": 5
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendor": "Google Inc. (Apple)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "liveContexts": 1,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      },
+      "unmounted": {
+        "renders": 13,
+        "totalRenders": 7904,
+        "resources": {
+          "geometries": 0,
+          "textures": 1,
+          "programs": 1
+        },
+        "render": {
+          "calls": 56,
+          "triangles": 23334
+        },
+        "dpr": 2,
+        "gpu": {
+          "renderer": null,
+          "vendor": null,
+          "version": null
+        },
+        "liveContexts": 0,
+        "trackingTruncated": false,
+        "disposed": [
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": null,
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          },
+          {
+            "resources": {
+              "geometries": 0,
+              "textures": 1,
+              "programs": 1
+            },
+            "contextLost": true
+          }
+        ]
+      }
+    }
+  ],
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "pauseAfterData": {
+    "candidate": {
+      "animating": false,
+      "paused": true,
+      "reducedMotion": false,
+      "hidden": false,
+      "unavailable": false,
+      "angle": 6.207387712816358,
+      "rotorX": -0.010542472466894718
+    },
+    "probe": {
+      "renders": 3859,
+      "totalRenders": 7670,
+      "resources": {
+        "geometries": 45,
+        "textures": 3,
+        "programs": 5
+      },
+      "render": {
+        "calls": 56,
+        "triangles": 23334
+      },
+      "dpr": 2,
+      "gpu": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "vendor": "Google Inc. (Apple)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "liveContexts": 1,
+      "trackingTruncated": false,
+      "disposed": [
+        {
+          "resources": {
+            "geometries": 0,
+            "textures": 1,
+            "programs": 1
+          },
+          "contextLost": true
+        },
+        {
+          "resources": null,
+          "contextLost": true
+        }
+      ]
+    }
+  },
+  "cycleCriteria": {
+    "tenCycles": true,
+    "allContextsReleased": true,
+    "stableMountedResources": true,
+    "trackingComplete": true
+  },
+  "mobilePhysical": {
+    "measured": false,
+    "reason": "Este protocolo foi executado no desktop; viewport móvel não comprova GPU móvel."
+  },
+  "passedDesktopCriteria": false
+}

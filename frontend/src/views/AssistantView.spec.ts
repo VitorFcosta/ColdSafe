@@ -5,16 +5,16 @@ import { sessionToken } from '../features/account/session'
 import { askAssistant, AssistantRequestError, fetchLlmStatus } from '../features/assistant/assistant-api'
 import AssistantView from './AssistantView.vue'
 
-const routing = vi.hoisted(() => ({ replace: vi.fn() }))
-vi.mock('vue-router', () => ({ useRouter: () => ({ replace: routing.replace }) }))
+const routing = vi.hoisted(() => ({ replace: vi.fn(), leave: undefined as undefined | ((to: { name: string }) => boolean | Promise<boolean>) }))
+vi.mock('vue-router', () => ({ useRouter: () => ({ replace: routing.replace }), onBeforeRouteLeave: (guard: NonNullable<typeof routing.leave>) => { routing.leave = guard } }))
 vi.mock('../features/assistant/assistant-api', async (original) => ({
   ...await original<typeof import('../features/assistant/assistant-api')>(),
   askAssistant: vi.fn(), fetchLlmStatus: vi.fn(),
 }))
 let wrapper: VueWrapper | undefined
-const render = () => mount(AssistantView, { global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } } })
+const render = () => mount(AssistantView, { attachTo: document.body, global: { stubs: { Teleport: true, RouterLink: { template: '<a><slot /></a>' } } } })
 beforeEach(() => {
-  vi.useFakeTimers(); routing.replace.mockReset(); sessionToken.value = 'first-account'
+  vi.useFakeTimers(); routing.replace.mockReset(); routing.leave = undefined; sessionToken.value = 'first-account'
   vi.mocked(fetchLlmStatus).mockReset().mockResolvedValue('ready')
   vi.mocked(askAssistant).mockReset().mockImplementation(async (_token, _question, onDelta) => {
     onDelta('Saúde 20 e RUL 10 h.'); return 'request-one'
@@ -39,6 +39,71 @@ describe('Assistente privado', () => {
     expect(askAssistant).not.toHaveBeenCalled()
   })
 
+  it('explica antes da primeira pergunta a perda inclusive das respostas concluídas', async () => {
+    wrapper = render(); await flushPromises()
+    expect(wrapper.get('#assistant-scope').text()).toContain('inclusive respostas concluídas')
+    expect(wrapper.get('textarea').attributes('aria-describedby')).toContain('assistant-scope')
+    expect(askAssistant).not.toHaveBeenCalled()
+  })
+  it('avisa ao sair durante resposta; permanecer conserva o stream e sair aguarda desmontagem', async () => {
+    vi.mocked(askAssistant).mockImplementationOnce((_token, _question, delta) => {
+      delta('Parcial privado.'); return new Promise(() => {})
+    })
+    wrapper = render(); await flushPromises(); await send()
+    const signal = vi.mocked(askAssistant).mock.calls[0]![3]!
+    expect(routing.leave).toBeTypeOf('function')
+    const staying = routing.leave!({ name: 'dashboard' })
+    await flushPromises()
+    expect((wrapper.get('dialog').element as HTMLDialogElement).open).toBe(true)
+    await wrapper.findAll('dialog button').find(button => button.text() === 'Permanecer')!.trigger('click')
+    expect(await staying).toBe(false); expect(signal.aborted).toBe(false)
+    expect(wrapper.text()).toContain('Parcial privado.')
+    const leaving = routing.leave!({ name: 'dashboard' }); await flushPromises()
+    await wrapper.findAll('dialog button').find(button => button.text() === 'Sair do assistente')!.trigger('click')
+    expect(await leaving).toBe(true); expect(signal.aborted).toBe(false)
+    expect(askAssistant).toHaveBeenCalledOnce()
+    wrapper.unmount(); wrapper = undefined
+    expect(signal.aborted).toBe(true)
+  })
+  it('duas navegações pendentes resolvem somente a decisão mais recente', async () => {
+    vi.mocked(askAssistant).mockImplementationOnce(() => new Promise(() => {}))
+    wrapper = render(); await flushPromises(); await send()
+    const first = routing.leave!({ name: 'dashboard' }); await flushPromises()
+    const latest = routing.leave!({ name: 'insights' }); await flushPromises()
+    expect(await first).toBe(false)
+    await wrapper.findAll('dialog button').find(button => button.text() === 'Sair do assistente')!.trigger('click')
+    expect(await latest).toBe(true)
+    expect(askAssistant).toHaveBeenCalledOnce()
+  })
+  it.each(['account', '401', '403'] as const)('sessão/revogação %s fecha aviso pendente sem conservar conteúdo privado', async change => {
+    let fail!: (error: Error) => void
+    vi.mocked(askAssistant).mockImplementationOnce((_token, _question, delta) => {
+      delta('Parcial privado.'); return new Promise((_resolve, reject) => { fail = reject })
+    })
+    wrapper = render(); await flushPromises(); await send('Pergunta privada antiga')
+    expect(routing.leave).toBeTypeOf('function')
+    const leaving = routing.leave!({ name: 'dashboard' }); await flushPromises()
+    if (change === 'account') sessionToken.value = 'new-account'
+    else fail(new AssistantRequestError(change === '401' ? 'UNAUTHORIZED' : 'FORBIDDEN', Number(change)))
+    await flushPromises()
+    expect(await leaving).toBe(false)
+    expect((wrapper.get('dialog').element as HTMLDialogElement).open).toBe(false)
+    expect(wrapper.text()).not.toContain('Parcial privado.')
+    expect(wrapper.text()).not.toContain('Pergunta privada antiga')
+  })
+  it('aviso nativo de fechamento existe só durante resposta em andamento', async () => {
+    let finish!: (id: string) => void
+    vi.mocked(askAssistant).mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+    wrapper = render(); await flushPromises()
+    const idle = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(idle)
+    expect(idle.defaultPrevented).toBe(false)
+    await send()
+    const active = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(active)
+    expect(active.defaultPrevented).toBe(true)
+    finish('done'); await flushPromises()
+    const complete = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(complete)
+    expect(complete.defaultPrevented).toBe(false)
+  })
   it.each([
     ['loading', 'Preparando o modelo local'], ['paused', 'pausado'],
     ['disabled', 'não está habilitado'], ['model_missing', 'ainda não foi preparado'],
@@ -80,6 +145,15 @@ describe('Assistente privado', () => {
     expect(askAssistant).toHaveBeenCalledWith('first-account', 'x'.repeat(256), expect.any(Function), expect.any(AbortSignal))
   })
 
+  it('aceita 64 emojis em 256 bytes e conserva apenas as oito perguntas mais recentes', async () => {
+    wrapper = render(); await flushPromises(); await send('🧊'.repeat(64))
+    expect(askAssistant).toHaveBeenCalledWith('first-account', '🧊'.repeat(64), expect.any(Function), expect.any(AbortSignal))
+    for (let index = 1; index <= 8; index++) await send(`Pergunta ${index}`)
+    const conversation = wrapper.get('ol[aria-label="Conversa desta sessão"]')
+    expect(conversation.findAll('li')).toHaveLength(8)
+    expect(conversation.text()).not.toContain('🧊')
+    expect(conversation.text()).toContain('Pergunta 8')
+  })
   it('marca interrupção como incompleta, preserva o parcial e não repete o POST', async () => {
     vi.mocked(askAssistant).mockImplementationOnce(async (_token, _question, delta) => {
       delta('Parte recebida.'); throw new AssistantRequestError('STREAM_INTERRUPTED')
@@ -101,6 +175,7 @@ describe('Assistente privado', () => {
     wrapper = render(); await flushPromises(); await send()
     const signal = vi.mocked(askAssistant).mock.calls[0]![3]!
     await wrapper.get('[data-testid="cancel"]').trigger('click')
+    expect(document.activeElement).toBe(wrapper.get('textarea').element)
     expect(signal.aborted).toBe(true)
     expect(wrapper.text()).toContain('Resposta incompleta')
     delta('Texto tardio'); complete('late'); await flushPromises()
@@ -136,8 +211,11 @@ describe('Assistente privado', () => {
     vi.mocked(askAssistant).mockRejectedValueOnce(new AssistantRequestError('RATE_LIMITED', 429, 3))
     wrapper = render(); await flushPromises(); await send()
     expect(wrapper.text()).toContain('Limite de perguntas')
+    const announcedStatus = wrapper.get('.model-status').text()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(wrapper.get('.model-status').text()).toBe(announcedStatus)
     expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined()
-    await vi.advanceTimersByTimeAsync(3000); await flushPromises()
+    await vi.advanceTimersByTimeAsync(2000); await flushPromises()
     expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeUndefined()
     expect(askAssistant).toHaveBeenCalledOnce()
   })

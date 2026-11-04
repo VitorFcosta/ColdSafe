@@ -1,0 +1,147 @@
+{
+  "task": "RD-07",
+  "date": "2026-10-30",
+  "git_base": "27bba6f",
+  "working_tree": "Existing local changes preserved; no commit/push.",
+  "environment": {
+    "os": "macOS",
+    "node": "24.22.1",
+    "declared_node": "24.20.0",
+    "browser": "Chromium 153.0.8010.12"
+  },
+  "checks": [
+    {
+      "command": "npm run test:unit:run -- [9 affected view/component specs]",
+      "result": "129 tests / 9 files passed before final disclosure/layout adjustment"
+    },
+    {
+      "command": "npm run test:coverage",
+      "result": "673 tests / 53 files passed",
+      "coverage": {
+        "statements": 94.56,
+        "branches": 90.89,
+        "functions": 92.27,
+        "lines": 97.42
+      },
+      "scope": "Original vite.config.ts frontend coverage scope; no exclusion changed"
+    },
+    {
+      "command": "npm run build",
+      "result": "passed, includes typecheck",
+      "warning": "Existing DigitalTwinView chunk ~550.31 kB"
+    },
+    {
+      "command": "VITE_AIOT_ENABLED=false npm run test:e2e -- dashboard.spec.ts dashboard-selection.spec.ts app-shell.spec.ts --workers=2",
+      "result": "44 passed"
+    },
+    {
+      "command": "VITE_AIOT_ENABLED=true npm run test:e2e -- dashboard-redesign.spec.ts inference.spec.ts digital-twin.spec.ts --workers=2",
+      "result": "12 passed"
+    },
+    {
+      "command": "Impeccable detect.mjs --json [8 changed Vue files]",
+      "result": []
+    },
+    {
+      "command": "VITE_AIOT_ENABLED=true npm run test:e2e -- dashboard-redesign.spec.ts --workers=2",
+      "result": "4 passed after final period label fix"
+    },
+    {
+      "command": "npm run test:unit:run -- src/features/navigation/AuthenticatedShell.spec.ts",
+      "result": "6 passed after typing the slot fixture with defineComponent"
+    }
+  ],
+  "tdd": {
+    "before_implementation": "3 new assertions failed for comparison gaps, LED observation/send regions, prediction identification; 33 existing tests passed",
+    "resolved": "Focused suite passed; full coverage passed",
+    "period_fix": "New label-bounds E2E failed before CSS correction and passed after it"
+  },
+  "accessibility": {
+    "desktop": [
+      1440,
+      1024
+    ],
+    "mobile": [
+      390,
+      1024
+    ],
+    "text_200_percent": [
+      320,
+      800
+    ],
+    "reflow": "scrollWidth 320 / viewport 320; root font 32px; reduced motion active",
+    "keyboard": "History table Enter/Tab, focus retained after WS refresh, no command POST on selection/navigation/consultation",
+    "contrast": "Five rendered pairs all >=4.5; ratios in rendered-colors.json"
+  },
+  "reviews": {
+    "code": "Independent reviewer found trailing-slash duplicate nav; changed route.path comparison to route.name and covered /dashboard/ in E2E",
+    "visual": {
+      "reviewer": "Independent a11y-architect agent used for Impeccable finish review; dedicated profile not installed",
+      "initial_disposition": "fix",
+      "finding": "Period label overlap at 320px / text200%",
+      "fix": "Button flex 1 0 auto and min-width max-content; remove mobile min-width0",
+      "regression_test": "Text Range bounds fail before and pass after fix",
+      "verdict": "ship; single finding scored resolved against 15m and 1h selected captures; no broader audit reopened"
+    }
+  },
+  "evidence_kind": "New browser captures using controlled HTTP/WS fixtures. Approved P-05 images used only as visual reference.",
+  "dependencies_added": [],
+  "limits": [
+    "No backend/device integration executed",
+    "No real mobile device or GPU benchmark",
+    "No screen reader or participant usability session",
+    "RD-02/RD-09 3D experiment remains outside scope"
+  ],
+  "screenshots": [
+    "desktop.png",
+    "periods-320-text-200-15m.png",
+    "mobile-320-text-200.png",
+    "desktop-viewport.png",
+    "periods-320-text-200-1h.png",
+    "mobile-viewport.png",
+    "mobile.png",
+    "mobile-320-text-200-viewport.png",
+    "partial-error.png"
+  ],
+  "files_changed": [
+    "docs/redesign/tasks/RD-07.md",
+    "docs/redesign/tasks/README.md",
+    "frontend/e2e/dashboard.spec.ts",
+    "frontend/src/features/digital-twin/TwinItemPanel.vue",
+    "frontend/src/features/monitoring/AlertsComparisonPanel.spec.ts",
+    "frontend/src/features/monitoring/AlertsComparisonPanel.vue",
+    "frontend/src/features/monitoring/LedControl.spec.ts",
+    "frontend/src/features/monitoring/LedControl.vue",
+    "frontend/src/features/monitoring/PredictionPanel.spec.ts",
+    "frontend/src/features/monitoring/PredictionPanel.vue",
+    "frontend/src/features/monitoring/TemperatureHistoryChart.vue",
+    "frontend/src/features/navigation/AuthenticatedShell.spec.ts",
+    "frontend/src/features/navigation/AuthenticatedShell.vue",
+    "frontend/src/views/FoundationView.spec.ts",
+    "frontend/src/views/FoundationView.vue"
+  ],
+  "files_created": [
+    "docs/redesign/assets/rd-07/desktop-viewport.png",
+    "docs/redesign/assets/rd-07/desktop.png",
+    "docs/redesign/assets/rd-07/detector.json",
+    "docs/redesign/assets/rd-07/mobile-320-text-200-viewport.png",
+    "docs/redesign/assets/rd-07/mobile-320-text-200.png",
+    "docs/redesign/assets/rd-07/mobile-viewport.png",
+    "docs/redesign/assets/rd-07/mobile.png",
+    "docs/redesign/assets/rd-07/partial-error.png",
+    "docs/redesign/assets/rd-07/periods-320-text-200-15m.png",
+    "docs/redesign/assets/rd-07/periods-320-text-200-1h.png",
+    "docs/redesign/assets/rd-07/reflow.json",
+    "docs/redesign/assets/rd-07/rendered-colors.json",
+    "docs/redesign/assets/rd-07/verification.json",
+    "frontend/e2e/dashboard-redesign.spec.ts",
+    "frontend/src/features/navigation/AreaNavigation.vue"
+  ],
+  "preservation": {
+    "baseline_files": 764,
+    "changed_in_scope": 15,
+    "preserved": 749,
+    "unexpected_changes": [],
+    "local_doc_links_checked": 54
+  }
+}

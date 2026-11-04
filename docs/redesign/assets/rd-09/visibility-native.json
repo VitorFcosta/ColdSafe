@@ -1,0 +1,153 @@
+{
+  "date": "2026-10-31T15:10:58.485Z",
+  "protocol": "Chromium nativo via CDP, perfil temporário, sem Playwright/Emulation de foco; troca real para outra aba. Mesmo build otimizado da medição RD-09.",
+  "browser": "Chrome/153.0.8010.12",
+  "active": {
+    "time": 1793459455103,
+    "hidden": false,
+    "state": {
+      "animating": true,
+      "paused": false,
+      "reducedMotion": false,
+      "hidden": false,
+      "unavailable": false,
+      "angle": 3.0636000000000005,
+      "rotorX": -0.01082550971943072
+    },
+    "probe": {
+      "renders": 43,
+      "totalRenders": 43,
+      "resources": {
+        "geometries": 44,
+        "textures": 3,
+        "programs": 4
+      },
+      "render": {
+        "calls": 55,
+        "triangles": 23334
+      },
+      "dpr": 2,
+      "gpu": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "vendor": "Google Inc. (Apple)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "liveContexts": 1,
+      "trackingTruncated": false,
+      "disposed": []
+    }
+  },
+  "hiddenBefore": {
+    "time": 1793459455870,
+    "hidden": true,
+    "state": {
+      "animating": false,
+      "paused": false,
+      "reducedMotion": false,
+      "hidden": true,
+      "unavailable": false,
+      "angle": 3.466400000000001,
+      "rotorX": 0.022305287862910566
+    },
+    "probe": {
+      "renders": 49,
+      "totalRenders": 49,
+      "resources": {
+        "geometries": 44,
+        "textures": 3,
+        "programs": 4
+      },
+      "render": {
+        "calls": 55,
+        "triangles": 23334
+      },
+      "dpr": 2,
+      "gpu": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "vendor": "Google Inc. (Apple)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "liveContexts": 1,
+      "trackingTruncated": false,
+      "disposed": []
+    }
+  },
+  "hiddenAfter": {
+    "time": 1793459457890,
+    "hidden": true,
+    "state": {
+      "animating": false,
+      "paused": false,
+      "reducedMotion": false,
+      "hidden": true,
+      "unavailable": false,
+      "angle": 3.466400000000001,
+      "rotorX": 0.022305287862910566
+    },
+    "probe": {
+      "renders": 49,
+      "totalRenders": 49,
+      "resources": {
+        "geometries": 44,
+        "textures": 3,
+        "programs": 4
+      },
+      "render": {
+        "calls": 55,
+        "triangles": 23334
+      },
+      "dpr": 2,
+      "gpu": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "vendor": "Google Inc. (Apple)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "liveContexts": 1,
+      "trackingTruncated": false,
+      "disposed": []
+    }
+  },
+  "resumed": {
+    "time": 1793459458479,
+    "hidden": false,
+    "state": {
+      "animating": true,
+      "paused": false,
+      "reducedMotion": false,
+      "hidden": false,
+      "unavailable": false,
+      "angle": 5.3964000000000025,
+      "rotorX": 0.01969458340886537
+    },
+    "probe": {
+      "renders": 75,
+      "totalRenders": 75,
+      "resources": {
+        "geometries": 44,
+        "textures": 3,
+        "programs": 4
+      },
+      "render": {
+        "calls": 55,
+        "triangles": 23334
+      },
+      "dpr": 2,
+      "gpu": {
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "vendor": "Google Inc. (Apple)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "liveContexts": 1,
+      "trackingTruncated": false,
+      "disposed": []
+    }
+  },
+  "criteria": {
+    "active": true,
+    "actuallyHidden": true,
+    "stopped": true,
+    "zeroRenders": true,
+    "resumed": true
+  },
+  "passed": true
+}

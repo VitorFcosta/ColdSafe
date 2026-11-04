@@ -1,13 +1,29 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { clearSession, logout, sessionToken } from '../features/account/session'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
+import { onBeforeRouteLeave, useRouter } from 'vue-router'
+import { clearSession, sessionToken } from '../features/account/session'
 import { askAssistant, AssistantRequestError, fetchLlmStatus, type LlmState } from '../features/assistant/assistant-api'
 
 type Turn = Readonly<{ id: number; question: string; answer: string; state: 'responding' | 'complete' | 'incomplete' }>
 const router = useRouter()
 const question = ref('')
 const textarea = ref<HTMLTextAreaElement | null>(null)
+const leaveDialog = ref<HTMLDialogElement | null>(null)
+let leaveDecision: ((leave: boolean) => void) | undefined
+function resolveLeave(leave: boolean) {
+  const finish = leaveDecision
+  leaveDecision = undefined
+  leaveDialog.value?.close()
+  finish?.(leave)
+}
+onBeforeRouteLeave((to) => {
+  if (!responding.value || !sessionToken.value || accessDenied.value || to.name === 'login') return true
+  resolveLeave(false)
+  return new Promise<boolean>((resolve) => {
+    leaveDecision = resolve
+    void nextTick(() => { if (leaveDecision === resolve) leaveDialog.value?.showModal() })
+  })
+})
 const turns = ref<Turn[]>([])
 const modelState = ref<LlmState>('loading')
 const responding = ref(false)
@@ -29,7 +45,7 @@ const statusMessages: Record<LlmState, string> = {
   unavailable: 'Assistente local indisponível. O estado será consultado novamente automaticamente.',
 }
 const status = computed(() => accessDenied.value ? 'Seu acesso ao assistente não está autorizado.' : responding.value ? 'Respondendo…' : cooldown.value > 0
-  ? `Limite de perguntas atingido. Aguarde ${cooldown.value} s antes de tentar novamente.` : statusMessages[modelState.value])
+  ? 'Limite de perguntas atingido. Aguarde o prazo indicado antes de tentar novamente.' : statusMessages[modelState.value])
 const suggestions = [
   { label: 'Estado atual', question: 'Qual é o estado atual dos equipamentos da minha conta?' },
   { label: 'Pior equipamento', question: 'Qual equipamento tem a pior saúde ou menor vida útil restante?' },
@@ -69,6 +85,7 @@ function errorMessage(error: unknown): string {
 }
 
 watch(sessionToken, (token, _old, onCleanup) => {
+  resolveLeave(false)
   let active = true
   let allowed = true
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -152,37 +169,35 @@ function cancel() {
   revision += 1; generation?.abort(); generation = null; responding.value = false
   notice.value = 'Geração cancelada. O texto recebido é incompleto. Aguarde o modelo ficar pronto antes de tentar novamente.'
   modelState.value = 'loading'; pollCurrent()
+  textarea.value?.focus()
 }
 function prepare(text: string) { question.value = text; inputError.value = ''; textarea.value?.focus() }
-async function signOut() {
-  const token = sessionToken.value
-  try { await logout() } catch { if (sessionToken.value === token) notice.value = 'Não foi possível encerrar a sessão. Tente novamente.' }
-}
-onUnmounted(() => { alive = false; revision += 1; generation?.abort(); clearInterval(clock) })
+function beforeUnload(event: BeforeUnloadEvent) { event.preventDefault(); event.returnValue = 'true' }
+watch(responding, (active) => {
+  if (active) window.addEventListener('beforeunload', beforeUnload)
+  else window.removeEventListener('beforeunload', beforeUnload)
+}, { flush: 'sync' })
+watch(accessDenied, (denied) => { if (denied) resolveLeave(false) }, { flush: 'sync' })
+onUnmounted(() => {
+  alive = false; revision += 1; generation?.abort(); clearInterval(clock)
+  resolveLeave(false); window.removeEventListener('beforeunload', beforeUnload)
+})
 </script>
 
 <template>
-  <main class="assistant">
-    <a class="skip-link" href="#assistant-title">Ir para o conteúdo</a>
+  <main class="assistant cs-controls">
     <div class="shell">
-      <header class="nav">
-        <RouterLink to="/" class="brand">ColdSafe</RouterLink>
-        <nav aria-label="Navegação principal">
-          <RouterLink to="/dashboard">Monitoramento</RouterLink><RouterLink to="/insights">Insights</RouterLink>
-          <RouterLink to="/digital-twin">Gêmeo digital</RouterLink><RouterLink to="/manage">Ambientes e dispositivos</RouterLink>
-          <RouterLink to="/messaging">Mensageria</RouterLink><RouterLink to="/laboratory">Laboratório</RouterLink>
-          <RouterLink to="/training">Treinamento</RouterLink><RouterLink to="/assistant" aria-current="page">Assistente</RouterLink>
-        </nav>
-        <button type="button" @click="signOut">Sair</button>
-      </header>
-      <section class="heading">
+      <section class="heading" aria-labelledby="assistant-title">
         <h1 id="assistant-title" tabindex="-1">Assistente</h1>
-        <p>Pergunte sobre os equipamentos da sua conta. O backend prepara um resumo limitado dos dados autorizados; o modelo local não consulta os bancos nem executa comandos.</p>
+        <p>Pergunte sobre os equipamentos da sua conta. O modelo local recebe um resumo limitado dos dados autorizados; não consulta os bancos nem executa comandos.</p>
+      </section>
+      <section class="scope" aria-label="Estado e escopo do assistente">
+        <p class="model-status" :class="accessDenied ? 'error' : responding ? 'responding' : cooldown ? 'paused' : modelState" role="status" aria-live="polite">{{ status }}</p>
+        <p id="assistant-scope">A conversa fica somente nesta página, com até oito perguntas. Ao sair ou trocar de conta, ela é apagada, inclusive respostas concluídas. A pergunta não herda o equipamento selecionado no Monitoramento.</p>
       </section>
       <div class="workspace">
         <section class="panel conversation" aria-label="Conversa com o assistente">
           <h2>Entenda os dados da sua conta</h2>
-          <p class="model-status" role="status" aria-live="polite">{{ status }}</p>
           <p v-if="notice" role="status" class="notice">{{ notice }}</p>
           <ol v-if="turns.length" aria-label="Conversa desta sessão">
             <li v-for="turn in turns" :key="turn.id" class="turn">
@@ -190,53 +205,76 @@ onUnmounted(() => { alive = false; revision += 1; generation?.abort(); clearInte
               <h3>Assistente</h3>
               <p v-if="turn.answer" data-testid="answer" class="plain-text">{{ turn.answer }}</p>
               <p v-else>{{ turn.state === 'responding' ? 'Aguardando a primeira parte da resposta…' : 'Nenhuma resposta recebida.' }}</p>
-              <p class="turn-state">{{ turn.state === 'responding' ? 'Resposta em andamento' : turn.state === 'complete' ? 'Resposta concluída' : 'Resposta incompleta' }}</p>
+              <p class="turn-state" :class="turn.state">{{ turn.state === 'responding' ? 'Resposta em andamento' : turn.state === 'complete' ? 'Resposta concluída' : 'Resposta incompleta' }}</p>
             </li>
           </ol>
           <p v-else class="empty">Ainda não há perguntas nesta página. Escolha uma sugestão ou escreva sua pergunta abaixo.</p>
-          <form aria-label="Perguntar ao assistente" @submit.prevent="send">
-            <label for="assistant-question">Sua pergunta</label>
-            <textarea id="assistant-question" ref="textarea" v-model="question" name="question" rows="3" :readonly="responding"
-              :aria-describedby="inputError ? 'question-limit question-error' : 'question-limit'" :aria-invalid="inputError || bytes > 256 ? 'true' : undefined" />
-            <p id="question-limit" class="field-help">{{ bytes }} / 256 bytes UTF-8 · Até 5 perguntas por minuto.</p>
-            <p v-if="inputError" id="question-error" role="alert">{{ inputError }}</p>
-            <div class="actions">
-              <button type="submit" class="primary" :disabled="!canSend">Enviar pergunta</button>
-              <button v-if="responding" type="button" data-testid="cancel" @click="cancel">Cancelar resposta</button>
-            </div>
-          </form>
         </section>
+        <form class="panel composer" aria-label="Perguntar ao assistente" @submit.prevent="send">
+          <label for="assistant-question">Sua pergunta</label>
+          <textarea id="assistant-question" ref="textarea" v-model="question" name="question" rows="3" :readonly="responding"
+            :aria-describedby="inputError ? 'assistant-scope question-limit question-error' : 'assistant-scope question-limit'" :aria-invalid="inputError || bytes > 256 ? 'true' : undefined" />
+          <p id="question-limit" class="field-help">{{ bytes }} / 256 bytes UTF-8 · Até 5 perguntas por minuto.</p>
+          <p v-if="cooldown" class="field-help">Aguarde {{ cooldown }} s antes de tentar novamente.</p>
+          <p v-if="inputError" id="question-error" role="alert" class="field-error">{{ inputError }}</p>
+          <div class="actions">
+            <button type="submit" class="primary" :disabled="!canSend">Enviar pergunta</button>
+            <button v-if="responding" type="button" data-testid="cancel" @click="cancel">Cancelar resposta</button>
+          </div>
+        </form>
         <aside class="panel questions" aria-label="Perguntas sugeridas e limites">
           <h2>Por onde começar</h2>
+          <p>Selecionar uma sugestão apenas preenche a pergunta. O envio é uma ação sua.</p>
           <ul><li v-for="suggestion in suggestions" :key="suggestion.label"><button type="button" data-testid="suggestion" :disabled="responding" @click="prepare(suggestion.question)">{{ suggestion.label }}</button></li></ul>
           <p>Cada pergunta é independente. As anteriores não são enviadas ao modelo.</p>
-          <p>A conversa fica somente nesta página, com até oito perguntas. Ao sair ou trocar de conta, ela é apagada.</p>
           <p>As perguntas são registradas na auditoria local. Não inclua senhas ou segredos.</p>
-          <p>Respostas podem conter erros. Saúde e RUL são estimativas sintéticas, sem calibração física. Confirme os dados em <RouterLink to="/insights">Insights</RouterLink>.</p>
+          <p>Respostas podem conter erros. Saúde e RUL são estimativas sintéticas, sem calibração física. Confirme os dados em <RouterLink to="/insights">Saúde e previsões</RouterLink>.</p>
         </aside>
       </div>
     </div>
+    <Teleport to="body">
+      <dialog ref="leaveDialog" class="leave-dialog cs-controls" aria-labelledby="assistant-leave-title" aria-describedby="assistant-leave-description" @cancel.prevent="resolveLeave(false)">
+        <h2 id="assistant-leave-title">Sair e apagar a conversa?</h2>
+        <p id="assistant-leave-description">Sair interrompe a resposta que ainda estiver chegando e apaga a conversa, inclusive respostas concluídas.</p>
+        <div class="actions">
+          <button type="button" autofocus @click="resolveLeave(false)">Permanecer</button>
+          <button type="button" @click="resolveLeave(true)">Sair do assistente</button>
+        </div>
+      </dialog>
+    </Teleport>
   </main>
 </template>
 
 <style scoped>
-.assistant { min-height: 100vh; padding: var(--cs-space-48); color: var(--cs-color-ink); background: var(--cs-color-canvas); }
-.shell { max-width: 1280px; margin: auto; display: grid; gap: var(--cs-space-24); min-width: 0; }
-.nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--cs-space-24); padding-bottom: var(--cs-space-32); border-bottom: 1px solid var(--cs-color-line); }
-.brand { font-weight: 700; }.nav nav { display: flex; flex-wrap: wrap; gap: var(--cs-space-16); font-size: var(--cs-type-14); }
-a, button { color: var(--cs-color-accent); }button { cursor: pointer; }.nav a, button { display: inline-flex; align-items: center; min-height: 44px; }button:disabled { opacity: .6; cursor: not-allowed; }
-a:hover, button:hover:not(:disabled) { text-decoration: underline; }a { text-underline-offset: .2em; }
-:is(a, button, textarea):focus-visible { outline: 2px solid var(--cs-focus-ring); outline-offset: 3px; }
-h1 { font-size: var(--cs-type-32); font-weight: 600; }h2 { font-size: var(--cs-type-20); font-weight: 600; }h3 { margin-top: var(--cs-space-16); font-weight: 600; }
-p { margin-top: var(--cs-space-12); line-height: 1.7; overflow-wrap: anywhere; }.heading p { max-width: 72ch; }
-.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 280px; align-items: start; gap: var(--cs-space-24); }.panel { min-width: 0; padding: var(--cs-space-24); background: var(--cs-color-surface); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-panel); }
-.model-status { font-weight: 600; }.notice, [role=alert] { color: var(--cs-color-status-attention); }.empty { margin-block: var(--cs-space-32); color: var(--cs-color-ink-muted); }
-.turn { padding-block: var(--cs-space-16) var(--cs-space-24); border-bottom: 1px solid var(--cs-color-line); }.plain-text { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 72ch; }.turn-state, .field-help { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }.turn-state { margin-top: var(--cs-space-16); }
-form { margin-top: var(--cs-space-32); }label { display: block; font-weight: 600; margin-bottom: var(--cs-space-8); }textarea { width: 100%; min-width: 0; resize: vertical; padding: var(--cs-space-12); background: var(--cs-color-canvas); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-4); color: inherit; caret-color: var(--cs-color-accent); line-height: 1.6; }
-.actions { display: flex; flex-wrap: wrap; gap: var(--cs-space-16); margin-top: var(--cs-space-16); }.actions button { padding: var(--cs-space-8) var(--cs-space-16); border: 1px solid var(--cs-color-accent); border-radius: var(--cs-radius-4); }.primary { color: var(--cs-color-accent-ink); background: var(--cs-color-accent); }
-.questions ul { display: grid; gap: var(--cs-space-8); margin-top: var(--cs-space-16); }.questions button { text-align: left; justify-content: flex-start; width: 100%; border-bottom: 1px solid var(--cs-color-line); }.questions p { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
-.skip-link { position: absolute; transform: translateY(-200%); }.skip-link:focus { transform: none; background: var(--cs-color-surface); padding: var(--cs-space-12); }
+.assistant { padding: var(--cs-space-48); }
+.shell { max-width: 1200px; margin-inline: auto; display: grid; gap: var(--cs-space-24); min-width: 0; }
+h1 { font-size: var(--cs-type-32); } h2 { font-size: var(--cs-type-20); } h3 { margin-top: var(--cs-space-16); font-weight: 600; }
+p { margin-top: var(--cs-space-12); line-height: 1.6; overflow-wrap: anywhere; }
+.heading p { max-width: 70ch; color: var(--cs-color-ink-muted); }
+a { color: var(--cs-color-accent); text-decoration: underline; text-underline-offset: .2em; }
+.scope p { margin-top: 0; }.scope #assistant-scope { margin-top: var(--cs-space-12); color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); max-width: 100ch; }
+.model-status { display: inline-block; padding: var(--cs-space-8) var(--cs-space-12); border-radius: var(--cs-radius-4); font-weight: 600; color: var(--cs-color-status-stale); background: var(--cs-color-stale-surface); }
+.model-status.ready { color: var(--cs-color-status-normal); background: var(--cs-color-normal-surface); }.model-status.responding { color: var(--cs-color-accent); background: var(--cs-color-surface-muted); }.model-status.error { color: var(--cs-color-status-critical); background: var(--cs-color-critical-surface); }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-areas: 'conversation questions' 'composer questions'; grid-template-rows: min-content 1fr; align-items: start; gap: var(--cs-space-24); }
+.panel { min-width: 0; padding: var(--cs-space-24); background: var(--cs-color-surface); border-radius: var(--cs-radius-panel); }
+.conversation { grid-area: conversation; }.composer { grid-area: composer; }.questions { grid-area: questions; }
+.notice { color: var(--cs-color-ink-muted); }.empty { margin-block: var(--cs-space-32); color: var(--cs-color-ink-muted); }
+.turn { padding-block: var(--cs-space-16) var(--cs-space-24); border-bottom: 1px solid var(--cs-color-line); }.turn:last-child { padding-bottom: 0; border-bottom: 0; }
+.plain-text { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 72ch; }
+.turn-state, .field-help { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }.turn-state { display: inline-block; margin-top: var(--cs-space-16); font-weight: 600; padding: var(--cs-space-4) var(--cs-space-8); border-radius: var(--cs-radius-4); }.turn-state.incomplete { color: var(--cs-color-status-attention); background: var(--cs-color-attention-surface); }.turn-state.complete { color: var(--cs-color-status-normal); background: var(--cs-color-normal-surface); }
+label { display: block; margin-bottom: var(--cs-space-8); }
+textarea { width: 100%; min-width: 0; resize: vertical; padding: var(--cs-space-12); background: var(--cs-color-surface); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-8); color: var(--cs-color-ink); caret-color: var(--cs-color-accent); font: inherit; font-size: var(--cs-type-16); line-height: 1.5; }
+textarea[aria-invalid='true'] { border-color: var(--cs-color-status-critical); } textarea:read-only { background: var(--cs-color-surface-muted); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--cs-space-12); margin-top: var(--cs-space-16); }
+.questions ul { display: grid; gap: var(--cs-space-8); margin-top: var(--cs-space-16); }.questions button { text-align: left; justify-content: flex-start; width: 100%; }
+.questions p { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
+.leave-dialog { width: min(100% - 32px, 520px); max-width: none; max-height: calc(100dvh - 32px); margin: auto; padding: var(--cs-space-24); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-panel); background: var(--cs-color-surface); color: var(--cs-color-ink); overflow-y: auto; overflow-wrap: anywhere; }
+.leave-dialog::backdrop { background: rgb(8 27 32 / .55); }.leave-dialog h2 { font-size: var(--cs-type-24); }.leave-dialog .actions { margin-top: var(--cs-space-24); }.leave-dialog button { flex: 1 1 180px; }
 ::selection { background: var(--cs-color-accent); color: var(--cs-color-accent-ink); }
-@media (max-width: 900px) { .assistant { padding: var(--cs-space-24); }.workspace { grid-template-columns: minmax(0, 1fr); }.nav { gap: var(--cs-space-8); }.nav nav { order: 3; width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }.nav a { min-width: 0; overflow-wrap: anywhere; }.questions ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }.panel { padding: var(--cs-space-16); }h1 { font-size: var(--cs-type-24); } }
-@media (max-width: 420px) { .assistant { padding: var(--cs-space-16); }.questions ul { grid-template-columns: minmax(0, 1fr); }.actions button { width: 100%; justify-content: center; } }
+@media (max-width: 1100px) {
+  .assistant { padding: var(--cs-space-16); }.workspace { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'conversation' 'composer' 'questions'; grid-template-rows: auto; }
+  .panel { padding: var(--cs-space-16); } h1 { font-size: var(--cs-type-24); line-height: 1.3333; }
+  .questions ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) { .questions ul { grid-template-columns: minmax(0, 1fr); }.composer .actions button { width: 100%; justify-content: center; } }
 </style>

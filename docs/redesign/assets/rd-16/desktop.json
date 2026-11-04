@@ -1,0 +1,87 @@
+{
+  "scenario": {
+    "width": 1440,
+    "height": 1024,
+    "text": 100
+  },
+  "browser": "153.0.8010.12",
+  "styles": {
+    ".brand": {
+      "color": "rgb(237, 246, 243)",
+      "background": "rgb(8, 27, 32)",
+      "border": "rgb(237, 246, 243)",
+      "outline": "rgb(237, 246, 243)",
+      "fontSize": "32px"
+    },
+    ".return-link": {
+      "color": "rgb(155, 241, 217)",
+      "background": "rgb(8, 27, 32)",
+      "border": "rgb(155, 241, 217)",
+      "outline": "rgb(155, 241, 217)",
+      "fontSize": "16px"
+    },
+    "h1": {
+      "color": "rgb(18, 46, 51)",
+      "background": "rgb(243, 246, 245)",
+      "border": "rgb(18, 46, 51)",
+      "outline": "rgb(18, 46, 51)",
+      "fontSize": "32px"
+    },
+    ".intro": {
+      "color": "rgb(82, 108, 112)",
+      "background": "rgb(243, 246, 245)",
+      "border": "rgb(82, 108, 112)",
+      "outline": "rgb(82, 108, 112)",
+      "fontSize": "16px"
+    },
+    "label": {
+      "color": "rgb(18, 46, 51)",
+      "background": "rgb(243, 246, 245)",
+      "border": "rgb(18, 46, 51)",
+      "outline": "rgb(18, 46, 51)",
+      "fontSize": "14px"
+    },
+    "input": {
+      "color": "rgb(18, 46, 51)",
+      "background": "rgb(255, 255, 255)",
+      "border": "rgb(104, 126, 126)",
+      "outline": "rgb(18, 46, 51)",
+      "fontSize": "16px"
+    },
+    ".hint": {
+      "color": "rgb(82, 108, 112)",
+      "background": "rgb(243, 246, 245)",
+      "border": "rgb(82, 108, 112)",
+      "outline": "rgb(82, 108, 112)",
+      "fontSize": "14px"
+    },
+    ".feedback": {
+      "color": "rgb(176, 45, 36)",
+      "background": "rgb(252, 236, 232)",
+      "border": "rgb(176, 45, 36)",
+      "outline": "rgb(176, 45, 36)",
+      "fontSize": "16px"
+    },
+    ".primary": {
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(12, 109, 101)",
+      "border": "rgba(0, 0, 0, 0)",
+      "outline": "rgb(8, 108, 104)",
+      "fontSize": "14px"
+    },
+    ".mode-switch": {
+      "color": "rgb(12, 109, 101)",
+      "background": "rgb(243, 246, 245)",
+      "border": "rgba(0, 0, 0, 0)",
+      "outline": "rgb(12, 109, 101)",
+      "fontSize": "14px"
+    },
+    ".session-note": {
+      "color": "rgb(82, 108, 112)",
+      "background": "rgb(243, 246, 245)",
+      "border": "rgb(82, 108, 112)",
+      "outline": "rgb(82, 108, 112)",
+      "fontSize": "14px"
+    }
+  }
+}

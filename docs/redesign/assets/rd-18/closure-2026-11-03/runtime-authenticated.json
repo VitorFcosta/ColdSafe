@@ -1,0 +1,56 @@
+[
+  {
+    "path": "/dashboard",
+    "checked_at": "2026-11-03T14:22:15.657Z",
+    "mocked": false,
+    "controlPresent": true,
+    "hidden": true,
+    "restored": true,
+    "summaryHttp": 200,
+    "freshness": "fresh",
+    "persistence": "pending",
+    "measurements": 6
+  },
+  {
+    "path": "/insights",
+    "checked_at": "2026-11-03T14:22:17.775Z",
+    "mocked": false,
+    "controlPresent": true,
+    "hidden": true,
+    "restored": true,
+    "summaryHttp": 200,
+    "freshness": "fresh",
+    "persistence": "persisted",
+    "measurements": 6,
+    "prediction": "available",
+    "predictionReason": null,
+    "modelVersion": "training-612e4d17-2bad-427c-bc42-29cf372a068f"
+  },
+  {
+    "path": "/digital-twin",
+    "checked_at": "2026-11-03T14:22:19.108Z",
+    "mocked": false,
+    "controlPresent": true,
+    "hidden": true,
+    "restored": true,
+    "summaryHttp": 200,
+    "freshness": "fresh",
+    "persistence": "persisted",
+    "measurements": 6,
+    "prediction": "available",
+    "predictionReason": null,
+    "modelVersion": "training-612e4d17-2bad-427c-bc42-29cf372a068f"
+  },
+  {
+    "path": "/messaging",
+    "checked_at": "2026-11-03T14:22:20.191Z",
+    "mocked": false,
+    "controlPresent": true,
+    "hidden": true,
+    "restored": true,
+    "summaryHttp": 200,
+    "freshness": "fresh",
+    "persistence": "pending",
+    "measurements": 6
+  }
+]

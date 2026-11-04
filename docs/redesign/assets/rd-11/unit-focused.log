@@ -1,0 +1,13 @@
+
+> coldsafe-frontend@0.1.0 test:unit:run
+> vitest run src/views/ManageView.spec.ts
+
+
+ RUN  v4.1.12 /Users/vitorhugofernandescosta/Documents/ColdSafe/frontend
+
+
+ Test Files  1 passed (1)
+      Tests  34 passed (34)
+   Start at  14:23:43
+   Duration  1.04s (transform 266ms, setup 0ms, import 328ms, tests 287ms, environment 300ms)
+

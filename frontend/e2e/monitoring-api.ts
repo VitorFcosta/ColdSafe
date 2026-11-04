@@ -31,13 +31,13 @@ export async function mockDashboardAccount(page: Page, names: Readonly<{ environ
   })
   await page.route('**/api/v1/environments', (route) => route.fulfill({
     status: 200, contentType: 'application/json',
-    body: JSON.stringify({ success: true, data: [{ id: 'lab-refrigerado', name: names.environment ?? 'Laboratório Refrigerado' }] }),
+    body: JSON.stringify({ success: true, data: [{ id: '00000000-0000-4000-8000-000000000001', name: names.environment ?? 'Laboratório Refrigerado' }] }),
   }))
-  await page.route('**/api/v1/environments/lab-refrigerado/devices', (route) => route.fulfill({
+  await page.route('**/api/v1/environments/00000000-0000-4000-8000-000000000001/devices', (route) => route.fulfill({
     status: 200, contentType: 'application/json',
     body: JSON.stringify({ success: true, data: [
-      { id: 'uuid-01', environment_id: 'lab-refrigerado', name: names.device ?? 'Sensor 1', mqtt_device_id: 'esp32-lab-01', is_active: true },
-      { id: 'uuid-02', environment_id: 'lab-refrigerado', name: 'Sensor 2', mqtt_device_id: 'esp32-lab-02', is_active: true },
+      { id: '00000000-0000-4000-8000-000000000011', environment_id: '00000000-0000-4000-8000-000000000001', name: names.device ?? 'Sensor 1', mqtt_device_id: 'esp32-lab-01', is_active: true },
+      { id: '00000000-0000-4000-8000-000000000012', environment_id: '00000000-0000-4000-8000-000000000001', name: 'Sensor 2', mqtt_device_id: 'esp32-lab-02', is_active: true },
     ] }),
   }))
   await page.route('**/api/v1/devices/*/actuators', (route) => route.fulfill({
@@ -71,7 +71,7 @@ export async function mockMonitoringApi(
       body: JSON.stringify({
         success: true,
         data: {
-          environment: { id: 'lab-refrigerado', name: scenario.environmentName ?? 'Laboratório Refrigerado' },
+          environment: { id: '00000000-0000-4000-8000-000000000001', name: scenario.environmentName ?? 'Laboratório Refrigerado' },
           device: { id: 'esp32-lab-01' },
           reading: hasReading
             ? {

@@ -59,7 +59,7 @@ test.describe('dashboard operacional', () => {
       await expect(
         page
           .getByRole('article')
-          .filter({ hasText: 'Temperatura' })
+          .filter({ has: page.getByRole('heading', { name: 'Temperatura ambiente', exact: true }) })
           .getByText(`${scenario.temperature.toLocaleString('pt-BR')} °C`, { exact: true }),
       ).toBeVisible()
       await expect(
@@ -102,7 +102,7 @@ test.describe('dashboard operacional', () => {
     await expect(
       page
         .getByRole('article')
-        .filter({ hasText: 'Temperatura' })
+        .filter({ has: page.getByRole('heading', { name: 'Temperatura ambiente', exact: true }) })
         .getByText('—', { exact: true }),
     ).toBeVisible()
     await expect(
@@ -150,7 +150,7 @@ for (const scenario of [
     await mockMonitoringApi(page, { status: scenario.status, temperature: 5, ageSeconds: scenario.status === 'stale' ? 3600 : 2 })
     await page.goto('/dashboard')
 
-    const primary = page.getByRole('article').filter({ hasText: 'Temperatura' }).first()
+    const primary = page.getByRole('region', { name: 'Medições do ambiente' }).getByRole('article').filter({ has: page.getByRole('heading', { name: 'Temperatura ambiente', exact: true }) }).first()
     await expect(primary).toContainText('5 °C')
     await expect(primary).toContainText(scenario.label)
     await expect(primary).toContainText(scenario.age)
@@ -161,14 +161,14 @@ for (const scenario of [
 
     if (scenario.status === 'stale') {
       await expect(page.getByText(/Conexão com servidor: conectada\. O sensor não enviou leitura recente\./)).toBeVisible()
-      await expect(page.getByRole('heading', { name: 'Umidade da última leitura' })).toBeVisible()
-      await expect(page.getByRole('heading', { name: 'Luminosidade da última leitura' })).toBeVisible()
+      await expect(page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Umidade', exact: true }) }).getByText('Leitura antiga', { exact: true })).toBeVisible()
+      await expect(page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Luminosidade', exact: true }) }).getByText('Leitura antiga', { exact: true })).toBeVisible()
     }
 
     if (scenario.status === 'normal') {
       await page.setViewportSize({ width: 1440, height: 900 })
       const secondary = page.getByRole('region', { name: 'Medições do ambiente' }).locator('article')
-      await expect(secondary).toHaveCount(2)
+      await expect(secondary).toHaveCount(6)
       const tops = await secondary.evaluateAll((articles) => articles.map((article) => article.getBoundingClientRect().top))
       expect(tops[0]).toBe(tops[1])
     }
@@ -180,16 +180,20 @@ test('navegação móvel mantém todos os destinos acessíveis por foco sem alar
   await mockMonitoringApi(page, { status: 'normal' })
   await page.goto('/dashboard')
 
-  const navigation = page.getByRole('navigation', { name: 'Navegação principal' })
-  const lastLink = navigation.getByRole('link', { name: 'Documentação da API' })
-  await navigation.getByRole('link', { name: 'Monitoramento', exact: true }).focus()
-  for (let index = 1; index < await navigation.getByRole('link').count(); index++) {
+  await page.getByRole('button', { name: 'Menu', exact: true }).focus()
+  await page.keyboard.press('Enter')
+  const dialog = page.getByRole('dialog', { name: 'Menu de navegação', exact: true })
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Fechar menu', exact: true }).focus()
+  for (const link of await dialog.getByRole('link').all()) {
     await page.keyboard.press('Tab')
+    await expect(link).toBeFocused()
+    await expect(link).toBeInViewport()
   }
-  await expect(lastLink).toBeFocused()
-  await expect(lastLink).toBeInViewport()
-  expect(await navigation.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0)
+  const docs = dialog.getByRole('link', { name: /Documentação da API/ })
+  await expect(docs).toHaveAttribute('target', '_blank')
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+
 })
 
 test('mantém nomes longos e temperatura extrema legíveis em 320 px', async ({ page }) => {
@@ -202,7 +206,7 @@ test('mantém nomes longos e temperatura extrema legíveis em 320 px', async ({ 
   })
   await page.goto('/dashboard')
 
-  const primary = page.getByRole('article').filter({ hasText: 'Temperatura' }).first()
+  const primary = page.getByRole('region', { name: 'Medições do ambiente' }).getByRole('article').filter({ has: page.getByRole('heading', { name: 'Temperatura ambiente', exact: true }) }).first()
   await expect(primary).toContainText('-123,5 °C')
   await expect(primary).toContainText('Crítico')
   await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente' })).toBeVisible()
@@ -261,7 +265,7 @@ test('troca de dispositivo e só mostra LED ligado após confirmação', async (
     const deviceId = new URL(route.request().url()).searchParams.get('device_id')
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
       success: true, data: {
-        environment: { id: 'lab-refrigerado', name: 'Laboratório Refrigerado' },
+        environment: { id: '00000000-0000-4000-8000-000000000001', name: 'Laboratório Refrigerado' },
         device: { id: deviceId },
         reading: { temperature_c: deviceId === 'esp32-lab-02' ? 4 : 5, humidity_percent: 65,
           light_percent: 42, received_at: '2026-09-09T12:00:00Z' },
@@ -277,7 +281,7 @@ test('troca de dispositivo e só mostra LED ligado após confirmação', async (
       meta: { device_id: deviceId, start: '2026-09-09T11:00:00Z', end: '2026-09-09T12:00:00Z', count: 0, limit: 300 },
     }) })
   })
-  await page.route('**/api/v1/devices/uuid-02/led/commands', (route) => route.fulfill({
+  await page.route('**/api/v1/devices/00000000-0000-4000-8000-000000000012/led/commands', (route) => route.fulfill({
     status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: {
       schema_version: 2, command_id: 'command-02', device_id: 'esp32-lab-02', actuator: 'led',
       desired_state: true, confirmed_state: null, status: 'pending',
@@ -292,9 +296,9 @@ test('troca de dispositivo e só mostra LED ligado após confirmação', async (
 
   await page.goto('/dashboard')
   await expect(page.getByText('Laboratório Refrigerado / esp32-lab-01', { exact: true })).toBeVisible()
-  await page.getByRole('combobox', { name: 'Dispositivo' }).selectOption('uuid-02')
+  await page.getByRole('combobox', { name: 'Dispositivo' }).selectOption('00000000-0000-4000-8000-000000000012')
   await expect(page.getByText('Laboratório Refrigerado / esp32-lab-02', { exact: true })).toBeVisible()
-  await expect(page.getByRole('article').filter({ hasText: 'Temperatura' }).getByText('4 °C')).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Medições do ambiente' }).getByRole('article').filter({ has: page.getByRole('heading', { name: 'Temperatura ambiente', exact: true }) }).getByText('4 °C')).toBeVisible()
   await page.locator('details[aria-label="Estado dos atuadores"] summary').click()
   await page.getByRole('button', { name: 'Ligar Luz' }).focus()
   await page.keyboard.press('Enter')
@@ -360,8 +364,8 @@ test('preserva leitura válida quando apenas o histórico falha', async ({ page 
 
   await expect(page.getByText('Normal', { exact: true })).toBeVisible()
   await expect(page.getByText('Agora mesmo', { exact: true })).toBeVisible()
-  await expect(page.getByRole('article').filter({ hasText: 'Temperatura' }).getByText('5 °C', { exact: true })).toBeVisible()
-  await expect(page.getByText(/histórico de temperatura não pôde ser carregado/)).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Medições do ambiente' }).getByRole('article').filter({ has: page.getByRole('heading', { name: 'Temperatura ambiente', exact: true }) }).getByText('5 °C', { exact: true })).toBeVisible()
+  await expect(page.getByText(/histórico não pôde ser carregado/)).toBeVisible()
 })
 
 

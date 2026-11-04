@@ -1,0 +1,75 @@
+{
+  "method": "Cálculo sRGB/WCAG dos pares declarados nos estilos; contagem de cores exatas na captura desktop final. Presença da paleta não comprova todas as adjacências nem mede antialiasing. Foco e modal têm verificação funcional/capturas próprias.",
+  "pairs": [
+    {
+      "name": "Texto principal",
+      "foreground": "#122e33",
+      "background": "#ffffff",
+      "ratio": 14.341,
+      "required": 4.5,
+      "foregroundPixels": 10688,
+      "backgroundPixels": 739132,
+      "passed": true
+    },
+    {
+      "name": "Texto secundário",
+      "foreground": "#526c70",
+      "background": "#ffffff",
+      "ratio": 5.618,
+      "required": 4.5,
+      "foregroundPixels": 2883,
+      "backgroundPixels": 739132,
+      "passed": true
+    },
+    {
+      "name": "Texto secundário no canvas",
+      "foreground": "#526c70",
+      "background": "#f3f6f5",
+      "ratio": 5.167,
+      "required": 4.5,
+      "foregroundPixels": 2883,
+      "backgroundPixels": 644153,
+      "passed": true
+    },
+    {
+      "name": "Ação primária",
+      "foreground": "#ffffff",
+      "background": "#0c6d65",
+      "ratio": 6.193,
+      "required": 4.5,
+      "foregroundPixels": 739132,
+      "backgroundPixels": 13766,
+      "passed": true
+    },
+    {
+      "name": "Desativar",
+      "foreground": "#b02d24",
+      "background": "#ffffff",
+      "ratio": 6.468,
+      "required": 4.5,
+      "foregroundPixels": 340,
+      "backgroundPixels": 739132,
+      "passed": true
+    },
+    {
+      "name": "Ativo",
+      "foreground": "#176740",
+      "background": "#e5f1e9",
+      "ratio": 5.93,
+      "required": 4.5,
+      "foregroundPixels": 47,
+      "backgroundPixels": 1180,
+      "passed": true
+    },
+    {
+      "name": "Foco",
+      "foreground": "#086c68",
+      "background": "#ffffff",
+      "ratio": 6.259,
+      "required": 3,
+      "foregroundPixels": 7068,
+      "backgroundPixels": 739132,
+      "passed": true
+    }
+  ]
+}

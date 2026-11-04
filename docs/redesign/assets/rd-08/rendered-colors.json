@@ -1,0 +1,40 @@
+{
+  "browser": "153.0.8010.12",
+  "colors": [
+    {
+      "selector": ".estimate-values dt",
+      "color": "rgb(82, 108, 112)",
+      "background": "rgb(255, 255, 255)",
+      "fontSize": "14px",
+      "contrast": 5.62
+    },
+    {
+      "selector": ".estimate-values dd",
+      "color": "rgb(18, 46, 51)",
+      "background": "rgb(255, 255, 255)",
+      "fontSize": "24px",
+      "contrast": 14.34
+    },
+    {
+      "selector": ".origin",
+      "color": "rgb(83, 102, 117)",
+      "background": "rgb(243, 246, 245)",
+      "fontSize": "14px",
+      "contrast": 5.48
+    },
+    {
+      "selector": ".persistent-alert",
+      "color": "rgb(139, 76, 12)",
+      "background": "rgb(255, 255, 255)",
+      "fontSize": "16px",
+      "contrast": 6.69
+    },
+    {
+      "selector": ".primary",
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(12, 109, 101)",
+      "fontSize": "14px",
+      "contrast": 6.19
+    }
+  ]
+}

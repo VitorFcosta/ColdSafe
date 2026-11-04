@@ -1,0 +1,14 @@
+{
+  "desktop": {
+    "description_on_dialog": 14.34,
+    "button_text_on_button": 14.34,
+    "source": "desktop-layout.json",
+    "minimum_text_ratio": 4.5
+  },
+  "mobile": {
+    "description_on_dialog": 14.34,
+    "button_text_on_button": 14.34,
+    "source": "mobile-layout.json",
+    "minimum_text_ratio": 4.5
+  }
+}

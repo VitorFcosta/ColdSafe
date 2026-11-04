@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import LiveDataRegion from '../features/monitoring/LiveDataRegion.vue'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { clearSession, logout, refreshSessionIdentity, sessionRole, sessionToken } from '../features/account/session'
+import { clearSession, refreshSessionIdentity, sessionRole, sessionToken } from '../features/account/session'
 import { fetchMessaging, fetchMessageSamples, MessagingAccessError, type MessagingSnapshot, type MessageSamplesSnapshot } from '../features/messaging/messaging-api'
 
 const router = useRouter()
@@ -10,12 +11,26 @@ const loading = ref(false)
 const failed = ref(false)
 const samples = ref<MessageSamplesSnapshot | null>(null)
 const samplesFailed = ref(false)
-const logoutError = ref('')
 const now = ref(Date.now())
 const authorized = computed(() => Boolean(sessionToken.value) && sessionRole.value === 'admin')
 const ageSeconds = computed(() => snapshot.value
   ? Math.max(0, Math.floor((now.value - Date.parse(snapshot.value.sampled_at)) / 1000)) : null)
 const stale = computed(() => ageSeconds.value !== null && ageSeconds.value >= 15)
+const queueTotals = computed(() => {
+  const queues = snapshot.value?.queues ?? []
+  if (!queues.length) return null
+  function sum(key: 'messages_ready' | 'messages_unacknowledged' | 'consumers' | 'publish_rate') {
+    let total = 0
+    for (const queue of queues) {
+      const value = queue[key]
+      if (value === null) return null
+      total += value
+    }
+    return Number.isFinite(total) && (key === 'publish_rate' || Number.isSafeInteger(total)) ? total : null
+  }
+  return { ready: sum('messages_ready'), unacknowledged: sum('messages_unacknowledged'),
+    consumers: sum('consumers'), publishRate: sum('publish_rate') }
+})
 const observationStale = computed(() => samples.value && (samples.value.stale ||
   !samples.value.last_observed_at || now.value - Date.parse(samples.value.last_observed_at) >= samples.value.stale_after_seconds * 1000))
 const sampleSections = computed(() => [
@@ -78,56 +93,49 @@ watch([sessionToken, sessionRole], ([token, role], _previous, onCleanup) => {
   void refresh()
 }, { immediate: true, flush: 'sync' })
 
-async function signOut() {
-  logoutError.value = ''
-  try { await logout() } catch {
-    logoutError.value = 'Não foi possível encerrar a sessão. Tente novamente.'
-  }
-}
 const formatRate = (value: number | null) => value === null
   ? 'Indisponível' : `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(value)} /s`
+const formatCount = (value: number | null | undefined) => value == null
+  ? 'Indisponível' : new Intl.NumberFormat('pt-BR').format(value)
 const formatTime = (value: string) => new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short', timeStyle: 'medium',
 }).format(new Date(value))
 </script>
 
 <template>
-  <main class="messaging">
-    <a class="skip-link" href="#messaging-title">Ir para o conteúdo</a>
+  <main class="messaging cs-controls">
     <div class="shell">
-      <header class="nav">
-        <RouterLink to="/" class="brand"><span aria-hidden="true">◉</span> ColdSafe</RouterLink>
-        <nav aria-label="Navegação principal">
-          <RouterLink to="/dashboard">Monitoramento</RouterLink>
-          <RouterLink to="/insights">Insights</RouterLink><RouterLink to="/digital-twin">Gêmeo digital</RouterLink>
-          <RouterLink to="/manage">Ambientes e dispositivos</RouterLink>
-          <RouterLink to="/messaging" aria-current="page">Mensageria</RouterLink>
-          <RouterLink to="/laboratory">Laboratório</RouterLink>
-          <RouterLink to="/training">Treinamento</RouterLink><RouterLink to="/assistant">Assistente</RouterLink>
-        </nav>
-        <button class="sign-out" type="button" @click="signOut">Sair</button>
-      </header>
-      <p v-if="logoutError" role="alert" class="feedback">{{ logoutError }}</p>
       <section class="heading" aria-labelledby="messaging-title">
-        <p class="eyebrow">Operação</p>
         <h1 id="messaging-title" tabindex="-1">Mensageria</h1>
         <p>Filas, taxas e consumidores da infraestrutura compartilhada. Acesso administrativo; as métricas agregam a operação global. As amostras abaixo exibem somente metadados de mensagens dos seus ambientes.</p>
       </section>
       <p v-if="!authorized" role="status">As métricas de mensageria estão disponíveis apenas para administradores. Consulte o monitoramento para ver seus ambientes.</p>
-      <template v-else>
+      <LiveDataRegion v-else>
+      <section class="global-metrics" aria-labelledby="global-metrics-title">
+        <div class="section-heading">
+          <h2 id="global-metrics-title">Métricas globais</h2>
+          <p v-if="snapshot" class="sample-age">Coleta das métricas de <time :datetime="snapshot.sampled_at">{{ formatTime(snapshot.sampled_at) }}</time> · há {{ ageSeconds }} s</p>
+        </div>
+        <p class="hint">Somas nas filas listadas, sem contar eventos únicos. Consumidores são assinaturas no broker, não uma contagem de serviços saudáveis.</p>
+        <p v-if="failed" role="alert" class="feedback error">Não foi possível atualizar a mensageria. A consulta será repetida automaticamente. {{ snapshot ? 'Última consulta bem-sucedida abaixo; a situação atual não está confirmada.' : 'Nenhuma amostra disponível.' }}</p>
+        <p v-if="stale" role="status" class="feedback stale">Informação desatualizada. A situação atual não está confirmada.</p>
+        <p v-if="loading && !snapshot" role="status">Consultando mensageria…</p>
+        <dl class="metric-grid">
+          <div><dt>Mensagens prontas</dt><dd :class="{ unavailable: queueTotals?.ready == null }">{{ formatCount(queueTotals?.ready) }}</dd></div>
+          <div><dt>Sem confirmação</dt><dd :class="{ unavailable: queueTotals?.unacknowledged == null }">{{ formatCount(queueTotals?.unacknowledged) }}</dd></div>
+          <div><dt>Consumidores</dt><dd :class="{ unavailable: queueTotals?.consumers == null }">{{ formatCount(queueTotals?.consumers) }}</dd></div>
+          <div><dt>Taxa de publicação</dt><dd :class="{ unavailable: queueTotals?.publishRate == null }">{{ formatRate(queueTotals?.publishRate ?? null) }}</dd></div>
+        </dl>
+      </section>
       <section class="panel" aria-labelledby="queues-title">
         <h2 id="queues-title">Filas de processamento</h2>
-        <p>Atualização automática a cada 5 segundos. Taxas em mensagens por segundo; “Indisponível” indica ausência de amostra.</p>
-        <p>Consumidores conta assinaturas ativas no broker. Serviços que consultam a fila periodicamente podem aparecer com zero mesmo em operação.</p>
-        <p v-if="failed" role="alert" class="feedback">Não foi possível atualizar a mensageria. A consulta será repetida automaticamente. {{ snapshot ? 'Última consulta bem-sucedida abaixo; a situação atual não está confirmada.' : 'Nenhuma amostra disponível.' }}</p>
-        <p v-if="stale" role="status" class="feedback">Informação desatualizada. A situação atual não está confirmada.</p>
-        <p v-if="loading && !snapshot" role="status">Consultando mensageria…</p>
+        <p id="queues-help" class="hint">Atualização automática a cada 5 segundos. Taxas em mensagens por segundo; “Indisponível” indica ausência de taxa conhecida. Role a tabela horizontalmente; com o foco nela, use as setas para acessar todas as colunas.</p>
+        <p class="hint">Consumidores conta assinaturas ativas no broker. Serviços que consultam a fila periodicamente podem aparecer com zero mesmo em operação.</p>
         <template v-if="snapshot">
-          <p class="sample-age">Amostra de <time :datetime="snapshot.sampled_at">{{ formatTime(snapshot.sampled_at) }}</time> · há {{ ageSeconds }} s</p>
           <p v-if="snapshot.queues.length === 0" role="status">Nenhuma fila disponível nesta amostra.</p>
-          <div v-else class="table-scroll" role="region" aria-label="Métricas por fila; role horizontalmente para ver todas as colunas" tabindex="0">
+          <div v-else class="table-scroll" role="region" aria-label="Métricas por fila; role horizontalmente para ver todas as colunas" aria-describedby="queues-help" tabindex="0">
             <table>
-              <caption class="sr-only">Métricas por fila na última amostra recebida</caption>
+              <caption>Métricas por fila na última amostra recebida</caption>
               <thead><tr>
                 <th scope="col">Fila</th><th scope="col">Total</th><th scope="col">Prontas</th>
                 <th scope="col">Sem confirmação</th><th scope="col">Consumidores</th>
@@ -144,13 +152,14 @@ const formatTime = (value: string) => new Intl.DateTimeFormat('pt-BR', {
       </section>
       <section class="panel observation" aria-labelledby="observation-title">
         <h2 id="observation-title">Observação de mensagens</h2>
-        <p>Amostra em memória de até 100 eventos e 100 mensagens mortas, dos mais recentes para os mais antigos. Somente seus ambientes ativos; reiniciar a API limpa a amostra. As mensagens originais permanecem nas filas de negócio e na DLQ.</p>
-        <p v-if="samplesFailed" role="alert" class="feedback">Não foi possível atualizar as mensagens. A consulta será repetida automaticamente. {{ samples ? 'Última consulta bem-sucedida abaixo; a situação atual não está confirmada.' : 'Nenhuma amostra disponível.' }}</p>
+        <p>Amostra privada e efêmera em memória de até 100 eventos e 100 cópias de mensagens mortas, dos mais recentes para os mais antigos. Somente seus ambientes ativos; reiniciar a API limpa a amostra. As mensagens originais permanecem nas filas de negócio e na DLQ.</p>
+        <p v-if="samplesFailed" role="alert" class="feedback error">Não foi possível atualizar as mensagens. A consulta será repetida automaticamente. {{ samples ? 'Última consulta bem-sucedida abaixo; a situação atual não está confirmada.' : 'Nenhuma amostra disponível.' }}</p>
         <p v-if="loading && !samples" role="status">Consultando mensagens…</p>
         <template v-if="samples">
-          <p role="status">{{ samples.connected ? 'Observador conectado.' : 'Observador desconectado. A situação atual não está confirmada.' }}</p>
-          <p v-if="observationStale" role="status" class="feedback">Observação desatualizada: nenhum evento recente confirmado nos seus ambientes.</p>
+          <p role="status" class="observer-state" :class="samples.connected && !observationStale ? 'current' : 'stale'">{{ samples.connected ? 'Observador conectado.' : 'Observador desconectado. A situação atual não está confirmada.' }}</p>
+          <p v-if="observationStale" role="status" class="feedback stale">Observação desatualizada: nenhum evento recente confirmado nos seus ambientes.</p>
           <p class="sample-age">Consulta de <time :datetime="samples.sampled_at">{{ formatTime(samples.sampled_at) }}</time><template v-if="samples.last_observed_at"> · última observação em <time :datetime="samples.last_observed_at">{{ formatTime(samples.last_observed_at) }}</time></template></p>
+          <div class="sample-grid">
           <section v-for="section in sampleSections" :key="section.id" :aria-labelledby="`${section.id}-title`" class="sample-section">
             <h3 :id="`${section.id}-title`">{{ section.title }}</h3>
             <p v-if="section.items.length === 0" role="status">{{ section.empty }}</p>
@@ -171,6 +180,7 @@ const formatTime = (value: string) => new Intl.DateTimeFormat('pt-BR', {
               </li>
             </ol>
           </section>
+          </div>
         </template>
       </section>
       <section class="panel" aria-labelledby="writer-title">
@@ -178,47 +188,48 @@ const formatTime = (value: string) => new Intl.DateTimeFormat('pt-BR', {
         <p>A parada e a retomada do gravador são feitas manualmente no terminal, seguindo o runbook local. Com a publicação ativa, confira o aumento de mensagens prontas em coldsafe.writer durante a parada e o esvaziamento após retomar.</p>
         <p>Zero consumidores não comprova que o gravador está parado: ele consulta a fila periodicamente. Confirme o estado do serviço no terminal.</p>
       </section>
-      </template>
+      </LiveDataRegion>
     </div>
   </main>
 </template>
 
 <style scoped>
-.messaging { min-height: 100vh; background: var(--cs-color-canvas); color: var(--cs-color-ink); padding: var(--cs-space-48); }
-.shell { max-width: 1280px; margin: 0 auto; min-width: 0; }
-.nav { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--cs-space-24); padding-bottom: var(--cs-space-32); border-bottom: 1px solid var(--cs-color-line); }
-.brand { font-size: var(--cs-type-20); font-weight: 700; }
-.nav nav { display: flex; flex-wrap: wrap; gap: var(--cs-space-16); font-size: var(--cs-type-14); }
-.nav a, .sign-out { display: inline-flex; align-items: center; min-height: 44px; }
-.nav a:hover, .sign-out:hover { text-decoration: underline; }
-.sign-out { cursor: pointer; color: var(--cs-color-accent); }
-.heading { padding-block: var(--cs-space-32); }
-.eyebrow { color: var(--cs-color-ink-muted); text-transform: uppercase; font-size: var(--cs-type-12); letter-spacing: .08em; }
-h1 { font-size: var(--cs-type-32); font-weight: 700; margin-block: var(--cs-space-8); }
-h2 { font-size: var(--cs-type-20); font-weight: 600; margin-bottom: var(--cs-space-16); }
-.panel { border: 1px solid var(--cs-color-line); background: var(--cs-color-surface); padding: var(--cs-space-24); border-radius: var(--cs-radius-panel); min-width: 0; }
-p { line-height: 1.6; }
-.panel + .panel { margin-top: var(--cs-space-24); }
-h3 { font-size: var(--cs-type-16); font-weight: 600; margin-bottom: var(--cs-space-16); }
-.sample-section { margin-top: var(--cs-space-24); }
-.samples { display: grid; gap: var(--cs-space-16); list-style: decimal; padding-left: var(--cs-space-24); }
-.samples li { min-width: 0; padding: var(--cs-space-16); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-panel); overflow-wrap: anywhere; }
-dl { margin-top: var(--cs-space-8); font-size: var(--cs-type-14); }
-dl div { display: flex; flex-wrap: wrap; gap: var(--cs-space-8); }
-dt { font-weight: 600; }
-dd { min-width: 0; }
-.feedback, .sample-age { margin-block: var(--cs-space-16); }
-.feedback { color: var(--cs-color-status-critical); }
-.table-scroll { max-width: 100%; overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; text-align: left; font-size: var(--cs-type-14); }
-th, td { padding: var(--cs-space-16); border-bottom: 1px solid var(--cs-color-line); white-space: nowrap; }
-th { font-weight: 600; }
-@media (max-width: 800px) {
-  .messaging { padding: var(--cs-space-24); }
-  .nav { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--cs-space-8); }
-  .nav nav { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .nav nav a { min-width: 0; overflow-wrap: anywhere; }
-  .panel { padding: var(--cs-space-16); }
-  h1 { font-size: var(--cs-type-24); }
+.messaging { padding: var(--cs-space-48); }
+.shell { max-width: 1200px; margin-inline: auto; min-width: 0; display: grid; gap: var(--cs-space-24); }
+.heading p { color: var(--cs-color-ink-muted); max-width: 70ch; }
+h1 { font-size: var(--cs-type-32); margin-block: var(--cs-space-8); }
+h2 { font-size: var(--cs-type-20); margin-bottom: var(--cs-space-12); }
+p { line-height: 1.6; margin-block: var(--cs-space-8); }
+.section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--cs-space-8) var(--cs-space-24); }
+.sample-age { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
+.metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--cs-space-16); margin-top: var(--cs-space-16); }
+.metric-grid > div { min-width: 0; padding: var(--cs-space-16); background: var(--cs-color-surface); border-radius: var(--cs-radius-panel); }
+.metric-grid dt { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); font-weight: 500; }
+.metric-grid dd { margin-top: var(--cs-space-8); font-size: var(--cs-type-24); font-weight: 650; line-height: 1.3333; overflow-wrap: anywhere; }
+.metric-grid dd.unavailable { font-size: var(--cs-type-16); font-weight: 500; line-height: 2; }
+.panel { background: var(--cs-color-surface); padding: var(--cs-space-24); border-radius: var(--cs-radius-panel); min-width: 0; }
+h3 { font-size: var(--cs-type-16); font-weight: 650; margin-bottom: var(--cs-space-16); }
+.observer-state { display: inline-block; padding: var(--cs-space-8) var(--cs-space-12); border-radius: var(--cs-radius-4); font-weight: 600; }
+.current { color: var(--cs-color-status-normal); background: var(--cs-color-normal-surface); }
+.feedback.stale, .observer-state.stale { color: var(--cs-color-status-stale); background: var(--cs-color-stale-surface); }
+.sample-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cs-space-32); margin-top: var(--cs-space-24); }
+.sample-section { min-width: 0; }
+.samples { list-style: decimal; padding-left: var(--cs-space-24); }
+.samples li { min-width: 0; padding-block: var(--cs-space-16); border-top: 1px solid var(--cs-color-line); overflow-wrap: anywhere; }
+.samples li:first-child { padding-top: 0; border-top: 0; }
+.samples li > p { margin-top: 0; }
+.samples dl { margin-top: var(--cs-space-8); font-size: var(--cs-type-14); }
+.samples dl > div { display: flex; flex-wrap: wrap; gap: var(--cs-space-8); }
+.samples dt { font-weight: 600; }.samples dd { min-width: 0; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin-top: var(--cs-space-16); }
+table { width: 100%; border-collapse: collapse; text-align: left; font-size: var(--cs-type-14); font-variant-numeric: tabular-nums; }
+caption { text-align: left; color: var(--cs-color-ink-muted); margin-bottom: var(--cs-space-8); }
+th, td { padding: var(--cs-space-12); border-bottom: 1px solid var(--cs-color-line); white-space: nowrap; }
+th { font-weight: 600; } td, thead th:not(:first-child) { text-align: right; }
+@media (max-width: 1100px) {
+  .messaging { padding: var(--cs-space-16); }.panel { padding: var(--cs-space-16); }
+  h1 { font-size: var(--cs-type-24); line-height: 1.3333; }
+  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.sample-grid { grid-template-columns: minmax(0, 1fr); }
 }
+@media (max-width: 360px) { .metric-grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

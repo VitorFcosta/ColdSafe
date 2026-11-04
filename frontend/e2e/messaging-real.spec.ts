@@ -18,8 +18,15 @@ async function login(page: Page, email = admin) {
   await page.getByLabel('Senha').fill(password)
   await page.getByRole('button', { name: 'Entrar', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente' })).toBeVisible()
-  await page.getByRole('link', { name: 'Mensageria', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Mensageria', exact: true })).toBeVisible()
+  if (email === admin) {
+    const menuButton = page.getByRole('button', { name: 'Menu', exact: true })
+    if (await menuButton.isVisible()) await menuButton.click()
+    await page.getByRole('link', { name: 'Filas e mensagens', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Mensageria', exact: true })).toBeVisible()
+  } else {
+    await page.goto('/messaging')
+    await expect(page.getByRole('heading', { name: 'Acesso restrito', exact: true })).toBeVisible()
+  }
 }
 async function messagingStatus(page: Page) {
   return page.evaluate(async (api) => {
@@ -87,7 +94,7 @@ for (const role of ['operator', 'viewer'] as const) {
     const calls: string[] = []
     page.on('request', (request) => { if (request.url() === `${api}/api/v3/messaging`) calls.push(request.url()) })
     await login(page, process.env[`MESSAGING_REAL_${role.toUpperCase()}_EMAIL`] ?? `messaging-${role}@example.invalid`)
-    await expect(page.getByRole('status')).toContainText('apenas para administradores')
+    await expect(page.getByRole('heading', { name: 'Acesso restrito', exact: true })).toBeVisible()
     await expect(page.getByRole('table')).toHaveCount(0)
     expect(calls).toHaveLength(0)
     expect(await messagingStatus(page)).toBe(403)

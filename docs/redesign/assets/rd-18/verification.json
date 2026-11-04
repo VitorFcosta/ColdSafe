@@ -1,0 +1,78 @@
+{
+  "date": "2026-11-02",
+  "timezone": "America/Sao_Paulo",
+  "baseGit": "27bba6f",
+  "task": "RD-18",
+  "status": "closed_by_user_acceptance_with_technical_limitations",
+  "unit": {
+    "passed": 755,
+    "files": 53,
+    "coverage": {
+      "statements": {
+        "percent": 94.96,
+        "covered": 3882,
+        "total": 4088
+      },
+      "branches": {
+        "percent": 91.58,
+        "covered": 4312,
+        "total": 4708
+      },
+      "functions": {
+        "percent": 92.79,
+        "covered": 786,
+        "total": 847
+      },
+      "lines": {
+        "percent": 97.63,
+        "covered": 2932,
+        "total": 3003
+      }
+    },
+    "scope": "src/features/**/*.{ts,vue}, src/views/**/*.vue; specs excluded; unchanged config"
+  },
+  "build": {
+    "legacy": true,
+    "aiot": true,
+    "typecheck": true,
+    "existingWarning": "3D chunk ~598.54kB"
+  },
+  "e2e": {
+    "controlledSpecFiles": 24,
+    "realSpecFilesExcluded": 8,
+    "legacy": {
+      "passed": 169,
+      "skipped": 30,
+      "failed": 0
+    },
+    "aiot": {
+      "passed": 30,
+      "skipped": 0,
+      "failed": 0
+    },
+    "distinctScenariosPassed": 199,
+    "apiBoundary": "controlled HTTP/WS/SSE; real WebGL where applicable; no real backend/hardware"
+  },
+  "environment": {
+    "os": "macOS 27.0.1 arm64",
+    "node": "24.22.1",
+    "declaredNode": "24.20.0",
+    "browser": "Chromium 153.0.8010.12"
+  },
+  "acceptancePending": [],
+  "participants": {
+    "executed": false
+  },
+  "newBenchmark": false,
+  "technicalPending": [
+    "Data auto-update pause/frequency/hide control remains unimplemented across four views",
+    "Real screen-reader session for integrated scenarios was not validated"
+  ],
+  "closure": {
+    "date": "2026-11-02",
+    "basis": "Explicit user request: pode colocar como feito",
+    "technicalCriteriaFullyMet": false,
+    "newImplementation": false,
+    "newTestsExecuted": false
+  }
+}

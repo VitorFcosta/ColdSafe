@@ -117,6 +117,16 @@ function formatReadingValue(reading: HistoricalReading): string {
 
 <template>
   <div ref="chartElement" class="mt-5 min-w-0">
+
+    <div
+      v-if="readings.length > 0"
+      role="img"
+      :aria-label="metric === 'temperature_c' ? 'Gráfico de linha da temperatura no período selecionado' : `Gráfico de linha de ${accessibleMetricLabel} no período selecionado`"
+      aria-describedby="temperature-history-summary temperature-history-note temperature-history-coverage"
+      class="mt-5 h-72"
+    >
+      <Line aria-hidden="true" :data="chartData" :options="chartOptions" />
+    </div>
     <p id="temperature-history-summary" class="text-sm leading-6 text-ink-muted">
       {{ textualSummary }}
       <template v-if="series.gaps"> {{ series.gaps }} {{ series.gaps === 1 ? 'lacuna' : 'lacunas' }} de mais de 30 s sem leitura; a linha é interrompida nesses trechos.</template>
@@ -129,25 +139,16 @@ function formatReadingValue(reading: HistoricalReading): string {
     </p>
     <p id="temperature-history-coverage" class="mt-2 text-sm leading-6 text-ink-muted">{{ coverage }}</p>
 
-    <div
-      v-if="readings.length > 0"
-      role="img"
-      :aria-label="metric === 'temperature_c' ? 'Gráfico de linha da temperatura no período selecionado' : `Gráfico de linha de ${accessibleMetricLabel} no período selecionado`"
-      aria-describedby="temperature-history-summary temperature-history-note temperature-history-coverage"
-      class="mt-5 h-72"
-    >
-      <Line :data="chartData" :options="chartOptions" />
-    </div>
     <details v-if="orderedReadings.length" class="mt-5 border-t border-line pt-4">
       <summary class="min-h-11 cursor-pointer py-2 font-medium text-accent">Ver {{ orderedReadings.length }} {{ orderedReadings.length === 1 ? 'leitura' : 'leituras' }} em tabela</summary>
       <div role="region" :aria-label="`Leituras individuais de ${accessibleMetricLabel}`" tabindex="0" class="mt-3 max-h-80 overflow-auto">
         <table class="w-full border-collapse text-left text-sm">
           <caption class="mb-2 text-left text-ink-muted">Leituras individuais do período selecionado, no fuso {{ timeZone }}</caption>
-          <thead><tr class="border-b border-line"><th scope="col" class="py-2 pr-4">Horário</th><th scope="col" class="py-2">{{ metricLabel }}</th></tr></thead>
+          <thead><tr class="border-b border-line"><th scope="col" class="py-2 pr-4">Horário</th><th scope="col" class="py-2 text-right">{{ metricLabel }}</th></tr></thead>
           <tbody>
             <tr v-for="(reading, index) in orderedReadings" :key="`${reading.received_at}-${index}`" class="border-b border-line">
               <td class="py-2 pr-4"><time :datetime="reading.received_at">{{ formatReadingTime(reading.received_at, timeZone) }}</time></td>
-              <td class="py-2">{{ formatReadingValue(reading) }}</td>
+              <td class="py-2 text-right">{{ formatReadingValue(reading) }}</td>
             </tr>
           </tbody>
         </table>

@@ -88,7 +88,7 @@ test('admin treina pela página, recarrega e confere valores dos dois alvos reai
 test('visualizador não dispara treinamento nem pela API nem pela página', async ({ page, request }) => {
   const session = await login(request, page, process.env.TRAINING_REAL_VIEWER_EMAIL!)
   await page.goto('/training')
-  await expect(page.getByText(/apenas para administradores/)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Acesso restrito', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Iniciar treinamento', exact: true })).toHaveCount(0)
   const forbidden = await request.post(`${api}/api/v3/jobs`, {
     headers: { authorization: `Bearer ${session.token}` },

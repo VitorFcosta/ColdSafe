@@ -1,0 +1,15 @@
+{
+  "width": 1440,
+  "scrollWidth": 1440,
+  "panelWidth": 1120,
+  "panelScrollWidth": 1118,
+  "panelClientWidth": 1118,
+  "link": {
+    "color": "rgb(12, 109, 101)",
+    "background": "rgb(255, 255, 255)",
+    "outlineColor": "rgb(8, 108, 104)",
+    "outlineWidth": "3px",
+    "fontSize": "16px"
+  },
+  "overflow": []
+}

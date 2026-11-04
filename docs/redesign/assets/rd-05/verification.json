@@ -1,0 +1,138 @@
+{
+  "task": "RD-05",
+  "date": "2026-10-30",
+  "started": "2026-10-29",
+  "git_base": "27bba6f",
+  "working_tree": "pre-existing changes preserved; no commit/push",
+  "environment": {
+    "os": "macOS",
+    "node": "24.22.1",
+    "project_declares_node": "24.20.0",
+    "browser": "Chromium 153.0.8010.12"
+  },
+  "unit": {
+    "command": "npm run test:coverage",
+    "passed": 634,
+    "files": 52,
+    "coverage": {
+      "statements": 94.39,
+      "branches": 90.87,
+      "functions": 92.14,
+      "lines": 97.2
+    },
+    "scope": "Unchanged vite.config.ts coverage configuration"
+  },
+  "build": {
+    "command": "npm run build",
+    "result": "passed including typecheck",
+    "warning": "Existing digital twin chunk ~550 kB"
+  },
+  "e2e": [
+    {
+      "mode": "true",
+      "command": "npm run test:e2e -- draft-transitions.spec.ts --workers=2",
+      "passed": 11,
+      "failed": 3,
+      "stage": "initial",
+      "resolution": "selectOption did not focus native select, and native dialog could focus browser chrome. Reproduced browser behavior independently; tests now focus the control and still enforce inert page content."
+    },
+    {
+      "mode": "true",
+      "command": "npm run test:e2e -- draft-transitions.spec.ts --workers=2",
+      "passed": 16,
+      "failed": 0,
+      "stage": "after two additional scenarios and test corrections"
+    },
+    {
+      "mode": "true",
+      "command": "npm run test:e2e -- draft-transitions.spec.ts --workers=1 --grep 'aviso acessível'",
+      "passed": 2,
+      "failed": 0,
+      "stage": "final reflow confirmation; measurements asserted after capture"
+    },
+    {
+      "mode": "false",
+      "command": "npm run test:e2e -- manage.spec.ts training.spec.ts app-shell.spec.ts navigation.spec.ts dashboard-selection.spec.ts --workers=2",
+      "passed": 31,
+      "failed": 0
+    },
+    {
+      "mode": "true",
+      "command": "npm run test:e2e -- monitoring-context.spec.ts digital-twin.spec.ts --workers=2",
+      "passed": 19,
+      "failed": 0
+    }
+  ],
+  "unique_passing_e2e_scenarios": 66,
+  "visual": {
+    "desktop": [
+      1440,
+      1000
+    ],
+    "mobile": [
+      320,
+      740
+    ],
+    "text_zoom": "200% root font size; mobile200 screenshot scrolled to focused action",
+    "horizontal_overflow": false,
+    "dialog_width_mobile": 288,
+    "dialog_client_and_scroll_width_mobile": 286,
+    "contrast_text_on_white": 14.34,
+    "data": "Mocked HTTP/WS only"
+  },
+  "review": {
+    "independent_code_review": "APPROVE within RD-05 scope; fixes confirmed",
+    "final_layout_fix_verdict": "resolved",
+    "reviewer": "code-reviewer substituted for unavailable impeccable_finish_reviewer",
+    "detector": "2 inherited side-tab warnings in Insights/Training; no new modal finding"
+  },
+  "limitations": [
+    "No real backend, containers, model training or physical actuation",
+    "No physical mobile, Safari/Firefox or screen reader",
+    "beforeunload only exercised in Chromium and not guaranteed on mobile",
+    "No user usability study",
+    "No new GPU/FPS measurement; RD-02 remains pending"
+  ],
+  "added_dependencies": [],
+  "screenshots": {
+    "desktop.png": {
+      "origin": ".impeccable/review/rd-05/desktop.png",
+      "type": "Playwright screenshot of mocked operational UI",
+      "sha256": "5db96c73d87ee71b07bc4e8feafbdc8dd1b9bbd7da4606ada96f039d289ad5e5"
+    },
+    "mobile-320.png": {
+      "origin": ".impeccable/review/rd-05/mobile-320.png",
+      "type": "Playwright screenshot of mocked operational UI",
+      "sha256": "8b334b5fce2c04c7b241fca163354ab2d1239d521cf1403b83a852a965356d9c"
+    },
+    "mobile-320-200.png": {
+      "origin": ".impeccable/review/rd-05/mobile-320-200.png",
+      "type": "Playwright screenshot of mocked operational UI",
+      "sha256": "faefd2ad110e54f84541812813a1be9dc5bb83bf0e37c847fd052861319adeb1"
+    }
+  },
+  "preservation": {
+    "baseline_files": 741,
+    "unchanged_files": 724,
+    "changed_existing_files": [
+      "docs/redesign/tasks/RD-05.md",
+      "docs/redesign/tasks/README.md",
+      "frontend/e2e/manage.spec.ts",
+      "frontend/src/App.vue",
+      "frontend/src/features/account/account.spec.ts",
+      "frontend/src/features/account/catalog.ts",
+      "frontend/src/features/navigation/AppNavigation.vue",
+      "frontend/src/features/navigation/AuthenticatedShell.vue",
+      "frontend/src/router/index.spec.ts",
+      "frontend/src/router/index.ts",
+      "frontend/src/views/InsightsView.vue",
+      "frontend/src/views/LaboratoryView.spec.ts",
+      "frontend/src/views/LaboratoryView.vue",
+      "frontend/src/views/ManageView.spec.ts",
+      "frontend/src/views/ManageView.vue",
+      "frontend/src/views/TrainingView.spec.ts",
+      "frontend/src/views/TrainingView.vue"
+    ],
+    "check": "SHA-256 snapshot comparison; all changes are in expected files"
+  }
+}

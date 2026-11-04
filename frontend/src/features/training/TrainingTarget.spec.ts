@@ -15,6 +15,39 @@ describe('resultados de regressão', () => {
     expect(wrapper.get('[role="img"]').attributes('aria-label')).toContain('Previsto versus real')
     wrapper.unmount()
   })
+  it('distingue validação e teste, candidato e baseline sem trocar os valores', () => {
+    const result: TargetResult = { ...fixture.health as TargetResult, metrics: {
+      validation: { baseline: { mae: 10, rmse: 11, r2: null }, candidate: { mae: 1, rmse: 2, r2: .9 } },
+      test: { baseline: { mae: 20, rmse: 21, r2: -.5 }, candidate: { mae: 3, rmse: 4, r2: .8 } },
+    } }
+    const wrapper = mount(TrainingTarget, { props: { result } })
+    try {
+      const rows = wrapper.get('[aria-label="Métricas de Saúde"]').findAll('tbody tr')
+        .map(row => row.findAll('th,td').map(cell => cell.text()))
+      expect(rows).toEqual([
+        ['Validação', 'Baseline', '10', '11', 'Indefinido (alvo constante)'],
+        ['Validação', 'Candidato', '1', '2', '0,9'],
+        ['Teste reservado', 'Baseline', '20', '21', '-0,5'],
+        ['Teste reservado', 'Candidato', '3', '4', '0,8'],
+      ])
+    } finally { wrapper.unmount() }
+  })
+  it('preserva zero legítimo e explica recorte de RUL sem linhas sem fabricar métricas', () => {
+    const result: TargetResult = { ...fixture.rul as TargetResult, near_failure: {
+      threshold_hours: 24, validation: { row_count: 0, baseline: null, candidate: null },
+      test: { row_count: 0, baseline: null, candidate: null },
+    } }
+    const wrapper = mount(TrainingTarget, { props: { result } })
+    try {
+      const rows = wrapper.get('[aria-label="Métricas perto da falha"]').findAll('tbody tr')
+      expect(rows).toHaveLength(4)
+      for (const row of rows) {
+        expect(row.findAll('td')[0]!.text()).toBe('0')
+        expect(row.findAll('td').slice(2).map(cell => cell.text())).toEqual(['Sem linhas', 'Sem linhas', 'Sem linhas'])
+      }
+      expect(wrapper.get('details table').text()).toContain('32')
+    } finally { wrapper.unmount() }
+  })
   it('rejeitado não é apto e R² negativo próximo da falha é explícito', () => {
     const wrapper = mount(TrainingTarget, { props: { result: fixture.rul as TargetResult } })
     expect(wrapper.text()).toContain('Rejeitado pela validação'); expect(wrapper.text()).toContain('horas')

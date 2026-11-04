@@ -47,6 +47,7 @@
   --cs-motion-entrance: 560ms;
   --cs-font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
   --cs-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --cs-control-min-height: 2.75rem;
   --cs-radius-panel: var(--cs-radius-8);
   --cs-shadow-panel: 0 2px 8px rgb(18 46 51 / 0.03);
 }

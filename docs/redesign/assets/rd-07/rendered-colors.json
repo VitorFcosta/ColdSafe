@@ -1,0 +1,40 @@
+{
+  "browser": "153.0.8010.12",
+  "styles": [
+    {
+      "selector": ".measurement h2",
+      "color": "rgb(82, 108, 112)",
+      "background": "rgb(255, 255, 255)",
+      "fontSize": "14px",
+      "contrast": 5.62
+    },
+    {
+      "selector": ".metric-value",
+      "color": "rgb(18, 46, 51)",
+      "background": "rgb(255, 255, 255)",
+      "fontSize": "24px",
+      "contrast": 14.34
+    },
+    {
+      "selector": ".measurement-condition",
+      "color": "rgb(23, 103, 64)",
+      "background": "rgb(255, 255, 255)",
+      "fontSize": "14px",
+      "contrast": 6.88
+    },
+    {
+      "selector": ".period-control [aria-pressed=\"true\"]",
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(12, 109, 101)",
+      "fontSize": "14px",
+      "contrast": 6.19
+    },
+    {
+      "selector": ".prediction-origin",
+      "color": "rgb(83, 102, 117)",
+      "background": "rgb(255, 255, 255)",
+      "fontSize": "14px",
+      "contrast": 5.96
+    }
+  ]
+}

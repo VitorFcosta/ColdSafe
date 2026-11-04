@@ -1,0 +1,16 @@
+{
+  "desktop": {
+    "link_text_on_panel": 6.19,
+    "focus_outline_on_panel": 6.26,
+    "source": "desktop-layout.json",
+    "minimum_text": 4.5,
+    "minimum_focus": 3
+  },
+  "mobile": {
+    "link_text_on_panel": 6.19,
+    "focus_outline_on_panel": 6.26,
+    "source": "mobile-layout.json",
+    "minimum_text": 4.5,
+    "minimum_focus": 3
+  }
+}

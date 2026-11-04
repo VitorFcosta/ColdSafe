@@ -1,0 +1,17 @@
+{
+  "scope": "RD-09: verificação desktop integrada. Não converte viewport em GPU móvel.",
+  "sources": [
+    "benchmark.json",
+    "visibility-native.json"
+  ],
+  "originalBenchmarkPassedDesktopCriteria": false,
+  "originalLimitation": "Aba realmente oculta não observada pelo navegador automatizado; relatório original preservado.",
+  "checks": {
+    "desktopScene": true,
+    "nineSelections": true,
+    "inactivityObservedInBenchmark": true,
+    "nativeHiddenSupplement": true,
+    "tenCycles": true
+  },
+  "passedCombinedDesktopChecks": true
+}

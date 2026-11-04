@@ -1,0 +1,204 @@
+{
+  "task": "RD-12",
+  "date": "2026-10-31",
+  "status": "completed",
+  "git_base": "27bba6f",
+  "environment": {
+    "os": "macOS",
+    "node": "24.22.1",
+    "declared_node": "24.20.0",
+    "browser": "Chromium 153.0.8010.12"
+  },
+  "dependencies_added": [],
+  "implementation_files_changed": [
+    "frontend/src/views/LaboratoryView.vue",
+    "frontend/src/views/LaboratoryView.spec.ts"
+  ],
+  "documentation_files_changed": [
+    "docs/redesign/tasks/RD-12.md",
+    "docs/redesign/tasks/README.md"
+  ],
+  "files_created": [
+    "frontend/e2e/laboratory-redesign.spec.ts",
+    "docs/redesign/assets/rd-12/contrast.json",
+    "docs/redesign/assets/rd-12/desktop-layout.json",
+    "docs/redesign/assets/rd-12/desktop-result.png",
+    "docs/redesign/assets/rd-12/desktop.png",
+    "docs/redesign/assets/rd-12/detector.json",
+    "docs/redesign/assets/rd-12/hero-repro.png",
+    "docs/redesign/assets/rd-12/mobile-320-text-200-action.png",
+    "docs/redesign/assets/rd-12/mobile-320-text-200-error-focus.png",
+    "docs/redesign/assets/rd-12/mobile-320-text-200-layout.json",
+    "docs/redesign/assets/rd-12/mobile-320-text-200-result.png",
+    "docs/redesign/assets/rd-12/mobile-320-text-200-sample.png",
+    "docs/redesign/assets/rd-12/mobile-320-text-200.png",
+    "docs/redesign/assets/rd-12/mobile-layout.json",
+    "docs/redesign/assets/rd-12/mobile-result.png",
+    "docs/redesign/assets/rd-12/mobile.png",
+    "docs/redesign/assets/rd-12/review.json",
+    "docs/redesign/assets/rd-12/verification.json"
+  ],
+  "tests": {
+    "red": {
+      "failed": 4,
+      "passed": 27,
+      "scope": "missing associated errors and invalid control focus; positive-days test passed"
+    },
+    "unit_final": {
+      "passed": 47,
+      "scope": "LaboratoryView.spec.ts, includes two final assertions after coverage run"
+    },
+    "coverage": {
+      "passed": 724,
+      "files": 53,
+      "statements": 94.82,
+      "branches": 91.15,
+      "functions": 92.56,
+      "lines": 97.5,
+      "configuration_changed": false
+    },
+    "e2e": {
+      "passed": 72,
+      "new_tests": 6,
+      "command": "VITE_AIOT_ENABLED=true npm run test:e2e -- laboratory-redesign.spec.ts job-resume.spec.ts draft-transitions.spec.ts training.spec.ts app-shell.spec.ts --workers=2",
+      "transport": "HTTP controlled, App/Router and frontend clients real"
+    },
+    "build_typecheck": "passed",
+    "existing_warning": "DigitalTwinView minified chunk 598.55 kB",
+    "diff_check": "passed"
+  },
+  "visual": {
+    "rounds": 2,
+    "viewports": [
+      {
+        "width": 1440,
+        "height": 1024,
+        "text_percent": 100
+      },
+      {
+        "width": 390,
+        "height": 1024,
+        "text_percent": 100
+      },
+      {
+        "width": 320,
+        "height": 1024,
+        "text_percent": 200
+      }
+    ],
+    "page_overflow": false,
+    "tables": "local horizontal scrolling verified with focus and ArrowRight",
+    "detector": {
+      "findings": [],
+      "runs": 1,
+      "scope": "LaboratoryView.vue; before final summary-rendering adjustment"
+    },
+    "source": "Browser screenshots from Playwright with simulated private datasets and jobs; not product assets or evidence of real generation"
+  },
+  "review": {
+    "disposition": "ship",
+    "scope": "RD-12 only",
+    "role": "code-reviewer",
+    "substitution": "impeccable_finish_reviewer unavailable; fresh independent code-reviewer used",
+    "findings": [],
+    "basis": [
+      "current implementation",
+      "API validation",
+      "test logs",
+      "10 screenshots",
+      "computed layout records"
+    ],
+    "limitations": [
+      "reviewer did not rerun tests or recapture UI",
+      "no integral WCAG certification",
+      "no real backend or worker exercised"
+    ],
+    "documentation": "RD-12 checkpoint and index updated after verdict; RD-13 not started"
+  },
+  "preservation": {
+    "method": "SHA256 comparison of 858 project files taken after first implementation edits; not a pre-edit baseline",
+    "changed_since_checkpoint": [
+      "docs/redesign/tasks/RD-12.md",
+      "docs/redesign/tasks/README.md",
+      "frontend/src/views/LaboratoryView.spec.ts",
+      "frontend/src/views/LaboratoryView.vue"
+    ],
+    "unexpected_changes": [],
+    "original_working_tree": "many pre-existing tracked modifications/untracked redesign files; full git diff includes earlier tasks"
+  },
+  "limits": [
+    "No real backend, worker, million-row generation or model training",
+    "No physical mobile device, Safari/Firefox, screen reader or independent participants",
+    "No 3D or physical measurements performed; scene unchanged",
+    "No commit/push/publication/credential change",
+    "RD-13 not started"
+  ],
+  "evidence_files": [
+    {
+      "path": "contrast.json",
+      "sha256": "ac15fe50a5e6805850498023fbc1f81906f1494abf41d3360d079cfa524cdd1d"
+    },
+    {
+      "path": "desktop-layout.json",
+      "sha256": "14a2249616e5cb6d659effbb4aa03763f82d759a53e5c86c066c6efcb0fbc5aa"
+    },
+    {
+      "path": "desktop-result.png",
+      "sha256": "e7f8f131fa75295fe98ecb2240bd387cb7f665154bd1e86963e9c2d782c4f664"
+    },
+    {
+      "path": "desktop.png",
+      "sha256": "29283d876dd61f2f3c39279b32c23d38d7f58a36da9cf36773bbc584e128088b"
+    },
+    {
+      "path": "detector.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "hero-repro.png",
+      "sha256": "2c3c86779be0a66eb7668b71e6618be84627b4ce34319e87f685ec2dd7f770e9"
+    },
+    {
+      "path": "mobile-320-text-200-action.png",
+      "sha256": "a75e0b5349e1e3c1914bd88a456b54d0f6f64de029750f1a631a4970ff70c4b1"
+    },
+    {
+      "path": "mobile-320-text-200-error-focus.png",
+      "sha256": "4ee54484e5b72980001e0238cd3aafa187e012bb2824f23c75740910ff395cc7"
+    },
+    {
+      "path": "mobile-320-text-200-layout.json",
+      "sha256": "ca35e1585ded764d69ca38ed2c38159cd024e7098c1de1f7ee211d076cbb7e25"
+    },
+    {
+      "path": "mobile-320-text-200-result.png",
+      "sha256": "94b7f3ba2061e43b8fda1d410dd40ddbfa1a0afba4204079a27d651f1201153d"
+    },
+    {
+      "path": "mobile-320-text-200-sample.png",
+      "sha256": "faf317864102ca1bcd68e8b79b568835cdbc09ff160d79589ccf0ec87087498b"
+    },
+    {
+      "path": "mobile-320-text-200.png",
+      "sha256": "6ef072ae00edcd6d00d77cef916e870b6c1d0cfddc2d7c9d46ec523e015eedb2"
+    },
+    {
+      "path": "mobile-layout.json",
+      "sha256": "21989ead1e3c118c17c261dfb85554169fc43f923be51294c5ecf6a7662094c3"
+    },
+    {
+      "path": "mobile-result.png",
+      "sha256": "119cc0cee1e0d1ea0b971bc411bc629b46b4222eb444a13fb2f881976b06888d"
+    },
+    {
+      "path": "mobile.png",
+      "sha256": "c43fd32ec20c619aaaddf0ce0cb0ef251b940809796ba5d130c9ecff6b5f1e7b"
+    },
+    {
+      "path": "review.json",
+      "sha256": "1e107d27a37c49647d9b02fb4ccea08c108d10f55b4b59bf206117e962caaa4f"
+    }
+  ],
+  "local_logs": ".impeccable/review/rd-12/",
+  "next_task": "RD-13 — Treinamento e diagnósticos; await user choice"
+}

@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 import { ref, type Ref } from 'vue'
-import { flushPromises, shallowMount } from '@vue/test-utils'
+import { useRoute } from 'vue-router'
+import { clearMonitoringSelection } from '../features/account/session'
+import { enableAutoUnmount, flushPromises, shallowMount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { listDevices, listEnvironments } from '../features/account/catalog'
 import { refreshSessionIdentity, sessionToken } from '../features/account/session'
@@ -8,23 +10,31 @@ import { fetchInsights, InsightsAccessError, type InsightsSnapshot } from '../fe
 import type { MonitoringSummary } from '../features/monitoring/monitoring-summary'
 import DigitalTwinView from './DigitalTwinView.vue'
 
+enableAutoUnmount(afterEach)
+
 const live = vi.hoisted(() => ({ enabled: true, insightsInput: null as unknown, state: null as unknown, summary: null as unknown, revision: null as unknown, connection: null as unknown, mqtt: null as unknown }))
 vi.mock('../features/account/catalog', () => ({ listDevices: vi.fn(), listEnvironments: vi.fn() }))
 vi.mock('../features/account/session', async (original) => ({ ...await original<typeof import('../features/account/session')>(), logout: vi.fn(), refreshSessionIdentity: vi.fn() }))
 vi.mock('../features/insights/insights-api', async (original) => ({ ...await original<typeof import('../features/insights/insights-api')>(), fetchInsights: vi.fn() }))
 vi.mock('../features/monitoring/monitoring-version', () => ({ get aiotEnabled() { return live.enabled } }))
-vi.mock('../features/monitoring/use-monitoring-summary', () => ({ useMonitoringSummary: (_token: unknown, mqtt: unknown) => {
+vi.mock('../features/monitoring/use-monitoring-summary', async (original) => ({ ...await original<typeof import('../features/monitoring/use-monitoring-summary')>(), useMonitoringSummary: (_token: unknown, mqtt: unknown) => {
   live.mqtt = mqtt
   return { summary: live.summary, monitoringState: live.state, refreshRevision: live.revision, connectionState: live.connection, ageSeconds: ref(1) }
 } }))
-vi.mock('../features/digital-twin/DigitalTwinScene.vue', () => ({ default: { name: 'DigitalTwinScene', props: ['items', 'selectedId', 'visual'], emits: ['select'], template: '<div data-scene />' } }))
+vi.mock('../features/digital-twin/DigitalTwinScene.vue', () => ({ default: { name: 'DigitalTwinScene', props: ['items', 'selectedId', 'visual', 'paused'], emits: ['select', 'update:paused'], template: '<div data-scene />' } }))
 vi.mock('../features/digital-twin/twin-state', async (original) => ({ ...await original<typeof import('../features/digital-twin/twin-state')>(), twinStatusLabels: { normal: 'Normal', attention: 'Atenção', critical: 'Crítico', no_data: 'Sem dados' }, twinColors: { normal: 0x197854, attention: 0xa96409, critical: 0xc3353c, no_data: 0x667681 }, buildTwinItems: (summary: MonitoringSummary | null, fresh: boolean, insights: InsightsSnapshot | null) => { live.insightsInput = insights; return [{ id: summary ? 'real-sensor-id' : null, key: 'temperature', label: 'Temperatura ambiente', kind: 'sensor', value: fresh ? '4 °C' : '—', status: fresh ? 'normal' : 'no_data', position: [0, 0, 0] }] } }))
-vi.mock('vue-router', () => ({ useRouter: () => ({ replace: vi.fn() }) }))
-const device = { id: 'record-a', environment_id: 'env-a', mqtt_device_id: 'mqtt-a', name: 'Motor autorizado', is_active: true }
-const other = { ...device, id: 'record-b', mqtt_device_id: 'mqtt-b', name: 'Motor B' }
-const summary: MonitoringSummary = { environment: { id: 'env-a', name: 'A' }, device: { id: 'mqtt-a' }, reading: { temperature_c: 4, humidity_percent: 40, received_at: new Date().toISOString(), device_record_id: 'record-a', environment_id: 'env-a', equipment_id: 'equipment-a' }, status: 'normal', freshness: { age_seconds: 0, is_stale: false }, thresholds: { min_c: 0, max_c: 8, attention_margin_c: 1 } }
+vi.mock('vue-router', async (original) => {
+  const actual = await original<typeof import('vue-router')>()
+  const { reactive } = await import('vue')
+  const route = reactive({ path: '/dashboard', query: {}, hash: '' })
+  const navigate = async (target: object) => { Object.assign(route, target) }
+  return { ...actual, useRoute: () => route, useRouter: () => ({ push: vi.fn(navigate), replace: vi.fn(navigate) }) }
+})
+const device = { id: '00000000-0000-4000-8000-000000000011', environment_id: '00000000-0000-4000-8000-000000000001', mqtt_device_id: 'mqtt-a', name: 'Motor autorizado', is_active: true }
+const other = { ...device, id: '00000000-0000-4000-8000-000000000012', mqtt_device_id: 'mqtt-b', name: 'Motor B' }
+const summary: MonitoringSummary = { environment: { id: '00000000-0000-4000-8000-000000000001', name: 'A' }, device: { id: 'mqtt-a' }, reading: { temperature_c: 4, humidity_percent: 40, received_at: new Date().toISOString(), device_record_id: '00000000-0000-4000-8000-000000000011', environment_id: '00000000-0000-4000-8000-000000000001', equipment_id: 'equipment-a' }, status: 'normal', freshness: { age_seconds: 0, is_stale: false }, thresholds: { min_c: 0, max_c: 8, attention_margin_c: 1 } }
 const snapshot: InsightsSnapshot = { device_id: 'mqtt-a', equipment_id: 'equipment-a', rules: { health_critical: 30, health_recovery: 40, rul_critical_hours: 24, rul_recovery_hours: 48, open_count: 3, close_count: 10 }, prediction: null, availability: 'no_data', age_seconds: null, trend: 'unknown', active_alerts: [] }
-const mount = () => shallowMount(DigitalTwinView, { global: { stubs: {
+const mount = () => shallowMount(DigitalTwinView, { global: { stubs: { LiveDataRegion: false,
   RouterLink: { template: '<a><slot /></a>' },
   TwinItemPanel: { name: 'TwinItemPanel', props: ['item', 'summary', 'device', 'token', 'fresh', 'ageSeconds', 'revision', 'connectionState'], template: '<section aria-label="Detalhes do componente"><h2>{{ item.label }}</h2>{{ item.id }} {{ item.value }}</section>' },
 } } })
@@ -32,10 +42,13 @@ const state = () => live.state as Ref<{ kind: string }>
 const data = () => live.summary as Ref<MonitoringSummary | null>
 const revision = () => live.revision as Ref<number>
 beforeEach(() => {
+  Object.assign(useRoute(), { path: '/dashboard', query: {}, hash: '' })
+  clearMonitoringSelection()
+
   vi.useFakeTimers()
   live.enabled = true
   live.state = ref({ kind: 'normal' }); live.summary = ref(structuredClone(summary)); live.revision = ref(0); live.connection = ref('connected')
-  vi.mocked(listEnvironments).mockReset().mockResolvedValue([{ id: 'env-a', name: 'A' }, { id: 'env-b', name: 'B' }])
+  vi.mocked(listEnvironments).mockReset().mockResolvedValue([{ id: '00000000-0000-4000-8000-000000000001', name: 'A' }, { id: '00000000-0000-4000-8000-000000000002', name: 'B' }])
   vi.mocked(listDevices).mockReset().mockResolvedValue([device, other])
   vi.mocked(fetchInsights).mockReset().mockResolvedValue(snapshot)
   vi.mocked(refreshSessionIdentity).mockReset().mockResolvedValue(undefined)
@@ -44,6 +57,37 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers() })
 
 describe('DigitalTwinView', () => {
+  it('ordena contexto, navegação e grandezas; oferece leitura selecionada e acesso interno à lista', async () => {
+    const wrapper = mount(); await flushPromises()
+    expect(wrapper.findComponent({ name: 'AreaNavigation' }).exists()).toBe(true)
+    expect(wrapper.get('a[href="#twin-components"]').text()).toContain('Ir para a lista')
+    expect(wrapper.get('#twin-components').attributes('tabindex')).toBe('-1')
+    expect(wrapper.get('[aria-label="Grandezas do equipamento"]').text()).toContain('4 °C')
+    expect(wrapper.get('[aria-label="Leitura selecionada"]').text()).toContain('Selecione um componente')
+    wrapper.getComponent({ name: 'DigitalTwinScene' }).vm.$emit('select', 'real-sensor-id')
+    await flushPromises()
+    expect(wrapper.get('[aria-label="Leitura selecionada"]').text()).toContain('4 °C')
+    expect(wrapper.get('[aria-label="Leitura selecionada"]').text()).toContain('real-sensor-id')
+    state().value = { kind: 'stale' }; await flushPromises()
+    expect(wrapper.get('[aria-label="Leitura selecionada"]').text()).not.toContain('4 °C')
+  })
+  it('conserva pausa local após nova leitura, seleção e remontagem ao trocar equipamento', async () => {
+    const wrapper = mount(); await flushPromises()
+    const scene = () => wrapper.getComponent({ name: 'DigitalTwinScene' })
+    expect(scene().props('paused')).toBe(false)
+    scene().vm.$emit('update:paused', true)
+    await flushPromises()
+    revision().value++
+    scene().vm.$emit('select', 'real-sensor-id')
+    await flushPromises()
+    expect(scene().props('paused')).toBe(true)
+    const oldScene = scene().vm
+    await wrapper.get('select[name="device"]').setValue(other.id)
+    await flushPromises()
+    expect(scene().vm).not.toBe(oldScene)
+    expect(scene().props('paused')).toBe(true)
+    wrapper.unmount()
+  })
   it('anima só com telemetria atual do escopo selecionado, sem exigir previsão', async () => {
     const equipment = { equipment_id: 'equipment-a', running: true,
       led: { actuator_id: 'led-a', actual_state: false }, buzzer: { actuator_id: 'buzzer-a', actual_state: true } }
@@ -103,6 +147,7 @@ describe('DigitalTwinView', () => {
     live.enabled = false
     const wrapper = mount(); await flushPromises()
     expect(wrapper.text()).toContain('requer AIoT v3')
+    expect(wrapper.find('[data-legacy-exit]').exists()).toBe(true)
     expect(listEnvironments).not.toHaveBeenCalled(); expect(fetchInsights).not.toHaveBeenCalled()
     expect(wrapper.find('[data-scene]').exists()).toBe(false); wrapper.unmount()
   })
@@ -128,7 +173,7 @@ describe('DigitalTwinView', () => {
   })
   it('não apresenta resumo de outro ambiente, MQTT ou registro', async () => {
     const wrapper = mount(); await flushPromises()
-    for (const invalid of [{ ...summary, environment: { id: 'env-b', name: 'B' } }, { ...summary, device: { id: 'mqtt-b' } }, { ...summary, reading: { ...summary.reading!, device_record_id: 'record-b' } }]) {
+    for (const invalid of [{ ...summary, environment: { id: '00000000-0000-4000-8000-000000000002', name: 'B' } }, { ...summary, device: { id: 'mqtt-b' } }, { ...summary, reading: { ...summary.reading!, device_record_id: '00000000-0000-4000-8000-000000000012' } }]) {
       data().value = invalid; await flushPromises()
       expect(wrapper.get('[aria-label="Componentes do gêmeo digital"]').text()).not.toContain('real-sensor-id')
     }
@@ -156,9 +201,12 @@ describe('DigitalTwinView', () => {
     let reject!: (error: Error) => void
     vi.mocked(fetchInsights).mockImplementationOnce(() => new Promise((_, fail) => { reject = fail }))
     const wrapper = mount(); await flushPromises()
+    wrapper.getComponent({ name: 'DigitalTwinScene' }).vm.$emit('select', 'real-sensor-id')
+    await flushPromises()
+    expect(wrapper.find('[aria-label="Detalhes do componente"]').exists()).toBe(true)
     const signal = vi.mocked(fetchInsights).mock.calls[0]![2]!
     if (change === 'device') await wrapper.get('select[name="device"]').setValue(other.id)
-    if (change === 'environment') { vi.mocked(listDevices).mockResolvedValueOnce([]); await wrapper.get('select[name="environment"]').setValue('env-b') }
+    if (change === 'environment') { vi.mocked(listDevices).mockResolvedValueOnce([]); await wrapper.get('select[name="environment"]').setValue('00000000-0000-4000-8000-000000000002') }
     if (change === 'token') sessionToken.value = 'token-b'
     await flushPromises(); expect(signal.aborted).toBe(true)
     reject(new InsightsAccessError(401)); await flushPromises(); expect(sessionToken.value).not.toBeNull()

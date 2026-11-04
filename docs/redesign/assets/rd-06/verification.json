@@ -1,0 +1,123 @@
+{
+  "task": "RD-06",
+  "date": "2026-10-30",
+  "git_base": "27bba6f",
+  "working_tree": "pre-existing changes preserved; no commit/push",
+  "environment": {
+    "os": "macOS",
+    "node": "24.22.1",
+    "project_node": "24.20.0",
+    "browser": "Chromium 153.0.8010.12",
+    "graph": "MCP discovery attempted; Transport closed; fallback to task source paths"
+  },
+  "unit": {
+    "command": "npm run test:coverage",
+    "passed": 670,
+    "files": 53,
+    "coverage": {
+      "statements": 94.56,
+      "branches": 90.83,
+      "functions": 92.25,
+      "lines": 97.42
+    },
+    "scope": "unchanged vite.config.ts"
+  },
+  "build": {
+    "command": "npm run build",
+    "result": "passed including typecheck",
+    "warning": "pre-existing digital twin chunk about550kB"
+  },
+  "e2e": [
+    {
+      "mode": "true",
+      "command": "npm run test:e2e -- job-resume.spec.ts --workers=2",
+      "passed": 21,
+      "failed": 2,
+      "resolution": "Test locator scoped to configuration; new login awaited before navigating after old response."
+    },
+    {
+      "mode": "true",
+      "command": "npm run test:e2e -- job-resume.spec.ts --workers=2 --grep 'GET direto|resposta antiga|logout e nova'",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "mode": "false",
+      "command": "npm run test:e2e -- job-resume.spec.ts draft-transitions.spec.ts training.spec.ts app-shell.spec.ts --workers=2",
+      "passed": 66,
+      "failed": 0,
+      "note": "Generation/training APIs remain v3 regardless of monitoring AIOT flag."
+    }
+  ],
+  "final_copy_confirmation": {
+    "command": "npm run test:unit:run -- src/views/LaboratoryView.spec.ts src/views/TrainingView.spec.ts",
+    "passed": 64,
+    "build_repeated": true,
+    "change": "Explicit uncertain-send limit: older resume links refer only to earlier confirmed jobs, never guaranteed recovery of the unconfirmed send."
+  },
+  "visual": {
+    "desktop": [
+      1440,
+      1000
+    ],
+    "mobile": [
+      320,
+      740
+    ],
+    "text_zoom": "200%; screenshot scrolled to focused resume link",
+    "document_scroll_width": 320,
+    "panel_width": 288,
+    "panel_client_and_scroll_width": 286,
+    "overflow": false,
+    "contrast_link": 6.19,
+    "contrast_focus": 6.26,
+    "origin": "Mocked HTTP/WS in browser; no backend worker proof"
+  },
+  "review": {
+    "code_and_panel": "APPROVE within RD06; both MEDIUM findings resolved",
+    "reviewer": "code-reviewer substituted for unavailable impeccable_finish_reviewer",
+    "findings_resolved": [
+      "Retry paths validate both UUID parameters before GET",
+      "403 of confirmed result/dataset retains job reference and GET recovery"
+    ],
+    "detector": "one inherited side-tab warning in TrainingView; no new component finding"
+  },
+  "added_dependencies": [],
+  "limitations": [
+    "No real backend/containers/model generation/training/physical device action",
+    "No physical mobile or Safari/Firefox/screen reader",
+    "No user study or fresh GPU/FPS measurement",
+    "Only most recent confirmed reference per type in tab session; no history or guaranteed recovery without confirmed ID"
+  ],
+  "screenshots": {
+    "desktop.png": {
+      "origin": ".impeccable/review/rd-06/desktop.png",
+      "type": "Playwright screenshot, mocked operational data",
+      "sha256": "34449c75a7d3b69f56b103de8261bc7f863fcc6c5e5ed99a8c68925742a9b206"
+    },
+    "mobile-320.png": {
+      "origin": ".impeccable/review/rd-06/mobile-320.png",
+      "type": "Playwright screenshot, mocked operational data",
+      "sha256": "1601fff054250581a9d281440ef6512e426f575eddca7b1c97cbdcea208afc6e"
+    },
+    "mobile-320-200.png": {
+      "origin": ".impeccable/review/rd-06/mobile-320-200.png",
+      "type": "Playwright screenshot, mocked operational data",
+      "sha256": "cc350eff3f9e2bb3a79c6981bcfe9c97ca82ad42f63406b02fec7a90eba24972"
+    }
+  },
+  "preservation": {
+    "baseline_files": 753,
+    "unchanged_files": 746,
+    "changed_existing_files": [
+      "docs/redesign/tasks/RD-06.md",
+      "docs/redesign/tasks/README.md",
+      "frontend/src/features/account/session.ts",
+      "frontend/src/views/LaboratoryView.spec.ts",
+      "frontend/src/views/LaboratoryView.vue",
+      "frontend/src/views/TrainingView.spec.ts",
+      "frontend/src/views/TrainingView.vue"
+    ],
+    "check": "SHA-256 compared with start-of-task snapshot; only expected existing files changed"
+  }
+}

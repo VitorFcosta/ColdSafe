@@ -55,6 +55,14 @@ export function useMonitoringSummary(
   let latestSummaryRequest = 0
   let disposed = false
   const recentEvents = new Set<string>()
+  const recentReadings = new Map<string, NonNullable<MonitoringSummary['reading']>>()
+
+  function rememberReading(reading: NonNullable<MonitoringSummary['reading']>) {
+    if (!reading.event_id) return
+    recentReadings.set(reading.event_id, reading)
+    // shortcut: retain 256 verified sources; older predictions need a fresh source after reconnect.
+    if (recentReadings.size > 256) recentReadings.delete(recentReadings.keys().next().value!)
+  }
 
   const ageSeconds = computed(() => !summary.value?.freshness
     ? null
@@ -82,15 +90,16 @@ export function useMonitoringSummary(
         token: currentToken,
         deviceId: currentDevice,
       })
-      if (requestId !== latestSummaryRequest || token.value !== currentToken || deviceId.value !== currentDevice) return
+      if (disposed || requestId !== latestSummaryRequest || token.value !== currentToken || deviceId.value !== currentDevice) return
       if (result.device.id !== currentDevice) throw new Error('Dispositivo inesperado no resumo.')
+      if (aiotEnabled && result.reading) rememberReading(result.reading)
       clock.value = Math.max(clock.value, Date.now())
       summaryRequestedAt.value = requestedAt
       summary.value = result
       summaryState.value = { phase: 'ready', status: result.status }
       refreshRevision.value += 1
     } catch {
-      if (requestId !== latestSummaryRequest || token.value !== currentToken || deviceId.value !== currentDevice) return
+      if (disposed || requestId !== latestSummaryRequest || token.value !== currentToken || deviceId.value !== currentDevice) return
       summary.value = null
       summaryState.value = { phase: 'error' }
     }
@@ -155,21 +164,28 @@ export function useMonitoringSummary(
       void loadSummary()
     }
     nextSocket.onmessage = (message) => {
-      if (revision !== selectionRevision) return
+      if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
       try {
         const value: unknown = JSON.parse(String(message.data))
         if (aiotEnabled) {
           const event = parseAiotEvent(value, currentDevice, summary.value?.environment.id)
           if (event === null || recentEvents.has(event.event_id)) return
-          if (event.type === 'prediction' && summary.value?.reading) {
-            const reading = summary.value.reading
-            if (event.device_record_id !== reading.device_record_id || event.data.equipment_id !== reading.equipment_id ||
-              (!predictionMatchesReading(event, reading) && Date.parse(event.data.input_received_at) <= Date.parse(reading.received_at))) return
-          }
+          let deliverEvent = true
+          if (event.type === 'prediction') {
+            const reading = summary.value?.reading
+            if (reading && (event.device_record_id !== reading.device_record_id || event.data.equipment_id !== reading.equipment_id)) return
+            const source = recentReadings.get(event.data.source_event_id)
+            if (source) {
+              if (!predictionMatchesReading(event, source)) return
+            } else {
+              if (reading && Date.parse(event.data.input_received_at) <= Date.parse(reading.received_at)) return
+              deliverEvent = false
+            }
+          } else if (event.type === 'telemetry') rememberReading(event.data.reading)
           recentEvents.add(event.event_id)
           // shortcut: bounded live dedup; REST recovers authoritative state after reconnect.
           if (recentEvents.size > 256) recentEvents.delete(recentEvents.values().next().value!)
-          onEvent?.(event)
+          if (deliverEvent) onEvent?.(event)
         } else {
           if (!isMonitoringEvent(value, currentDevice)) return
           onEvent?.(value)
@@ -197,6 +213,7 @@ export function useMonitoringSummary(
       selectionRevision += 1
       latestSummaryRequest += 1
       recentEvents.clear()
+      recentReadings.clear()
       disconnect()
       summary.value = null
       summaryState.value = { phase: 'loading' }

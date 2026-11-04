@@ -1,0 +1,15 @@
+
+> coldsafe-frontend@0.1.0 test:e2e
+> playwright test manage-redesign.spec.ts --grep M-06 --workers=1
+
+[WebServer] (node:31201) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:31211) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › e2e/manage-redesign.spec.ts:41:3 › M-06 e confirmação segura de desativação (1440px) (1.2s)
+  ✓  2 [chromium] › e2e/manage-redesign.spec.ts:41:3 › M-06 e confirmação segura de desativação (390px) (715ms)
+
+  2 passed (3.8s)

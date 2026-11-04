@@ -1,16 +1,26 @@
 // @vitest-environment happy-dom
 import examplePayloads from '../../../contracts/examples/aiot.valid.json'
-import { flushPromises, shallowMount } from '@vue/test-utils'
+import { useRoute } from 'vue-router'
+import { clearMonitoringSelection } from '../features/account/session'
+import { enableAutoUnmount, flushPromises, shallowMount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { listDevices, listEnvironments } from '../features/account/catalog'
 import { logout, refreshSessionIdentity, sessionRole, sessionToken } from '../features/account/session'
 import { fetchInsights, InsightsAccessError, savePredictiveRules, type InsightsSnapshot } from '../features/insights/insights-api'
 import InsightsView from './InsightsView.vue'
 
+enableAutoUnmount(afterEach)
+
 vi.mock('../features/account/catalog', () => ({ listDevices: vi.fn(), listEnvironments: vi.fn() }))
 vi.mock('../features/account/session', async (original) => ({ ...await original<typeof import('../features/account/session')>(), logout: vi.fn(), refreshSessionIdentity: vi.fn() }))
 vi.mock('../features/insights/insights-api', async (original) => ({ ...await original<typeof import('../features/insights/insights-api')>(), fetchInsights: vi.fn(), savePredictiveRules: vi.fn() }))
-vi.mock('vue-router', () => ({ useRouter: () => ({ replace: vi.fn() }) }))
+vi.mock('vue-router', async (original) => {
+  const actual = await original<typeof import('vue-router')>()
+  const { reactive } = await import('vue')
+  const route = reactive({ path: '/dashboard', query: {}, hash: '' })
+  const navigate = async (target: object) => { Object.assign(route, target) }
+  return { ...actual, useRoute: () => route, useRouter: () => ({ push: vi.fn(navigate), replace: vi.fn(navigate) }) }
+})
 const examples = examplePayloads as unknown as { name: string; payload: InsightsSnapshot['prediction'] }[]
 const prediction = examples.find((item) => item.name === 'prediction_available_zero_rul')!.payload!
 const rules = { health_critical: 30, health_recovery: 40, rul_critical_hours: 24, rul_recovery_hours: 48, open_count: 3, close_count: 10 }
@@ -18,9 +28,12 @@ const device = { id: prediction.device_record_id, environment_id: prediction.env
 const otherDevice = { ...device, id: '00000000-0000-4000-8000-000000000999', mqtt_device_id: 'other-device', name: 'Outro motor' }
 const snapshot: InsightsSnapshot = { device_id: device.mqtt_device_id, equipment_id: prediction.data.equipment_id, rules, prediction, availability: 'available', age_seconds: 0, trend: 'declining', active_alerts: [] }
 const alert = { alert_id: '00000000-0000-4000-8000-000000000999', kind: 'predictive_failure' as const, opened_at: prediction.received_at, source_event_id: prediction.data.source_event_id, prediction_event_id: prediction.event_id }
-const mount = () => shallowMount(InsightsView, { global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } } })
+const mount = (attached = false) => shallowMount(InsightsView, { attachTo: attached ? document.body : undefined, global: { stubs: { LiveDataRegion: false, RouterLink: { template: '<a><slot /></a>' } } } })
 
 beforeEach(() => {
+  Object.assign(useRoute(), { path: '/dashboard', query: {}, hash: '' })
+  clearMonitoringSelection()
+
   vi.useFakeTimers()
   vi.setSystemTime(new Date(prediction.data.input_received_at))
   vi.mocked(listEnvironments).mockReset().mockResolvedValue([{ id: device.environment_id, name: 'Meu ambiente' }])
@@ -38,14 +51,80 @@ describe('InsightsView', () => {
   it('exibe equipamento autorizado, zero real, tendência, versão e idade', async () => {
     const wrapper = mount()
     await flushPromises()
-    expect(wrapper.get('h1').text()).toBe('Insights')
+    expect(wrapper.get('h1').text()).toBe('Saúde e previsões')
     expect(wrapper.get('h1').attributes('tabindex')).toBe('-1')
     expect(wrapper.get('[aria-label="Insights do equipamento"]').text()).toContain('0 h')
     expect(wrapper.text()).toContain('Em queda')
     expect(wrapper.text()).toContain('fan-model-1')
-    expect(wrapper.text()).toContain('há 0 s')
+    expect(wrapper.text()).toContain('Agora mesmo')
     expect(wrapper.text()).toContain('não calibrados')
     expect(fetchInsights).toHaveBeenCalledWith('token-A', device, expect.any(AbortSignal))
+    wrapper.unmount()
+  })
+  it('identifica origem sintética, equipamento, entrada e versões com horários e fuso', async () => {
+    vi.mocked(fetchInsights).mockResolvedValueOnce({ ...snapshot, active_alerts: [alert] })
+    const wrapper = mount()
+    await flushPromises()
+    expect(wrapper.text()).toContain('Saúde estimada')
+    expect(wrapper.text()).toContain('Vida útil restante estimada')
+    expect(wrapper.text()).toContain('dados sintéticos')
+    expect(wrapper.text()).toContain(snapshot.equipment_id)
+    expect(wrapper.text()).toContain(prediction.data.features_version)
+    expect(wrapper.text()).toContain(Intl.DateTimeFormat().resolvedOptions().timeZone)
+    expect(wrapper.findAll('time').map((time) => time.attributes('datetime'))).toEqual(expect.arrayContaining([
+      prediction.data.input_received_at, prediction.occurred_at, alert.opened_at,
+    ]))
+    const events = wrapper.get('[aria-label="Alertas preditivos ativos"]')
+    expect(events.text()).toContain(alert.source_event_id)
+    expect(events.text()).toContain(alert.prediction_event_id)
+    wrapper.unmount()
+  })
+
+  it.each([
+    ['health_recovery', 30, 'superar'], ['rul_recovery_hours', 24, 'superar'],
+    ['open_count', 1.5, 'inteiro'], ['close_count', 101, '100'], ['health_critical', '', 'número'],
+  ] as const)('associa o erro de %s e foca o primeiro campo inválido, sem salvar', async (key, value, message) => {
+    const wrapper = mount(true)
+    await flushPromises()
+    const input = wrapper.get(`input[name="${key}"]`)
+    await input.setValue(value)
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(savePredictiveRules).not.toHaveBeenCalled()
+    expect(input.attributes('aria-invalid')).toBe('true')
+    expect(input.attributes('aria-describedby')).toContain(`rule-${key}-error`)
+    expect(wrapper.get(`#rule-${key}-error`).text()).toContain(message)
+    expect(document.activeElement).toBe(input.element)
+    wrapper.unmount()
+  })
+
+  it('cancelar restaura os seis valores confirmados, limpa o aviso e não envia PUT', async () => {
+    const wrapper = mount()
+    await flushPromises()
+    await wrapper.get('input[name="open_count"]').setValue(7)
+    await wrapper.get('input[name="health_critical"]').setValue(25)
+    expect(wrapper.text()).toContain('Há alterações não salvas')
+    await vi.advanceTimersByTimeAsync(2000)
+    expect((wrapper.get('input[name="open_count"]').element as HTMLInputElement).value).toBe('7')
+    await wrapper.findAll('button').find((button) => button.text() === 'Cancelar alterações')!.trigger('click')
+    for (const [key, value] of Object.entries(rules)) expect((wrapper.get(`input[name="${key}"]`).element as HTMLInputElement).value).toBe(String(value))
+    expect(wrapper.text()).not.toContain('Há alterações não salvas')
+    expect(savePredictiveRules).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it.each([
+    ['no_model', 'Nenhum modelo ativo'], ['insufficient_history', 'Histórico insuficiente'],
+    ['invalid_features', 'Variáveis inválidas'], ['model_unavailable', 'modelo ativo'],
+  ] as const)('distingue o motivo %s sem inventar estimativas ou encerrar alerta', async (reason, label) => {
+    vi.mocked(fetchInsights).mockResolvedValueOnce({ ...snapshot, prediction: { ...prediction,
+      data: { ...prediction.data, status: 'unavailable', reason, health_score: null, rul_hours: null } },
+      availability: 'unavailable', trend: 'unknown', active_alerts: [alert] })
+    const wrapper = mount()
+    await flushPromises()
+    expect(wrapper.text()).toContain(label)
+    expect(wrapper.get('[aria-label="Insights do equipamento"]').text()).not.toContain('0 h')
+    expect(wrapper.text()).toContain('Alerta preditivo persistente')
     wrapper.unmount()
   })
   it.each(['viewer', null] as const)('papel %s lê regras mas não pode editá-las', async (role) => {
@@ -109,7 +188,7 @@ describe('InsightsView', () => {
     await vi.advanceTimersByTimeAsync(31000)
     expect(fetchInsights).toHaveBeenCalledTimes(2)
     expect(wrapper.text()).toContain('Previsão desatualizada')
-    expect(wrapper.text()).toContain('há 31 s')
+    expect(wrapper.text()).toContain('Há 31 s')
     expect(wrapper.get('[aria-label="Insights do equipamento"]').text()).not.toContain('0 h')
     const signal = vi.mocked(fetchInsights).mock.calls[1]![2]!
     wrapper.unmount()
@@ -191,7 +270,7 @@ describe('InsightsView', () => {
     const wrapper = mount()
     await flushPromises()
     expect(wrapper.text()).toContain('Idade da entrada')
-    expect(wrapper.text()).toContain(availability === 'stale' ? 'há 31 s' : 'há 4 s')
+    expect(wrapper.text()).toContain(availability === 'stale' ? 'Há 31 s' : 'Agora mesmo')
     expect(wrapper.text()).not.toContain('Nenhum alerta preditivo ativo')
     wrapper.unmount()
   })
@@ -306,17 +385,5 @@ describe('InsightsView', () => {
     expect(wrapper.text()).not.toContain('Regras salvas')
     wrapper.unmount()
   })
-  it('sair explica falha e pode ser repetido', async () => {
-    vi.mocked(logout).mockRejectedValueOnce(new Error('private'))
-    const wrapper = mount()
-    await flushPromises()
-    await wrapper.get('header button').trigger('click')
-    await flushPromises()
-    expect(wrapper.text()).toContain('Não foi possível encerrar a sessão')
-    await wrapper.get('header button').trigger('click')
-    await flushPromises()
-    expect(sessionToken.value).toBeNull()
-    expect(wrapper.text()).not.toContain('fan-model-1')
-    wrapper.unmount()
-  })
+
 })

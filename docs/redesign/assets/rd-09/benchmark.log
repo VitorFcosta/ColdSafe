@@ -1,0 +1,5 @@
+RD-02: aquecimento baseline; medição real de 60 s a seguir.
+RD-02: baseline: 59.76 FPS; p95 17.60 ms; 14 calls; 1140 triângulos.
+RD-02: aquecimento candidate; medição real de 60 s a seguir.
+RD-02: candidate: 59.99 FPS; p95 17.50 ms; 55 calls; 23334 triângulos.
+RD-02: relatório salvo em /Users/vitorhugofernandescosta/Documents/ColdSafe/docs/redesign/assets/rd-09/benchmark.json; critérios desktop: false.

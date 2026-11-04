@@ -1,0 +1,14 @@
+[
+  {
+    "tag": "BUTTON",
+    "color": "rgb(12, 109, 101)",
+    "background": "rgb(255, 255, 255)",
+    "fontSize": "14px"
+  },
+  {
+    "tag": "P",
+    "color": "rgb(82, 108, 112)",
+    "background": "rgb(243, 246, 245)",
+    "fontSize": "14px"
+  }
+]

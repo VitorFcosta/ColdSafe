@@ -1,3 +1,4 @@
+import { mkdir, writeFile } from 'node:fs/promises'
 import { expect, test, type Page, type WebSocketRoute } from '@playwright/test'
 import examples from '../../contracts/examples/aiot.valid.json' with { type: 'json' }
 import { mockDashboardAccount } from './monitoring-api'
@@ -82,7 +83,7 @@ async function mockTwin(page: Page) {
     }, meta: { schema_version: 3 } } })
   })
   await page.route('**/api/v3/readings?**', (route) => route.fulfill({ json: { success: true, data: [{ telemetry, persistence: 'persisted' }], meta: {
-    schema_version: 3, device_id: telemetry.device_id, start: '2026-10-12T17:00:00Z', end: '2026-10-12T18:01:00Z', count: 1, limit: 300, thresholds,
+    schema_version: 3, device_id: telemetry.device_id, start: '2026-10-12T17:46:00Z', end: '2026-10-12T18:01:00Z', count: 1, limit: 300, thresholds,
   } } }))
   await page.route('**/api/v3/devices/*/led/commands', (route) => {
     posts++
@@ -128,6 +129,18 @@ async function mockTwin(page: Page) {
   }
 }
 
+
+type SceneSnapshot = { animating: boolean; paused: boolean; hidden: boolean; reducedMotion: boolean; angle: number }
+type SceneHandle = { projected: () => { id: string; key: string; x: number; y: number }[]; snapshot: () => SceneSnapshot }
+async function sceneProjection(page: Page) {
+  return page.getByTestId('twin-scene').evaluate((element) =>
+    (element as HTMLElement & { __vueParentComponent: { exposed: SceneHandle } }).__vueParentComponent.exposed.projected())
+}
+async function sceneSnapshot(page: Page) {
+  return page.getByTestId('twin-scene').evaluate((element) =>
+    (element as HTMLElement & { __vueParentComponent: { exposed: SceneHandle } }).__vueParentComponent.exposed.snapshot())
+}
+
 const components = (page: Page) => page.getByRole('region', { name: 'Componentes do gêmeo digital', exact: true })
 const details = (page: Page) => page.getByRole('region', { name: 'Detalhes do componente', exact: true })
 
@@ -156,19 +169,16 @@ test('cena WebGL real identifica nove peças e atualiza valores e estados via WS
   await expect.poll(() => page.evaluate(() => (window as unknown as { twinTestContexts: WebGLRenderingContext[] }).twinTestContexts.filter((context) => !context.isContextLost()).length)).toBe(1)
   const canvas = page.locator('[data-testid=twin-scene] canvas')
   await expect(canvas).toBeVisible()
-  const pieces = [
-    { label: 'Temperatura ambiente', x: -3, y: 1.6 }, { label: 'Umidade', x: -3, y: 0.4 },
-    { label: 'Luminosidade', x: -3, y: -0.8 }, { label: 'Vibração RMS', x: 3, y: 1.6 },
-    { label: 'Corrente do motor', x: 3, y: 0.4 }, { label: 'Temperatura do motor', x: 3, y: -0.8 },
-    { label: 'LED', x: -1, y: -2 }, { label: 'Buzzer', x: 1, y: -2 }, { label: 'Ventilador', x: 0, y: 0.4 },
-  ]
-  for (const piece of pieces) {
-    const bounds = (await canvas.boundingBox())!
-    const halfWidth = Math.max(5, 3.2 * bounds.width / bounds.height)
-    await canvas.click({ position: { x: (piece.x / halfWidth + 1) / 2 * bounds.width, y: (1 - piece.y / 3.2) / 2 * bounds.height } })
-    await expect(details(page).getByRole('heading', { level: 2 }).first()).toHaveText(piece.label)
-    await expect(list.getByRole('button', { name: new RegExp(`^${piece.label}`) })).toHaveAttribute('aria-pressed', 'true')
+  const points = await sceneProjection(page)
+  expect(points).toHaveLength(9)
+  for (const point of points) {
+    await canvas.click({ position: { x: point.x, y: point.y } })
+    await expect(list.locator('[aria-pressed="true"]')).toContainText(point.id)
+    await expect(details(page)).toContainText(point.id)
+    await expect(details(page).getByRole('heading', { level: 2 }).first()).not.toBeFocused()
+    await expect(list.locator('[aria-pressed="true"]')).not.toBeFocused()
   }
+  await list.getByRole('button', { name: /^Ventilador/ }).click()
   for (const id of [mock.inventory.equipment_id, ...Object.values(mock.inventory.sensors), ...Object.values(mock.inventory.actuators)]) await expect(list).toContainText(id)
   await mock.update({ temperature: 7.5 })
   await expect(list.getByRole('button', { name: /Temperatura ambiente/ })).toContainText('7,5 °C · Atenção')
@@ -256,11 +266,11 @@ test('troca ambiente sem reaproveitar leitura e libera contextos ao navegar trê
   await page.locator('select[name=environment]').selectOption(telemetryFixture.environment_id)
   await expect(list).toContainText('6,5 °C')
   for (const path of ['/dashboard', '/insights', '/dashboard']) {
-    await page.locator(`nav[aria-label="Navegação principal"] a[href="${path}"]`).click()
-    await expect(page).toHaveURL(new RegExp(`${path}$`))
+    await page.locator(`nav[aria-label="Navegação da área"] a[href^="${path}?"]`).click()
+    await expect(page).toHaveURL(`${path}?environment=${telemetryFixture.environment_id}&device=${telemetryFixture.device_record_id}`)
     await expect(page.locator('[data-testid=twin-scene] canvas')).toHaveCount(0)
     await expect.poll(() => page.evaluate(() => (window as unknown as { twinTestContexts: WebGLRenderingContext[] }).twinTestContexts.every((context) => context.isContextLost()))).toBe(true)
-    await page.locator('nav a[href="/digital-twin"]').click()
+    await page.locator('nav[aria-label="Navegação da área"] a[href^="/digital-twin?"]').click()
     await expect(list).toContainText('6,5 °C')
     await expect(page.locator('[data-testid=twin-scene] canvas')).toBeVisible()
   }
@@ -270,7 +280,7 @@ test('troca ambiente sem reaproveitar leitura e libera contextos ao navegar trê
 test('320px mantém seleção pelo teclado e lista acessível após perda real de contexto WebGL', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 812 })
   await recordWebGL(page)
-  await mockTwin(page)
+  const mock = await mockTwin(page)
   await page.goto('/digital-twin')
   const list = components(page)
   const temperature = list.getByRole('button', { name: /Temperatura ambiente/ })
@@ -292,6 +302,20 @@ test('320px mantém seleção pelo teclado e lista acessível após perda real d
   expect(lost).toBe(true)
   await expect(page.getByRole('status').filter({ hasText: '3D indisponível' })).toBeVisible()
   await expect(list.getByRole('button')).toHaveCount(9)
+  const jump = page.getByRole('link', { name: 'Ir para a lista de 9 componentes', exact: true })
+  await jump.focus(); await page.keyboard.press('Enter')
+  await expect(page.locator('#twin-components')).toBeFocused()
+  const ids = [...Object.values(mock.inventory.sensors), ...Object.values(mock.inventory.actuators), mock.inventory.equipment_id]
+  for (let index = 0; index < ids.length; index++) {
+    await page.keyboard.press('Tab')
+    const button = list.getByRole('button').nth(index)
+    await expect(button).toBeFocused()
+    await page.keyboard.press('Enter')
+    await expect(button).toHaveAttribute('aria-pressed', 'true')
+    await expect(button).toBeFocused()
+    await expect(details(page)).toContainText(ids[index]!)
+  }
+  expect(mock.posts()).toBe(0)
   const led = list.getByRole('button', { name: /^LED/ })
   await led.focus()
   await page.keyboard.press('Enter')
@@ -353,4 +377,171 @@ test('visualizador inspeciona LED pelo teclado sem enviar comandos', async ({ pa
   expect(mock.posts()).toBe(0)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: '/tmp/coldsafe-b229/twin-item-mobile-320.png', fullPage: true })
+})
+
+
+test.describe('RD-09 — pausa visual na cena de produção', () => {
+  test.use({ hasTouch: true })
+  for (const width of [1440, 390]) {
+    test(`pausa por teclado/toque conserva dados, seleção e foco (${width}px)`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 1024 })
+      const mock = await mockTwin(page)
+      await page.goto('/digital-twin')
+      await expect(components(page)).toContainText('6,5 °C')
+      const pause = page.getByRole('button', { name: 'Pausar animação', exact: true })
+      if (width === 390) await pause.tap()
+      else { await pause.focus(); await page.keyboard.press('Enter') }
+      const resume = page.getByRole('button', { name: 'Retomar animação', exact: true })
+      await expect(resume).toHaveAttribute('aria-pressed', 'true')
+      if (width === 1440) await expect(resume).toBeFocused()
+      const frozen = await sceneSnapshot(page)
+      expect(frozen.paused).toBe(true)
+      expect(frozen.animating).toBe(false)
+      await mock.update({ temperature: 7.5, led: true })
+      await expect(components(page)).toContainText('7,5 °C')
+      if (width === 1440) await expect(resume).toBeFocused()
+      await components(page).getByRole('button', { name: /^LED/ }).click()
+      expect((await sceneSnapshot(page)).angle).toBe(frozen.angle)
+      expect((await sceneSnapshot(page)).paused).toBe(true)
+      expect((await sceneSnapshot(page)).animating).toBe(false)
+      await expect(details(page)).toContainText('Ligado')
+      await expect(page.locator('#twin-animation-reason')).toContainText('pausada')
+      const evidence = new URL('../../.impeccable/review/rd-09/', import.meta.url)
+      await mkdir(evidence, { recursive: true })
+      const figure = page.getByRole('region', { name: 'Visualização do gêmeo digital', exact: true })
+      await figure.scrollIntoViewIfNeeded()
+      await page.screenshot({ path: new URL(width === 1440 ? 'desktop-viewport.png' : 'mobile-viewport.png', evidence).pathname, fullPage: false })
+      await page.evaluate(() => scrollTo(0, 0))
+      await page.screenshot({ path: new URL(width === 1440 ? 'desktop.png' : 'mobile.png', evidence).pathname, fullPage: true })
+      await figure.locator('canvas').screenshot({ path: new URL(width === 1440 ? 'scene-desktop.png' : 'scene-mobile.png', evidence).pathname })
+      if (width === 390) {
+        await page.setViewportSize({ width: 320, height: 800 })
+        await page.addStyleTag({ content: 'html { font-size: 200% !important; }' })
+        await resume.focus()
+        await expect(resume).toBeInViewport()
+        const reflow = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth, fontSize: getComputedStyle(document.documentElement).fontSize }))
+        expect(reflow.scrollWidth).toBe(320)
+        await page.screenshot({ path: new URL('pause-320-text-200.png', evidence).pathname, fullPage: false })
+        await writeFile(new URL('reflow.json', evidence), JSON.stringify(reflow, null, 2))
+      }
+      await mock.update({ stale: true })
+      await expect(page.locator('#twin-animation-reason')).toContainText('sem telemetria atual')
+      if (await resume.isEnabled()) await resume.click()
+      expect((await sceneSnapshot(page)).animating).toBe(false)
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await mock.update({ stale: false })
+      await expect(page.locator('#twin-animation-reason')).toContainText('Movimento reduzido')
+      expect((await sceneSnapshot(page)).animating).toBe(false)
+      if ((await sceneSnapshot(page)).paused) await page.getByRole('button', { name: 'Retomar animação', exact: true }).click()
+      await page.emulateMedia({ reducedMotion: 'no-preference' })
+      await expect.poll(async () => (await sceneSnapshot(page)).animating).toBe(true)
+      expect(mock.posts()).toBe(0)
+    })
+  }
+})
+
+test.describe('RD-10 — composição e inspeção', () => {
+  for (const width of [1440, 390]) {
+    test(`contexto, grandezas e leitura selecionada seguem a composição (${width}px)`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 1024 })
+      const mock = await mockTwin(page)
+      await page.goto('/digital-twin')
+      const list = components(page)
+      await expect(list.getByRole('button')).toHaveCount(9)
+      await expect(page.getByRole('navigation', { name: 'Navegação da área', exact: true })).toHaveCount(1)
+      const metrics = page.getByRole('region', { name: 'Grandezas do equipamento', exact: true })
+      if (width === 1440) {
+        await expect(metrics).toBeVisible()
+        await expect(metrics.locator('dt')).toHaveCount(6)
+        for (const label of ['Temperatura ambiente', 'Umidade', 'Luminosidade', 'Vibração RMS', 'Corrente do motor', 'Temperatura do motor']) await expect(metrics).toContainText(label)
+        await expect(metrics).toContainText('Leitura atual')
+        await mock.update({ temperature: 0 })
+        await expect(metrics).toContainText('0 °C')
+      }
+      await list.getByRole('button', { name: /Corrente do motor/ }).click()
+      const panel = details(page)
+      await expect(panel.getByRole('heading', { name: 'Histórico de corrente do motor · últimos 15 minutos', exact: true })).toBeVisible()
+      await expect(panel).toContainText('1,4 A')
+      await expect(panel).toContainText('Leitura atual')
+      await expect(panel).toContainText('Saúde/RUL deste item: não aplicável')
+      const figure = page.getByRole('region', { name: 'Visualização do gêmeo digital', exact: true })
+      const preview = page.getByRole('region', { name: 'Leitura selecionada', exact: true })
+      const jump = page.getByRole('link', { name: 'Ir para a lista de 9 componentes', exact: true })
+      if (width === 390) {
+        await expect(preview).toContainText('1,4 A')
+        await expect(preview).toContainText(mock.inventory.sensors.motor_current!)
+        const order = await page.evaluate(() => {
+          const selectors = ['[aria-label="Visualização do gêmeo digital"]', '[aria-label="Leitura selecionada"]', '.components-jump', '[aria-label="Componentes do gêmeo digital"]', '[aria-label="Detalhes do componente"]']
+          return selectors.map(selector => document.querySelector(selector)!.getBoundingClientRect().top)
+        })
+        expect(order).toEqual([...order].sort((a,b) => a-b))
+        const originalQuery = new URL(page.url()).search
+        await jump.focus(); await page.keyboard.press('Enter')
+        await expect(page.locator('#twin-components')).toBeFocused()
+        expect(new URL(page.url()).pathname).toBe('/digital-twin')
+        expect(new URL(page.url()).search).toBe(originalQuery)
+      }
+      await page.getByRole('button', { name: 'Pausar animação', exact: true }).click()
+      const evidence = new URL('../../.impeccable/review/rd-10/', import.meta.url)
+      await mkdir(evidence, { recursive: true })
+      await page.evaluate(() => scrollTo(0,0))
+      await page.screenshot({ path: new URL(width===1440?'desktop.png':'mobile.png',evidence).pathname, fullPage:true })
+      await page.screenshot({ path: new URL(width===1440?'desktop-viewport.png':'mobile-viewport.png',evidence).pathname })
+      if (width===1440) await page.screenshot({path:new URL('hero-repro.png',evidence).pathname})
+      await figure.scrollIntoViewIfNeeded()
+      await page.screenshot({path:new URL(width===1440?'scene-list-desktop.png':'scene-mobile.png',evidence).pathname})
+      if (width===390) {
+        await page.setViewportSize({width:320,height:812})
+        await page.addStyleTag({content:'html { font-size: 200% !important; }'})
+        await list.getByRole('button',{name:/Corrente do motor/}).focus()
+        await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth)).toBe(320)
+        const reflow=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,fontSize:getComputedStyle(document.documentElement).fontSize,
+          overflow:[...document.querySelectorAll('body *')].map(el=>({tag:el.tagName,className:el.className,id:el.id,right:el.getBoundingClientRect().right,width:el.getBoundingClientRect().width})).filter(el=>el.right>innerWidth+1)}))
+        await writeFile(new URL('reflow.json',evidence),JSON.stringify(reflow,null,2))
+        expect(reflow.scrollWidth).toBe(320)
+        await page.screenshot({path:new URL('mobile-320-text-200.png',evidence).pathname})
+      }
+      expect(mock.posts()).toBe(0)
+    })
+  }
+})
+
+test('RD-18 C-11: LED pendente atravessa vistas e retoma o mesmo comando sem segundo POST', async ({ page }) => {
+  await page.clock.install()
+  const mock = await mockTwin(page)
+  const commandReads: string[] = []
+  page.on('request', request => {
+    const path = new URL(request.url()).pathname
+    if (request.method() === 'GET' && path.startsWith('/api/v3/commands/')) commandReads.push(path.split('/').at(-1)!)
+  })
+  await page.goto('/digital-twin')
+  await components(page).getByRole('button', { name: /^LED/ }).click()
+  const control = () => details(page).getByRole('region', { name: 'Controle do LED selecionado' })
+  const created = page.waitForResponse(response => response.request().method() === 'POST' && new URL(response.url()).pathname.endsWith('/led/commands'))
+  await control().getByRole('button', { name: 'Ligar Luz' }).click()
+  const commandId = (await (await created).json()).data.data.command_id as string
+  await expect(control()).toContainText('Aguardando confirmação')
+  await page.clock.fastForward(1000)
+  await expect.poll(() => commandReads).toContain(commandId)
+  const area = () => page.getByRole('navigation', { name: 'Navegação da área', exact: true })
+  await area().getByRole('link', { name: 'Visão geral', exact: true }).click()
+  const actuators = page.locator('details[aria-label="Estado dos atuadores"]')
+  await expect(actuators.locator('summary')).toContainText('Aguardando confirmação')
+  await actuators.locator('summary').click()
+  await expect(actuators.getByRole('button', { name: 'Ligar Luz' })).toBeDisabled()
+  const readsBeforeReturn = commandReads.length
+  await area().getByRole('link', { name: 'Gêmeo digital', exact: true }).click()
+  await components(page).getByRole('button', { name: /^LED/ }).click()
+  await expect(control()).toContainText('Aguardando confirmação')
+  await expect(control().getByRole('button', { name: 'Ligar Luz' })).toBeDisabled()
+  await page.clock.fastForward(1000)
+  await expect.poll(() => commandReads.length).toBeGreaterThan(readsBeforeReturn)
+  expect(commandReads.every(id => id === commandId)).toBe(true)
+  expect(mock.posts()).toBe(1)
+  mock.commandStatus('unconfirmed')
+  await page.clock.fastForward(1000)
+  await expect(control()).toContainText('Sem confirmação')
+  await expect(control().getByRole('button', { name: 'Ligar Luz' })).toBeEnabled()
+  await expect(components(page).getByRole('button', { name: /^LED/ })).toContainText('Desligado')
+  expect(mock.posts()).toBe(1)
 })

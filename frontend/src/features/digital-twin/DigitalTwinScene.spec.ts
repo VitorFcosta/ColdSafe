@@ -1,14 +1,17 @@
 // @vitest-environment happy-dom
-import { mount } from '@vue/test-utils'
+import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import * as THREE from 'three'
 import DigitalTwinScene from './DigitalTwinScene.vue'
 import type { TwinItem } from './twin-state'
 
+enableAutoUnmount(afterEach)
+
 const renderer = vi.hoisted(() => ({ render: vi.fn(), setAnimationLoop: vi.fn(), setSize: vi.fn(), setPixelRatio: vi.fn(), dispose: vi.fn(), forceContextLoss: vi.fn(), fail: false }))
 vi.mock('three', async (original) => ({ ...await original<typeof THREE>(), WebGLRenderer: class {
   domElement = document.createElement('canvas')
+  shadowMap = { enabled: false, autoUpdate: true, needsUpdate: false }
   render = renderer.render; setSize = renderer.setSize; setPixelRatio = renderer.setPixelRatio
   setAnimationLoop = renderer.setAnimationLoop
   dispose = renderer.dispose; forceContextLoss = renderer.forceContextLoss
@@ -28,7 +31,7 @@ function mountScene(items = [item]) {
 }
 const disconnect = vi.fn()
 
-it('atualiza cor/seleção por props e libera geometria, material, observer e contexto ao desmontar', async () => {
+it('seleciona por contorno sem pintar outros materiais e libera recursos ao desmontar', async () => {
   const geometry = vi.spyOn(THREE.BufferGeometry.prototype, 'dispose')
   const material = vi.spyOn(THREE.Material.prototype, 'dispose')
   const wrapper = mountScene()
@@ -36,10 +39,12 @@ it('atualiza cor/seleção por props e libera geometria, material, observer e co
   await wrapper.setProps({ items: [{ ...item, status: 'critical' }], selectedId: item.id })
   expect(renderer.render).toHaveBeenCalled()
   const scene = renderer.render.mock.calls.at(-1)![0] as THREE.Scene
-  const sensor = scene.children.find((object) => object.userData.key === item.key) as THREE.Mesh
+  const sensor = scene.getObjectByName(item.key)!
+  const housing = sensor.getObjectByName('housing') as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>
   expect(sensor.userData.id).toBe('sensor-id')
-  expect((sensor.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0xc3353c)
-  expect(sensor.scale.x).toBeGreaterThan(1)
+  expect(housing.material.color.getHex()).toBe(0x8d9695)
+  expect(sensor.scale.x).toBe(1)
+  expect(scene.children.find((object) => object instanceof THREE.Box3Helper)?.visible).toBe(true)
   wrapper.unmount()
   expect(geometry).toHaveBeenCalled()
   expect(material).toHaveBeenCalled()
@@ -50,7 +55,7 @@ it('atualiza cor/seleção por props e libera geometria, material, observer e co
 it('raycast seleciona o ID recebido e ignora peça sem cadastro', async () => {
   const wrapper = mountScene()
   const scene = renderer.render.mock.calls.at(-1)![0] as THREE.Scene
-  const sensor = scene.children.find((object) => object.userData.key === item.key)!
+  const sensor = scene.getObjectByName(item.key)!
   vi.spyOn(THREE.Raycaster.prototype, 'intersectObjects').mockReturnValue([{ object: sensor } as THREE.Intersection])
   vi.spyOn(wrapper.get('canvas').element, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 100, height: 100 } as DOMRect)
   await wrapper.get('canvas').trigger('click', { clientX: 50, clientY: 50 })
@@ -60,28 +65,32 @@ it('raycast seleciona o ID recebido e ignora peça sem cadastro', async () => {
   expect(wrapper.emitted('select')).toHaveLength(1)
   wrapper.unmount()
 })
-it('libera uma vez o material compartilhado pelas hélices e preserva câmera no resize', async () => {
-  const material = vi.spyOn(THREE.Material.prototype, 'dispose')
-  const geometry = vi.spyOn(THREE.BufferGeometry.prototype, 'dispose')
+it('libera uma vez geometria/material compartilhados pelas hélices e preserva câmera no resize', async () => {
   let resized!: () => void
   vi.stubGlobal('ResizeObserver', class { constructor(callback: () => void) { resized = callback } observe() {} disconnect() {} })
-  const wrapper = mount(DigitalTwinScene, { props: { items: [{ ...item, kind: 'equipment', key: 'fan' }, { ...item, key: 'led', kind: 'actuator', id: 'led' }], selectedId: null, visual: null } })
+  const wrapper = mount(DigitalTwinScene, { props: { items: [{ ...item, kind: 'equipment', key: 'fan' }], selectedId: null, visual: null } })
+  const scene = renderer.render.mock.calls.at(-1)![0] as THREE.Scene
+  const camera = renderer.render.mock.calls.at(-1)![1] as THREE.OrthographicCamera
+  const position = camera.position.clone()
+  const blade = scene.getObjectByName('blade-1') as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>
+  const geometry = vi.spyOn(blade.geometry, 'dispose'), material = vi.spyOn(blade.material, 'dispose')
   resized()
   expect(renderer.setSize).toHaveBeenCalled()
-  const scene = renderer.render.mock.calls.at(-1)![0] as THREE.Scene
-  expect(scene.children.find((object) => object.userData.key === 'fan')?.children).toHaveLength(5)
+  expect(camera.position).toEqual(position)
+  expect(scene.getObjectByName('blades')?.children).toHaveLength(4)
+  expect(scene.getObjectByName('guard')).toBeDefined()
   wrapper.unmount()
-  expect(geometry).toHaveBeenCalledTimes(7)
-  expect(material).toHaveBeenCalledTimes(3)
+  expect(geometry).toHaveBeenCalledOnce()
+  expect(material).toHaveBeenCalledOnce()
 })
 it('reutiliza cena, anima por telemetria e congela pose/luz após freshness sem inventar movimento', async () => {
   const wrapper = mountScene([{ ...item, kind: 'equipment', key: 'fan' }, { ...item, key: 'led', kind: 'actuator' }, { ...item, key: 'buzzer', kind: 'actuator' }])
   await wrapper.setProps({ visual })
   const scene = renderer.render.mock.calls.at(-1)![0] as THREE.Scene
-  const fan = scene.children.find((object) => object.userData.key === 'fan')!
-  const led = scene.children.find((object) => object.userData.key === 'led') as THREE.Mesh<THREE.SphereGeometry, THREE.MeshStandardMaterial>
-  const buzzer = scene.children.find((object) => object.userData.key === 'buzzer') as typeof led
-  const ambient = scene.children.find((object) => object instanceof THREE.AmbientLight) as THREE.AmbientLight
+  const fan = scene.getObjectByName('rotor')!
+  const led = scene.getObjectByName('led-lens') as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>
+  const buzzer = scene.getObjectByName('buzzer-body') as typeof led
+  const ambient = scene.children.find((object) => object instanceof THREE.HemisphereLight) as THREE.HemisphereLight
   const marker = scene.getObjectByName('thermal-marker') as typeof led
   const light = ambient.intensity
   const color = marker.material.color.getHex()
@@ -93,7 +102,7 @@ it('reutiliza cena, anima por telemetria e congela pose/luz após freshness sem 
   expect(led.material.emissiveIntensity).toBeGreaterThan(0)
   expect(buzzer.material.emissiveIntensity).toBeGreaterThan(0)
   await wrapper.setProps({ visual: { ...visual, light: 100, temperature: 40, vibration: 4, led: false } })
-  expect(scene.children.find((object) => object.userData.key === 'fan')).toBe(fan)
+  expect(scene.getObjectByName('rotor')).toBe(fan)
   expect(ambient.intensity).toBeGreaterThan(light)
   expect(marker.material.color.getHex()).not.toBe(color)
   expect(led.material.emissiveIntensity).toBe(0)
@@ -119,7 +128,7 @@ it('movimento reduzido e aba oculta suspendem o loop; nova preferência retoma s
   const wrapper = mountScene([{ ...item, key: 'fan', kind: 'equipment' }])
   await wrapper.setProps({ visual })
   const scene = renderer.render.mock.calls.at(-1)![0] as THREE.Scene
-  const fan = scene.children.find((object) => object.userData.key === 'fan')!
+  const fan = scene.getObjectByName('rotor')!
   motionChanged({ matches: true }); await nextTick()
   expect(renderer.setAnimationLoop).toHaveBeenLastCalledWith(null)
   expect(wrapper.text()).toContain('Movimento reduzido')
@@ -158,5 +167,89 @@ it('falha no primeiro render interrompe o loop já iniciado e conserva fallback'
   await nextTick()
   expect(wrapper.text()).toContain('3D indisponível')
   expect(renderer.setAnimationLoop).toHaveBeenLastCalledWith(null)
+  wrapper.unmount()
+})
+
+it('pausa manual persiste com novas leituras e seleção sem retomar o relógio antigo', async () => {
+  const wrapper = mountScene([{ ...item, key: 'fan', kind: 'equipment' }])
+  await wrapper.setProps({ visual })
+  const scene = renderer.render.mock.calls.at(-1)![0] as THREE.Scene
+  const rotor = scene.getObjectByName('rotor')!
+  expect(rotor).toBeDefined()
+  const animate = renderer.setAnimationLoop.mock.calls.at(-1)![0] as (time: number) => void
+  animate(0); animate(50)
+  const angle = rotor.rotation.z
+  await wrapper.get('button').trigger('click')
+  expect(wrapper.get('button').attributes('aria-pressed')).toBe('true')
+  expect(wrapper.emitted('update:paused')).toEqual([[true]])
+  await wrapper.setProps({ selectedId: item.id, visual: { ...visual, temperature: 40 } })
+  expect(renderer.setAnimationLoop).toHaveBeenLastCalledWith(null)
+  animate(90_000)
+  expect(rotor.rotation.z).toBe(angle)
+  await wrapper.get('button').trigger('click')
+  const resumed = renderer.setAnimationLoop.mock.calls.at(-1)![0] as (time: number) => void
+  resumed(90_000)
+  expect(rotor.rotation.z).toBe(angle)
+  wrapper.unmount()
+})
+
+it('não desenha consultas em aba oculta e aplica DPR atualizado no resize', async () => {
+  const wrapper = mountScene()
+  vi.spyOn(document, 'hidden', 'get').mockReturnValue(true)
+  document.dispatchEvent(new Event('visibilitychange'))
+  const calls = renderer.render.mock.calls.length
+  await wrapper.setProps({ visual })
+  expect(renderer.render).toHaveBeenCalledTimes(calls)
+  vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(1.5)
+  window.dispatchEvent(new Event('resize'))
+  expect(renderer.setPixelRatio).toHaveBeenLastCalledWith(1.5)
+  vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(renderer.render.mock.calls.length).toBeGreaterThan(calls)
+  wrapper.unmount()
+})
+
+it('pausa fornecida pela view já suspende a primeira montagem e aceita retomada externa', async () => {
+  const wrapper = mount(DigitalTwinScene, { props: { items: [{ ...item, key: 'fan', kind: 'equipment' }], selectedId: null, visual, paused: true } })
+  expect(wrapper.get('button').attributes('aria-pressed')).toBe('true')
+  expect(renderer.setAnimationLoop.mock.calls.every(([callback]) => callback === null)).toBe(true)
+  expect(wrapper.text()).toContain('Animação pausada')
+  await wrapper.setProps({ paused: false })
+  expect(renderer.setAnimationLoop.mock.calls.at(-1)![0]).toBeTypeOf('function')
+  wrapper.unmount()
+})
+
+it('falha inicial libera GPU, recursos e listeners imediatamente e não repete descarte ao desmontar', async () => {
+  const material = vi.spyOn(THREE.Material.prototype, 'dispose')
+  const geometry = vi.spyOn(THREE.BufferGeometry.prototype, 'dispose')
+  renderer.render.mockImplementationOnce(() => { throw new Error('render failed') })
+  const wrapper = mountScene()
+  await nextTick()
+  expect(wrapper.find('canvas').exists()).toBe(false)
+  expect(wrapper.get('button').attributes('disabled')).toBeDefined()
+  expect(renderer.dispose).toHaveBeenCalledOnce()
+  expect(renderer.forceContextLoss).toHaveBeenCalledOnce()
+  expect(disconnect).toHaveBeenCalledOnce()
+  expect(removeMotionListener).toHaveBeenCalledOnce()
+  expect(geometry).toHaveBeenCalled()
+  const materials = material.mock.calls.length
+  const ratios = renderer.setPixelRatio.mock.calls.length
+  wrapper.unmount()
+  window.dispatchEvent(new Event('resize'))
+  expect(material).toHaveBeenCalledTimes(materials)
+  expect(renderer.setPixelRatio).toHaveBeenCalledTimes(ratios)
+})
+
+it('DPR acima de2 é limitado em todo resize e ausência de movimento atual impede retomada', async () => {
+  const wrapper = mountScene()
+  await wrapper.setProps({ visual })
+  vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(3)
+  window.dispatchEvent(new Event('resize'))
+  expect(renderer.setPixelRatio).toHaveBeenLastCalledWith(2)
+  await wrapper.setProps({ visual: { ...visual, running: false, vibration: 0, buzzer: false } })
+  await wrapper.get('button').trigger('click')
+  await wrapper.get('button').trigger('click')
+  expect(renderer.setAnimationLoop).toHaveBeenLastCalledWith(null)
+  expect(wrapper.text()).toContain('Sem movimento observado na telemetria')
   wrapper.unmount()
 })

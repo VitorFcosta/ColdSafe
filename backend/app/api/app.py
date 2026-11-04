@@ -8,7 +8,8 @@ from uuid import uuid4
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from backend.app.api.schemas import (
     DeviceResponse,
@@ -102,7 +103,24 @@ def create_app(
             "para uso médico, sanitário ou regulatório."
         ),
         lifespan=lifespan,
+        docs_url=None,
+        redoc_url=None,
     )
+    @app.get("/docs", include_in_schema=False)
+    def local_documentation() -> HTMLResponse:
+        return get_swagger_ui_html(
+            openapi_url="/openapi.json",
+            title=app.title + " - Swagger UI",
+            swagger_js_url="/docs-assets/swagger-ui-bundle.js",
+            swagger_css_url="/docs-assets/swagger-ui.css",
+            swagger_favicon_url="/docs-assets/favicon-32x32.png",
+            swagger_ui_parameters={"validatorUrl": None},
+        )
+
+    @app.get("/redoc", include_in_schema=False)
+    def documentation_alias() -> RedirectResponse:
+        return RedirectResponse("/docs", status_code=307)
+
     if cors_origins:
         app.add_middleware(
             CORSMiddleware,

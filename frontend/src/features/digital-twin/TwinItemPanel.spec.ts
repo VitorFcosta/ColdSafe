@@ -26,7 +26,7 @@ const history: MonitoringHistory = { deviceId: telemetry.device_id, start: '2026
 let wrapper: VueWrapper | undefined
 function render(key = 'temperature_c') {
   wrapper = mount(TwinItemPanel, { props: { item: items.find((item) => item.key === key)!, summary, device, token: 'token', fresh: true, ageSeconds: 1, revision: 0, connectionState: 'connected' },
-    global: { stubs: { TemperatureHistoryChart: { name: 'TemperatureHistoryChart', props: ['readings', 'metric'], template: '<div data-chart />' }, LedControl: { name: 'LedControl', props: ['led', 'phase', 'submitting', 'error'], template: '<div data-led-control />' } } } })
+    global: { stubs: { TemperatureHistoryChart: { name: 'TemperatureHistoryChart', props: ['readings', 'metric', 'period'], template: '<div data-chart />' }, LedControl: { name: 'LedControl', props: ['led', 'phase', 'submitting', 'error'], template: '<div data-led-control />' } } } })
   return wrapper
 }
 beforeEach(() => {
@@ -76,6 +76,18 @@ it('equipamento usa sua previsão; atuadores explicam histórico associado e só
   await view.setProps({ item: items.find((item) => item.key === 'buzzer')! })
   expect(view.find('[data-led-control]').exists()).toBe(false)
   expect(view.text()).toContain('Buzzer segue a regra térmica')
+})
+
+it('ordena histórico antes da previsão e identifica série contextual nos três itens sem série própria', async () => {
+  const view = render('led'); await flushPromises()
+  for (const key of ['led', 'buzzer', 'fan']) {
+    await view.setProps({ item: items.find((item) => item.key === key)! })
+    expect(view.getComponent({ name: 'TemperatureHistoryChart' }).props()).toMatchObject({ metric: 'temperature_c', period: '15m' })
+    expect(view.get('[aria-label="Histórico do componente"] h3').text()).toContain('contextual')
+    const sections = view.findAll('.detail-grid > section')
+    expect(sections[0]!.attributes('aria-label')).toBe('Histórico do componente')
+    expect(sections[1]!.attributes('aria-label')).toBe('Equipamento associado')
+  }
 })
 
 it('leitura vencida é histórica, idade continua explícita e saúde/RUL atuais são ocultadas', async () => {

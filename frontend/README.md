@@ -1,7 +1,27 @@
 # Frontend ColdSafe
 
+## Redesign vigente — 03/11/2026
+
+RD-01 a RD-17 estão concluídas; **RD-18 foi concluída por aceite do usuário,
+com ressalvas técnicas**. O fechamento de 03/11 acrescentou “Ocultar dados ao
+vivo” nas quatro telas autoatualizadas. A coleta e os pedidos continuam; mostrar
+novamente apresenta os dados mais recentes recebidos. A verificação atual com
+leitor de tela não foi executada, por escolha do usuário nesta retomada.
+Consulte o [checkpoint RD-18](../docs/redesign/tasks/RD-18.md#checkpoint) para
+o estado da rodada, testes executados e limites; este guia não certifica o aceite
+integrado nem uma nova aprovação estética.
+
+As referências locais são o [guia do redesign](../docs/redesign/README.md), o
+[design system](../docs/redesign/design-system/README.md), as
+[composições](../docs/redesign/compositions/README.md) e o
+[roadmap/cartões](../docs/redesign/tasks/README.md). P-01 a P-06 registram o
+planejamento histórico; a implementação e sua evidência datada estão nos cartões RD
+e no código atual. Tokens executados: [tokens.css](src/styles/tokens.css).
+Os registros B2 abaixo preservam contratos, comandos e contexto de integração.
+
 Apresentação de portfólio em `/` e dashboard operacional em `/dashboard`,
-com a direção **tecnologia de precisão**. A apresentação funciona sem backend.
+com a direção **Precisão operacional** e apresentação pública escura.
+A apresentação funciona sem backend.
 No dashboard, cadastro/login, ambientes, dispositivos e limites usam REST
 autenticado. A leitura atual, os alertas e o estado do LED acompanham o
 dispositivo selecionado. Eventos WebSocket atualizam a tela; após reconexão,
@@ -104,10 +124,19 @@ que também confere os valores contra relatórios e captura desktop/mobile.
 A B2-25 acrescenta **Previsão do equipamento** no dashboard AIoT: saúde em pontos
 0–100, RUL em horas (zero é válido), versão do pacote/features e horários da entrada
 e cálculo. Falta de modelo/histórico, features inválidas, modelo indisponível e
-leitura vencida têm mensagens distintas. Resultado só aparece se vinculado à
-leitura atual; não reaproveita previsão anterior quando chega outra telemetria.
-WS dispara recuperação REST e a idade local oculta valores vencidos. A troca de
-versão aparece sem recarga da página; ativação continua na API administrativa.
+leitura vencida têm mensagens distintas. A API/parser só aceitam novos resultados
+vinculados à leitura correspondente. No dashboard, o cartão conserva o último
+resultado recebido durante a espera entre telemetria e inferência, identificado
+pelo horário da própria entrada; não o atribui à leitura nova. Troca de ambiente,
+dispositivo ou equipamento limpa esse estado. A idade considera a diferença
+entre a entrada da previsão e a leitura atual, somada à idade dos sensores;
+novas leituras não renovam uma previsão antiga, cujos números somem após 30 s.
+O WS entrega ao cartão previsões vinculadas a uma das últimas 256 leituras
+verificadas por REST ou telemetria, mesmo se a leitura seguinte já chegou;
+também dispara recuperação REST. Eventos atrasados não substituem resultados
+mais novos, inclusive após falha e recuperação do resumo. Fontes desconhecidas
+não entram no cartão, e a troca de conta/dispositivo limpa as fontes guardadas.
+A troca de versão aparece sem recarga da página; ativação continua na API administrativa.
 
 Sem dependência nova. `PredictionPanel.vue` reutiliza tokens e texto semântico;
 o modo legado conserva seu contrato. Teste simulado: `npm run test:e2e -- inference.spec.ts`.
@@ -119,7 +148,9 @@ Configuração do worker está no [guia](../docs/configuration.md#inferência-ao
 A B2-26 acrescenta `/insights`: equipamento privado, saúde/RUL, tendência entre
 previsões, versão/idade e alertas persistidos. Consulta HTTP a cada 2 s recupera
 o estado após recarga; ausência/erro/stale são explícitos e conservam os alertas
-conhecidos. Regras do proprietário são editáveis por operador/admin. Limiares
+conhecidos. Exibe o último resultado com fonte e recibo confirmados, mesmo quando
+a telemetria seguinte aguarda inferência; sua idade conserva a entrada de origem
+e vence após 30 s. Regras do proprietário são editáveis por operador/admin. Limiares
 iniciais são de protótipo, sem calibração física; não acionam o buzzer térmico.
 Testes rápidos: `npm run test:unit:run -- src/features/insights src/views/InsightsView.spec.ts`.
 O ensaio real está no [backend](../backend/README.md#alertas-preditivos-e-insights-b2-26).
@@ -201,9 +232,11 @@ continuam nas rotas v1 em ambos os modos.
 - [Figma editável](https://www.figma.com/design/EIn6llJ5Fc3uIFlIDdokZu).
 - [Relatório: arquivos, decisões, mídia e validação](../docs/testing/redesign-portfolio.md).
 
-A direção anterior, Caderno de bancada, foi aprovada na CS-26 em 09/09/2026.
-O redesign atual foi autorizado no plano de portfólio e mantém suas regras
-operacionais: atualidade explícita, estados com texto e falhas parciais.
+A direção Caderno de bancada foi aprovada na CS-26 em 09/09/2026; o redesign
+de portfólio de setembro também é histórico. O redesign vigente segue Precisão
+operacional, com aplicação clara e apresentação pública escura, conservando
+atualidade explícita, estados com texto e falhas parciais. Figma e relatório acima
+são referências históricas; os documentos locais do redesign orientam a retomada.
 
 ## Como executar
 
@@ -226,6 +259,22 @@ As instruções a seguir são para o desenvolvimento local com Vite.
 Os testes E2E sobem o Vite automaticamente e simulam as fronteiras HTTP e
 WebSocket da API. Assim, estados normais, alertas, reconexão e falhas são
 reproduzíveis sem depender do InfluxDB ou do MQTT.
+
+Para conferir os dois contratos, execute a suíte com a flag explícita antes de
+iniciar o Vite: `VITE_AIOT_ENABLED=false` seleciona o modo legado v1/v2;
+`VITE_AIOT_ENABLED=true`, o modo AIoT v3. A flag é de build/inicialização, não
+um alternador visual. Os cenários condicionados ao AIoT podem ser pulados no
+modo legado; uma execução só não comprova os dois modos.
+
+```sh
+VITE_AIOT_ENABLED=false npm run test:e2e
+VITE_AIOT_ENABLED=true npm run test:e2e
+```
+
+Os specs `*-real.spec.ts` são integração externa opt-in, controlada pelos
+harnesses correspondentes e suas variáveis privadas; ficam pulados sem esse
+ambiente. Não habilite essas variáveis nem inicie a pilha pessoal por reflexo
+para verificar o redesign. E2E com APIs controladas não comprova serviço real.
 
 A suíte real opt-in `backend/tests/infra/test_dashboard_integration.py` sobe
 brokers/bancos/gateway/writer/simulador descartáveis, backend Uvicorn e Vite
@@ -271,8 +320,10 @@ exemplo, tela, superfície, texto, foco e estados normal, atenção, crítico e
 desatualizado — em vez de amarrar cores a componentes específicos. Isso permite
 que desktop e mobile conservem os mesmos significados visuais.
 
-Contraste, navegação por teclado e responsividade foram validados no dashboard
-implementado; os mockups foram usados apenas como direção visual.
+As validações históricas de contraste, teclado e responsividade pertencem aos
+cenários e versões identificados nos relatórios/cartões. Mockups são direção
+visual. A verificação integrada atual está no checkpoint RD-18; não presumir
+conformidade WCAG integral a partir de um relatório anterior.
 
 ## Demonstração reproduzível
 
@@ -296,8 +347,12 @@ defina `CAPTURE_OUTPUT_DIR` com uma pasta temporária.
 ## Motion e tipagem
 
 Foram adicionados `motion-v@2.4.2` e `@vueuse/core@14.4.0`, fixados no lock.
-O Motion fica no chunk da apresentação. `skipLibCheck` evita conflitos nas
-declarações de terceiros (tipos HTML/VueUse/React/Bluetooth); `strict` e
+Desde a [RD-17](../docs/redesign/tasks/RD-17.md), `LandingView.vue` não importa
+Motion: a entrada breve usa CSS, o conteúdo nasce visível e
+`prefers-reduced-motion` remove o movimento. Os pacotes continuam instalados;
+esta atualização documental não remove dependências.
+`skipLibCheck` evita conflitos nas declarações de terceiros
+(tipos HTML/VueUse/React/Bluetooth); `strict` e
 a checagem dos arquivos da aplicação continuam ativos. Reavaliar essa opção
 quando as declarações dessas dependências forem compatíveis entre si.
 Inter é servido localmente, com licença OFL em `public/fonts/OFL.txt`.

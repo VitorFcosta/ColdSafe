@@ -44,7 +44,9 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 375, height: 812 
     await expect.poll(() => Boolean(socket)).toBe(true)
 
     prediction = { ...original, event_id: '00000000-0000-4000-8000-000000000900', data: { ...original.data, model_version: 'fan-model-2' } }
+    const refreshedSummary = page.waitForResponse('**/api/v3/monitoring/summary?**')
     socket!.send(JSON.stringify(prediction))
+    await refreshedSummary
     await expect(panel).toContainText('fan-model-2')
     await expect(panel).not.toContainText('fan-model-1')
     const requests = summaryRequests

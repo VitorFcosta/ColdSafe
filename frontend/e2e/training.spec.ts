@@ -46,6 +46,6 @@ test('operador não envia nem consulta dados de treinamento (API simulada)', asy
   await page.route('**/api/v1/auth/me', (route) => route.fulfill({ json: { success: true, data: { user_id: id, email: 'operator@example.com', role: 'operator' } } }))
   let privateRequests = 0
   await page.route('**/api/v3/**', (route) => { privateRequests++; return route.fulfill({ status: 403 }) })
-  await page.goto('/training'); await expect(page.getByText('O treinamento está disponível apenas para administradores.', { exact: false })).toBeVisible()
+  await page.goto('/training'); await expect(page.getByRole('heading', { name: 'Acesso restrito', exact: true })).toBeVisible()
   expect(privateRequests).toBe(0); await expect(page.getByRole('button', { name: 'Iniciar treinamento' })).toHaveCount(0)
 })

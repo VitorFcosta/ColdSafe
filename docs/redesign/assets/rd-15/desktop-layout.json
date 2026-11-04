@@ -1,0 +1,43 @@
+{
+  "width": 1440,
+  "scrollWidth": 1440,
+  "rootFont": "16px",
+  "input": {
+    "color": "rgb(18, 46, 51)",
+    "background": "rgb(233, 240, 238)",
+    "border": "rgb(104, 126, 126)"
+  },
+  "scope": {
+    "color": "rgb(82, 108, 112)"
+  },
+  "panels": [
+    {
+      "name": "Conversa com o assistente",
+      "width": 796,
+      "scrollWidth": 796
+    },
+    {
+      "name": "Perguntar ao assistente",
+      "width": 796,
+      "scrollWidth": 796
+    },
+    {
+      "name": "Perguntas sugeridas e limites",
+      "width": 300,
+      "scrollWidth": 300
+    }
+  ],
+  "palette": {
+    "ink": "#122e33",
+    "ink-muted": "#526c70",
+    "surface": "#ffffff",
+    "surface-muted": "#e9f0ee",
+    "control-border": "#687e7e",
+    "accent": "#0c6d65",
+    "accent-ink": "#ffffff",
+    "status-normal": "#176740",
+    "normal-surface": "#e5f1e9",
+    "status-attention": "#8b4c0c",
+    "attention-surface": "#fff1dc"
+  }
+}

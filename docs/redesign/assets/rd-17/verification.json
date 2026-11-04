@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-02",
+  "timezone": "America/Sao_Paulo",
+  "baseGit": "27bba6f",
+  "node": "24.22.1",
+  "browser": "Chromium 153.0.8010.12",
+  "os": "macOS 27.0.1 arm64",
+  "unit": {
+    "passed": 755,
+    "files": 53,
+    "coverage": {
+      "statements": 94.96,
+      "branches": 91.58,
+      "functions": 92.79,
+      "lines": 97.63
+    }
+  },
+  "e2e": {
+    "initialCombinedPassed": 44,
+    "landingConfirmationPassed": 16,
+    "renderedVideoConfirmationPassed": 1,
+    "api": "blocked or mocked; no backend real",
+    "media": "local WebM/VTT real, HTTP errors controlled"
+  },
+  "mediaHashes": {
+    "frontend/public/media/equipamento-conceitual-p05.png": "4116343a3f2c90ff275794592e129cbd2260f50455bc39d01d6774c40f153266",
+    "docs/redesign/assets/compositions/equipamento-conceitual-p05.png": "4116343a3f2c90ff275794592e129cbd2260f50455bc39d01d6774c40f153266",
+    "frontend/public/media/coldsafe-demo.webm": "a1741b48584bac03fb1400c56c2a8e71b1cb16d0fdaaa60f550245de6c0e8c4d",
+    "frontend/public/media/coldsafe-demo.vtt": "d35cae99b8444979bd0b4f13281620ffc65455c5387b828b5b58a75707e4a62a",
+    "frontend/public/media/dashboard-normal.png": "c53026df3906d46b276b4722e0e00ce7eabc11a040316561aa4e503708da9a73",
+    "frontend/public/media/dashboard-critical.png": "35569bdbae05e963de7eaf61dc1edfd584ebdee103e6b49481a396c0a220adcf",
+    "frontend/public/media/dashboard-stale.png": "5d6957c1f89a542569e30400d30d04f1370b56159cf2e0dab6be8d709e83d209"
+  },
+  "limitations": [
+    "No mobile physical device, Safari/Firefox or screen reader",
+    "No real IoT/backend integration",
+    "Video is an earlier interface with simulated data, not current AIoT"
+  ]
+}
