@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 import pika
+from pika.adapters.utils.connection_workflow import AMQPConnectorStackTimeout
 import psycopg
 import pytest
 
@@ -239,7 +240,9 @@ def test_roles_have_distinct_credentials_and_only_their_own_queues(worker):
     worker.channels['delivery'].basic_get.assert_called_once_with('coldsafe.delivery', auto_ack=False)
 
 
-def test_reconnect_recovers_each_private_connection(worker, monkeypatch):
+@pytest.mark.parametrize('error', [
+    pika.exceptions.AMQPConnectionError('private'), AMQPConnectorStackTimeout('private')])
+def test_reconnect_recovers_each_private_connection(worker, monkeypatch, error):
     worker.connections['commands'] = None
     worker.channels['commands'] = None
     channel, connection = MagicMock(), MagicMock()
@@ -247,14 +250,30 @@ def test_reconnect_recovers_each_private_connection(worker, monkeypatch):
     channel.basic_get.return_value = None, None, None
     shutdown = Event()
     connection.process_data_events.side_effect = lambda **_: shutdown.set()
-    connect = Mock(side_effect=[pika.exceptions.AMQPConnectionError('private'), connection])
+    connect = Mock(side_effect=[error, error, connection])
     monkeypatch.setattr('backend.app.amqp.consumer.pika.BlockingConnection', connect)
-    monkeypatch.setattr(shutdown, 'wait', lambda *_: None)
+    wait = Mock(return_value=False)
+    monkeypatch.setattr(shutdown, 'wait', wait)
     worker.run_role('commands', shutdown)
-    assert connect.call_count == 2
+    assert connect.call_count == 3
+    assert [call.args[0] for call in wait.call_args_list] == [1, 2, 0.05]
     channel.confirm_delivery.assert_called_once()
     channel.basic_qos.assert_called_once_with(prefetch_count=1)
+    channel.basic_get.assert_called_once_with('coldsafe.commands', auto_ack=False)
     connection.close.assert_called_once()
+
+
+def test_handshake_timeout_backoff_can_be_interrupted_by_shutdown(worker, monkeypatch):
+    shutdown = Event()
+    connect = Mock(side_effect=AMQPConnectorStackTimeout('private'))
+    monkeypatch.setattr('backend.app.amqp.consumer.pika.BlockingConnection', connect)
+    wait = Mock(side_effect=lambda _: shutdown.set())
+    monkeypatch.setattr(shutdown, 'wait', wait)
+    worker.run_role('commands', shutdown)
+    connect.assert_called_once()
+    wait.assert_called_once_with(1)
+    assert worker.connections['commands'] is None
+    assert worker.channels['commands'] is None
 
 
 def test_connection_health_and_lost_connection_shutdown(worker):

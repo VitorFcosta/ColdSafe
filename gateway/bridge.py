@@ -48,8 +48,8 @@ class Bridge:
             raise ValueError('Current MQTT ACL supports only sim-lab-01')
         self.catalog, self.path, self.check_scope = catalog, path, check_scope
         self.db = sqlite3.connect(path)
-        # shortcut: retain identities/errors up to 64 MiB; add archival before sustained production.
-        self.db.execute('PRAGMA max_page_count=16384')
+        # shortcut: retain identities/errors up to 256 MiB at 4 KiB pages; add archival before sustained production.
+        self.db.execute('PRAGMA max_page_count=65536')
         self.db.execute('PRAGMA synchronous=FULL')
         self.db.executescript('''
             CREATE TABLE IF NOT EXISTS ingress (
@@ -60,6 +60,8 @@ class Bridge:
             CREATE TABLE IF NOT EXISTS errors (
                 id TEXT PRIMARY KEY, transport TEXT NOT NULL, route TEXT NOT NULL,
                 body BLOB NOT NULL, code TEXT NOT NULL, event BLOB NOT NULL, sent INTEGER NOT NULL DEFAULT 0);
+            CREATE INDEX IF NOT EXISTS ingress_pending_idx ON ingress(sent);
+            CREATE INDEX IF NOT EXISTS errors_pending_idx ON errors(sent);
         ''')
 
     def parse(self, raw: bytes) -> dict:

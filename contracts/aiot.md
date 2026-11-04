@@ -778,8 +778,14 @@ a sequência e conserva o alerta aberto. Ausência/indisponibilidade e entrada
 com mais de 30 s não encerram alertas. Previsão precisa de fonte e recibo
 vinculados e autorizados. Fonte com instante igual/anterior ao último avaliado
 não avança o estado; uma previsão ainda recente pode ser avaliada mesmo se a
-telemetria seguinte já chegou, para tolerar atraso entre filas. A tela continua
-vinculada à última telemetria.
+telemetria seguinte já chegou, para tolerar atraso entre filas. A consulta de
+Insights devolve o último resultado com fonte e recibo confirmados, ordenado pelo
+horário da entrada e ID da fonte, mesmo se a telemetria seguinte ainda aguarda
+previsão. Inclui resultados indisponíveis; não escolhe somente os disponíveis.
+`age_seconds` conta desde a entrada desse resultado, sem renovação por telemetria
+posterior. Após 30 s, o estado é `stale` e estimativas disponíveis são omitidas.
+Sem resultado confirmado, usa a idade da última telemetria para distinguir
+`no_data` de `stale`. A tendência só acompanha a mesma fonte do resultado exibido.
 
 A migração 011 guarda regras, sequência por dono/dispositivo/equipamento e
 histórico de alertas. Abertura/encerramento e auditoria compartilham a transação

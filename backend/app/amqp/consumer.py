@@ -8,6 +8,7 @@ from uuid import uuid4
 
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 import pika
+from pika.adapters.utils.connection_workflow import AMQPConnectorStackTimeout
 import psycopg
 
 from backend.app.errors import DependencyUnavailableError
@@ -174,7 +175,8 @@ class ApiAmqpConsumer:
                     self.consume(role)
                     self.connections[role].process_data_events(time_limit=0)
                     delay = 1
-                except (pika.exceptions.AMQPError, OSError, psycopg.Error, DependencyUnavailableError):
+                except (pika.exceptions.AMQPError, AMQPConnectorStackTimeout, OSError,
+                        psycopg.Error, DependencyUnavailableError):
                     LOGGER.warning('API AMQP dependency unavailable; durable messages remain pending')
                     self.close_role(role)
                     shutdown.wait(delay)

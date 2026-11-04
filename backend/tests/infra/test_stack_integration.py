@@ -146,7 +146,7 @@ class Stack:
         return round(time.monotonic() - start, 3)
 
     def llm_ready(self):
-        return eventually(lambda: self.request('GET', '/api/v3/llm/status')['state'] == 'ready', 300)
+        return eventually(lambda: self.request('GET', '/api/v3/llm/status')['state'] == 'ready', 420)
 
     def assistant(self):
         start = time.monotonic()
@@ -285,7 +285,7 @@ def prepare(stack):
 
 
 def exercise(stack):
-    stack.command('up', '-d', '--build', '--wait', '--wait-timeout', '300')
+    stack.command('up', '-d', '--build', '--wait', '--wait-timeout', '420')
     stack.url = 'http://127.0.0.1:' + stack.port('frontend', 8080)
     stack.token = stack.request('POST', '/api/v1/auth/login',
                                 {'email': 'stack@example.invalid', 'password': stack.password})['token']
@@ -323,7 +323,7 @@ def exercise(stack):
             count = connection.execute("SELECT count(*) FROM jobs WHERE status='running'").fetchone()[0]
         assert count <= 1
         return count == 1
-    eventually(running)
+    eventually(running, 1200)
     stack.live()
     stack.phase('jobs_serialized', led_seconds=stack.led())
     generated = stack.job_done(first['id'])
@@ -332,7 +332,7 @@ def exercise(stack):
     start = time.monotonic()
     training = stack.request('POST', '/api/v3/jobs',
         {'job_type': 'training', 'dataset_id': generated['result_id']}, expected=202)
-    eventually(running)
+    eventually(running, 1200)
     stack.live()
     stack.led()
     trained = stack.job_done(training['id'])
@@ -351,7 +351,7 @@ def exercise(stack):
     assert len(stored) == 1
     dataset = stack.request('GET', '/api/v3/datasets/' + generated['result_id'])
     stack.command('down')
-    stack.command('up', '-d', '--wait', '--wait-timeout', '300')
+    stack.command('up', '-d', '--wait', '--wait-timeout', '420')
     stack.url = 'http://127.0.0.1:' + stack.port('frontend', 8080)
     stack.pg['port'] = stack.port('postgres', 5432)
     assert stack.request('GET', '/api/v3/models/active') == active

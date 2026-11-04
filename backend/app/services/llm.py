@@ -64,7 +64,7 @@ class OllamaClient:
         self.request('/api/generate', {
             'model': MODEL, 'prompt': '', 'stream': False, 'keep_alive': -1,
             'options': {'num_ctx': 1024, 'num_gpu': 0, 'num_thread': 4, 'num_batch': 128},
-        }, timeout=180)
+        }, timeout=300)
         if not self.ready(self.loaded()):
             raise OllamaUnavailable('Local CPU model not ready')
 

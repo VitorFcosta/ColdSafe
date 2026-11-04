@@ -91,10 +91,13 @@ a cobertura padrão de `backend/app`, que não contém o gateway.
 
 ## Limites
 
-Diário limitado a 16.384 páginas SQLite (aproximadamente 64 MiB para banco novo),
+Diário limitado a 65.536 páginas SQLite (aproximadamente 256 MiB para banco novo),
 sem expurgo: conservar identidades evita reaceitar duplicatas como novas.
-Mantém entrada e saída, portanto pode encher em poucas horas a 1 Hz; journal
-transitório também ocupa disco. Antes de uso prolongado, implementar arquivamento
+O limite anterior de 64 MiB foi atingido no ensaio B2-36; reabrir com o limite
+maior conserva entradas, pendências e o primeiro aceite, sem apagar o volume.
+O arquivo cresce conforme novas entradas são gravadas; o aumento do teto não
+pré-aloca 256 MiB. Mantém entrada e saída, portanto ainda pode encher em operação
+contínua; journal transitório também ocupa disco. Antes de uso prolongado, implementar arquivamento
 com política de retenção/deduplicação explícita. Para copiar/inspecionar, parar
 gateway e usar backup SQLite; não apagar diário nem reutilizar volume de outro dono.
 

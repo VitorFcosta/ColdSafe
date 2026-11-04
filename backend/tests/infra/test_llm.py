@@ -38,7 +38,7 @@ def test_preload_uses_empty_local_prompt_bounded_context_and_cpu():
         'model': 'llama3.2:3b-instruct-q4_K_M', 'prompt': '', 'stream': False, 'keep_alive': -1,
         'options': {'num_ctx': 1024, 'num_gpu': 0, 'num_thread': 4, 'num_batch': 128},
     })
-    assert client.request.call_args_list[0].kwargs['timeout'] == 180
+    assert client.request.call_args_list[0].kwargs['timeout'] == 300
 
 
 @pytest.mark.parametrize('models', [[resident(size_vram=1)], [resident(context_length=2048)], []])

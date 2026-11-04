@@ -140,15 +140,18 @@ class PredictiveAlertService:
                 return None
             self.reset_stale(cursor)
             rules = self.rules(cursor)
-            source = self.events._latest(cursor, self.scope[1])
-            prediction = None
-            if source:
-                row = cursor.execute("SELECT envelope FROM aiot_events WHERE device_id=%s "
-                                     "AND source_event_id=%s AND kind='prediction' AND linked "
-                                     'ORDER BY received_at,event_id LIMIT 1',
-                                     (self.scope[1], source['event_id'])).fetchone()
-                if row:
-                    prediction = self.events._deliverable_prediction(cursor, row['envelope'])
+            row = cursor.execute(
+                'SELECT t.envelope AS source,p.envelope FROM aiot_events t '
+                'JOIN LATERAL (SELECT p.envelope FROM aiot_events p '
+                "WHERE p.device_id=t.device_id AND p.source_event_id=t.event_id AND p.kind='prediction' "
+                'AND p.linked ORDER BY p.received_at,p.event_id LIMIT 1) p ON true '
+                "WHERE t.device_id=%s AND t.kind='telemetry' AND EXISTS ("
+                'SELECT 1 FROM aiot_events r WHERE r.device_id=t.device_id '
+                "AND r.source_event_id=t.event_id AND r.kind='telemetry_persisted' AND r.linked) "
+                'ORDER BY t.received_at DESC,t.event_id DESC LIMIT 1', (self.scope[1],),
+            ).fetchone()
+            source = row['source'] if row else self.events._latest(cursor, self.scope[1])
+            prediction = self.events._deliverable_prediction(cursor, row['envelope']) if row else None
             age = ((self.events._now() - instant(source['received_at'])).total_seconds() if source else None)
             availability = ('no_data' if source is None else 'stale' if age > 30 else
                             prediction['data']['status'] if prediction else 'no_data')
@@ -160,7 +163,7 @@ class PredictiveAlertService:
             return {'device_id': device_id, 'equipment_id': self.scope[2], 'rules': rules,
                     'prediction': prediction, 'availability': availability, 'age_seconds': age,
                     'trend': state['trend'] if (state and availability == 'available'
-                                               and str(state['last_source_event_id']) == source['event_id']) else 'unknown',
+                                               and str(state['last_source_event_id']) == prediction['data']['source_event_id']) else 'unknown',
                     'active_alerts': [{**{key: str(value) for key, value in alert.items()},
                                       'opened_at': utc(alert['opened_at']), 'kind': 'predictive_failure'}
                                      for alert in alerts]}

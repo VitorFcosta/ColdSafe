@@ -138,7 +138,8 @@ def test_unavailable_stale_and_missing_do_not_close_or_count_replayed_source(pre
     assert len(view(accounts[0])['active_alerts']) == 1
     bundle = events(54, 80, 100)
     deliver(bundle, (1,))
-    assert view(accounts[0])['availability'] == 'no_data'
+    assert view(accounts[0])['availability'] == 'available'
+    assert view(accounts[0])['age_seconds'] == 1
     assert len(view(accounts[0])['active_alerts']) == 1
     deliver(bundle, (3, 2))
     assert view(accounts[0])['active_alerts'] == []
@@ -172,8 +173,80 @@ def test_prediction_lag_behind_latest_telemetry_still_counts_monotonic_inputs(pr
         deliver(bundle, (1,))
     for bundle in bundles[:3]:
         deliver(bundle, (3, 2))
-    assert len(view(accounts[0])['active_alerts']) == 1
-    assert view(accounts[0])['availability'] == 'no_data'
+    result = view(accounts[0])
+    assert len(result['active_alerts']) == 1
+    assert result['availability'] == 'available'
+    assert result['prediction']['event_id'] == bundles[2][3]['event_id']
+    assert result['age_seconds'] == 1
+    assert result['trend'] == 'stable'
+
+
+def test_new_telemetry_does_not_refresh_the_last_prediction_age(predictive):
+    _, accounts, _, events = predictive
+    first = events(0)
+    deliver(first)
+    deliver(events(30), (1,))
+    result = view(accounts[0])
+    assert result['availability'] == 'available'
+    assert result['age_seconds'] == 30
+    assert result['prediction']['event_id'] == first[3]['event_id']
+    deliver(events(31), (1,))
+    result = view(accounts[0])
+    assert result['availability'] == 'stale'
+    assert result['age_seconds'] == 31
+    assert result['prediction'] is None
+    assert result['trend'] == 'unknown'
+
+
+def test_last_prediction_needs_its_own_receipt_before_replacing_previous(predictive):
+    _, accounts, _, events = predictive
+    first = events(0)
+    deliver(first)
+    next_reading = events(1, 80, 100)
+    deliver(next_reading, (1, 3))
+    result = view(accounts[0])
+    assert result['availability'] == 'available'
+    assert result['prediction']['event_id'] == first[3]['event_id']
+    assert result['age_seconds'] == 1
+    deliver(next_reading, (2,))
+    assert view(accounts[0])['prediction']['event_id'] == next_reading[3]['event_id']
+
+
+def test_latest_completed_unavailable_prediction_replaces_available_during_lag(predictive):
+    _, accounts, _, events = predictive
+    deliver(events(0))
+    unavailable = events(1, unavailable=True)
+    deliver(unavailable)
+    deliver(events(2), (1,))
+    result = view(accounts[0])
+    assert result['availability'] == 'unavailable'
+    assert result['prediction']['event_id'] == unavailable[3]['event_id']
+    assert result['prediction']['data']['health_score'] is None
+    assert result['trend'] == 'unknown'
+
+
+def test_delayed_old_prediction_cannot_replace_newer_input(predictive):
+    _, accounts, clock, events = predictive
+    old = events(0)
+    deliver(old, (1, 2))
+    newest = events(1, 80, 100)
+    deliver(newest)
+    deliver(events(2), (1,))
+    for event in old[2:]:
+        event['received_at'] = event['occurred_at'] = utc(clock['now'])
+    deliver(old, (3,))
+    result = view(accounts[0])
+    assert result['availability'] == 'available'
+    assert result['prediction']['event_id'] == newest[3]['event_id']
+    assert result['age_seconds'] == 1
+
+
+def test_prediction_without_any_receipt_is_not_available(predictive):
+    _, accounts, _, events = predictive
+    deliver(events(0), (1, 3))
+    result = view(accounts[0])
+    assert result['availability'] == 'no_data'
+    assert result['prediction'] is None
 
 
 def test_rule_permissions_scope_and_other_owner_are_isolated(predictive):

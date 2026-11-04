@@ -3,6 +3,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
+import sqlite3
 from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
@@ -58,6 +59,53 @@ def test_telemetry_received_once_and_dedup_survives_restart(bridge, catalog):
     try:
         assert accept(restarted, event) == first
         assert restarted.db.execute('select count(*) from ingress').fetchone()[0] == 1
+    finally:
+        restarted.db.close()
+
+
+def fill_legacy_journal(connection):
+    assert connection.execute('PRAGMA page_size').fetchone()[0] == 4096
+    assert connection.execute('PRAGMA max_page_count=16384').fetchone()[0] == 16384
+    connection.execute('CREATE TABLE capacity_filler(body BLOB)')
+    for batch in (1024, 128, 16, 1):
+        while True:
+            try:
+                with connection:
+                    connection.executemany('INSERT INTO capacity_filler VALUES(zeroblob(4096))',
+                                           [()] * batch)
+            except sqlite3.OperationalError as error:
+                assert error.sqlite_errorcode == sqlite3.SQLITE_FULL
+                break
+    assert connection.execute('PRAGMA quick_check').fetchone()[0] == 'ok'
+
+
+def test_full_legacy_journal_reopens_without_losing_identity_or_pending_data(bridge, catalog):
+    simulator = Simulator(catalog)
+    original = simulator.sample(1, NOW)
+    accepted = accept(bridge, original)
+    bridge.flush(Mock())
+    pending = accept(bridge, simulator.sample(1, NOW))
+    stored = bridge.db.execute('SELECT event_id,input,body,sent FROM ingress ORDER BY event_id').fetchall()
+    fill_legacy_journal(bridge.db)
+    bridge.db.close()
+
+    restarted = Bridge(catalog, bridge.path, Mock(return_value=True))
+    try:
+        assert restarted.db.execute('SELECT event_id,input,body,sent FROM ingress ORDER BY event_id').fetchall() == stored
+        assert restarted.accept_mqtt('coldsafe/v3/devices/sim-lab-01/telemetry', encode(original),
+                                     retained=False, qos=1, now=NOW + timedelta(minutes=1)) == accepted
+        changed = deepcopy(original)
+        changed['data']['equipment']['running'] = False
+        with pytest.raises(PermanentError, match='IDENTITY_MISMATCH'):
+            accept(restarted, changed)
+        publisher = Mock()
+        restarted.flush(publisher)
+        assert publisher.call_args.args[2] == pending
+        new_event = accept(restarted, simulator.sample(1, NOW))
+        assert new_event['received_at'] == utc(NOW)
+        assert restarted.db.execute('SELECT count(*) FROM ingress WHERE sent=1').fetchone()[0] == 2
+        assert restarted.db.execute('PRAGMA page_count').fetchone()[0] > 16384
+        assert restarted.db.execute('PRAGMA quick_check').fetchone()[0] == 'ok'
     finally:
         restarted.db.close()
 
@@ -214,6 +262,52 @@ def test_failed_publish_keeps_outbox_and_success_marks_it(bridge, catalog):
     bridge.flush(publisher)
     assert publisher.call_count == 2
     assert bridge.db.execute('select sent from ingress').fetchone()[0] == 1
+
+
+@pytest.mark.parametrize('table,identifier,column', [
+    ('ingress', 'event_id', 'body'), ('errors', 'id', 'event'),
+])
+def test_pending_lookup_uses_an_index_without_scanning_sent_history(bridge, table, identifier, column):
+    plan = bridge.db.execute(
+        f'EXPLAIN QUERY PLAN SELECT {identifier},{column} FROM {table} '
+        'WHERE sent=0 ORDER BY rowid LIMIT 1',
+    ).fetchall()
+    details = ' '.join(row[3] for row in plan).upper()
+    assert f'SEARCH {table.upper()} USING INDEX' in details
+    assert f'SCAN {table.upper()}' not in details
+    assert 'TEMP B-TREE' not in details
+
+
+def test_legacy_pending_journal_is_indexed_on_reopen_without_reordering_or_duplicates(bridge, catalog):
+    simulator = Simulator(catalog)
+    events = [accept(bridge, simulator.sample(1, NOW)) for _ in range(3)]
+    for _ in range(3):
+        bridge.record_error('mqtt', 'test-route', b'invalid', 'INVALID_SCHEMA', now=NOW)
+    errors = [json.loads(row[0]) for row in bridge.db.execute('SELECT event FROM errors ORDER BY rowid')]
+    bridge.flush(Mock())
+    stored = {table: bridge.db.execute(f'SELECT * FROM {table} ORDER BY rowid').fetchall()
+              for table in ('ingress', 'errors')}
+    for table in ('ingress', 'errors'):
+        bridge.db.execute(f'DROP INDEX IF EXISTS {table}_pending_idx')
+    bridge.db.close()
+
+    restarted = Bridge(catalog, bridge.path, Mock(return_value=True))
+    try:
+        for table in ('ingress', 'errors'):
+            assert restarted.db.execute(f'SELECT * FROM {table} ORDER BY rowid').fetchall() == stored[table]
+            indexes = restarted.db.execute(f'PRAGMA index_list({table})').fetchall()
+            assert f'{table}_pending_idx' in {row[1] for row in indexes}
+        assert accept(restarted, json.loads(stored['ingress'][0][1])) == events[0]
+        publisher = Mock()
+        for _ in range(3):
+            restarted.flush(publisher)
+        assert [call.args[2] for call in publisher.call_args_list] == [
+            events[1], errors[1], events[2], errors[2],
+        ]
+        for table in ('ingress', 'errors'):
+            assert restarted.db.execute(f'SELECT count(*) FROM {table} WHERE sent=1').fetchone()[0] == 3
+    finally:
+        restarted.db.close()
 
 
 def test_original_error_preserved_but_event_sanitized(bridge):
