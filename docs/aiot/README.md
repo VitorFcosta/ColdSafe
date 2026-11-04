@@ -1,6 +1,6 @@
 # Retomar a evolução AIoT
 
-## Situação em 23/10/2026
+## Situação em 25/10/2026
 
 A implementação atual é AIoT v3: simulador, gateway, writer, API/WS, jobs,
 regressões/ativação/inferência, Insights, 3D e assistente local estão integrados.
@@ -14,8 +14,10 @@ comissionamento/comando completo, versões, diagramas implementados e roteiro
 nos 12 passos do professor. Contas de demonstração são sugestões a cadastrar,
 sem senhas; autoria conferida no Git, sem atribuições inventadas. Validações e
 limites estão no cartão e na [evidência B2-35](../evidence/b2-35.json).
-**B2-35 concluída; B2-36 não iniciada.** O ensaio humano/integral da apresentação
-ainda deve ser executado na versão e máquina finais, por escolha do usuário.
+**B2-35 e B2-36 concluídas.** A B2-36 foi encerrada em 25/10/2026 por aceite
+manual do usuário, que confirmou também sua correção final do assistente.
+Resultados, origem das confirmações e limites estão no cartão B2-36; o agente
+não reexecutou a validação final do assistente.
 
 A [B2-32](tasks/B2-32.md) conserva página Assistente e aceite
 factual aprovados. Após falhas preservadas no histórico, a rodada final com
@@ -245,7 +247,8 @@ Live usa `telemetry_live` e token exclusivo write-only; sintéticos ficam separa
 Integração final: seis casos reais aprovados, incluindo acúmulo/retomada, duplicatas,
 legado, permissões e queda do InfluxDB com três tentativas/DLQ/recuperação.
 Operação, campos e custo de cardinalidade estão no [writer](../../writer/README.md).
-Gateway B2-11 conserva diário SQLite de aproximadamente 64 MiB sem expurgo;
+Gateway B2-11 conserva diário SQLite sem expurgo, ampliado de aproximadamente
+64 para 256 MiB no ensaio B2-36;
 operação em [gateway](../../gateway/README.md).
 Sensores/atuadores/equipamento continuam no catálogo privado de comissionamento;
 dispositivo/ambiente/proprietário são verificados no PostgreSQL. Estado/cache do

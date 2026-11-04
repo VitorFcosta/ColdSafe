@@ -24,3 +24,6 @@ frontend/test-results/
 
 # Private commissioned simulator catalog
 simulator/local/
+
+# Captura original com e-mail pessoal: conservar localmente, sem publicar.
+/docs/evidence/docker-presentation-2026-11-02/twin-desktop.jpg

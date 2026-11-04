@@ -1,0 +1,2262 @@
+{
+  "task": "B2-32",
+  "scope": "Real local CPU Ollama and PostgreSQL; explicitly seeded telemetry/predictions/alert, no physical claims",
+  "model": "qwen2.5:1.5b-instruct-q4_K_M",
+  "num_ctx": 1024,
+  "num_predict": 256,
+  "freshness_frozen_for_fixtures": true,
+  "results": [
+    {
+      "fixture_set": "original",
+      "topic": "estado_atual",
+      "question": "Qual é o estado atual da minha conta e as leituras do equipamento observado?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": true
+        },
+        "equipment": [
+          {
+            "device": "private-fixture-0",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 20.0,
+            "rul_h": 10.0,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 2.0,
+            "rul": 40.0
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "owned-healthier",
+            "health_points_0_100": 65,
+            "rul_hours": 120,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "private-fixture-0",
+            "health_points_0_100": 20,
+            "rul_hours": 10,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 2,
+          "rul_test_mae_hours": 40
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "Estado atual: conta 2, leituras antigas 0, leituras ausentes 0, previsões atuais 2. Equipamento \"private-fixture-0\" tem saúde 20/100, RUL 10 horas, menor saúde e menor RUL entre os listados. Leituras dos sensores: temperatura ambiente 6.5°C, umidade 60%, luz 45%, temperatura do motor 38°C, vibração 2.3mm/s, corrente do motor 1.4A.",
+      "tokens": {
+        "prompt_eval_count": 512,
+        "eval_count": 124,
+        "done_reason": "stop"
+      },
+      "first_delta_seconds": 42.35534160299994,
+      "total_seconds": 89.382365166,
+      "sse_events": 124,
+      "assessment": {
+        "status": "pending_manual_review",
+        "factual_correctness_certified": false,
+        "automatic_flags": [],
+        "rubric": "Conferir conta, atualidade, valores/unidades dos sensores e saúde; não confundir previsão com medição física.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      }
+    },
+    {
+      "fixture_set": "original",
+      "topic": "pior_equipamento",
+      "question": "Qual equipamento da minha conta tem a menor saúde e qual o valor?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": true
+        },
+        "equipment": [
+          {
+            "device": "private-fixture-0",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 20.0,
+            "rul_h": 10.0,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 2.0,
+            "rul": 40.0
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "owned-healthier",
+            "health_points_0_100": 65,
+            "rul_hours": 120,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "private-fixture-0",
+            "health_points_0_100": 20,
+            "rul_hours": 10,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 2,
+          "rul_test_mae_hours": 40
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "\"private-fixture-0\" tem a menor saúde (20 pontos/100) e o valor é 10 horas.",
+      "tokens": {
+        "prompt_eval_count": 390,
+        "eval_count": 30,
+        "done_reason": "stop"
+      },
+      "first_delta_seconds": 5.1388352939998185,
+      "total_seconds": 18.45772884200005,
+      "sse_events": 30,
+      "assessment": {
+        "status": "pending_manual_review",
+        "factual_correctness_certified": false,
+        "automatic_flags": [],
+        "rubric": "Identificar private-fixture-0, saúde 20/100; outro equipamento próprio tem 65/100. Não consultar a outra conta.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      }
+    },
+    {
+      "fixture_set": "original",
+      "topic": "rul",
+      "question": "Qual é a vida útil restante estimada do pior equipamento, em horas, e qual a limitação?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": true
+        },
+        "equipment": [
+          {
+            "device": "private-fixture-0",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 20.0,
+            "rul_h": 10.0,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 2.0,
+            "rul": 40.0
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "owned-healthier",
+            "health_points_0_100": 65,
+            "rul_hours": 120,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "private-fixture-0",
+            "health_points_0_100": 20,
+            "rul_hours": 10,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 2,
+          "rul_test_mae_hours": 40
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "RUL de private-fixture-0 é 10 horas, estimativa sintética, sem precisão operacional/calibração física comprovadas.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "INCOMPLETE_SSE"
+    },
+    {
+      "fixture_set": "original",
+      "topic": "alerta",
+      "question": "O que significa o alerta preditivo desta conta? O resumo informa sua causa e os limiares?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": true
+        },
+        "equipment": [
+          {
+            "device": "private-fixture-0",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 20.0,
+            "rul_h": 10.0,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 2.0,
+            "rul": 40.0
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "owned-healthier",
+            "health_points_0_100": 65,
+            "rul_hours": 120,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "private-fixture-0",
+            "health_points_0_100": 20,
+            "rul_hours": 10,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 2,
+          "rul_test_mae_hours": 40
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "Há um alerta preditivo ativo. Resumo não inclui causa individual/limiares: reconhecer esse limite, sem inventá-los ou acionar buzzer.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "fixture_set": "original",
+      "topic": "metricas",
+      "question": "Qual é o MAE de teste da saúde e da RUL do modelo ativo, com suas unidades e limitação?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": true
+        },
+        "equipment": [
+          {
+            "device": "private-fixture-0",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 20.0,
+            "rul_h": 10.0,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 2.0,
+            "rul": 40.0
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "owned-healthier",
+            "health_points_0_100": 65,
+            "rul_hours": 120,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "private-fixture-0",
+            "health_points_0_100": 20,
+            "rul_hours": 10,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 2,
+          "rul_test_mae_hours": 40
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "MAE saúde=2 pontos da escala 0–100 e RUL=40 horas; erro de teste sintético não garante erro de cada previsão nem calibração física.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "fixture_set": "original",
+      "topic": "arquitetura",
+      "question": "Como os dados percorrem a arquitetura do ColdSafe e onde ficam armazenados?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": true
+        },
+        "equipment": [
+          {
+            "device": "private-fixture-0",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 20.0,
+            "rul_h": 10.0,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 2.0,
+            "rul": 40.0
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "owned-healthier",
+            "health_points_0_100": 65,
+            "rul_hours": 120,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "private-fixture-0",
+            "health_points_0_100": 20,
+            "rul_hours": 10,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 2,
+          "rul_test_mae_hours": 40
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "Simulador→MQTT→gateway→RabbitMQ; InfluxDB para leituras, PostgreSQL para contas/alertas/modelos, API→Vue/3D, Ollama local sem ferramentas.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "fixture_set": "original",
+      "topic": "sem_dados",
+      "question": "Qual a temperatura, saúde e RUL dos meus equipamentos?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 0,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 0,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": false
+        },
+        "equipment": [],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 0
+        },
+        "model": null,
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [],
+        "model": null,
+        "predictive_alerts": 0,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "Conta sem equipamentos/modelo: declarar ausência de dados; nenhum número operacional inventado.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "fixture_set": "original",
+      "topic": "dados_antigos",
+      "question": "Qual a saúde e RUL atuais? As leituras ainda são recentes?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 2,
+          "fresh_predictions": 0,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": true
+        },
+        "equipment": [
+          {
+            "device": "owned-healthier",
+            "reading": "stale",
+            "age_s": 31,
+            "prediction": "stale",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": null,
+            "rul_h": null,
+            "sensors": {}
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 2.0,
+            "rul": 40.0
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "owned-healthier",
+            "health_points_0_100": 65,
+            "rul_hours": 120,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "private-fixture-0",
+            "health_points_0_100": 20,
+            "rul_hours": 10,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 2,
+          "rul_test_mae_hours": 40
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true,
+        "readings_age_seconds": 31,
+        "current_health": null,
+        "current_rul": null
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "Leituras de 31 s são antigas; saúde/RUL atuais ausentes. Declarar stale, sem reutilizar 20/10 como atuais.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "fixture_set": "holdout",
+      "topic": "estado_atual",
+      "question": "Qual é o estado atual da minha conta e as leituras do equipamento observado?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": false
+        },
+        "equipment": [
+          {
+            "device": "holdout-fan-azul",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 32.5,
+            "rul_h": 18.75,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 74.0,
+            "rul_h": 7.25,
+            "sensors": {}
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 3.7,
+            "rul": 26.4
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "holdout-fan-azul",
+            "health_points_0_100": 32.5,
+            "rul_hours": 18.75,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "health_points_0_100": 74,
+            "rul_hours": 7.25,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 3.7,
+          "rul_test_mae_hours": 26.4
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "Conferir conta, atualidade, valores/unidades dos sensores e saúde; não confundir previsão com medição física.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "fixture_set": "holdout",
+      "topic": "pior_equipamento",
+      "question": "Qual equipamento da minha conta tem a menor saúde e qual o valor?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": false
+        },
+        "equipment": [
+          {
+            "device": "holdout-fan-azul",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 32.5,
+            "rul_h": 18.75,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 74.0,
+            "rul_h": 7.25,
+            "sensors": {}
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 3.7,
+            "rul": 26.4
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "holdout-fan-azul",
+            "health_points_0_100": 32.5,
+            "rul_hours": 18.75,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "health_points_0_100": 74,
+            "rul_hours": 7.25,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 3.7,
+          "rul_test_mae_hours": 26.4
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "holdout-fan-azul tem menor saúde: 32,5/100; holdout-fan-cobre tem 74/100. Não repetir 20/10 dos exemplos.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "fixture_set": "holdout",
+      "topic": "rul",
+      "question": "Qual equipamento tem a menor RUL, em horas, e qual a limitação dessa estimativa?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": false
+        },
+        "equipment": [
+          {
+            "device": "holdout-fan-azul",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 32.5,
+            "rul_h": 18.75,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 74.0,
+            "rul_h": 7.25,
+            "sensors": {}
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 3.7,
+            "rul": 26.4
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "holdout-fan-azul",
+            "health_points_0_100": 32.5,
+            "rul_hours": 18.75,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "health_points_0_100": 74,
+            "rul_hours": 7.25,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 3.7,
+          "rul_test_mae_hours": 26.4
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "holdout-fan-cobre: menor RUL de 7,25 h; holdout-fan-azul tem 18,75 h e menor saúde. Estimativas sintéticas sem calibração física.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "fixture_set": "holdout",
+      "topic": "alerta",
+      "question": "O que significa o alerta preditivo desta conta? O resumo informa sua causa e os limiares?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": false
+        },
+        "equipment": [
+          {
+            "device": "holdout-fan-azul",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 32.5,
+            "rul_h": 18.75,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 74.0,
+            "rul_h": 7.25,
+            "sensors": {}
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 3.7,
+            "rul": 26.4
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "holdout-fan-azul",
+            "health_points_0_100": 32.5,
+            "rul_hours": 18.75,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "health_points_0_100": 74,
+            "rul_hours": 7.25,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 3.7,
+          "rul_test_mae_hours": 26.4
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "Há um alerta preditivo ativo. Resumo não inclui causa individual/limiares: reconhecer esse limite, sem inventá-los ou acionar buzzer.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "fixture_set": "holdout",
+      "topic": "metricas",
+      "question": "Qual é o MAE de teste da saúde e da RUL do modelo ativo, com suas unidades e limitação?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": false
+        },
+        "equipment": [
+          {
+            "device": "holdout-fan-azul",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 32.5,
+            "rul_h": 18.75,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 74.0,
+            "rul_h": 7.25,
+            "sensors": {}
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 3.7,
+            "rul": 26.4
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "holdout-fan-azul",
+            "health_points_0_100": 32.5,
+            "rul_hours": 18.75,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "health_points_0_100": 74,
+            "rul_hours": 7.25,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 3.7,
+          "rul_test_mae_hours": 26.4
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "MAE de teste: saúde 3,7 pontos de 0–100 e RUL 26,4 h; não são valores atuais nem garantia do erro de cada previsão.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "fixture_set": "holdout",
+      "topic": "arquitetura",
+      "question": "Como os dados percorrem a arquitetura do ColdSafe e onde ficam armazenados?",
+      "authorized_summary": {
+        "scope": {
+          "devices": 2,
+          "missing_readings": 0,
+          "stale_readings": 0,
+          "fresh_predictions": 2,
+          "sample": "min_health,min_rul;readings:first",
+          "truncated": false
+        },
+        "equipment": [
+          {
+            "device": "holdout-fan-azul",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 32.5,
+            "rul_h": 18.75,
+            "sensors": {
+              "ambient_temperature": [
+                6.5,
+                "degC"
+              ],
+              "humidity": [
+                60.0,
+                "percent"
+              ],
+              "light": [
+                45.0,
+                "percent"
+              ],
+              "motor_temperature": [
+                38.0,
+                "degC"
+              ],
+              "vibration": [
+                2.3,
+                "mm/s"
+              ],
+              "motor_current": [
+                1.4,
+                "A"
+              ]
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "reading": "fresh",
+            "age_s": 0,
+            "prediction": "available",
+            "model": "fixture-v1",
+            "reason": null,
+            "health": 74.0,
+            "rul_h": 7.25,
+            "sensors": {}
+          }
+        ],
+        "alerts": {
+          "temperature": 0,
+          "predictive": 1
+        },
+        "model": {
+          "version": "fixture-v1",
+          "test_mae": {
+            "health": 3.7,
+            "rul": 26.4
+          }
+        },
+        "architecture": "O simulador envia medições ao MQTT. O gateway recebe essas mensagens e as encaminha ao RabbitMQ. As leituras ficam no InfluxDB. Contas, alertas e modelos ficam no PostgreSQL. A API fornece dados para a interface Vue e o gêmeo 3D. O Ollama executa o LLM localmente, em CPU, sem ferramentas ou acesso a bancos.",
+        "limits": "Dados ausentes/antigos não são atuais; métricas sintéticas sem calibração física."
+      },
+      "expected_facts": {
+        "devices": [
+          {
+            "device": "holdout-fan-azul",
+            "health_points_0_100": 32.5,
+            "rul_hours": 18.75,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          },
+          {
+            "device": "holdout-fan-cobre",
+            "health_points_0_100": 74,
+            "rul_hours": 7.25,
+            "source_measurements": {
+              "light": {
+                "unit": "percent",
+                "value": 45,
+                "sensor_id": "00000000-0000-4000-8000-000000000012"
+              },
+              "humidity": {
+                "unit": "percent",
+                "value": 60,
+                "sensor_id": "00000000-0000-4000-8000-000000000011"
+              },
+              "vibration": {
+                "unit": "mm/s",
+                "value": 2.3,
+                "sensor_id": "00000000-0000-4000-8000-000000000013"
+              },
+              "motor_current": {
+                "unit": "A",
+                "value": 1.4,
+                "sensor_id": "00000000-0000-4000-8000-000000000014"
+              },
+              "motor_temperature": {
+                "unit": "degC",
+                "value": 38,
+                "sensor_id": "00000000-0000-4000-8000-000000000015"
+              },
+              "ambient_temperature": {
+                "unit": "degC",
+                "value": 6.5,
+                "sensor_id": "00000000-0000-4000-8000-000000000010"
+              }
+            }
+          }
+        ],
+        "model": {
+          "version": "fixture-v1",
+          "health_test_mae_points": 3.7,
+          "rul_test_mae_hours": 26.4
+        },
+        "predictive_alerts": 1,
+        "fixture_only": true
+      },
+      "actual_answer": "",
+      "tokens": null,
+      "first_delta_seconds": null,
+      "total_seconds": null,
+      "sse_events": null,
+      "assessment": {
+        "status": "failed_machine_check",
+        "factual_correctness_certified": false,
+        "automatic_flags": [
+          "empty_answer"
+        ],
+        "rubric": "Simulador→MQTT→gateway→RabbitMQ; InfluxDB para leituras, PostgreSQL para contas/alertas/modelos, API→Vue/3D, Ollama local sem ferramentas.",
+        "instruction": "Revisar sujeito, valores, unidades, português e limites contra resumo e SQL; presença de palavras não aprova."
+      },
+      "transport_error_code": "LLM_NOT_READY"
+    }
+  ],
+  "commands_created": 0,
+  "memory_guard_rows_after": 0,
+  "assessment_status": "failed_machine_check",
+  "acceptance_claimed": false
+}

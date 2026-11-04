@@ -1,0 +1,10 @@
+{
+  "status": "interrupted",
+  "started_at": "2026-11-04T16:08:59.769160-03:00",
+  "duration_target_s": 900,
+  "interval_target_s": 5,
+  "samples": 13,
+  "reason": "memory_warning_60_seconds",
+  "finished_at": "2026-11-04T16:10:00.230698-03:00",
+  "elapsed_s": 60.46228029206395
+}

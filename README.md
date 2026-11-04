@@ -85,7 +85,7 @@ O preparo requer internet e serviços LLM parados, sem jobs ativos. Os pesos
 Com o comissionamento e o download concluídos, **um comando sobe a pilha final**:
 
 ```sh
-coldsafe up -d --build --wait --wait-timeout 300
+coldsafe up -d --build --wait --wait-timeout 420
 ```
 
 A função conserva os cinco arquivos Compose e os dois perfis. `docker compose up`
@@ -134,7 +134,9 @@ A [B2-34](docs/aiot/tasks/B2-34.md) e sua
 aprovada no Mac conectado à tomada, sem OOM nas amostras. Quatro respostas SSE
 levaram 35–67 s; treino ficou próximo do teto de 1 GiB. Houve falhas anteriores
 preservadas. Esses resultados não são SLA nem ensaio final da apresentação.
-A B2-36 ainda precisa executar esse ensaio na máquina e versão finais.
+A [B2-36](docs/aiot/tasks/B2-36.md) foi encerrada em 25/10/2026 por aceite manual
+do usuário, incluindo sua confirmação da correção final do assistente. Evidências,
+distinção entre testes executados e relatos manuais, e limites ficam no cartão.
 
 Para desenvolvimento, siga a instalação dos ambientes e as variáveis próprias
 de integração no [runbook](docs/runbook.md). Com esses ambientes preparados:

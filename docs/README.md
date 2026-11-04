@@ -7,6 +7,7 @@ apontam para ele. A documentação está no projeto; o Notion é um índice lega
 | --- | --- |
 | Entender o que a aplicação atual faz | [README principal](../README.md) |
 | Retomar a evolução AIoT | [Guia curto](aiot/README.md), depois a tarefa escolhida |
+| Planejar o redesign, a navegação e o design system | [Guia do redesign](redesign/README.md) |
 | Consultar decisões e calendário aprovados | [Plano AIoT](aiot/plan.md) |
 | Entender os serviços implementados | [Arquitetura AIoT](aiot/architecture.md) |
 | Conferir o aceite do professor | [Requisitos](aiot/requirements.md) |

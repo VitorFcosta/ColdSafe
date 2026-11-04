@@ -1,0 +1,70 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_ test_pending_lookup_uses_an_index_without_scanning_sent_history[ingress-event_id-body] _
+
+bridge = <gateway.bridge.Bridge object at 0x10b30e270>, table = 'ingress'
+identifier = 'event_id', column = 'body'
+
+    @pytest.mark.parametrize('table,identifier,column', [
+        ('ingress', 'event_id', 'body'), ('errors', 'id', 'event'),
+    ])
+    def test_pending_lookup_uses_an_index_without_scanning_sent_history(bridge, table, identifier, column):
+        plan = bridge.db.execute(
+            f'EXPLAIN QUERY PLAN SELECT {identifier},{column} FROM {table} '
+            'WHERE sent=0 ORDER BY rowid LIMIT 1',
+        ).fetchall()
+        details = ' '.join(row[3] for row in plan).upper()
+>       assert f'SEARCH {table.upper()} USING INDEX' in details
+E       AssertionError: assert 'SEARCH INGRESS USING INDEX' in 'SCAN INGRESS'
+
+backend/tests/infra/test_gateway.py:276: AssertionError
+_ test_pending_lookup_uses_an_index_without_scanning_sent_history[errors-id-event] _
+
+bridge = <gateway.bridge.Bridge object at 0x10b333250>, table = 'errors'
+identifier = 'id', column = 'event'
+
+    @pytest.mark.parametrize('table,identifier,column', [
+        ('ingress', 'event_id', 'body'), ('errors', 'id', 'event'),
+    ])
+    def test_pending_lookup_uses_an_index_without_scanning_sent_history(bridge, table, identifier, column):
+        plan = bridge.db.execute(
+            f'EXPLAIN QUERY PLAN SELECT {identifier},{column} FROM {table} '
+            'WHERE sent=0 ORDER BY rowid LIMIT 1',
+        ).fetchall()
+        details = ' '.join(row[3] for row in plan).upper()
+>       assert f'SEARCH {table.upper()} USING INDEX' in details
+E       AssertionError: assert 'SEARCH ERRORS USING INDEX' in 'SCAN ERRORS'
+
+backend/tests/infra/test_gateway.py:276: AssertionError
+_ test_legacy_pending_journal_is_indexed_on_reopen_without_reordering_or_duplicates _
+
+bridge = <gateway.bridge.Bridge object at 0x10b1c4050>
+catalog = {'device_id': 'sim-lab-01', 'device_record_id': '00000000-0000-4000-8000-000000000001', 'environment_id': '00000000-0000-4000-8000-000000000002', 'equipment_id': '00000000-0000-4000-8000-000000000003', ...}
+
+    def test_legacy_pending_journal_is_indexed_on_reopen_without_reordering_or_duplicates(bridge, catalog):
+        simulator = Simulator(catalog)
+        events = [accept(bridge, simulator.sample(1, NOW)) for _ in range(3)]
+        for _ in range(3):
+            bridge.record_error('mqtt', 'test-route', b'invalid', 'INVALID_SCHEMA', now=NOW)
+        errors = [json.loads(row[0]) for row in bridge.db.execute('SELECT event FROM errors ORDER BY rowid')]
+        bridge.flush(Mock())
+        stored = {table: bridge.db.execute(f'SELECT * FROM {table} ORDER BY rowid').fetchall()
+                  for table in ('ingress', 'errors')}
+        for table in ('ingress', 'errors'):
+            bridge.db.execute(f'DROP INDEX IF EXISTS {table}_pending_idx')
+        bridge.db.close()
+    
+        restarted = Bridge(catalog, bridge.path, Mock(return_value=True))
+        try:
+            for table in ('ingress', 'errors'):
+                assert restarted.db.execute(f'SELECT * FROM {table} ORDER BY rowid').fetchall() == stored[table]
+                indexes = restarted.db.execute(f'PRAGMA index_list({table})').fetchall()
+>               assert f'{table}_pending_idx' in {row[1] for row in indexes}
+E               AssertionError: assert 'ingress_pending_idx' in {'sqlite_autoindex_ingress_1'}
+
+backend/tests/infra/test_gateway.py:299: AssertionError
+=========================== short test summary info ============================
+FAILED backend/tests/infra/test_gateway.py::test_pending_lookup_uses_an_index_without_scanning_sent_history[ingress-event_id-body]
+FAILED backend/tests/infra/test_gateway.py::test_pending_lookup_uses_an_index_without_scanning_sent_history[errors-id-event]
+FAILED backend/tests/infra/test_gateway.py::test_legacy_pending_journal_is_indexed_on_reopen_without_reordering_or_duplicates
+3 failed, 37 deselected in 2.50s

@@ -1,0 +1,101 @@
+.FF                                                                      [100%]
+=================================== FAILURES ===================================
+___________ test_reconnect_recovers_each_private_connection[error1] ____________
+
+worker = <backend.app.amqp.consumer.ApiAmqpConsumer object at 0x10aa5d6d0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a99ac40>
+error = AMQPConnectorStackTimeout('private')
+
+    @pytest.mark.parametrize('error', [
+        pika.exceptions.AMQPConnectionError('private'), AMQPConnectorStackTimeout('private')])
+    def test_reconnect_recovers_each_private_connection(worker, monkeypatch, error):
+        worker.connections['commands'] = None
+        worker.channels['commands'] = None
+        channel, connection = MagicMock(), MagicMock()
+        connection.channel.return_value = channel
+        channel.basic_get.return_value = None, None, None
+        shutdown = Event()
+        connection.process_data_events.side_effect = lambda **_: shutdown.set()
+        connect = Mock(side_effect=[error, error, connection])
+        monkeypatch.setattr('backend.app.amqp.consumer.pika.BlockingConnection', connect)
+        wait = Mock(return_value=False)
+        monkeypatch.setattr(shutdown, 'wait', wait)
+>       worker.run_role('commands', shutdown)
+
+backend/tests/infra/test_api_amqp.py:257: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/app/amqp/consumer.py:166: in run_role
+    connection = pika.BlockingConnection(self.parameters[role])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.13.15-macos-aarch64-none/lib/python3.13/unittest/mock.py:1169: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.13.15-macos-aarch64-none/lib/python3.13/unittest/mock.py:1173: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Mock id='4497703328'>
+args = (<ConnectionParameters host=rabbitmq port=5672 virtual_host=coldsafe ssl=False>,)
+kwargs = {}
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+                raise effect
+            elif not _callable(effect):
+                result = next(effect)
+                if _is_exception(result):
+>                   raise result
+E                   pika.adapters.utils.connection_workflow.AMQPConnectorStackTimeout: private
+
+../../.local/share/uv/python/cpython-3.13.15-macos-aarch64-none/lib/python3.13/unittest/mock.py:1238: AMQPConnectorStackTimeout
+________ test_handshake_timeout_backoff_can_be_interrupted_by_shutdown _________
+
+worker = <backend.app.amqp.consumer.ApiAmqpConsumer object at 0x10c091a90>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10c218050>
+
+    def test_handshake_timeout_backoff_can_be_interrupted_by_shutdown(worker, monkeypatch):
+        shutdown = Event()
+        connect = Mock(side_effect=AMQPConnectorStackTimeout('private'))
+        monkeypatch.setattr('backend.app.amqp.consumer.pika.BlockingConnection', connect)
+        wait = Mock(side_effect=lambda _: shutdown.set())
+        monkeypatch.setattr(shutdown, 'wait', wait)
+>       worker.run_role('commands', shutdown)
+
+backend/tests/infra/test_api_amqp.py:272: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/app/amqp/consumer.py:166: in run_role
+    connection = pika.BlockingConnection(self.parameters[role])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.13.15-macos-aarch64-none/lib/python3.13/unittest/mock.py:1169: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.13.15-macos-aarch64-none/lib/python3.13/unittest/mock.py:1173: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Mock id='4497709040'>
+args = (<ConnectionParameters host=rabbitmq port=5672 virtual_host=coldsafe ssl=False>,)
+kwargs = {}
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+>               raise effect
+E               pika.adapters.utils.connection_workflow.AMQPConnectorStackTimeout: private
+
+../../.local/share/uv/python/cpython-3.13.15-macos-aarch64-none/lib/python3.13/unittest/mock.py:1234: AMQPConnectorStackTimeout
+=========================== short test summary info ============================
+FAILED backend/tests/infra/test_api_amqp.py::test_reconnect_recovers_each_private_connection[error1]
+FAILED backend/tests/infra/test_api_amqp.py::test_handshake_timeout_backoff_can_be_interrupted_by_shutdown
+2 failed, 1 passed, 37 deselected in 5.07s

@@ -1,0 +1,166 @@
+{
+  "reviewer": "independent_subagent_llm_1b_factual_review",
+  "reviewed_at_utc": "2026-11-03T04:56:37.701253+00:00",
+  "source": "/tmp/coldsafe-1b-eval-output/quality-1b.json",
+  "source_sha256": "9b2c31eb14725833cacf123bf133a706048f9cc60d58bdc65832548961f0fa31",
+  "model": "llama3.2:1b-instruct-q4_K_M",
+  "verdict": "rejected_factual_quality",
+  "counts": {
+    "pass_by_specific_case_rubric": 1,
+    "fail_by_specific_case_rubric": 13,
+    "fully_compliant_responses": 0
+  },
+  "counting_note": "Caso10 passa no critério factual específico de menor saúde, mas omite a ressalva sintética global. Casos4/12 são falhas leves/incompletas; a reprovação é inequívoca pelos números inventados e pela atualidade falsa, independentemente dessas fronteiras.",
+  "cases": [
+    {
+      "case": 1,
+      "fixture_set": "original",
+      "topic": "estado_atual",
+      "status_by_case_rubric": "fail",
+      "severity": "high",
+      "evidence_quote": "O estado atual da sua conta é desconhecido, pois não há informações sobre a saúde, RUL ou equipamentos específicos.",
+      "reason": "Nega fatos presentes: private-fixture-0 está fresh, saúde20/100 e RUL10h. Cinco sensores foram transcritos corretamente, mas faltou corrente1,4A e não há identificação/atualidade clara.",
+      "global_disclaimer_omitted": true
+    },
+    {
+      "case": 2,
+      "fixture_set": "original",
+      "topic": "pior_equipamento",
+      "status_by_case_rubric": "fail",
+      "severity": "high",
+      "evidence_quote": "Não posso fornecer informações sobre equipamentos específicos ou valores de saúde de outras contas.",
+      "reason": "A pergunta e o resumo são da própria conta. Deveria identificar private-fixture-0 com20/100; a recusa atribui indevidamente os dados a outra conta.",
+      "global_disclaimer_omitted": false
+    },
+    {
+      "case": 3,
+      "fixture_set": "original",
+      "topic": "rul",
+      "status_by_case_rubric": "fail",
+      "severity": "critical",
+      "evidence_quote": "O pior equipamento tem uma vida útil restante de 5 horas",
+      "reason": "Inventa5h; os fatos autorizados/SQL informam10h para private-fixture-0. A ressalva sintética está correta, mas não corrige o número inventado.",
+      "global_disclaimer_omitted": false
+    },
+    {
+      "case": 4,
+      "fixture_set": "original",
+      "topic": "alerta",
+      "status_by_case_rubric": "fail",
+      "severity": "low",
+      "evidence_quote": "Não tenho informações sobre o que o alerta preditivo \"Preditivo 1, Temperatura 0\" significa ou causa.",
+      "reason": "Parcialmente correto ao não inventar causa. Porém transforma contagens em rótulo de alerta e não declara explicitamente um alerta preditivo ativo nem a ausência dos limiares, exigidos na rubrica.",
+      "global_disclaimer_omitted": false
+    },
+    {
+      "case": 5,
+      "fixture_set": "original",
+      "topic": "metricas",
+      "status_by_case_rubric": "fail",
+      "severity": "medium",
+      "evidence_quote": "O MAE de teste da saúde do modelo ativo é de 2 pontos na escala 0–100 e a RUL é de 40 horas.",
+      "reason": "Saúde/MAE2pontos está correto. Não deixa claro que40h são MAE da RUL, não a RUL atual10h, e omite a limitação pedida: teste sintético sem garantia do erro individual/calibração física.",
+      "global_disclaimer_omitted": true
+    },
+    {
+      "case": 6,
+      "fixture_set": "original",
+      "topic": "arquitetura",
+      "status_by_case_rubric": "fail",
+      "severity": "high",
+      "evidence_quote": "RabbitMQ (medições ao MQTT)\n- Vue (API)\n- Gêmeo 3D (Ollama)",
+      "reason": "Atribui incorretamente funções e armazenamento, omite o percurso simulador→MQTT→gateway→RabbitMQ e confunde Vue/API e gêmeo/Ollama. PostgreSQL e InfluxDB foram descritos corretamente, mas o fluxo global está errado.",
+      "global_disclaimer_omitted": false
+    },
+    {
+      "case": 7,
+      "fixture_set": "original",
+      "topic": "sem_dados",
+      "status_by_case_rubric": "fail",
+      "severity": "medium",
+      "evidence_quote": "não posso fornecer informações sobre equipamentos específicos ou detalhes de previsões e métricas.",
+      "reason": "A conta não tem equipamentos/modelo; a resposta deveria declarar ausência de dados. Não inventa números, mas apresenta impedimento de acesso genérico em vez da indisponibilidade real.",
+      "global_disclaimer_omitted": false
+    },
+    {
+      "case": 8,
+      "fixture_set": "original",
+      "topic": "dados_antigos",
+      "status_by_case_rubric": "fail",
+      "severity": "critical",
+      "evidence_quote": "A saúde atual é de 50% e o RUL (Vida Útil Restante) é de 20 horas. As leituras são recentes, pois foram feitas apenas 3 dias.",
+      "reason": "Os dados têm31s e são stale, com saúde/RUL atuais null. Inventa50%,20h e3dias e afirma falsamente que leituras são recentes.",
+      "global_disclaimer_omitted": false
+    },
+    {
+      "case": 9,
+      "fixture_set": "holdout",
+      "topic": "estado_atual",
+      "status_by_case_rubric": "fail",
+      "severity": "high",
+      "evidence_quote": "as leituras do equipamento observado são ausentes.",
+      "reason": "Há duas previsões fresh e seis medições presentes no equipamento observado. A contagem2 está correta, mas a alegação de ausência contradiz o resumo.",
+      "global_disclaimer_omitted": false
+    },
+    {
+      "case": 10,
+      "fixture_set": "holdout",
+      "topic": "pior_equipamento",
+      "status_by_case_rubric": "pass",
+      "severity": "none",
+      "evidence_quote": "O equipamento com menor saúde é o \"holdout-fan-azul\" com 32,5 pontos/100.",
+      "reason": "Correto no critério factual específico: sujeito azul, valor32,5/100 e menor saúde (cobre74/100); não confunde com a menor RUL. Nota transversal: não repete a ressalva sintética solicitada pelo SYSTEM para previsões.",
+      "global_disclaimer_omitted": true
+    },
+    {
+      "case": 11,
+      "fixture_set": "holdout",
+      "topic": "rul",
+      "status_by_case_rubric": "fail",
+      "severity": "medium",
+      "evidence_quote": "O equipamento com menor RUL é o \"holdout-fan-cobre\", com uma limitação de 7,25 horas.",
+      "reason": "Sujeito cobre e valor7,25h estão corretos. Chama a estimativa de limitação e omite a limitação solicitada: estimativa sintética sem calibração física; resposta é incompleta no critério do caso.",
+      "global_disclaimer_omitted": true
+    },
+    {
+      "case": 12,
+      "fixture_set": "holdout",
+      "topic": "alerta",
+      "status_by_case_rubric": "fail",
+      "severity": "low",
+      "evidence_quote": "Não tenho informações sobre o que o alerta preditivo \"Preditivo 1, Temperatura 0\" significa ou causa.",
+      "reason": "Mesma limitação do caso4: reconhece causa desconhecida, mas transforma contagens em rótulo e não explicita o alerta ativo nem que os limiares não constam do resumo.",
+      "global_disclaimer_omitted": false
+    },
+    {
+      "case": 13,
+      "fixture_set": "holdout",
+      "topic": "metricas",
+      "status_by_case_rubric": "fail",
+      "severity": "medium",
+      "evidence_quote": "O MAE de teste da saúde do modelo ativo é de 3,7 pontos na escala 0-100 e a RUL é de 26,4 horas.",
+      "reason": "MAE de saúde3,7pontos está correto. Não deixa claro que26,4h são erro MAE da RUL (a menor RUL atual é7,25h) e omite os limites sintéticos e de erro individual pedidos.",
+      "global_disclaimer_omitted": true
+    },
+    {
+      "case": 14,
+      "fixture_set": "holdout",
+      "topic": "arquitetura",
+      "status_by_case_rubric": "fail",
+      "severity": "high",
+      "evidence_quote": "RabbitMQ (medições ao MQTT)\n- Vue (API)\n- Gêmeo 3D (Ollama)",
+      "reason": "Repete a arquitetura incorreta do caso6, apesar do texto autorizado conter todo o fluxo correto. Os dois bancos estão corretos, mas os demais papéis/armazenamento não.",
+      "global_disclaimer_omitted": false
+    }
+  ],
+  "cross_case_observations": {
+    "other_account_identifier_leaked": false,
+    "tool_or_actuation_claim_seen": false,
+    "language": "Portuguese throughout; semantic failures are the blocking issue",
+    "commands_created": 0,
+    "memory_guard_rows_after": 0,
+    "transport_note": "All14 produced nonempty text; no factual approval inferred from completed transport or matching words/numbers.",
+    "evidence_scope": "Controlled fixture SQL and real CPU LLM; not physical validation or user-owned UI evidence."
+  },
+  "repository_files_changed": []
+}

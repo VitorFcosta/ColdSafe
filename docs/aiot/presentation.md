@@ -1,10 +1,144 @@
 # Apresentação final — 16/11/2026
 
 Apresentação presencial em 2026-11-16, diretamente na aplicação, sem slides.
-**Roteiro revisado na B2-35 em 23/10/2026; ensaio completo B2-36 ainda pendente.**
+**Roteiro revisado na B2-35 em 23/10/2026; B2-36 concluída por aceite manual do usuário em 25/10/2026.**
 A ordem abaixo reproduz o [enunciado do professor](../history/assignment.md).
 Resultados anteriores são identificados como evidência histórica; este documento
-não afirma que a demonstração foi executada novamente.
+não afirma que os 12 passos tenham sido executados novamente. A preparação
+Docker de 02/11/2026 está registrada separadamente abaixo.
+
+## Preparação Docker do redesign — 02–03/11/2026
+
+**Redesign e núcleo operacionais; apresentação completa pendente do assistente.**
+O redesign foi reconstruído com AIoT habilitado,
+usando os cinco arquivos Compose do runbook e os volumes pessoais existentes.
+A entrada continua em [http://localhost:5173/](http://localhost:5173/), com Nginx
+sem root e API/Swagger locais. Não houve commit, push, troca de senha ou papel,
+nem descarte de volumes, filas, datasets ou modelos.
+
+- O intervalo privado `SIMULATOR_INTERVAL_SECONDS` passou de `1` para `5`.
+  `SIMULATOR_STEP_SECONDS=60` foi preservado: cada leitura avança um minuto de
+  desgaste sintético, agora a cada cinco segundos de relógio. Isso equivale a
+  12× no desgaste, não acelera as janelas UTC das features. Recriar o simulador
+  reiniciou seu estado físico em memória; isso não demonstra recuperação de falha.
+- O gateway ganhou índices de pendentes em `ingress(sent)` e `errors(sent)`.
+  Eles são criados também em diários existentes, preservando registros, ordem
+  e deduplicação. O plano deixou de varrer todos os enviados para procurar
+  pendências. O ganho total de latência não foi isolado das demais intervenções.
+- A API passou a capturar `AMQPConnectorStackTimeout` no laço de reconexão já
+  existente. Essa exceção do Pika não herda de `AMQPError`: antes encerrava uma
+  thread, deixando consultas HTTP disponíveis, readiness em `503` e a fila de
+  comandos sem consumo. Testes verificaram duas falhas, backoff e reconexão.
+- A primeira rodada encontrou duas recusas `LLM_BUSY` e uma geração expirada
+  sem resposta. Houve degradação e reinícios por timeout de handshake AMQP;
+  não foram observados eventos Docker `oom` nessa coleta. A rodada começou
+  na bateria; depois o usuário conectou o carregador. Esses fatos não provam
+  uma causa única. Docker Desktop foi reiniciado sem remover volumes.
+- O marcador `llm_memory_guard` deixado por uma carga interrompida foi recuperado
+  pelo procedimento do runbook: coordenador parado, Ollama reiniciado, nenhum
+  job em execução, remoção somente do marcador operacional e retomada.
+- Após a recuperação, telemetria atual/persistida voltou à API. Dois comandos
+  de LED foram comprovados por estado `pending`, ACK `confirmed` e telemetria
+  observada: ligar e depois desligar, restaurando o estado inicial. Um comando
+  anterior durante o backlog terminou `unconfirmed`, sem ser contado como sucesso.
+- O 3B expirou também na tomada e em ensaio temporário de 4 GiB, sem primeira
+  parte de resposta. O teto original de `3328m` foi restaurado. Houve paginação
+  intensa do host; aumentar o limite do container não resolveu o ensaio.
+- Em 03/11, o usuário autorizou o candidato `llama3.2:1b-instruct-q4_K_M`,
+  mantendo seus aplicativos abertos e os modelos de saúde/RUL. Os pesos 1B foram
+  baixados sem apagar os 3B. O 1B foi **reprovado por qualidade factual** nos
+  testes com PostgreSQL/Ollama CPU reais e fixtures declaradas: inventou RUL de
+  5 h em vez de 10 h e inventou saúde/RUL atuais para leituras antigas. A troca
+  de perfil foi revertida; não apresentar o 1B como aprovado ou como solução.
+  [Respostas e fatos](../evidence/docker-presentation-2026-11-02/quality-1b-2026-11-03.json)
+  e [revisão independente](../evidence/docker-presentation-2026-11-02/quality-1b-independent-review-2026-11-03.json).
+- Também por autorização do usuário, o Qwen `qwen2.5:1.5b-instruct-q4_K_M`
+  foi testado isoladamente em 03/11, com PostgreSQL e Ollama CPU reais e os
+  mesmos 14 casos do avaliador existente. Na primeira rodada, duas respostas
+  concluíram, uma geração ficou sem conclusão SSE e onze encontraram o modelo indisponível após a
+  descarga. Uma única revisão mais curta das instruções, mantendo resposta em
+  português e os limites de segurança, foi avaliada em outro banco descartável:
+  cinco respostas concluíram, uma geração ficou sem conclusão SSE e oito registraram
+  `LLM_NOT_READY`. O Qwen chamou a previsão de RUL de 10 h de “limitação de
+  10 horas” e omitiu a limitação pedida na pergunta sobre métricas. A revisão
+  independente o **reprovou por qualidade e disponibilidade**. Os casos sem
+  resposta não comprovam alucinação nem qualidade factual; em particular,
+  ausência de dados, leituras antigas e holdouts não puderam ser avaliados.
+  [Rodada inicial](../evidence/docker-presentation-2026-11-02/quality-qwen-initial-2026-11-03.json),
+  [rodada adicional](../evidence/docker-presentation-2026-11-02/quality-qwen-short-prompt-2026-11-03.json)
+  e [revisão independente](../evidence/docker-presentation-2026-11-02/quality-qwen-independent-review-2026-11-03.json).
+- As sete substituições de identificador e os dois arquivos do experimento de
+  instruções/teste foram restaurados byte a byte. O candidato não foi liberado
+  na conta pessoal. Os dois bancos descartáveis foram removidos após preservar
+  os relatórios, sem criar comandos de atuadores. As imagens de backend,
+  geração, treino, modelos e coordenador foram reconstruídas com o perfil 3B
+  original; os quatro primeiros serviços foram retomados e verificados.
+- A resposta completa e factualmente adequada do assistente continua pendente.
+  `healthy`, velocidade ou ausência de comandos indevidos não atendem sozinhos
+  a esse critério. Outro perfil depende da escolha do usuário e de nova avaliação.
+  Ao encerrar o teste Qwen, os 12 serviços principais estavam saudáveis, readiness
+  e resumo retornavam `200`, e a telemetria estava atual/persistida. Ollama e seu
+  coordenador ficaram parados; o backend voltou ao identificador 3B. Não prometer
+  novos jobs pesados nessa condição: a coordenação configurada exige confirmar
+  a descarga do Ollama antes de iniciar geração/treino. A pilha completa deve
+  ser retomada e ensaiada após qualificar o próximo perfil.
+  A conferência autenticada final encontrou seis medições atuais/persistidas,
+  previsão disponível, LED desligado e a mesma versão preditiva anterior.
+  Permanecem duas contas (admin e operador), um dataset, dois jobs concluídos e
+  um modelo ativo; não foram gerados ou treinados novos artefatos pessoais.
+
+Verificação nova: build Docker com typecheck, 31 funções de teste existentes de
+configuração executadas diretamente com asserts (sem fixtures), e 40 testes do
+gateway em Python 3.13.15; cobertura do módulo `gateway.bridge`, incluindo ramos,
+de 95,24%; outros 40 testes do consumidor AMQP passaram, com 89,77% no módulo.
+No candidato 1B passaram 72 testes de protocolo/backend e 12 do componente de
+estado, mas isso não aprovou a linguagem. Após restaurar o identificador 3B,
+90 verificações de protocolo/coordenação passaram em Python 3.13.15 no cliente
+Linux descartável: PostgreSQL real, executores pequenos e Ollama simulado nessa
+suíte, com 97,09% no módulo `backend.app.services.llm`, incluindo ramos.
+No candidato Qwen, os 90 testes de protocolo/coordenação e 12 testes do estado
+no frontend também passaram. A última suíte do candidato cobriu `llm` e
+`assistant_transport`, com 96,49% combinados, incluindo ramos. Isso é teste de
+protocolo com Ollama simulado e PostgreSQL real, separado das duas avaliações
+de texto com Ollama real; não constitui aprovação factual do Qwen.
+O ambiente do cliente foi isolado das opções de produção; as fixtures criaram
+e removeram bancos próprios. Esses testes não comprovam respostas do modelo.
+O pytest do ambiente pessoal ficou bloqueado em leitura de arquivos;
+os testes do gateway usaram ambiente temporário com versões já fixadas. Não é
+uma nova execução da suíte completa nem cobertura global. Nenhuma dependência
+Python/Node foi adicionada ao projeto. Os pesos experimentais 1B (cerca de
+808 MB) e Qwen (cerca de 986 MB) são artefatos novos de infraestrutura,
+preservados no volume e sem aprovação de uso. Os pesos 3B foram preservados.
+
+Próxima ação recomendada, ainda não implementada: avaliar execução acelerada
+do perfil 3B, antes de escolher outro modelo pequeno. A documentação atual do
+[Docker Model Runner](https://docs.docker.com/ai/model-runner/inference-engines/)
+descreve aceleração Metal para Apple Silicon. Isso é uma alternativa técnica,
+não uma medição neste Mac: exige conferir disponibilidade local, adaptar os
+contratos de inferência/carga/descarga e repetir os testes de memória, segurança
+e qualidade. Depende de nova escolha do usuário; não foi instalado nem ativado.
+
+Planejamento posterior, em 03/11: o usuário escolheu documentar um
+[roadmap do assistente com Metal](assistant-metal-roadmap.md), com ensaio futuro
+na bateria e aplicativos pessoais abertos. O documento separa viabilidade
+isolada de integração com a pilha, define critérios e reversão e registra as
+consultas de disponibilidade já realizadas. Somente a documentação foi
+autorizada nesta entrega; implementação, download e execução continuam pendentes.
+Esse cenário não altera a condição na tomada do roteiro de apresentação abaixo.
+
+O navegador autenticado confirmou seis medições, histórico e modelo ativo;
+WebGL 2 real com nove componentes, seleção por teclado, ID/dados associados e
+reflow em 390 px. A captura em
+[390 px](../evidence/docker-presentation-2026-11-02/twin-390px.jpg) é da primeira
+rodada, antes da recuperação operacional; não comprova a condição final da pilha.
+O dataset de um milhão e os dois jobs concluídos são de 25/10/2026, preservados
+e consultados novamente, não geração/treino novos.
+
+No fechamento complementar da RD-18 em 03/11, as quatro telas autoatualizadas
+receberam controle de ocultar/mostrar dados ao vivo, mantendo coleta e comandos.
+O ensaio atual com leitor de tela foi dispensado pelo usuário e continua sem
+validação demonstrada. Consulte o [checkpoint RD-18](../redesign/tasks/RD-18.md#checkpoint).
+Esse fechamento não qualifica o assistente nem inicia outro RD.
 
 ## Preparação antes de chamar o professor
 
@@ -51,7 +185,7 @@ usar `down`/recriação do simulador reinicia sua trajetória física.
 
 | Passo | Ação e observação esperada | Fonte para conferir |
 | --- | --- | --- |
-| 1. Infraestrutura | Executar `coldsafe up -d --build --wait --wait-timeout 300` e `coldsafe ps -a`. Mostrar 14 contínuos saudáveis; inicializadores de brokers encerrados com zero. Preparo de pesos já concluído. Conferir `/health/live` e `/health/ready`. | [Compose base](../../compose.yaml), [runbook](../runbook.md), [B2-34/R4](../evidence/b2-34.json) |
+| 1. Infraestrutura | Executar `coldsafe up -d --build --wait --wait-timeout 420` e `coldsafe ps -a`. Mostrar 14 contínuos saudáveis; inicializadores de brokers encerrados com zero. Preparo de pesos já concluído. Conferir `/health/live` e `/health/ready`. | [Compose base](../../compose.yaml), [runbook](../runbook.md), [B2-34/R4](../evidence/b2-34.json) |
 | 2. Login e três papéis | Entrar separadamente como viewer, operator e admin; conferir papel atual. Viewer consulta, escrita deve ser recusada; operator altera apenas o seu cadastro/regras/LED; páginas administrativas exigem admin. Usar requisições autenticadas pelo OpenAPI para conferir recusa 403 quando a UI não oferece o botão. Outro proprietário recebe 404/recusa, mesmo sendo admin. | [Autenticação/papéis](../../backend/app/api/auth.py), [rotas v3](../../backend/app/api/aiot.py), [catálogo](../../backend/app/api/catalog.py) |
 | 3. Sensores e MQTT | Voltar à conta proprietária live; mostrar catálogo com seis sensores, dois atuadores e um ventilador. `coldsafe logs --tail 20 simulator gateway` mostra operação sem revelar credenciais. Mostrar tópicos e fluxo MQTT → gateway; no dashboard conferir idade/valores mudando, não apenas conexão. | [Simulador](../../simulator/README.md), [contrato v3](../../contracts/aiot.md), [diagrama de telemetria](architecture.md#telemetria-recibo-e-entrega-web) |
 | 4. FastAPI/REST | Abrir o link da API na interface ou `/docs` pela porta 5173. Mostrar contratos, autenticação, resumo/histórico do próprio dispositivo e respostas sem dados de terceiros. Não projetar o token ao autorizar. | [Proxy](../../frontend/nginx.conf), [rotas](../../backend/app/api/aiot.py), [OpenAPI local](http://localhost:5173/docs) |
@@ -178,7 +312,40 @@ Os ensaios e a revisão descritos acima ocorreram antes dos commits de entrega.
 O usuário autorizou posteriormente o commit e o push; conferir no histórico Git
 a versão entregue.
 
+## Respostas curtas para vitor hugo
+
+- **MQTT e RabbitMQ:** MQTT liga o dispositivo à borda. RabbitMQ distribui eventos
+  entre os serviços, com filas duráveis e reentrega. PUBACK/publisher confirm são
+  transporte; não provam que o LED mudou nem que a leitura chegou ao banco.
+- **Bancos:** InfluxDB guarda as séries live. PostgreSQL guarda contas, regras,
+  auditoria, jobs/modelos e a projeção v3 usada pelo HTTP. SQLite é o diário do
+  gateway; datasets/pacotes/pesos ficam nos volumes apropriados.
+- **Comandos:** o pedido expressa o estado desejado; ACK correlacionado confirma
+  a resposta da aplicação de borda; a próxima telemetria mostra o estado observado.
+- **IA causal:** as janelas de 900/3600 s usam somente dados anteriores ao instante
+  previsto. Dividir por equipamento evita testar com outro trecho do mesmo
+  equipamento usado no treino. Rótulos verdadeiros ficam apenas no dataset offline.
+- **Métricas:** MAE é erro absoluto médio, RMSE dá mais peso a erros grandes e
+  R² compara a regressão com a variação do alvo. Comparar com baseline ajuda a
+  avaliar utilidade no dataset; bons números sintéticos não certificam máquina real.
+- **Falta de dados:** após 30 s, interface/predição indicam indisponibilidade e
+  animação congela. Sem modelo ou sem uma hora causal, não inventamos saúde/RUL.
+- **3D:** cada seleção conserva o ID do cadastro e mostra a leitura do mesmo
+  backend do dashboard. Geometria e escalas visuais são ilustrativas; não são
+  medição/calibração do equipamento físico.
+- **Memória e LLM:** geração/treino são serializados e descarregam o modelo de
+  linguagem antes do cálculo. O assistente recebe resumo privado somente leitura,
+  não executa comandos e deve declarar quando o resumo não contém a informação.
+- **Autoria:** vitor hugo é o único integrante informado e o autor registrado no
+  Git. Na apresentação, relacionar cada fluxo ao código, ao commit e à evidência
+  real; uso de ferramentas não substitui saber explicar as decisões.
+
 ## Registro de ensaio — preencher na B2-36
+
+O quadro abaixo preserva o estado da revisão B2-35. O encerramento posterior da
+[B2-36](tasks/B2-36.md), com evidências, limites e confirmação pelo usuário da
+correção final do assistente, está registrado no cartão; não representa nova
+execução automatizada ou medição dos campos históricos abaixo.
 
 | Campo | Estado nesta B2-35 |
 | --- | --- |

@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-11-03T05:46:37.679Z",
+  "mocked": false,
+  "health_ready_http": 200,
+  "auth_http": 200,
+  "role": "admin",
+  "monitoring_summary_http": 200,
+  "freshness": "fresh",
+  "sample_age_seconds": 3.751206,
+  "persistence": "persisted",
+  "telemetry_event_id": "7bd56b76-5ee7-49a4-833a-62fa6dacee86",
+  "measurements_count": 6,
+  "predictive_model_version": "training-612e4d17-2bad-427c-bc42-29cf372a068f",
+  "prediction_status": "available",
+  "led_observed": false,
+  "llm_http": 200,
+  "llm_status": {
+    "state": "unavailable",
+    "model": "llama3.2:3b-instruct-q4_K_M"
+  }
+}

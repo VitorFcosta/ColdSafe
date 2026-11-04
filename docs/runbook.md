@@ -144,7 +144,11 @@ outra conta deve ser recusada. Antes de chegar telemetria, o resumo autenticado
 pode representar ausência de leitura sem que a API esteja indisponível.
 
 REST, WebSocket, `/docs`, `/redoc` e `/openapi.json` usam a mesma porta do
-frontend. O container serve o build Vue por Nginx sem root; não executa Vite
+frontend. `/docs` carrega JS/CSS/favicon locais de `/docs-assets/`, sem CDN ou
+validador remoto; `/redoc` redireciona para a mesma documentação. Acesse pela
+porta do frontend: os assets são servidos pelo Nginx, não pela porta de diagnóstico
+direta do backend. Downloads de dependências/pesos acontecem no preparo/build,
+antes do ensaio sem rede externa. O container serve o build Vue por Nginx sem root; não executa Vite
 nem monta os fontes. A documentação HTTP tem link no dashboard.
 
 Para Wokwi ou diagnóstico opcional, habilite explicitamente o override:
@@ -240,7 +244,7 @@ do proprietário. O bootstrap de infraestrutura não cria contas de aplicação.
    ```sh
    coldsafe stop llm ollama
    coldsafe --profile llm-setup run --rm --no-deps ollama-prepare
-   coldsafe up -d --build --wait --wait-timeout 300
+   coldsafe up -d --build --wait --wait-timeout 420
    coldsafe ps -a
    ```
 
@@ -263,8 +267,12 @@ e [B2-34](aiot/tasks/B2-34.md). A rodada B2-34/R4 passou com o Mac conectado à
 tomada (AC/60 W), sem OOM nas amostras; o treino ficou próximo de 1 GiB e as
 quatro respostas SSE levaram 35–67 s. Falhas anteriores foram preservadas, sem
 atribuir causalidade exclusiva à bateria. Use a máquina ligada à tomada e sem
-concorrência de testes pesados no ensaio. Os 300 s de espera do Compose são
-o limite de orquestração usado na R4; não alteram o timeout de geração do LLM.
+concorrência de testes pesados no ensaio. A B2-36 ajusta o prazo de pré-carga
+para 300 s e usa 420 s na preparação da pilha; geração de respostas permanece
+limitada a 90 s. O heartbeat/start_period do coordenador usa 360 s: cobre
+pré-carga de 300 s após descarga normal rápida, sem garantir o pior caso teórico
+de descarga de 180 s seguida de carga de 300 s. Disponibilidade do modelo deve
+ser conferida em `/api/v3/llm/status`, além da saúde dos containers.
 Os limites do Compose não constituem medição de consumo. Para reproduzir o
 ensaio automatizado, use a pilha descartável descrita no cartão, sem apontar o
 teste para volumes/credenciais pessoais.
@@ -279,7 +287,7 @@ O volume `gateway-state` guarda o diário de borda; `job-artifacts` e
 
 ```sh
 coldsafe down
-coldsafe up -d --wait --wait-timeout 300
+coldsafe up -d --wait --wait-timeout 420
 coldsafe ps -a
 ```
 

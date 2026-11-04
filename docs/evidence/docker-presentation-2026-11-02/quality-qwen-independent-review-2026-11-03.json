@@ -1,0 +1,136 @@
+{
+  "review_source": "/tmp/coldsafe-qwen-eval-output/quality-qwen-short-prompt.json",
+  "verdict": "NOT_READY_FOR_DOCKER_ACCEPTANCE",
+  "scope": "Independent read-only review of recorded answers against authorized summaries, expected facts, rubrics, current SYSTEM and formatter. No re-execution and no source/docs/Docker changes.",
+  "counts": {
+    "recorded_cases": 14,
+    "completed_answers": 5,
+    "incomplete_sse": 1,
+    "llm_not_ready": 8,
+    "factual_quality_assessable": 5,
+    "full_system_compliance_passes": 0
+  },
+  "findings": [
+    "No unauthorized equipment name, cross-account fact, tool-use claim or invented sensor/metric number observed in the five completed answers. This is limited evidence, not security certification.",
+    "Case 3 has a materially misleading unsupported limitation; case 5 fails the explicitly requested limitation.",
+    "All completed prediction/metric answers omit the explicit lack of physical calibration required by SYSTEM; case 4 communicates the other principal caveats.",
+    "No-data, stale-data and every holdout case were operationally unassessable. In particular, separation of health and RUL minima was not demonstrated.",
+    "One INCOMPLETE_SSE and eight LLM_NOT_READY outcomes block operational acceptance separately from answer-quality failures."
+  ],
+  "cases": [
+    {
+      "case": 1,
+      "fixture_set": "original",
+      "topic": "estado_atual",
+      "status": "partial_answer_contract_fail",
+      "assessment": "All reported sensor values/units, account count, health 20/100 and RUL 10 h match the authorized summary. It does not identify the machine or disclose that the values belong to a partial sample. It also omits synthetic/no-calibration/no-individual-error limitations required by SYSTEM for predictions. No invented numeric value.",
+      "transport_error_code": null
+    },
+    {
+      "case": 2,
+      "fixture_set": "original",
+      "topic": "pior_equipamento",
+      "status": "core_facts_correct_instruction_fail",
+      "assessment": "Correct authorized machine private-fixture-0 and minimum health 20 points/100. The extra minimum RUL 10 h happens to be true for this fixture but violates ONLY the requested quantity. Synthetic/no-calibration/no-individual-error limitations omitted. This original fixture cannot demonstrate that different health/RUL minima will be kept separate.",
+      "transport_error_code": null
+    },
+    {
+      "case": 3,
+      "fixture_set": "original",
+      "topic": "rul",
+      "status": "fail_misleading_limitation",
+      "assessment": "RUL estimated 10 h is correct, but Limitação: 10 horas is unsupported as a limitation or uncertainty. It repeats the estimate instead of explaining synthetic data and lack of physical calibration/operational accuracy. It may mislead a reader into treating 10 h as an uncertainty bound. Requested limitation is not answered, and the machine is not named.",
+      "transport_error_code": null
+    },
+    {
+      "case": 4,
+      "fixture_set": "original",
+      "topic": "alerta",
+      "status": "core_rubric_pass_minor_contract_gap",
+      "assessment": "Correctly acknowledges an active predictive alert and unknown cause/thresholds without inventing them or claiming an action. Correctly says synthetic prediction does not guarantee a physical failure and test errors do not guarantee individual errors. Portuguese previously alerted wording is imprecise/tautological. Explicit lack of physical calibration required by SYSTEM is omitted, so this is not a full SYSTEM-compliance pass.",
+      "transport_error_code": null
+    },
+    {
+      "case": 5,
+      "fixture_set": "original",
+      "topic": "metricas",
+      "status": "fail_requested_limitation_missing",
+      "assessment": "Health test MAE 2 points on 0–100 and RUL test MAE 40 h are correct, and explicitly distinguished from current predictions. The user-requested limitation is absent: synthetic validation, no physical calibration, no guarantee for each prediction error. No invented metric or unit.",
+      "transport_error_code": null
+    },
+    {
+      "case": 6,
+      "fixture_set": "original",
+      "topic": "arquitetura",
+      "status": "operational_failure_factual_quality_not_assessed",
+      "assessment": "INCOMPLETE_SSE: architecture attempt produced no recorded completed answer; do not call this a factual hallucination.",
+      "transport_error_code": "INCOMPLETE_SSE"
+    },
+    {
+      "case": 7,
+      "fixture_set": "original",
+      "topic": "sem_dados",
+      "status": "operational_failure_factual_quality_not_assessed",
+      "assessment": "LLM_NOT_READY after unload: no recorded answer; factual ability on this case remains untested, not incorrect.",
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "case": 8,
+      "fixture_set": "original",
+      "topic": "dados_antigos",
+      "status": "operational_failure_factual_quality_not_assessed",
+      "assessment": "LLM_NOT_READY after unload: no recorded answer; factual ability on this case remains untested, not incorrect.",
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "case": 9,
+      "fixture_set": "holdout",
+      "topic": "estado_atual",
+      "status": "operational_failure_factual_quality_not_assessed",
+      "assessment": "LLM_NOT_READY after unload: no recorded answer; factual ability on this case remains untested, not incorrect.",
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "case": 10,
+      "fixture_set": "holdout",
+      "topic": "pior_equipamento",
+      "status": "operational_failure_factual_quality_not_assessed",
+      "assessment": "LLM_NOT_READY after unload: no recorded answer; factual ability on this case remains untested, not incorrect.",
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "case": 11,
+      "fixture_set": "holdout",
+      "topic": "rul",
+      "status": "operational_failure_factual_quality_not_assessed",
+      "assessment": "LLM_NOT_READY after unload: no recorded answer; factual ability on this case remains untested, not incorrect.",
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "case": 12,
+      "fixture_set": "holdout",
+      "topic": "alerta",
+      "status": "operational_failure_factual_quality_not_assessed",
+      "assessment": "LLM_NOT_READY after unload: no recorded answer; factual ability on this case remains untested, not incorrect.",
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "case": 13,
+      "fixture_set": "holdout",
+      "topic": "metricas",
+      "status": "operational_failure_factual_quality_not_assessed",
+      "assessment": "LLM_NOT_READY after unload: no recorded answer; factual ability on this case remains untested, not incorrect.",
+      "transport_error_code": "LLM_NOT_READY"
+    },
+    {
+      "case": 14,
+      "fixture_set": "holdout",
+      "topic": "arquitetura",
+      "status": "operational_failure_factual_quality_not_assessed",
+      "assessment": "LLM_NOT_READY after unload: no recorded answer; factual ability on this case remains untested, not incorrect.",
+      "transport_error_code": "LLM_NOT_READY"
+    }
+  ],
+  "bounded_trial_recommendation": "Reject readiness for this evaluated setup. End the authorized bounded prompt clarification trial; propose no further tuning or next task automatically.",
+  "not_checked": "No independent SQL queries, real hardware/calibration, additional model generations or root-cause investigation of unload/SSE failures. No source or docs were mutated."
+}

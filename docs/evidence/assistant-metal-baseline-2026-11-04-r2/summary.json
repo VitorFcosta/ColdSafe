@@ -1,0 +1,198 @@
+{
+  "status": "interrupted_not_approved",
+  "reason": "memory_warning_60_seconds",
+  "valid_baseline": false,
+  "samples": 13,
+  "intervals": 12,
+  "target_duration_seconds": 900,
+  "sample_span_seconds": 60.00493287504651,
+  "first_timestamp": "2026-11-04T16:08:59.794115-03:00",
+  "last_timestamp": "2026-11-04T16:09:59.800069-03:00",
+  "wall_interval_seconds": {
+    "min": 4.9951770305633545,
+    "max": 5.005865812301636,
+    "span": 60.0042040348053
+  },
+  "wall_monotonic_gap_audit": "passed: no observed gap >10s; per-interval disagreement <1s",
+  "pressure_counts": {
+    "2": 13
+  },
+  "battery": {
+    "initial_percent": 40,
+    "final_percent": 40,
+    "on_battery_every_sample": true,
+    "warnings": 0
+  },
+  "swap_used_reported_M": {
+    "initial": 3726.88,
+    "final": 3678.88,
+    "delta": -48.0
+  },
+  "disk_available_bytes": {
+    "initial": 21035835392,
+    "final": 21069094912,
+    "minimum": 21030899712
+  },
+  "rates": {
+    "pageins_mib_s": {
+      "median": 30.374724910361678,
+      "p95_nearest_rank": 76.75593073736258,
+      "max": 76.75593073736258
+    },
+    "pageouts_mib_s": {
+      "median": 0.15652052177701894,
+      "p95_nearest_rank": 0.8471602715989592,
+      "max": 0.8471602715989592
+    },
+    "swapins_mib_s": {
+      "median": 0.24347431386116328,
+      "p95_nearest_rank": 2.8952400490909485,
+      "max": 2.8952400490909485
+    },
+    "swapouts_mib_s": {
+      "median": 0.0,
+      "p95_nearest_rank": 0.0,
+      "max": 0.0
+    }
+  },
+  "one_page_resolution_mib_s": {
+    "min": 0.003103151178018166,
+    "max": 0.0031424895513631457
+  },
+  "intervals_measured": [
+    {
+      "from_index": 0,
+      "to_index": 1,
+      "dt_seconds": 5.028723791008815,
+      "pageins_mib_s": 76.75593073736258,
+      "pageouts_mib_s": 0.30450071700852255,
+      "swapins_mib_s": 1.7493255477122265,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.003107150173556353
+    },
+    {
+      "from_index": 1,
+      "to_index": 2,
+      "dt_seconds": 4.972172459005378,
+      "pageins_mib_s": 75.09607280892509,
+      "pageouts_mib_s": 0.7856223878407864,
+      "swapins_mib_s": 0.9898842086793909,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.0031424895513631457
+    },
+    {
+      "from_index": 2,
+      "to_index": 3,
+      "dt_seconds": 4.998083833022974,
+      "pageins_mib_s": 34.27563556819847,
+      "pageouts_mib_s": 0.0031261980634985833,
+      "swapins_mib_s": 2.329017557306445,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.0031261980634985833
+    },
+    {
+      "from_index": 3,
+      "to_index": 4,
+      "dt_seconds": 5.03520425001625,
+      "pageins_mib_s": 41.81185897261677,
+      "pageouts_mib_s": 0.8471602715989592,
+      "swapins_mib_s": 2.8952400490909485,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.003103151178018166
+    },
+    {
+      "from_index": 4,
+      "to_index": 5,
+      "dt_seconds": 4.989055500016548,
+      "pageins_mib_s": 62.99100601285306,
+      "pageouts_mib_s": 0.1973068850400111,
+      "swapins_mib_s": 0.2254935829028698,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.003131855318095414
+    },
+    {
+      "from_index": 5,
+      "to_index": 6,
+      "dt_seconds": 5.001338874921203,
+      "pageins_mib_s": 10.472195807932566,
+      "pageouts_mib_s": 0.09997322967000064,
+      "swapins_mib_s": 0.08747657596125057,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.00312416342718752
+    },
+    {
+      "from_index": 6,
+      "to_index": 7,
+      "dt_seconds": 4.977796124992892,
+      "pageins_mib_s": 26.47381425252489,
+      "pageouts_mib_s": 0.32958862894416807,
+      "swapins_mib_s": 0.134974390900945,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.003138939323277791
+    },
+    {
+      "from_index": 7,
+      "to_index": 8,
+      "dt_seconds": 5.0199834579834715,
+      "pageins_mib_s": 6.455449558994682,
+      "pageouts_mib_s": 0.09337680172123455,
+      "swapins_mib_s": 0.26145504481945675,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.0031125600573744853
+    },
+    {
+      "from_index": 8,
+      "to_index": 9,
+      "dt_seconds": 4.998604624997824,
+      "pageins_mib_s": 4.882612615117688,
+      "pageouts_mib_s": 0.0,
+      "swapins_mib_s": 0.0625174470565645,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.003125872352828226
+    },
+    {
+      "from_index": 9,
+      "to_index": 10,
+      "dt_seconds": 4.995284083997831,
+      "pageins_mib_s": 15.054824457513808,
+      "pageouts_mib_s": 0.11573415851402678,
+      "swapins_mib_s": 0.02189565161076182,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.0031279502301088317
+    },
+    {
+      "from_index": 10,
+      "to_index": 11,
+      "dt_seconds": 5.009912250097841,
+      "pageins_mib_s": 50.68701552508045,
+      "pageouts_mib_s": 0.36490160081432516,
+      "swapins_mib_s": 0.2806935390879424,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.0031188171009771384
+    },
+    {
+      "from_index": 11,
+      "to_index": 12,
+      "dt_seconds": 4.982011165935546,
+      "pageins_mib_s": 13.31979652188088,
+      "pageouts_mib_s": 0.08154337404495006,
+      "swapins_mib_s": 0.07527080681072314,
+      "swapouts_mib_s": 0.0,
+      "one_page_resolution_mib_s": 0.0031362836171134638
+    }
+  ],
+  "p95_use_limit": "Describes interrupted warning-pressure segment only. Must not become candidate acceptance threshold.",
+  "energy_settings_unchanged_at_endpoints": true,
+  "config_and_previous_evidence_hashes_unchanged": true,
+  "container_metadata_unchanged": true,
+  "container_comparison_note": "Mount lists normalized by type/destination; raw ordering differs but selected metadata is equal.",
+  "coldsafe_volume_names_unchanged": true,
+  "app_names_missing_after": [
+    "ManagedClient.app",
+    "privatecloudcomputed.app"
+  ],
+  "app_names_added_after": [],
+  "service_check_count": 3,
+  "collector_sha256": "ba0a78d57442bc73dae8072180d9f8936355bb854468ef174964769e945864ee",
+  "responsiveness": "not established: interrupted after 60 seconds; no UI automation performed"
+}

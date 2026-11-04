@@ -290,7 +290,8 @@ são ilustrações locais, sem calibração física.
   Polling `basic_get` pode mostrar zero assinaturas em `consumers` mesmo ativo.
 - **Persistência:** InfluxDB live, SQL/projeções/jobs/modelos e artefatos têm
   responsabilidades diferentes. Não há transação distribuída entre eles; o
-  transporte admite duplicatas. O diário gateway (~64 MiB) não tem expurgo;
+  transporte admite duplicatas. O diário gateway (~256 MiB em páginas de 4 KiB,
+  ampliado no ensaio B2-36) não tem expurgo;
   memória/cache do simulador não sobrevivem ao restart. Retenção/cardinalidade
   Influx e retenção das tabelas/artefatos precisam de gestão para uso prolongado.
 - **Capacidade e validade:** host único, sem alta disponibilidade. Treino perto

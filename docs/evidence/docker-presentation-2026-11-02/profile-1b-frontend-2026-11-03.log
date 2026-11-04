@@ -1,0 +1,13 @@
+
+> coldsafe-frontend@0.1.0 test:unit:run
+> vitest run src/features/llm/LlmStatus.spec.ts
+
+
+ RUN  v4.1.12 /Users/vitorhugofernandescosta/Documents/ColdSafe/frontend
+
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  01:47:11
+   Duration  516ms (transform 92ms, setup 0ms, import 135ms, tests 22ms, environment 261ms)
+
