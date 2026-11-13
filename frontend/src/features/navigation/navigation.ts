@@ -11,6 +11,7 @@ export const areas: readonly Area[] = [
     { to: '/laboratory', label: 'Dados sintéticos' }, { to: '/training', label: 'Treinamento de modelos' },
   ] },
   { key: 'messaging', to: '/messaging', label: 'Filas e mensagens', adminOnly: true },
+  { key: 'assistant', to: '/assistant', label: 'Assistente' },
 ]
 export async function focusPageHeading() {
   await nextTick()

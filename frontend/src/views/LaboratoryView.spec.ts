@@ -20,7 +20,7 @@ const dataset: Dataset = { id, generation_job_id: id, owner_user_id: owner, crea
   row_count: 1000000, config: { ...defaultGeneration(), sensor_types: ['humidity_percent'] }, storage_version: 'offline-numpy-v1',
   units: { humidity_percent: '%' }, quality: { missing_by_sensor: { humidity_percent: 10000 },
     range_by_sensor: { humidity_percent: { min: 20, max: 95 } }, rul_observed_rows: 600000, rul_censored_rows: 400000 } }
-const render = () => mount(LaboratoryView, { attachTo: document.body, global: { stubs: { LlmStatus: true, RouterLink: { template: '<a><slot /></a>' } } } })
+const render = () => mount(LaboratoryView, { attachTo: document.body, global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } } })
 // Vue mantém refs de script setup internamente; não expor API de produção só para testes.
 const generationIsDirty = (wrapper: ReturnType<typeof render>) =>
   (wrapper.vm.$ as unknown as { setupState: { generationDirty: boolean } }).setupState.generationDirty
@@ -65,9 +65,8 @@ describe('Laboratório privado', () => {
     const wrapper = render(); await flushPromises()
     expect(fetchJob).not.toHaveBeenCalled(); expect(fetchDataset).not.toHaveBeenCalled()
     expect(wrapper.text()).toContain('inválido')
-    await wrapper.findAll('button').find((button) => button.text() === 'Atualizar acompanhamento')!.trigger('click')
-    await flushPromises()
-    expect(fetchJob).not.toHaveBeenCalled(); expect(fetchDataset).not.toHaveBeenCalled()
+    expect(wrapper.find('button.retry').exists()).toBe(false)
+    expect(wrapper.get('.new-generation').text()).toBe('Configurar nova geração')
     wrapper.unmount()
   })
   it.each([403, 404])('%s definitivo remove só job consultado e não entra em polling', async (status) => {
@@ -191,7 +190,7 @@ describe('Laboratório privado', () => {
   })
   it('explica volume antes da execução e envia todos parâmetros', async () => {
     const wrapper = render()
-    expect(wrapper.get('h1').text()).toBe('Laboratório de Dados')
+    expect(wrapper.get('h1').text()).toBe('Dados sintéticos')
     expect(wrapper.text()).toContain('1.000.000 linhas')
     expect(wrapper.text()).toContain('600 sensores')
     expect(wrapper.text()).toContain('85 MB')
@@ -280,7 +279,7 @@ describe('Laboratório privado', () => {
     expect(wrapper.text()).toContain(owner)
     expect(wrapper.text()).toContain('600.000')
     expect(wrapper.text()).toContain('400.000')
-    expect(wrapper.text()).toContain('Seed: 42')
+    expect(wrapper.text()).toContain('Semente:42')
     expect(fetchSample).not.toHaveBeenCalled()
     await wrapper.get('[data-testid="sample-button"]').trigger('click'); await flushPromises()
     expect(fetchSample).toHaveBeenCalledOnce()
@@ -291,8 +290,8 @@ describe('Laboratório privado', () => {
     routing.route.query = { job: id }
     vi.mocked(fetchJob).mockImplementationOnce(() => new Promise(() => {}))
     const wrapper = render(); await flushPromises()
-    expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined()
-    await wrapper.get('form').trigger('submit')
+    expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
+    expect(wrapper.get('[role="status"]').text()).toBe('Consultando a geração…')
     expect(createGeneration).not.toHaveBeenCalled()
     wrapper.unmount()
   })

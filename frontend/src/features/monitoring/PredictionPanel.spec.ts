@@ -25,8 +25,8 @@ describe('PredictionPanel', () => {
     expect(wrapper.text()).toContain('model-1')
     expect(wrapper.text()).toContain('features-1+one')
     expect(wrapper.text()).toContain('equipment-id')
-    expect(wrapper.text()).toContain('dados sintéticos')
-    expect(wrapper.text()).toContain('Idade da entrada')
+    expect(wrapper.text()).toContain('dados gerados para teste')
+    expect(wrapper.text()).toContain('Idade da leitura')
     expect(wrapper.text()).toContain('Agora mesmo')
     expect(wrapper.text()).toContain(Intl.DateTimeFormat().resolvedOptions().timeZone)
     expect(wrapper.findAll('time').map((item) => item.attributes('datetime'))).toEqual(['2026-10-12T18:00:00.100Z', '2026-10-12T18:00:00.200Z'])
@@ -46,7 +46,7 @@ describe('PredictionPanel', () => {
 
   it.each([
     ['no_model', 'Nenhum modelo ativo'], ['insufficient_history', 'Histórico insuficiente'],
-    ['invalid_features', 'Variáveis inválidas'], ['model_unavailable', 'Modelo indisponível'], ['stale_input', 'Leitura desatualizada'],
+    ['invalid_features', 'Não foi possível calcular a previsão com estas leituras'], ['model_unavailable', 'Modelo indisponível'], ['stale_input', 'Leitura desatualizada'],
   ] as const)('distingue %s de resultado zero', (reason: PredictionUnavailableReason, label) => {
     const wrapper = mount(PredictionPanel, { props: { summary: { ...summary, prediction: null, prediction_unavailable_reason: reason }, ageSeconds: 4 } })
     expect(wrapper.get('[role="status"]').text()).toContain(label)
@@ -79,7 +79,7 @@ describe('PredictionPanel', () => {
     expect(wrapper.get('.prediction-meta').element).toBe(metadata)
     expect(wrapper.text()).toContain('0 / 100')
     expect(wrapper.text()).toContain('model-1')
-    expect(wrapper.text()).toContain('Última previsão recebida')
+    expect(wrapper.text()).toContain('Previsão disponível')
     expect(wrapper.get('[role="status"]').text()).toBe(message)
     expect(wrapper.findAll('time')[0]!.attributes('datetime')).toBe(prediction.data.input_received_at)
     wrapper.unmount()

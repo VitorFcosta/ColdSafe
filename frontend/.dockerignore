@@ -1,6 +1,11 @@
 node_modules
 dist
 coverage
+.impeccable
+playwright-report
+test-results
+.DS_Store
+public/media/dashboard-mobile.png
 .env
 .env.*
 !.env.example

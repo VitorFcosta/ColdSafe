@@ -14,7 +14,7 @@ const labelPoint = ref({ x: 0, y: 0, height: 320 })
 const selected = computed(() => props.items.find((item) => item.id !== null && item.id === props.selectedId))
 const reason = computed(() => unavailable.value ? '3D indisponível neste navegador. Use a lista de componentes; reabra a página para tentar novamente.'
   : !props.visual ? 'Cena congelada: sem telemetria atual confirmada.'
-    : reducedMotion.value ? 'Movimento reduzido: animação suspensa conforme sua preferência.'
+    : reducedMotion.value ? 'Movimento reduzido. Animação suspensa.'
       : hidden.value ? 'Aba oculta: animação suspensa.'
         : !hasMotion() ? 'Sem movimento observado na telemetria atual.'
           : paused.value ? 'Animação pausada. Dados e seleção continuam disponíveis.' : 'Movimento ilustrativo ativo; não representa RPM medido.')
@@ -230,7 +230,14 @@ defineExpose({ projected, snapshot: () => ({ animating, paused: paused.value, re
     </div>
     <button type="button" :aria-pressed="paused" aria-describedby="twin-animation-reason" :disabled="unavailable" @click="togglePause">{{ paused ? 'Retomar animação' : 'Pausar animação' }}</button>
     <p id="twin-animation-reason" role="status">{{ reason }}</p>
-    <figcaption>Câmera fixa em três quartos. Selecione uma peça ou seu marcador; a lista oferece a mesma seleção por teclado. Posições, giro, tremor e sombra são ilustrativos, sem calibração física ou RPM medido. A barra na base usa escala térmica ilustrativa de −20 a 60 °C. Luz e atuadores representam somente a última telemetria autorizada; dados antigos não confirmam o estado atual.</figcaption>
+    <figcaption>
+      <p v-if="!unavailable">Escolha uma peça ou um marcador. No teclado, use a lista.</p>
+      <details>
+        <summary>Sobre a cena 3D</summary>
+        <p>A câmera é fixa. Posição, giro, tremor e sombra são ilustrativos. A faixa na base representa temperaturas de −20 a 60 °C em uma escala visual.</p>
+        <p>Uma leitura recente atualiza a luz e o som de aviso na cena. Uma leitura antiga deixa o estado atual sem confirmação.</p>
+      </details>
+    </figcaption>
   </figure>
 </template>
 
@@ -243,10 +250,11 @@ figure { margin: 0; min-width: 0; }
 .leader { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .leader line { stroke: var(--cs-color-accent); stroke-width: 1; }
 .piece-label { position: absolute; left: var(--cs-space-16); bottom: var(--cs-space-16); max-width: calc(100% - 32px); padding: var(--cs-space-8); margin: 0; background: var(--cs-color-surface); color: var(--cs-color-ink); border: 1px solid var(--cs-color-accent); border-radius: var(--cs-radius-4); font-size: var(--cs-type-14); pointer-events: none; }
-button { margin-top: var(--cs-space-16); min-height: var(--cs-control-min-height); padding: var(--cs-space-12) var(--cs-space-16); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); color: var(--cs-color-accent); font-size: var(--cs-type-14); font-weight: 600; cursor: pointer; }
+button { margin-top: var(--cs-space-12); min-height: var(--cs-control-min-height); padding: var(--cs-space-8) var(--cs-space-12); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-4); background: var(--cs-color-surface); color: var(--cs-color-accent); font-size: var(--cs-type-14); font-weight: 600; cursor: pointer; }
 button:hover:enabled { background: var(--cs-color-surface-muted); }
 button:disabled { color: var(--cs-color-ink-muted); background: var(--cs-color-surface-muted); cursor: not-allowed; }
 button:focus-visible { outline: 3px solid var(--cs-focus-ring); outline-offset: 3px; }
-#twin-animation-reason { margin-top: var(--cs-space-12); font-size: var(--cs-type-14); line-height: 1.6; }
+#twin-animation-reason, figcaption p { margin-top: var(--cs-space-8); font-size: var(--cs-type-14); line-height: 1.6; }
 figcaption { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
+summary { min-height: var(--cs-control-min-height); display: list-item; align-content: center; cursor: pointer; color: var(--cs-color-accent); }
 </style>

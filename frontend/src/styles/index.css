@@ -82,6 +82,24 @@ nav [aria-current='page'] {
   text-underline-offset: 0.3em;
 }
 
+.area-heading > h1 {
+  font-size: var(--cs-type-32);
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.025em;
+}
+
+.area-heading > p {
+  max-width: 70ch;
+  margin: var(--cs-space-12) 0 0;
+  color: var(--cs-color-ink-muted);
+  font-size: var(--cs-type-14);
+  line-height: 1.6;
+}
+
+@media (max-width: 50rem) {
+  .area-heading > h1 { font-size: var(--cs-type-24); }
+}
 
 /* RD-01: primeiros consumidores; outras páginas migram nos próprios cartões. */
 .cs-controls {

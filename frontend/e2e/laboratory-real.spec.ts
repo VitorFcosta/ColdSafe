@@ -22,13 +22,13 @@ test('admin gera um milhão, recarrega, identifica qualidade/autor e vê falha p
   })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/laboratory')
-  await expect(page.getByRole('heading', { name: 'Laboratório de Dados', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Dados sintéticos', exact: true })).toBeVisible()
   await page.getByLabel('Linhas', { exact: true }).fill('2000001')
-  await page.getByRole('button', { name: 'Gerar dataset', exact: true }).click()
+  await page.getByRole('button', { name: 'Gerar dados de teste', exact: true }).click()
   expect(posts).toBe(0)
   await page.getByLabel('Linhas', { exact: true }).fill('1000000')
   const submitted = page.waitForResponse((r) => r.url() === `${api}/api/v3/jobs` && r.request().method() === 'POST')
-  await page.getByRole('button', { name: 'Gerar dataset', exact: true }).click()
+  await page.getByRole('button', { name: 'Gerar dados de teste', exact: true }).click()
   const response = await submitted
   expect(response.status()).toBe(202)
   const job = (await response.json()).data
@@ -49,6 +49,7 @@ test('admin gera um milhão, recarrega, identifica qualidade/autor e vê falha p
   expect(dataset.generation_job_id).toBe(job.id)
   expect(Object.values(dataset.quality.missing_by_sensor).some((count) => Number(count) > 0)).toBe(true)
   expect(dataset.quality.rul_censored_rows).toBeGreaterThan(0)
+  await page.getByText('Identificadores e versão do conjunto', { exact: true }).click()
   await expect(page.getByText(dataset.id, { exact: false }).first()).toBeVisible()
   await expect(page.getByText(process.env.LAB_REAL_OWNER!, { exact: false }).first()).toBeVisible()
   const sampleResponse = page.waitForResponse((r) => r.url() === `${api}/api/v3/datasets/${dataset.id}/sample`)
@@ -74,9 +75,11 @@ test('admin gera um milhão, recarrega, identifica qualidade/autor e vê falha p
   const invalid = await request.post(`${api}/api/v3/jobs`, { headers: { authorization: `Bearer ${session.token}` },
     data: { job_type: 'generation', total_units: 2_000_001 } })
   expect(invalid.status()).toBe(422)
-  await page.getByLabel('Seed', { exact: true }).fill('43')
+  await page.getByRole('link', { name: 'Configurar nova geração' }).click()
+  await page.getByText('Opções avançadas', { exact: true }).click()
+  await page.getByLabel('Semente', { exact: true }).fill('43')
   const failedSubmit = page.waitForResponse((r) => r.url() === `${api}/api/v3/jobs` && r.request().method() === 'POST')
-  await page.getByRole('button', { name: 'Gerar dataset', exact: true }).click()
+  await page.getByRole('button', { name: 'Gerar dados de teste', exact: true }).click()
   const failedJob = (await (await failedSubmit).json()).data
   await expect.poll(async () => {
     const r = await request.get(`${api}/api/v3/jobs/${failedJob.id}`, { headers: { authorization: `Bearer ${session.token}` } })

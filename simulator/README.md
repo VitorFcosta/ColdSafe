@@ -3,9 +3,8 @@
 Produtor MQTT v3 com seis medições por leitura e IDs/unidades do
 [contrato](../contracts/aiot.md). Integra a pilha final pelo [gateway](../gateway/README.md),
 RabbitMQ, writer e API v3 até o dashboard; não usa AMQP diretamente. O perfil
-`simulator` continua opcional para a base legada. Para o percurso integrado, siga
-o [comissionamento e comando completo](../docs/runbook.md#pilha-final-aiot-jobs-inferência-e-assistente);
-os comandos abaixo também permitem ensaio isolado da borda.
+`simulator` é opcional na base explícita. Para usar os comandos abaixo, faça
+o [comissionamento da pilha completa](../docs/runbook.md#pilha-final-aiot-jobs-inferência-e-assistente).
 
 ## Cadastro e execução
 
@@ -25,15 +24,14 @@ confiável antes de aceitar telemetria na aplicação. Não use UUIDs de outro a
 1. Execute `python3 scripts/generate-secrets.py`: acrescenta duas senhas ausentes,
    distintas e privadas, sem rotacionar valores existentes. Não publica segredos.
 2. Crie `simulator/local/`, copie o exemplo para `simulator/local/catalog.json`
-   e ajuste os IDs conforme o cadastro acima. Para o ensaio exclusivamente local,
-   os IDs demonstrativos podem ser mantidos. A pasta está excluída de Git e Docker.
+   e ajuste os IDs conforme o cadastro acima. A pasta está excluída de Git e Docker.
    O arquivo/diretório precisam ser legíveis pelo UID `65532` do container;
    não coloque segredos dentro deles.
 3. Atualize a imagem, os arquivos de autenticação e o broker, preservando os volumes:
 
    ```sh
    docker compose up -d --build --force-recreate mosquitto-init mosquitto
-   docker compose --profile simulator up -d --build simulator
+   docker compose up -d --build --wait simulator
    ```
 
    Reiniciar o broker interrompe brevemente conexões MQTT, que depois reconectam.
@@ -93,11 +91,11 @@ Falha é obrigatória apenas em `inject_fault`. A CLI produz esse formato:
 ```sh
 # Disponibilize a senha do operador em variável exportada na sessão privada.
 # -e passa o nome; o valor não entra nos argumentos do comando.
-docker compose --profile simulator run --rm --no-deps \
+docker compose run --rm --no-deps \
   --entrypoint python -e MQTT_SIMULATOR_OPERATOR_PASSWORD simulator \
   -m simulator.control stop
 # Troque stop por start para retomar; para acelerar desgaste:
-docker compose --profile simulator run --rm --no-deps \
+docker compose run --rm --no-deps \
   --entrypoint python -e MQTT_SIMULATOR_OPERATOR_PASSWORD simulator \
   -m simulator.control inject_fault --fault bearing_wear
 ```
@@ -208,5 +206,5 @@ ausência de ACK com dispositivo parado, retry expirado e limites do container.
 
 Referências oficiais conferidas em 14/10/2026: [Paho Client API](https://eclipse.dev/paho/files/paho.mqtt.python/html/client.html)
 (loop, reconexão, MQTT 5 e SubscribeOptions) e [ACL Mosquitto](https://mosquitto.org/man/mosquitto-conf-5.html)
-(permissões por username). Resultados e limites ficam nos cartões [B2-09](../docs/aiot/tasks/B2-09.md) e
-[B2-10](../docs/aiot/tasks/B2-10.md).
+(permissões por username). Resultados e limites nos registros
+[B2-09](../docs/evidence/b2-09.json) e [B2-10](../docs/evidence/b2-10.json).

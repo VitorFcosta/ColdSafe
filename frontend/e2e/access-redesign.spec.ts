@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
 
-const evidence = new URL('../../.impeccable/review/rd-16/', import.meta.url)
+const evidence = new URL('../../.impeccable/review/ux-10/', import.meta.url)
 const email = (page: Page) => page.getByLabel('Email', { exact: true })
 const password = (page: Page) => page.getByLabel('Senha', { exact: true })
 const submit = (page: Page) => page.getByRole('button', { name: 'Entrar', exact: true }).first()
@@ -50,7 +50,18 @@ for (const scenario of [{ width: 1440, height: 1024, text: 100 }, { width: 390, 
     await page.getByRole('button', { name: 'Criar conta', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Criar conta', exact: true })).toBeFocused()
     await expect(password(page)).toHaveAttribute('autocomplete', 'new-password')
-    await expect(password(page)).toHaveAccessibleDescription(/72 bytes UTF-8/)
+    await expect(password(page)).toHaveAccessibleDescription('Use ao menos 8 caracteres.')
+    const limit = page.getByText('O limite é de 72 bytes em UTF-8.', { exact: false })
+    const passwordDetails = page.locator('summary').filter({ hasText: 'Sobre o limite da senha' })
+    await expect(limit).toBeHidden()
+    await password(page).focus()
+    await page.keyboard.press('Tab')
+    await expect(passwordDetails).toBeFocused()
+    await page.keyboard.press('Enter')
+    await expect(limit).toBeVisible()
+    if (scenario.width === 1440) await capture(page, 'desktop-register')
+    await page.keyboard.press('Enter')
+    await expect(limit).toBeHidden()
     await password(page).fill('short')
     const create = page.getByRole('button', { name: 'Criar conta e entrar', exact: true })
     await email(page).fill('invalid-email')
@@ -63,23 +74,26 @@ for (const scenario of [{ width: 1440, height: 1024, text: 100 }, { width: 390, 
     await create.click()
     await expect(password(page)).toBeFocused()
     await expect(password(page)).toHaveAttribute('aria-invalid', 'true')
-    await expect(password(page)).toHaveAccessibleDescription(/8 caracteres.*8 caracteres/)
+    await expect(password(page)).toHaveAccessibleDescription('A senha precisa ter ao menos 8 caracteres.')
     await password(page).fill('é'.repeat(37))
     await create.click()
     await expect(password(page)).toBeFocused()
     await expect(page.getByRole('alert')).toContainText('Reduza o tamanho')
     await page.getByRole('alert').scrollIntoViewIfNeeded()
     await expect(page.getByRole('alert')).toBeInViewport()
-    await password(page).focus(); await page.keyboard.press('Tab')
+    await password(page).focus()
+    await page.keyboard.press('Tab')
+    await expect(passwordDetails).toBeFocused()
+    await page.keyboard.press('Tab')
     await expect(create).toBeFocused(); await expect(create).toBeInViewport()
     await expect(create).toHaveCSS('outline-style', 'solid')
     expect(await create.evaluate(el => getComputedStyle(el).outlineWidth)).not.toBe('0px')
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(scenario.width)
-    for (const control of await page.locator('.access-page').locator('input:visible, button:visible, a:visible').all()) {
+    for (const control of await page.locator('.access-page').locator('input:visible, button:visible, a:visible, summary:visible').all()) {
       expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(44)
     }
     await capture(page, `${name}-register-error`)
-    const styles = await page.evaluate(() => Object.fromEntries(['.brand', '.return-link', 'h1', '.intro', 'label', 'input', '.hint', '.feedback', '.primary', '.mode-switch', '.session-note'].map(selector => {
+    const styles = await page.evaluate(() => Object.fromEntries(['.brand', '.return-link', 'h1', 'label', 'input', '.hint', 'summary', '.feedback', '.primary', '.mode-switch'].map(selector => {
       const el = document.querySelector(selector)!, style = getComputedStyle(el)
       let surface: Element | null = el
       while (surface && getComputedStyle(surface).backgroundColor === 'rgba(0, 0, 0, 0)') surface = surface.parentElement

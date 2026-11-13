@@ -43,6 +43,8 @@ for (const width of [1440, 320]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
       await page.getByLabel('Senha').focus()
       await page.keyboard.press('Tab')
+      await expect(page.getByText('Sobre o limite da senha', { exact: true })).toBeFocused()
+      await page.keyboard.press('Tab')
       await expect(submit).toBeFocused()
       await expect(submit).toBeInViewport()
       const size = await submit.boundingBox()

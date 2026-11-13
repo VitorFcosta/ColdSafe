@@ -46,19 +46,20 @@ test('histerese persistente resiste à oscilação, ausência, redelivery e reca
   }
   await page.addInitScript((value) => sessionStorage.setItem('coldsafe-session', JSON.stringify(value)), session)
   await page.goto('/insights')
-  const panel = page.getByRole('region', { name: 'Insights do equipamento', exact: true })
-  const alerts = page.getByRole('region', { name: 'Alertas preditivos ativos', exact: true })
+  const panel = page.getByRole('region', { name: 'Previsão do equipamento', exact: true })
+  const alerts = page.getByRole('region', { name: 'Alertas em aberto', exact: true })
   await expect(panel).toBeVisible()
   await expect(panel).toContainText('Sem previsão')
   expect((await snapshot()).availability).toBe('no_data')
 
   const rules = { health_critical: 32, health_recovery: 42, rul_critical_hours: 22,
     rul_recovery_hours: 44, open_count: 3, close_count: 10 }
+  await page.getByRole('button', { name: 'Editar regras', exact: true }).click()
   const form = page.getByRole('form', { name: 'Regras preditivas' })
   await form.getByLabel('Saúde crítica', { exact: true }).fill(String(rules.health_critical))
   await form.getByLabel('Saúde de recuperação', { exact: true }).fill(String(rules.health_recovery))
-  await form.getByLabel('RUL crítico (h)', { exact: true }).fill(String(rules.rul_critical_hours))
-  await form.getByLabel('RUL de recuperação (h)', { exact: true }).fill(String(rules.rul_recovery_hours))
+  await form.getByLabel('Limite crítico (h)', { exact: true }).fill(String(rules.rul_critical_hours))
+  await form.getByLabel('Limite de recuperação (h)', { exact: true }).fill(String(rules.rul_recovery_hours))
   await form.getByRole('button', { name: 'Salvar regras' }).click()
   await expect.poll(async () => (await snapshot()).rules).toEqual(rules)
   for (const [health, rul] of [[70, 120], [45, 70], [31, 21], [30, 20], [35, 30], [29, 20], [28, 18]]) {
@@ -73,12 +74,14 @@ test('histerese persistente resiste à oscilação, ausência, redelivery e reca
       mqtt_device_id: opened.device_id }, modulePath: '/src/features/insights/insights-api.ts' })
   expect(parsed).not.toBeNull()
   const alertId = opened.active_alerts[0].alert_id
-  await expect(alerts).toContainText('Alerta preditivo persistente')
-  await expect(panel).toContainText('demo-v1')
+  await expect(alerts).toContainText('Alerta preditivo')
+  await panel.getByText('Origem da previsão e horários', { exact: true }).click()
+  await expect(panel.getByText('demo-v1', { exact: true })).toBeVisible()
+  await panel.getByText('Origem da previsão e horários', { exact: true }).click()
   await expect(panel.getByText('27 / 100', { exact: true })).toBeVisible()
   await expect(panel.getByText('16 h', { exact: true })).toBeVisible()
   await expect(panel.getByText('Em queda', { exact: true })).toBeVisible()
-  await expect(panel.getByText(/^há \d+ s \(desde a entrada\)$/)).toBeVisible()
+  await expect(panel.getByText(/^(Agora mesmo|Há \d+ s)$/)).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('insights-open.png'), fullPage: true })
   expect((await sample(27, 16, true)).active_alerts[0].alert_id).toBe(alertId)
   for (const [health, rul] of [[31, 21], [35, 30], [43, 50], [38, 35]]) {
@@ -88,18 +91,18 @@ test('histerese persistente resiste à oscilação, ausência, redelivery e reca
   expect(unavailable.availability).toBe('unavailable')
   expect(unavailable.active_alerts[0].alert_id).toBe(alertId)
   await expect(panel).toContainText('Previsão indisponível')
-  await expect(alerts).toContainText('Alerta preditivo persistente')
+  await expect(alerts).toContainText('Alerta preditivo')
 
   await sample(25, 15)
   await expect.poll(async () => (await snapshot()).availability, {
     timeout: 40_000, intervals: [500],
   }).toBe('stale')
   await expect(panel).toContainText('Previsão desatualizada')
-  await expect(alerts).toContainText('Alerta preditivo persistente')
+  await expect(alerts).toContainText('Alerta preditivo')
   expect((await snapshot()).active_alerts[0].alert_id).toBe(alertId)
   await page.reload()
   await expect(panel).toContainText('Previsão desatualizada')
-  await expect(alerts).toContainText('Alerta preditivo persistente')
+  await expect(alerts).toContainText('Alerta preditivo')
   expect((await snapshot()).rules).toEqual(rules)
   await page.screenshot({ path: test.info().outputPath('insights-stale-active.png'), fullPage: true })
   for (let index = 0; index < 9; index++) {
@@ -108,7 +111,7 @@ test('histerese persistente resiste à oscilação, ausência, redelivery e reca
   const recovered = await sample(90, 110)
   expect(recovered.active_alerts).toEqual([])
   expect(recovered.trend).toBe('improving')
-  await expect(alerts).toContainText('Nenhum alerta preditivo ativo')
+  await expect(alerts).toContainText('Nenhum alerta preditivo em aberto')
   await page.setViewportSize({ width: 320, height: 844 })
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: test.info().outputPath('insights-recovered-mobile.png'), fullPage: true })
@@ -124,8 +127,8 @@ test('histerese persistente resiste à oscilação, ausência, redelivery e reca
     await otherContext.addInitScript((value) => sessionStorage.setItem('coldsafe-session', JSON.stringify(value)), stranger)
     const otherPage = await otherContext.newPage()
     await otherPage.goto(`${process.env.INSIGHTS_REAL_URL}/insights`)
-    await expect(otherPage.getByText('Nenhum equipamento ativo neste ambiente.')).toBeVisible()
-    await expect(otherPage.getByRole('region', { name: 'Insights do equipamento', exact: true })).toHaveCount(0)
+    await expect(otherPage.getByText('Nenhum dispositivo ativo neste ambiente.', { exact: false })).toBeVisible()
+    await expect(otherPage.getByRole('region', { name: 'Previsão do equipamento', exact: true })).toHaveCount(0)
   } finally {
     await otherContext.close()
   }

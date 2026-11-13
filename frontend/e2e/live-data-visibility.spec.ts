@@ -1,3 +1,4 @@
+import { mkdir } from 'node:fs/promises'
 import { expect, test, type Page, type WebSocketRoute } from '@playwright/test'
 import examples from '../../contracts/examples/aiot.valid.json' with { type: 'json' }
 import { mockDashboardAccount } from './monitoring-api'
@@ -70,7 +71,10 @@ async function fixture(page: Page) {
     schema_version: 3, device_id: new URL(route.request().url()).searchParams.get('device_id'),
     start: new Date(Date.now() - 3_600_000).toISOString(), end: new Date().toISOString(), count: 0, limit: 300, thresholds,
   } } }))
-  await page.route('**/api/v3/alerts?**', route => route.fulfill({ json: envelope({ alerts: [] }) }))
+  await page.route('**/api/v3/alerts?**', route => route.fulfill({ json: {
+    ...envelope({ alerts: [] }), meta: { schema_version: 3, count: 0,
+      device_id: new URL(route.request().url()).searchParams.get('device_id') },
+  } }))
   await page.route('**/api/v3/devices/*/led/commands', route => {
     state.commandPosts++
     command = structuredClone(baseCommand)
@@ -105,9 +109,9 @@ async function fixture(page: Page) {
 
 const cases = [
   { path: '/dashboard', label: 'Medições do ambiente', expected: '6,5 °C', updated: '8,5 °C' },
-  { path: '/insights', label: 'Insights do equipamento', expected: '70 / 100', updated: '55 / 100' },
+  { path: '/insights', label: 'Previsão do equipamento', expected: '70 / 100', updated: '55 / 100' },
   { path: '/digital-twin', label: 'Componentes do gêmeo digital', expected: '6,5 °C', updated: '8,5 °C' },
-  { path: '/messaging', label: 'Métricas globais', expected: '3', updated: '17' },
+  { path: '/messaging', label: 'Estado das filas', expected: '3', updated: '17' },
 ]
 
 for (const width of [1440, 320]) for (const scenario of cases) {
@@ -122,7 +126,14 @@ for (const width of [1440, 320]) for (const scenario of cases) {
     const control = page.getByRole('button', { name: 'Ocultar dados ao vivo', exact: true })
     await expect(control).toHaveCSS('font-size', width === 320 ? '28px' : '14px')
     await page.evaluate(() => document.fonts.ready)
+    if (width === 1440 && scenario.path === '/dashboard') {
+      const evidence = new URL('../../.impeccable/review/ux-03/', import.meta.url)
+      await mkdir(evidence, { recursive: true })
+      await page.locator('#dashboard-title').blur()
+      await page.screenshot({ path: new URL('visao-geral.png', evidence).pathname })
+    }
     await expect(control).toHaveAttribute('aria-expanded', 'true')
+    await expect(control).toHaveAccessibleDescription('A coleta continua com os dados desta tela ocultos.')
     const id = await control.getAttribute('aria-controls')
     expect(id).toBeTruthy()
     const data = page.locator('[data-live-region]')
@@ -131,6 +142,7 @@ for (const width of [1440, 320]) for (const scenario of cases) {
     const show = page.getByRole('button', { name: 'Mostrar dados ao vivo', exact: true })
     await expect(show).toBeFocused()
     await expect(show).toHaveAttribute('aria-expanded', 'false')
+    await expect(show).toHaveAccessibleDescription('Dados desta tela ocultos. A coleta e os pedidos em andamento continuam.')
     await expect(data).toBeHidden()
     await expect(data).toHaveAttribute('hidden', '')
     expect(await page.locator('main').ariaSnapshot()).not.toContain(`region "${scenario.label}"`)
@@ -154,7 +166,7 @@ for (const width of [1440, 320]) for (const scenario of cases) {
 test('LED pendente chega ao ACK durante ocultação sem desmontar nem repetir o POST', async ({ page }) => {
   const mock = await fixture(page)
   await page.goto('/dashboard')
-  await page.getByRole('group', { name: 'Estado dos atuadores' }).locator('summary').click()
+  await page.getByRole('group', { name: 'Estado da luz e do som de aviso' }).locator('summary').click()
   await page.getByRole('button', { name: 'Ligar Luz', exact: true }).click()
   const request = page.getByRole('region', { name: 'Pedido do LED' })
   await expect(request).toContainText('Aguardando confirmação')

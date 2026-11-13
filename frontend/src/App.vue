@@ -4,6 +4,7 @@ import { RouterView, useRoute, useRouter } from 'vue-router'
 import { isIdentityVerified, refreshSessionIdentity, sessionIdentityError, sessionIdentityState, sessionRole, sessionToken } from './features/account/session'
 import AuthenticatedShell from './features/navigation/AuthenticatedShell.vue'
 import { focusPageHeading } from './features/navigation/navigation'
+import { monitoringLocation } from './features/monitoring/use-monitoring-context'
 import { safeInternalRedirect } from './router/redirect'
 import DraftDiscardDialog from './features/editing/DraftDiscardDialog.vue'
 
@@ -29,10 +30,10 @@ watch([isIdentityVerified, allowed, () => route.name], () => { if (protectedRout
     <main v-else class="access-state cs-controls" :aria-busy="sessionIdentityState === 'pending'">
       <template v-if="!isIdentityVerified">
         <h1 :id="contentId" tabindex="-1">{{ sessionIdentityState === 'error' ? 'Não foi possível verificar a identidade' : 'Verificando identidade' }}</h1>
-        <p role="status">{{ sessionIdentityState === 'error' ? sessionIdentityError : 'Confirmando as permissões da sua conta. O conteúdo privado ficará disponível após a verificação.' }}</p>
+        <p role="status">{{ sessionIdentityState === 'error' ? sessionIdentityError : 'Confirmando as permissões da sua conta…' }}</p>
         <button v-if="sessionIdentityState === 'error'" data-testid="retry-identity" type="button" @click="verifyIdentity">Verificar novamente</button>
       </template>
-      <template v-else><h1 :id="contentId" tabindex="-1">Acesso restrito</h1><p>Esta área está disponível apenas para administradores. Sua conta pode acessar as demais áreas permitidas.</p><RouterLink to="/dashboard">Voltar ao Monitoramento</RouterLink></template>
+      <template v-else><h1 :id="contentId" tabindex="-1">Acesso restrito</h1><p>Só administradores podem abrir esta página.</p><RouterLink :to="monitoringLocation('/dashboard')">Voltar ao Monitoramento</RouterLink></template>
     </main>
   </AuthenticatedShell>
   <main v-else-if="!knownRoute" class="missing-page cs-controls">

@@ -22,7 +22,7 @@ test('admin treina pela página, recarrega e confere valores dos dois alvos reai
   let posts = 0
   page.on('request', (call) => { if (call.url() === `${api}/api/v3/jobs` && call.method() === 'POST') posts++ })
   await page.goto(`/training?dataset=${dataset}`)
-  await expect(page.getByRole('heading', { name: 'Treinamento', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Treinamento de modelos', exact: true })).toBeVisible()
   await expect(page.getByLabel('Dataset', { exact: true })).toHaveValue(dataset)
   const submit = page.getByRole('button', { name: 'Iniciar treinamento', exact: true })
   await expect(submit).toBeEnabled()
@@ -40,6 +40,7 @@ test('admin treina pela página, recarrega e confere valores dos dois alvos reai
     return value.completed_units
   }, { timeout: 240_000, intervals: [1000] }).toBe(1)
   await page.reload()
+  await page.getByText('Identificadores e atualização', { exact: true }).click()
   await expect(page.getByText(`Job: ${job.id}`, { exact: false })).toBeVisible()
   expect(posts).toBe(1)
   const ready = page.waitForResponse((result) => result.url() === `${api}/api/v3/jobs/${job.id}/result` && result.status() === 200)
@@ -60,6 +61,7 @@ test('admin treina pela página, recarrega e confere valores dos dois alvos reai
     expect(report.diagnostics.scatter).toHaveLength(500)
     expect(report.diagnostics.permutation.features).toHaveLength(48)
     expect(report.diagnostics.permutation.repeats).toBe(3)
+    await region.getByText('Métricas e diagnósticos', { exact: true }).click()
     await expect(region.getByRole('cell', { name: formatted(report.metrics.validation.candidate.mae), exact: true }).first()).toBeVisible()
     await expect(region.getByRole('cell', { name: formatted(report.metrics.test.candidate.rmse), exact: true }).first()).toBeVisible()
     await expect(region.getByRole('img', { name: new RegExp(`Previsto versus real de ${name.replace(/[()]/g, '\\$&')}`) })).toBeVisible()
@@ -69,7 +71,7 @@ test('admin treina pela página, recarrega e confere valores dos dois alvos reai
     await expect(errors.locator('tbody tr').first().locator('td').nth(0)).toHaveText(formatted(report.diagnostics.scatter[0].actual))
     await expect(errors.locator('tbody tr').first().locator('td').nth(3)).toHaveText(formatted(report.diagnostics.scatter[0].error))
   }
-  await expect(page.getByText(/Nenhum resultado desta página ativa modelos/i)).toBeVisible()
+  await expect(page.getByText(/Treinar não ativa o modelo no monitoramento/, { exact: false }).first()).toBeVisible()
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.screenshot({ path: test.info().outputPath('training-desktop.png'), fullPage: true })
   await page.setViewportSize({ width: 320, height: 844 })

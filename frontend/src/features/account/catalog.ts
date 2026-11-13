@@ -65,7 +65,14 @@ export const updateDevice = (token: string, id: string, name: string) =>
   catalogRequest<Device>(token, `/devices/${encodeURIComponent(id)}`, 'PATCH', { name })
 export const deactivateDevice = (token: string, id: string) =>
   catalogRequest<Device>(token, `/devices/${encodeURIComponent(id)}`, 'DELETE')
-export const getRules = (token: string, environmentId: string) =>
-  catalogRequest<Rules>(token, `/environments/${encodeURIComponent(environmentId)}/rules`)
-export const updateRules = (token: string, environmentId: string, rules: Rules) =>
-  catalogRequest<Rules>(token, `/environments/${encodeURIComponent(environmentId)}/rules`, 'PUT', rules)
+async function requestRules(token: string, environmentId: string, method: 'GET' | 'PUT', rules?: Rules): Promise<Rules> {
+  const data = await catalogRequest<Rules | null>(token, `/environments/${encodeURIComponent(environmentId)}/rules`, method, rules)
+  if (!data || ![data.min_c, data.max_c, data.attention_margin_c].every(Number.isFinite) ||
+    data.min_c >= data.max_c || data.attention_margin_c < 0 || data.attention_margin_c * 2 >= data.max_c - data.min_c) {
+    throw new Error('A API retornou limites de temperatura inválidos.')
+  }
+  return data
+}
+
+export const getRules = (token: string, environmentId: string) => requestRules(token, environmentId, 'GET')
+export const updateRules = (token: string, environmentId: string, rules: Rules) => requestRules(token, environmentId, 'PUT', rules)

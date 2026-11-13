@@ -26,16 +26,15 @@ function retryVideo() {
       <header class="navigation">
         <a class="brand" href="/" aria-label="ColdSafe — início">ColdSafe</a>
         <nav class="desktop-nav" aria-label="Navegação principal">
+          <a href="#demonstracao">Gravação anterior</a>
           <a href="#como-funciona">Como funciona</a>
-          <a href="#demonstracao">Demonstração</a>
           <a :href="repositoryUrl">GitHub</a>
         </nav>
-        <RouterLink class="button access-link" to="/dashboard">Acessar painel</RouterLink>
         <details ref="mobileMenu" class="mobile-nav">
           <summary>Menu</summary>
           <nav aria-label="Navegação principal móvel" @click="mobileMenu && (mobileMenu.open = false)">
+            <a href="#demonstracao">Gravação anterior</a>
             <a href="#como-funciona">Como funciona</a>
-            <a href="#demonstracao">Demonstração</a>
             <a :href="repositoryUrl">GitHub</a>
           </nav>
         </details>
@@ -44,50 +43,27 @@ function retryVideo() {
       <main id="conteudo" tabindex="-1" class="sections">
         <section class="hero" aria-labelledby="presentation-title">
           <div class="hero-copy">
-
-            <h1 id="presentation-title" tabindex="-1">Da leitura do sensor à compreensão do equipamento.</h1>
-            <p class="lead">Sensores, histórico e inspeção reunidos num projeto demonstrativo.</p>
             <p class="small muted">Protótipo acadêmico · AIoT</p>
+            <h1 id="presentation-title" tabindex="-1">Monitore ambientes refrigerados e seus equipamentos</h1>
+            <p class="lead">Acompanhe a temperatura do ambiente e as medições do motor. Veja a idade da última leitura, o histórico e os alertas do dispositivo.</p>
             <div class="hero-actions">
-              <a class="button button-primary" href="#demonstracao">Ver demonstração</a>
-              <a class="button" :href="repositoryUrl">Ver código</a>
+              <RouterLink class="button button-primary" to="/dashboard">Acessar painel</RouterLink>
+              <div class="recording-action">
+                <a class="button" href="#demonstracao" aria-describedby="recording-version">Ver demonstração gravada</a>
+                <p id="recording-version" class="small">Versão anterior · dados simulados</p>
+              </div>
             </div>
           </div>
           <figure class="hero-preview">
-            <img src="/media/equipamento-conceitual-p05.png" alt="Ilustração conceitual de um ventilador instrumentado sobre uma base com sensores. Não é fotografia do protótipo." width="1536" height="1024" fetchpriority="high" />
-            <figcaption>Representação ilustrativa · imagem gerada por IA. Não define o hardware ou a posição real dos sensores.</figcaption>
+            <img src="/media/dashboard-overview.png" alt="Visão geral do laboratório refrigerado, com temperatura de 6,5 °C em estado normal, medições do motor, alertas e estado da luz e do som." width="1184" height="736" fetchpriority="high" />
+            <figcaption>Painel atual · captura com dados simulados</figcaption>
           </figure>
-        </section>
-
-        <section id="como-funciona" tabindex="-1" class="content-section" aria-labelledby="architecture-title">
-          <div class="section-heading">
-            <h2 id="architecture-title">Como os dados chegam até aqui</h2>
-            <p class="muted">Aquisição → transmissão → processamento → visualização</p>
-          </div>
-          <ol class="architecture-grid">
-            <li v-for="step in architecture" :key="step.title" class="architecture-step">
-              <h3>{{ step.title }}</h3>
-              <p class="muted">{{ step.description }}</p>
-            </li>
-          </ol>
-          <p class="small muted">ESP32 com DHT22 no Wokwi permanece como caminho legado opcional. A demonstração AIoT atual usa sensores simulados, sem validar desempenho físico.</p>
-        </section>
-
-        <section class="context content-section" aria-labelledby="context-title">
-          <div class="section-heading">
-            <h2 id="context-title">Um número sozinho não conta tudo.</h2>
-          </div>
-          <div class="context-copy">
-            <p class="context-statement">5 °C pode ser uma boa notícia. Se a leitura for de agora.</p>
-            <p class="muted">O ColdSafe reúne a medição, a idade da leitura e sua variação ao longo do tempo. Assim, um valor antigo não se confunde com uma situação normal.</p>
-            <p class="muted">A inspeção 3D permite selecionar componentes e consultar seus dados. O movimento é ilustrativo: não mede RPM nem representa uma simulação física validada.</p>
-          </div>
         </section>
 
         <section id="demonstracao" tabindex="-1" class="content-section" aria-labelledby="demo-title">
           <div class="section-heading">
-            <h2 id="demo-title">Veja os dados ganharem contexto.</h2>
-            <p class="lead">Do estado normal à leitura desatualizada. Uma demonstração gravada da interface, com respostas HTTP simuladas.</p>
+            <h2 id="demo-title">Demonstração gravada</h2>
+            <p class="lead">Com dados simulados, a versão anterior do painel mostra o histórico de temperatura, leituras fora da faixa ou desatualizadas e a confirmação de um comando de LED.</p>
           </div>
           <figure class="media-frame demo-video">
             <video
@@ -149,6 +125,30 @@ function retryVideo() {
           </div>
         </section>
 
+        <section id="como-funciona" tabindex="-1" class="content-section" aria-labelledby="architecture-title">
+          <div class="section-heading">
+            <h2 id="architecture-title">Como os dados chegam ao painel</h2>
+          </div>
+          <ol class="architecture-grid">
+            <li v-for="step in architecture" :key="step.title" class="architecture-step">
+              <h3>{{ step.title }}</h3>
+              <p class="muted">{{ step.description }}</p>
+            </li>
+          </ol>
+          <p class="small muted">ESP32 com DHT22 no Wokwi permanece como caminho legado opcional. A demonstração AIoT atual usa sensores simulados, sem validar desempenho físico.</p>
+        </section>
+
+        <section class="context content-section" aria-labelledby="context-title">
+          <div class="section-heading">
+            <h2 id="context-title">Um número sozinho não conta tudo.</h2>
+          </div>
+          <div class="context-copy">
+            <p class="context-statement">5 °C pode ser uma boa notícia. Se a leitura for de agora.</p>
+            <p class="muted">O ColdSafe reúne a medição, a idade da leitura e sua variação ao longo do tempo. Assim, um valor antigo não se confunde com uma situação normal.</p>
+            <p class="muted">A inspeção 3D permite selecionar componentes e consultar seus dados. O movimento é ilustrativo: não mede RPM nem representa uma simulação física validada.</p>
+          </div>
+        </section>
+
         <section class="construction content-section" aria-labelledby="construction-title">
           <div class="section-heading"><h2 id="construction-title">Hardware encontra software.</h2></div>
           <p class="muted">Python · MQTT · FastAPI · InfluxDB · PostgreSQL · RabbitMQ · Vue · TypeScript · Three.js</p>
@@ -171,7 +171,7 @@ function retryVideo() {
 .presentation ::selection { background: var(--cs-color-accent); color: var(--cs-color-accent-ink); }
 .presentation-shell { max-width: 1280px; margin-inline: auto; }
 p, h1, h2, h3, figure, ol { margin: 0; }
-.navigation, .navigation nav, .brand, .hero-actions, .footer { display: flex; align-items: center; }
+.navigation, .navigation nav, .brand, .footer { display: flex; align-items: center; }
 .navigation { gap: var(--cs-space-32); }
 .navigation .brand { margin-right: auto; }
 .navigation nav { flex-wrap: wrap; gap: var(--cs-space-32); font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
@@ -181,7 +181,7 @@ a { text-decoration: underline; text-underline-offset: .2em; transition: color v
 a:hover { color: var(--cs-color-accent); }
 .brand { min-height: var(--cs-control-min-height); font-size: var(--cs-type-24); font-weight: 650; text-decoration: none; }
 .sections { display: flex; flex-direction: column; gap: var(--cs-space-64); padding-block: var(--cs-space-64); }
-.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; gap: var(--cs-space-48); }
+.hero { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: center; gap: var(--cs-space-48); }
 .hero-copy, .context-copy, .section-heading { display: flex; flex-direction: column; align-items: start; gap: var(--cs-space-24); }
 .hero-copy { animation: enter var(--cs-motion-entrance) cubic-bezier(.16, 1, .3, 1); }
 @keyframes enter { from { transform: translateY(12px); } to { transform: translateY(0); } }
@@ -192,14 +192,15 @@ h3 { font-size: var(--cs-type-20); font-weight: 650; line-height: 1.4; }
 .muted, .lead { color: var(--cs-color-ink-muted); }
 .lead { font-size: var(--cs-type-20); max-width: 62ch; }
 .small, figcaption { font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
-.hero-actions { flex-wrap: wrap; gap: var(--cs-space-16); margin-top: var(--cs-space-24); }
+.hero-actions { display: flex; align-items: start; flex-wrap: wrap; gap: var(--cs-space-16); }
+.recording-action { display: flex; flex-direction: column; gap: var(--cs-space-8); }
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: var(--cs-control-min-height); padding: var(--cs-space-12) var(--cs-space-24); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); color: var(--cs-color-ink); font-family: inherit; font-size: var(--cs-type-14); font-weight: 600; line-height: 1.4286; text-decoration: none; cursor: pointer; text-align: center; }
 .button:hover { background: var(--cs-color-surface-muted); color: var(--cs-color-ink); }
-.button-primary, .access-link { background: var(--cs-color-accent); color: var(--cs-color-accent-ink); border-color: transparent; }
-.button-primary:hover, .access-link:hover { background: var(--cs-color-accent-hover); color: var(--cs-color-accent-ink); }
-.hero-preview { min-width: 0; padding: var(--cs-space-12); border-radius: var(--cs-radius-8); background: #f3f6f5; color: #526c70; }
+.button-primary { background: var(--cs-color-accent); color: var(--cs-color-accent-ink); border-color: transparent; }
+.button-primary:hover { background: var(--cs-color-accent-hover); color: var(--cs-color-accent-ink); }
+.hero-preview { min-width: 0; overflow: hidden; border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); }
 .hero-preview img { display: block; width: 100%; height: auto; }
-.hero-preview figcaption { margin-top: var(--cs-space-8); color: inherit; }
+.hero-preview figcaption { padding: var(--cs-space-12) var(--cs-space-16); }
 .content-section { display: flex; flex-direction: column; align-items: start; gap: var(--cs-space-32); scroll-margin-top: var(--cs-space-24); }
 .architecture-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cs-space-24); padding: 0; list-style: none; width: 100%; }
 .architecture-step { display: flex; flex-direction: column; gap: var(--cs-space-16); padding: var(--cs-space-24); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); }
@@ -244,7 +245,7 @@ h3 { font-size: var(--cs-type-20); font-weight: 650; line-height: 1.4; }
   .hero, .context, .state-gallery { grid-template-columns: minmax(0, 1fr); gap: var(--cs-space-32); }
   h1, h2 { font-size: var(--cs-type-32); }
   .lead { font-size: var(--cs-type-16); }
-  .hero-actions { margin-top: var(--cs-space-8); gap: var(--cs-space-12); }
+  .hero-actions { gap: var(--cs-space-12); }
   .hero-actions .button { padding-inline: var(--cs-space-16); }
   .media-frame { padding: var(--cs-space-16); }
   .media-error { padding: var(--cs-space-16); }

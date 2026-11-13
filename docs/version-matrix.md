@@ -7,6 +7,7 @@ fonte exata; esta tabela facilita a conferência no computador da apresentação
 | --- | --- | --- |
 | Runtime backend | Python `3.13.15` | `.python-version`, `backend/Dockerfile` |
 | Runtime frontend | Node `24.20.0` | `.nvmrc`, `frontend/Dockerfile` |
+| Compose validado | Docker Compose `5.1.0` | [Ensaio da composição padrão](evidence/default-compose-2026-11-05/README.md) |
 | Backend | FastAPI `0.141.1`, Pydantic `2.13.5`, psycopg `3.3.6`, pwdlib `0.3.1`, paho-mqtt `2.1.0`, influxdb-client `1.50.0`, websockets `17.1` | `backend/requirements.txt`, `backend/requirements.lock.txt` |
 | Transporte HTTP do InfluxDB | urllib3 `2.8.0`; correção das três vulnerabilidades identificadas em `2.7.0` em 14/10/2026 | `backend/requirements.txt`, locks de produção/desenvolvimento; [evidência](evidence/urllib3-security-fix.json) |
 | Autenticação B2-06 | PyJWT `2.15.1`, bcrypt `5.0.0`; pwdlib com extras Argon2/bcrypt | `backend/requirements.txt`, locks de produção/desenvolvimento |
@@ -24,7 +25,7 @@ fonte exata; esta tabela facilita a conferência no computador da apresentação
 | Documentação REST offline B2-36 | swagger-ui-dist `5.34.0` (desenvolvimento/build; JS/CSS/favicon/licença copiados ao Nginx); @scarf/scarf `1.4.0` transitivo, analytics de instalação desativada | `frontend/package.json`, lock, Dockerfile; `/docs` usa arquivos locais |
 | Testes DOM B2-36 | happy-dom `21.0.4`, correção HIGH GHSA-834v-8h66-3h79; substitui `20.14.3` sem atualizar outros pins | `frontend/package.json`, lock; evidência B2-36 |
 | Cena 3D B2-27 | Three.js `0.186.1`; desenvolvimento: `@types/three 0.186.0` | `frontend/package.json`, `frontend/package-lock.json` |
-| LLM local B2-30/B2-32 | Ollama `0.40.3`; `llama3.2:3b-instruct-q4_K_M`, CPU/contexto 1.024, quatro threads, lote 128, 3,25 GiB/4 CPUs | `compose.ollama.yaml`, `backend/app/services/llm.py`; pesos no volume local; aceite factual no cartão B2-32 |
+| LLM local B2-30/B2-32 | Ollama `0.40.3`; `llama3.2:3b-instruct-q4_K_M`, CPU/contexto 1.024, quatro threads, lote 128, 3,25 GiB/4 CPUs | `compose.ollama.yaml`, `backend/app/services/llm.py`; pesos no volume local; [avaliação factual](../backend/README.md#página-e-avaliação-do-assistente-b2-32) |
 | Firmware | espressif32 `7.0.1`, DHT sensor library for ESPx `1.19`, MQTT `2.5.3`, ArduinoJson `7.4.3` | `firmware/platformio.ini` |
 | Containers | Mosquitto `2.0.22`, InfluxDB `2.7.12-alpine`, PostgreSQL `17.11-alpine3.24`, Python `3.13.15-slim`, Node `24.20.0-alpine3.24` | `compose.yaml`, Dockerfiles |
 

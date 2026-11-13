@@ -76,13 +76,13 @@ for (const width of [1440, 390]) {
     await expect(history.getByRole('region', { name: 'Leituras individuais de corrente do motor' })).toBeFocused()
     const prediction = page.getByRole('region', { name: 'Previsão do equipamento', exact: true })
     await expect(prediction).toContainText('0 h')
-    await expect(prediction).toContainText('dados sintéticos')
+    await expect(prediction).toContainText('dados gerados para teste')
     const positions = await page.evaluate(() => {
       const y = (selector: string) => document.querySelector(selector)!.getBoundingClientRect().top
       return { selection: y('.selection-panel'), navigation: y('nav[aria-label="Navegação da área"]'), metrics: y('.metrics-grid') }
     })
-    expect(positions.selection).toBeLessThan(positions.navigation)
-    expect(positions.navigation).toBeLessThan(positions.metrics)
+    expect(positions.navigation).toBeLessThan(positions.selection)
+    expect(positions.selection).toBeLessThan(positions.metrics)
     const left = await history.boundingBox(), right = await prediction.boundingBox()
     if (width === 1440) expect(left!.y).toBe(right!.y)
     else expect(right!.y).toBeGreaterThan(left!.y + left!.height)
@@ -113,13 +113,73 @@ for (const width of [1440, 390]) {
       })
       await writeFile(new URL('rendered-colors.json', evidence), JSON.stringify({ browser: page.context().browser()!.version(), styles }, null, 2))
     }
-    const actuators = page.getByRole('group', { name: 'Estado dos atuadores' })
+    const actuators = page.getByRole('group', { name: 'Estado da luz e do som de aviso' })
     await actuators.locator('summary').click()
     await expect(page.getByRole('region', { name: 'Observação do LED' })).toContainText('Desligado')
     await expect(page.getByRole('region', { name: 'Pedido do LED' })).toContainText('Sem confirmação registrada')
     expect(mock.posts).toEqual([])
   })
 }
+
+test('UX-01: alertas e luz ficam perto da leitura e a comparação mostra só o período com dados', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1024 })
+  const now = new Date('2026-10-12T18:01:00Z')
+  await page.clock.setFixedTime(now)
+  const mock = await mockOverview(page)
+  const telemetry = examples.find((item) => item.name === 'telemetry_received')!.payload
+  await page.route('**/api/v3/readings?**', (route) => {
+    const { searchParams } = new URL(route.request().url())
+    const start = searchParams.get('start'), end = searchParams.get('end')
+    if (!start || !end) return route.fallback()
+    const rows = end === now.toISOString() ? Array.from({ length: 300 }, (_, index) => {
+      const timestamp = new Date(+now - (300 - index) * 5_000).toISOString()
+      return { persistence: 'persisted', telemetry: { ...telemetry,
+        event_id: `00000000-0000-4000-8000-${String(index + 1000).padStart(12, '0')}`,
+        occurred_at: timestamp, received_at: timestamp, data: { ...telemetry.data, measurements: {
+          ...telemetry.data.measurements,
+          ambient_temperature: { ...telemetry.data.measurements.ambient_temperature, value: 5.1 + Math.sin(index * 13) * 0.15 },
+        } },
+      } }
+    }) : []
+    return route.fulfill({ json: { success: true, data: rows, meta: {
+      schema_version: 3, device_id: telemetry.device_id, start, end, count: rows.length, limit: 300,
+      thresholds: { min_c: 2, max_c: 8, attention_margin_c: 0.5 },
+    } } })
+  })
+  await page.goto('/dashboard')
+  const metrics = page.getByRole('region', { name: 'Medições do ambiente', exact: true })
+  const alerts = page.getByRole('region', { name: /^Alertas do dispositivo/ })
+  const actuators = page.getByRole('group', { name: 'Estado da luz e do som de aviso' })
+  const history = page.getByRole('region', { name: /^Histórico ·/ })
+  const comparison = page.getByRole('region', { name: 'Comparação de temperatura', exact: true })
+  await expect(alerts).toContainText('Nenhum alerta neste período.')
+  await expect(actuators.locator('summary')).toContainText('Última leitura: luz desligada')
+  await expect(comparison.getByRole('img', { name: 'Gráfico de temperatura do período selecionado', exact: true })).toBeVisible()
+  await expect(comparison).toContainText('Sem leituras no período anterior para comparar.')
+  await expect(comparison).toContainText('Limite de 300 atingido')
+  await expect(comparison.getByRole('button', { name: 'Atualizar alertas e comparação', exact: true })).toBeVisible()
+  const [measurementsBox, alertsBox, actuatorsBox, historyBox, comparisonBox] = await Promise.all(
+    [metrics, alerts, actuators, history, comparison].map((section) => section.boundingBox()),
+  )
+  expect(alertsBox!.y).toBeGreaterThan(measurementsBox!.y + measurementsBox!.height)
+  expect(actuatorsBox!.y).toBe(alertsBox!.y)
+  expect(historyBox!.y).toBeGreaterThan(Math.max(alertsBox!.y + alertsBox!.height, actuatorsBox!.y + actuatorsBox!.height))
+  expect(comparisonBox!.width).toBeCloseTo(measurementsBox!.width, 0)
+
+  const evidenceDir = new URL('../../.impeccable/review/ux-01/', import.meta.url)
+  await mkdir(evidenceDir, { recursive: true })
+  await page.screenshot({ path: new URL('desktop.png', evidenceDir).pathname })
+  await comparison.screenshot({ path: new URL('comparacao-periodo-anterior-vazio.png', evidenceDir).pathname })
+  const tableSummary = comparison.getByText('Ver leituras de temperatura em tabela', { exact: true })
+  await tableSummary.focus()
+  await page.keyboard.press('Enter')
+  await expect(comparison.getByRole('table')).toBeVisible()
+  await expect(comparison.getByRole('row')).toHaveCount(301)
+  await actuators.locator('summary').focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('region', { name: 'Observação do LED' })).toContainText('Desligado')
+  expect(mock.posts).toEqual([])
+})
 
 test('falha parcial e previsão antiga não removem leitura válida; viewer consulta sem atuar', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1024 })
@@ -136,7 +196,7 @@ test('falha parcial e previsão antiga não removem leitura válida; viewer cons
   await expect(prediction).not.toContainText('0 h')
   await mkdir(evidence, { recursive: true })
   await page.screenshot({ path: new URL('partial-error.png', evidence).pathname, fullPage: true })
-  await page.getByRole('group', { name: 'Estado dos atuadores' }).locator('summary').click()
+  await page.getByRole('group', { name: 'Estado da luz e do som de aviso' }).locator('summary').click()
   await expect(page.getByRole('button', { name: 'Ligar Luz', exact: true })).toBeDisabled()
   await page.getByRole('button', { name: 'Atualizar estado', exact: true }).click()
   expect(mock.posts).toEqual([])
@@ -172,7 +232,7 @@ test('320 px com texto 200%, leitura antiga, teclado e atualização sem mover f
   }
   const rows = await page.getByRole('region', { name: 'Medições do ambiente' }).getByRole('article').evaluateAll((items) => items.map((item) => item.getBoundingClientRect().top))
   expect(rows[0]).toBe(rows[1])
-  await page.getByRole('group', { name: 'Estado dos atuadores' }).locator('summary').click()
+  await page.getByRole('group', { name: 'Estado da luz e do som de aviso' }).locator('summary').click()
   await expect(page.getByRole('region', { name: 'Observação do LED' })).toContainText('Estado atual não confirmado')
   await page.evaluate(() => scrollTo(0, 0))
   await mkdir(evidence, { recursive: true })

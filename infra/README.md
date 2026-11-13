@@ -1,48 +1,23 @@
 # Infraestrutura local
 
-O Docker Compose executa Mosquitto, InfluxDB, PostgreSQL, backend FastAPI e frontend Vue. O
-serviço efêmero `mosquitto-init` prepara as credenciais do broker antes do
-Mosquitto iniciar.
+O Compose padrão inclui a pilha AIoT v3, com Mosquitto, RabbitMQ, InfluxDB,
+PostgreSQL, aplicação Web, simulador, gateway, writer, workers e Ollama.
+A base explícita (`-f compose.yaml`) serve para comissionamento e para o
+percurso legado. Veja os [serviços e fluxos](../docs/aiot/architecture.md).
 
-A B2-07 acrescenta RabbitMQ interno e inicializador offline, filas duráveis,
-credenciais por serviço, retry limitado e DLQ privada. Preparação, topologia e
-testes estão em [`rabbitmq/README.md`](rabbitmq/README.md). O backend v1/v2
-continua no MQTT; o gravador v3 foi acrescentado na B2-12 e os demais consumidores são posteriores.
+`mosquitto-init` prepara credenciais MQTT antes de iniciar o Mosquitto.
+`rabbitmq-init` prepara as definições do RabbitMQ, com filas duráveis,
+credenciais por serviço, tentativas limitadas e fila de mensagens mortas (DLQ).
+Consulte a [topologia e os testes do RabbitMQ](rabbitmq/README.md).
 
-A B2-09 acrescenta o perfil opcional `simulator`, produtor MQTT v3 com seis
-sensores e desgaste progressivo. Usa duas credenciais exclusivas, cadastro local
-montado em leitura e controles operacionais separados dos comandos de atuadores.
-Veja [`simulator/README.md`](../simulator/README.md). A aplicação v1/v2 ainda não
-consome essas leituras; a entrega não comprova integração MQTT→RabbitMQ→Web.
-
-A B2-11 acrescenta o perfil `aiot`, gateway MQTT/AMQP bidirecional com diário
-SQLite no volume privado `gateway-state`, validação PostgreSQL de propriedade e
-deduplicação entre reinícios. Veja [`gateway/README.md`](../gateway/README.md).
-A B2-12 acrescenta `writer` ao mesmo perfil, com fila própria, token InfluxDB
-write-only e bucket `telemetry_live` separado do legado/sintéticos. Preparação e
-testes em [`writer/README.md`](../writer/README.md).
-O dashboard v3 continua posterior; a API v1/v2 conserva seu transporte.
-
-O procedimento canônico para preparar outro computador, criar o token restrito
-do InfluxDB, subir os serviços, validar o sistema e diagnosticar falhas está em
-[`../docs/runbook.md`](../docs/runbook.md).
+Prepare contas, catálogo e tokens pelo [runbook](../docs/runbook.md).
 
 ## Preparar variáveis locais
 
-Na raiz do projeto:
-
-```bash
-python3 scripts/generate-secrets.py
-```
-
-O gerador preenche segredos ausentes/vazios sem trocar valores existentes e
-mantém o `.env` privado com `0600`. Configure
-`MQTT_DEVICE_PASSWORD` e `MQTT_DEVICE_02_PASSWORD` com senhas diferentes e use
-cada uma no ESP32 correspondente. O
-backend deve receber um `INFLUXDB_TOKEN` exclusivo, com leitura e escrita
-somente no bucket de telemetria; nunca reutilize o token administrativo.
-Defina também `POSTGRES_PASSWORD` no `.env` local. O backend aplica a migração
-relacional versionada ao iniciar; ela não modifica o histórico do InfluxDB.
+O [bootstrap](../docs/runbook.md#3-inicializar-o-influxdb-e-provisionar-tokens-restritos)
+cria as permissões de leitura/escrita do backend legado e a permissão de escrita
+do writer v3. O backend aplica as migrações PostgreSQL ao iniciar. Consulte o
+[guia de configuração](../docs/configuration.md) para as variáveis de cada serviço.
 
 ## Credenciais MQTT
 
@@ -55,9 +30,11 @@ confirmações.
 
 ## Subir e verificar
 
+Com o comissionamento e o preparo de pesos concluídos:
+
 ```bash
 docker compose config --quiet
-docker compose up -d --build
+docker compose up -d --build --wait --wait-timeout 420
 docker compose ps -a
 ```
 
@@ -72,10 +49,9 @@ senhas e definições geradas continuam em volumes privados. Após editar
 `infra/mosquitto` ou `infra/rabbitmq`, use `docker compose up -d --build --wait`.
 Não há montagem de arquivos dessa pasta nos brokers durante a execução.
 
-Para Wokwi/diagnóstico, use `docker compose -f compose.yaml -f compose.debug.yaml
-up -d --build --wait`: API `8000`, MQTT `1883` e management RabbitMQ `15672`
-ficam disponíveis somente em loopback. Veja o [runbook](../docs/runbook.md)
-para bootstrap do token InfluxDB, links de diagnóstico e retorno ao modo normal.
+O [modo Wokwi](../docs/runbook.md#esp32wokwi-legado) e o
+[diagnóstico da pilha completa](../docs/runbook.md#6-diagnóstico) publicam
+API `8000`, MQTT `1883` e gerenciamento RabbitMQ `15672` em loopback.
 
 ## Parar sem apagar o histórico
 

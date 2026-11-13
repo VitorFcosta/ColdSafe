@@ -4,7 +4,6 @@ import { isNavigationFailure, NavigationFailureType, useRoute, useRouter } from 
 import { useMediaQuery } from '@vueuse/core'
 import { logout, sessionToken } from '../account/session'
 import AppNavigation from './AppNavigation.vue'
-import AreaNavigation from './AreaNavigation.vue'
 import { monitoringLocation } from '../monitoring/use-monitoring-context'
 import { focusPageHeading } from './navigation'
 
@@ -66,7 +65,6 @@ onBeforeUnmount(() => { removeNavigationHook(); navigating = true; dialog.value?
       <AppNavigation :signing-out="signingOut" @navigate="(external) => { if (external) closeMenu() }" @sign-out="signOut" />
     </dialog>
     <div class="page-content">
-      <AreaNavigation v-if="!['dashboard', 'insights', 'digital-twin'].includes(String(route.name))" />
       <p v-if="logoutError" class="logout-error" role="alert">{{ logoutError }}</p>
       <slot />
     </div>

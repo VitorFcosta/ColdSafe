@@ -22,7 +22,7 @@ vi.mock('../features/monitoring/use-monitoring-summary', async (original) => ({ 
   return { summary: live.summary, monitoringState: live.state, refreshRevision: live.revision, connectionState: live.connection, ageSeconds: ref(1) }
 } }))
 vi.mock('../features/digital-twin/DigitalTwinScene.vue', () => ({ default: { name: 'DigitalTwinScene', props: ['items', 'selectedId', 'visual', 'paused'], emits: ['select', 'update:paused'], template: '<div data-scene />' } }))
-vi.mock('../features/digital-twin/twin-state', async (original) => ({ ...await original<typeof import('../features/digital-twin/twin-state')>(), twinStatusLabels: { normal: 'Normal', attention: 'Atenção', critical: 'Crítico', no_data: 'Sem dados' }, twinColors: { normal: 0x197854, attention: 0xa96409, critical: 0xc3353c, no_data: 0x667681 }, buildTwinItems: (summary: MonitoringSummary | null, fresh: boolean, insights: InsightsSnapshot | null) => { live.insightsInput = insights; return [{ id: summary ? 'real-sensor-id' : null, key: 'temperature', label: 'Temperatura ambiente', kind: 'sensor', value: fresh ? '4 °C' : '—', status: fresh ? 'normal' : 'no_data', position: [0, 0, 0] }] } }))
+vi.mock('../features/digital-twin/twin-state', async (original) => ({ ...await original<typeof import('../features/digital-twin/twin-state')>(), twinStatusLabels: { normal: 'Normal', attention: 'Atenção', critical: 'Crítico', no_data: 'Sem dados' }, twinColors: { normal: 0x197854, attention: 0xa96409, critical: 0xc3353c, no_data: 0x667681 }, buildTwinItems: (summary: MonitoringSummary | null, fresh: boolean, insights: InsightsSnapshot | null) => { live.insightsInput = insights; return [{ id: summary ? 'real-sensor-id' : null, key: 'temperature', label: 'Temperatura ambiente', kind: 'sensor', value: fresh ? '4 °C' : 'Sem dados atuais', status: fresh ? 'normal' : 'no_data', position: [0, 0, 0] }] } }))
 vi.mock('vue-router', async (original) => {
   const actual = await original<typeof import('vue-router')>()
   const { reactive } = await import('vue')
@@ -34,7 +34,7 @@ const device = { id: '00000000-0000-4000-8000-000000000011', environment_id: '00
 const other = { ...device, id: '00000000-0000-4000-8000-000000000012', mqtt_device_id: 'mqtt-b', name: 'Motor B' }
 const summary: MonitoringSummary = { environment: { id: '00000000-0000-4000-8000-000000000001', name: 'A' }, device: { id: 'mqtt-a' }, reading: { temperature_c: 4, humidity_percent: 40, received_at: new Date().toISOString(), device_record_id: '00000000-0000-4000-8000-000000000011', environment_id: '00000000-0000-4000-8000-000000000001', equipment_id: 'equipment-a' }, status: 'normal', freshness: { age_seconds: 0, is_stale: false }, thresholds: { min_c: 0, max_c: 8, attention_margin_c: 1 } }
 const snapshot: InsightsSnapshot = { device_id: 'mqtt-a', equipment_id: 'equipment-a', rules: { health_critical: 30, health_recovery: 40, rul_critical_hours: 24, rul_recovery_hours: 48, open_count: 3, close_count: 10 }, prediction: null, availability: 'no_data', age_seconds: null, trend: 'unknown', active_alerts: [] }
-const mount = () => shallowMount(DigitalTwinView, { global: { stubs: { LiveDataRegion: false,
+const mount = () => shallowMount(DigitalTwinView, { global: { stubs: { LiveDataRegion: false, MonitoringEmptyState: false,
   RouterLink: { template: '<a><slot /></a>' },
   TwinItemPanel: { name: 'TwinItemPanel', props: ['item', 'summary', 'device', 'token', 'fresh', 'ageSeconds', 'revision', 'connectionState'], template: '<section aria-label="Detalhes do componente"><h2>{{ item.label }}</h2>{{ item.id }} {{ item.value }}</section>' },
 } } })
@@ -57,19 +57,21 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers() })
 
 describe('DigitalTwinView', () => {
-  it('ordena contexto, navegação e grandezas; oferece leitura selecionada e acesso interno à lista', async () => {
+  it('mostra medições na lista e a seleção da cena no painel de detalhes', async () => {
     const wrapper = mount(); await flushPromises()
     expect(wrapper.findComponent({ name: 'AreaNavigation' }).exists()).toBe(true)
     expect(wrapper.get('a[href="#twin-components"]').text()).toContain('Ir para a lista')
     expect(wrapper.get('#twin-components').attributes('tabindex')).toBe('-1')
-    expect(wrapper.get('[aria-label="Grandezas do equipamento"]').text()).toContain('4 °C')
-    expect(wrapper.get('[aria-label="Leitura selecionada"]').text()).toContain('Selecione um componente')
+    const list = wrapper.get('[aria-label="Componentes do gêmeo digital"]')
+    expect(list.text()).toContain('4 °C')
+    expect(list.text()).not.toContain('real-sensor-id')
+    expect(wrapper.get('[aria-labelledby="inspection-title"]').text()).toContain('Escolha uma peça')
     wrapper.getComponent({ name: 'DigitalTwinScene' }).vm.$emit('select', 'real-sensor-id')
     await flushPromises()
-    expect(wrapper.get('[aria-label="Leitura selecionada"]').text()).toContain('4 °C')
-    expect(wrapper.get('[aria-label="Leitura selecionada"]').text()).toContain('real-sensor-id')
+    expect(wrapper.get('[aria-label="Detalhes do componente"]').text()).toContain('4 °C')
+    expect(list.get('button').attributes('aria-pressed')).toBe('true')
     state().value = { kind: 'stale' }; await flushPromises()
-    expect(wrapper.get('[aria-label="Leitura selecionada"]').text()).not.toContain('4 °C')
+    expect(list.text()).not.toContain('4 °C')
   })
   it('conserva pausa local após nova leitura, seleção e remontagem ao trocar equipamento', async () => {
     const wrapper = mount(); await flushPromises()
@@ -117,16 +119,16 @@ describe('DigitalTwinView', () => {
     }
     await vi.advanceTimersByTimeAsync(1000)
     expect(signal.aborted).toBe(true)
-    expect(wrapper.text()).toContain('Não foi possível atualizar os Insights')
-    expect(wrapper.text()).toContain('Alerta preditivo persistente na última consulta confirmada')
+    expect(wrapper.text()).toContain('Não foi possível atualizar a previsão')
+    expect(wrapper.text()).toContain('Havia um alerta em aberto na última consulta')
     expect(live.insightsInput).toBeNull()
     await vi.advanceTimersByTimeAsync(1000)
     finish(snapshot); await flushPromises()
-    expect(wrapper.text()).toContain('Não foi possível atualizar os Insights')
+    expect(wrapper.text()).toContain('Não foi possível atualizar a previsão')
     expect(fetchInsights).toHaveBeenCalledTimes(2)
     revision().value++; await flushPromises()
     expect(fetchInsights).toHaveBeenCalledTimes(3)
-    expect(wrapper.text()).not.toContain('Não foi possível atualizar os Insights'); wrapper.unmount()
+    expect(wrapper.text()).not.toContain('Não foi possível atualizar a previsão'); wrapper.unmount()
   })
   it('GET de 1,5s completa com telemetria 1Hz e consolida uma atualização pendente', async () => {
     const wrapper = mount(); await flushPromises()
@@ -138,7 +140,7 @@ describe('DigitalTwinView', () => {
     await vi.advanceTimersByTimeAsync(1000); revision().value++; await flushPromises()
     expect(signal.aborted).toBe(false)
     await vi.advanceTimersByTimeAsync(500); await flushPromises()
-    expect(wrapper.text()).toContain('Alerta preditivo persistente na última consulta confirmada')
+    expect(wrapper.text()).toContain('Havia um alerta em aberto na última consulta')
     expect(live.insightsInput).toEqual(updated)
     expect(fetchInsights).toHaveBeenCalledTimes(3)
     wrapper.unmount()
@@ -155,7 +157,7 @@ describe('DigitalTwinView', () => {
     const wrapper = mount(); await flushPromises()
     expect(wrapper.get('h1').attributes('tabindex')).toBe('-1')
     const button = wrapper.get('[aria-label="Componentes do gêmeo digital"] button')
-    expect(button.text()).toContain('real-sensor-id'); expect(button.text()).toContain('4 °C')
+    expect(button.text()).not.toContain('real-sensor-id'); expect(button.text()).toContain('4 °C')
     expect(button.attributes('type')).toBe('button')
     wrapper.findComponent({ name: 'DigitalTwinScene' }).vm.$emit('select', 'real-sensor-id')
     await flushPromises()
@@ -164,12 +166,13 @@ describe('DigitalTwinView', () => {
     wrapper.findComponent({ name: 'DigitalTwinScene' }).vm.$emit('select', 'invented-id')
     await flushPromises(); expect(button.attributes('aria-pressed')).toBe('true')
     await button.trigger('click'); expect(button.attributes('aria-pressed')).toBe('true')
-    expect(wrapper.text()).toContain('faixas'); wrapper.unmount()
+    expect(wrapper.text()).toContain('limites configurados para o ambiente'); wrapper.unmount()
   })
   it.each(['stale', 'service_error', 'no_data'])('estado %s não mostra valores antigos', async (kind) => {
     const wrapper = mount(); await flushPromises(); state().value = { kind }; await flushPromises()
     expect(wrapper.get('[aria-label="Componentes do gêmeo digital"]').text()).not.toContain('4 °C')
-    expect(wrapper.text()).toContain('Sem dados'); wrapper.unmount()
+    expect(wrapper.get('[aria-label="Componentes do gêmeo digital"]').text()).toContain('Sem dados atuais')
+    wrapper.unmount()
   })
   it('não apresenta resumo de outro ambiente, MQTT ou registro', async () => {
     const wrapper = mount(); await flushPromises()
@@ -182,10 +185,10 @@ describe('DigitalTwinView', () => {
   it('erro de Insights fica explícito e nova revisão REST/WS recupera sem polling próprio', async () => {
     vi.mocked(fetchInsights).mockRejectedValueOnce(new Error('private'))
     const wrapper = mount(); await flushPromises()
-    expect(wrapper.text()).toContain('Não foi possível atualizar os Insights'); expect(wrapper.text()).not.toContain('private')
+    expect(wrapper.text()).toContain('Não foi possível atualizar a previsão'); expect(wrapper.text()).not.toContain('private')
     await vi.advanceTimersByTimeAsync(4000); expect(fetchInsights).toHaveBeenCalledOnce()
     revision().value++; await flushPromises(); expect(fetchInsights).toHaveBeenCalledTimes(2)
-    expect(wrapper.text()).not.toContain('Não foi possível atualizar os Insights'); wrapper.unmount()
+    expect(wrapper.text()).not.toContain('Não foi possível atualizar a previsão'); wrapper.unmount()
   })
   it.each([401, 403, 404])('revogação %s limpa cena e dados privados sem refazer consulta bloqueada', async (status) => {
     vi.mocked(fetchInsights).mockRejectedValueOnce(new InsightsAccessError(status))
@@ -215,7 +218,7 @@ describe('DigitalTwinView', () => {
   it('cancela deadline e desmontagem, ignora catálogo antigo', async () => {
     vi.mocked(fetchInsights).mockImplementationOnce((_token, _device, signal) => new Promise((_, reject) => signal!.addEventListener('abort', () => reject(new Error('deadline')))))
     const wrapper = mount(); await flushPromises(); await vi.advanceTimersByTimeAsync(8000)
-    expect(wrapper.text()).toContain('Não foi possível atualizar os Insights')
+    expect(wrapper.text()).toContain('Não foi possível atualizar a previsão')
     revision().value++; await flushPromises(); const signal = vi.mocked(fetchInsights).mock.calls[1]![2]!
     wrapper.unmount(); expect(signal.aborted).toBe(true)
     let finish!: (value: typeof device[]) => void
@@ -228,13 +231,13 @@ describe('DigitalTwinView', () => {
     vi.mocked(fetchInsights).mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
     const wrapper = mount(); await flushPromises(); await vi.advanceTimersByTimeAsync(8000)
     finish(snapshot); await flushPromises()
-    expect(wrapper.text()).toContain('Não foi possível atualizar os Insights'); wrapper.unmount()
+    expect(wrapper.text()).toContain('Não foi possível atualizar a previsão'); wrapper.unmount()
   })
   it('não consulta inventários sem catálogo ou após catálogo antigo de outra sessão', async () => {
     let finish!: (value: typeof device[]) => void
     vi.mocked(listDevices).mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
     const wrapper = mount(); await flushPromises(); vi.mocked(listEnvironments).mockResolvedValueOnce([])
     sessionToken.value = 'token-b'; await flushPromises(); finish([device]); await flushPromises()
-    expect(fetchInsights).not.toHaveBeenCalled(); expect(wrapper.text()).toContain('Nenhum ambiente autorizado'); wrapper.unmount()
+    expect(fetchInsights).not.toHaveBeenCalled(); expect(wrapper.text()).toContain('Nenhum ambiente disponível para sua conta'); wrapper.unmount()
   })
 })

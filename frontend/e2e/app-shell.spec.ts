@@ -1,3 +1,4 @@
+import { mkdir } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
 import training from '../src/features/training/training.fixture.json' with { type: 'json' }
 
@@ -18,22 +19,104 @@ async function account(page: Page, role: Role = 'operator') {
   })))
 }
 
+test('UX-03: título, abas e contexto ocupam a mesma ordem nas cinco telas de desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await account(page, 'admin')
+  const envelope = (data: unknown) => ({ success: true, data, meta: { schema_version: 3 } })
+  await page.route('**/api/v3/llm/status', route => route.fulfill({ json: envelope({ state: 'ready', model: 'test-model' }) }))
+  await page.route('**/api/v3/datasets', route => route.fulfill({ json: envelope([
+    { id: training.dataset_id, name: 'Teste de refrigeração', row_count: 1_200_000, created_at: '2026-10-12T15:00:00Z', generation_job_id: training.job_id },
+  ]) }))
+  const evidence = new URL('../../.impeccable/review/ux-03/', import.meta.url)
+  await mkdir(evidence, { recursive: true })
+  const screens = [
+    ['/dashboard', 'Visão geral', 'Monitoramento', 'Selecionar ambiente e dispositivo'],
+    ['/insights', 'Saúde e previsões', 'Monitoramento', 'Selecionar ambiente e dispositivo'],
+    ['/digital-twin', 'Gêmeo digital', 'Monitoramento', process.env.VITE_AIOT_ENABLED === 'true'
+      ? 'Selecionar ambiente e dispositivo' : 'Gêmeo indisponível no modo legado'],
+    ['/laboratory', 'Dados sintéticos', 'Dados e modelos', 'Configuração da geração'],
+    ['/training', 'Treinamento de modelos', 'Dados e modelos', 'Selecionar dataset concluído'],
+  ] as const
+  const tabPositions: Array<{ x: number; y: number }> = []
+  for (const [path, label, area, contentName] of screens) {
+    await page.goto(path)
+    const heading = page.getByRole('heading', { name: label, level: 1, exact: true })
+    const content = page.getByRole('region', { name: contentName, exact: true })
+    const tabs = localNav(page)
+    await expect(heading).toBeFocused()
+    await expect(tabs).toHaveCount(1)
+    await expect(tabs.getByRole('link', { name: label, exact: true })).toHaveAttribute('aria-current', 'page')
+    await expect(globalNav(page).getByRole('link', { name: area, exact: true })).toHaveAttribute('aria-current', 'location')
+    const [titleBox, tabsBox, contentBox] = await Promise.all([heading.boundingBox(), tabs.boundingBox(), content.boundingBox()])
+    expect(titleBox!.y + titleBox!.height, path).toBeLessThanOrEqual(tabsBox!.y)
+    expect(tabsBox!.y + tabsBox!.height, path).toBeLessThanOrEqual(contentBox!.y)
+    tabPositions.push({ x: tabsBox!.x, y: tabsBox!.y })
+    if (contentName === 'Selecionar ambiente e dispositivo') {
+      await expect(content.getByRole('combobox', { name: 'Ambiente', exact: true })).toBeVisible()
+      await expect(content.getByRole('combobox', { name: 'Dispositivo', exact: true })).toBeVisible()
+    }
+    if (path === '/training') {
+      await expect(page.getByRole('option', { name: /Teste de refrigeração/ })).toHaveCount(1)
+      await heading.blur()
+      await page.screenshot({ path: new URL('treinamento.png', evidence).pathname })
+    }
+  }
+  expect(new Set(tabPositions.map(({ x, y }) => `${x},${y}`)).size).toBe(1)
+})
+
+test('UX-03: erro na consulta de ambientes tem nova tentativa antes do estado vazio', async ({ page }) => {
+  await account(page, 'viewer')
+  let catalogFails = true
+  await page.route('**/api/v1/environments', route => catalogFails
+    ? route.fulfill({ status: 503, json: { success: false } })
+    : route.fulfill({ json: { success: true, data: [] } }))
+  await page.goto('/insights')
+  const error = page.getByRole('alert')
+  await expect(error).toContainText('Não foi possível carregar ambientes ou dispositivos.')
+  await expect(page.getByText('Nenhum ambiente disponível para sua conta.', { exact: false })).toHaveCount(0)
+  catalogFails = false
+  await error.getByRole('button', { name: 'Tentar novamente', exact: true }).click()
+  await expect(error).toHaveCount(0)
+  await expect(page.getByText('Nenhum ambiente disponível para sua conta.', { exact: false })).toBeVisible()
+})
+
+test('UX-03: catálogo vazio orienta o visualizador e leva o operador ao cadastro', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await account(page, 'viewer')
+  const paths = process.env.VITE_AIOT_ENABLED === 'true' ? ['/dashboard', '/insights', '/digital-twin'] : ['/dashboard', '/insights']
+  for (const path of paths) {
+    await page.goto(path)
+    const main = page.getByRole('main')
+    await expect(main.getByText('Nenhum ambiente disponível para sua conta.', { exact: false })).toBeVisible()
+    await expect(main.getByText('Fale com um operador ou administrador', { exact: false })).toBeVisible()
+    await expect(main.getByRole('link', { name: /criar|gerenciar|abrir ambientes/i })).toHaveCount(0)
+    await expect(main.getByRole('button', { name: 'Ocultar dados ao vivo', exact: true })).toBeHidden()
+  }
+  await page.route('**/api/v1/auth/me', route => route.fulfill({ json: identity('operator') }))
+  await page.goto('/dashboard')
+  await page.getByRole('main').getByRole('link', { name: 'Abrir Ambientes e dispositivos', exact: true }).click()
+  await expect(page).toHaveURL('/manage')
+  await expect(page.getByRole('button', { name: 'Adicionar ambiente', exact: true })).toBeVisible()
+})
+
 for (const role of ['viewer', 'operator', 'admin'] as const) {
   test(`${role}: destinos globais, locais e utilitários respeitam o papel confirmado`, async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 })
     await account(page, role)
     await page.goto('/dashboard')
-    await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente', exact: true })).toBeVisible()
-    await expect(globalNav(page).getByRole('link')).toHaveCount(role === 'admin' ? 4 : 2)
+    await expect(page.getByRole('heading', { name: 'Visão geral', exact: true })).toBeVisible()
+    await expect(globalNav(page).getByRole('link')).toHaveCount(role === 'admin' ? 5 : 3)
     await expect(globalNav(page).getByRole('link', { name: 'Monitoramento', exact: true })).toHaveAttribute('href', '/dashboard')
     await expect(globalNav(page).getByRole('link', { name: 'Ambientes e dispositivos', exact: true })).toHaveAttribute('href', '/manage')
     await expect(globalNav(page).getByRole('link', { name: 'Dados e modelos', exact: true })).toHaveCount(role === 'admin' ? 1 : 0)
     await expect(globalNav(page).getByRole('link', { name: 'Filas e mensagens', exact: true })).toHaveCount(role === 'admin' ? 1 : 0)
     await expect(localNav(page).getByRole('link')).toHaveCount(3)
     await expect(localNav(page).getByRole('link', { name: 'Visão geral', exact: true })).toHaveAttribute('aria-current', 'page')
+    await expect(page.getByText('Nenhum ambiente disponível para sua conta.', { exact: false })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Ocultar dados ao vivo', exact: true })).toBeHidden()
     await expect(localNav(page).getByRole('link', { name: 'Saúde e previsões', exact: true })).toHaveAttribute('href', '/insights')
     const utilities = page.getByRole('navigation', { name: 'Utilitários', exact: true })
-    await expect(utilities.getByRole('link', { name: 'Assistente', exact: true })).toHaveAttribute('href', '/assistant')
+    await expect(globalNav(page).getByRole('link', { name: 'Assistente', exact: true })).toHaveAttribute('href', '/assistant')
     await expect(utilities.getByRole('link', { name: /Documentação da API/ })).toHaveAttribute('target', '_blank')
     await expect(utilities.getByRole('link', { name: /Documentação da API/ })).toContainText('nova aba')
     await expect(utilities.getByRole('link', { name: 'Apresentação do projeto', exact: true })).toHaveAttribute('href', '/')
@@ -52,9 +135,11 @@ for (const role of ['viewer', 'operator'] as const) {
       })
       await page.goto(path)
       await expect(page.getByRole('heading', { name: 'Acesso restrito', exact: true })).toBeVisible()
+      await expect(localNav(page)).toHaveCount(0)
+      await expect(page.getByRole('link', { name: 'Voltar ao Monitoramento', exact: true })).toHaveAttribute('href', '/dashboard')
       await expect(page).toHaveURL(path)
       expect(privateCalls).toEqual([])
-      await expect(page.getByRole('button', { name: /Gerar dataset|Iniciar treinamento/ })).toHaveCount(0)
+      await expect(page.getByRole('button', { name: /Gerar dados de teste|Iniciar treinamento/ })).toHaveCount(0)
     })
   }
 }
@@ -112,7 +197,7 @@ test('menu modal em 320 px contém foco, fecha por Escape/botão/destino e mant�
   await page.setViewportSize({ width: 320, height: 844 })
   await account(page, 'admin')
   await page.goto('/dashboard')
-  await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Visão geral', exact: true })).toBeVisible()
   const open = page.getByRole('button', { name: 'Menu', exact: true })
   await open.focus(); await page.keyboard.press('Enter')
   await expect(open).toHaveAttribute('aria-expanded', 'true')
@@ -147,7 +232,9 @@ test('entradas específicas preservam dataset/job, recarga e histórico; entrada
   await account(page, 'admin')
   const trainingUrl = `/training?dataset=${training.dataset_id}&job=${training.job_id}`
   await page.goto(trainingUrl)
-  await expect(page.getByRole('heading', { name: 'Treinamento', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Treinamento de modelos', exact: true })).toBeVisible()
+  await expect(page).toHaveURL(trainingUrl)
+  await localNav(page).getByRole('link', { name: 'Treinamento de modelos', exact: true }).click()
   await expect(page).toHaveURL(trainingUrl)
   await page.reload()
   await expect(page).toHaveURL(trainingUrl)
@@ -173,9 +260,9 @@ test('rota desconhecida apresenta recuperação sem inventar destino ou expor co
 })
 
 const pages = [
-  ['/', 'presentation-title', 'Da leitura do sensor à compreensão do equipamento.'], ['/login', 'access-title', 'Entrar'], ['/dashboard', 'dashboard-title', 'Diagnóstico do ambiente'],
+  ['/', 'presentation-title', 'Monitore ambientes refrigerados e seus equipamentos'], ['/login', 'access-title', 'Entrar'], ['/dashboard', 'dashboard-title', 'Visão geral'],
   ['/insights', 'insights-title', 'Saúde e previsões'], ['/digital-twin', 'digital-twin-title', 'Gêmeo digital'], ['/manage', 'manage-title', 'Ambientes e dispositivos'],
-  ['/laboratory', 'laboratory-title', 'Laboratório de Dados'], ['/training', 'training-title', 'Treinamento'], ['/messaging', 'messaging-title', 'Mensageria'], ['/assistant', 'assistant-title', 'Assistente'],
+  ['/laboratory', 'laboratory-title', 'Dados sintéticos'], ['/training', 'training-title', 'Treinamento de modelos'], ['/messaging', 'messaging-title', 'Filas e mensagens'], ['/assistant', 'assistant-title', 'Assistente'],
 ] as const
 for (const [path, titleId, title] of pages) {
   test(`smoke da rota ${path} preserva seu conteúdo e uma única navegação compartilhada`, async ({ page }) => {
@@ -189,6 +276,7 @@ for (const [path, titleId, title] of pages) {
       await expect(globalNav(page)).toHaveCount(1)
       await expect(page.getByRole('button', { name: 'Sair', exact: true })).toHaveCount(1)
     }
+    if (path === '/assistant') await expect(globalNav(page).getByRole('link', { name: 'Assistente', exact: true })).toHaveAttribute('aria-current', 'page')
   })
 }
 
@@ -211,6 +299,6 @@ test('login confirmado com identidade atrasada conserva destino e queries solici
   await verified
   await page.waitForLoadState('networkidle')
   await expect(page).toHaveURL(destination)
-  await expect(page.locator('#training-title')).toHaveText('Treinamento')
+  await expect(page.locator('#training-title')).toHaveText('Treinamento de modelos')
   await expect(page).toHaveTitle('Treinamento de modelos · ColdSafe')
 })

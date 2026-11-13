@@ -21,9 +21,26 @@ frontend/dist/
 frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
+/frontend/public/media/dashboard-mobile.png
 
 # Private commissioned simulator catalog
 simulator/local/
 
 # Captura original com e-mail pessoal: conservar localmente, sem publicar.
 /docs/evidence/docker-presentation-2026-11-02/twin-desktop.jpg
+
+# Planejamento e histórico de trabalho, caso sejam restaurados localmente.
+/docs/redesign/
+/docs/history/*
+!/docs/history/assignment.md
+/docs/testing/*
+!/docs/testing/demo-rehearsal.md
+/docs/aiot/README.md
+/docs/aiot/plan.md
+/docs/aiot/assistant-metal-roadmap.md
+/docs/aiot/tasks/
+/docs/evidence/assistant-metal-baseline-*/
+/docs/evidence/small-model-research-*/
+/docs/evidence/documentation-migration.json
+/docs/evidence/precommit-2026-10-13.json
+/frontend/PRODUCT.md

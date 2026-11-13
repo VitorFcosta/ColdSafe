@@ -6,7 +6,7 @@ import os from 'node:os'
 import { chromium } from '@playwright/test'
 
 const base = process.env.RD02_BASE_URL ?? 'http://127.0.0.1:4173/experiments/rd02/'
-const output = resolve(process.env.RD02_OUTPUT ?? resolve(dirname(fileURLToPath(import.meta.url)), '../../../docs/redesign/assets/rd-02'))
+const output = resolve(process.env.RD02_OUTPUT ?? resolve(dirname(fileURLToPath(import.meta.url)), '../../../.impeccable/review/rd-02'))
 await mkdir(output, { recursive: true })
 const browser = await chromium.launch({ headless: process.env.RD02_HEADLESS === 'true' })
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 2, reducedMotion: 'no-preference' })

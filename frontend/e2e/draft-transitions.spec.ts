@@ -20,7 +20,7 @@ const localNav = (page: Page) => page.getByRole('navigation', { name: 'Navegaç�
 const globalNav = (page: Page) => page.getByRole('navigation', { name: 'Navegação principal', exact: true })
 const environment = (page: Page) => page.getByRole('combobox', { name: 'Ambiente', exact: true })
 const openingCount = (page: Page) => page.getByRole('spinbutton', { name: 'Previsões para abrir', exact: true })
-const path = (name: string) => new URL(`../../.impeccable/review/rd-05/${name}`, import.meta.url)
+const path = (name: string) => new URL(`../../.impeccable/review/ux-07/rascunho-${name}`, import.meta.url)
 
 async function mockDraftApi(page: Page) {
   await page.route('**/api/**', (route) => route.fulfill({ status: 503, json: { success: false, error: { message: 'Serviço de ensaio indisponível.' } } }))
@@ -35,7 +35,8 @@ async function mockDraftApi(page: Page) {
   const state = { insightStatus: 200, failSave: false, insightGets: 0, rulePuts: 0, generationPosts: 0, trainingPosts: 0, cancellationRequests: 0 }
   let currentRules = { ...rules }
   await page.route('**/api/v1/environments/*/rules', (route) => route.fulfill({ json: { success: true, data:
-    route.request().method() === 'PUT' ? route.request().postDataJSON() : { min_c: 2, max_c: 8, attention_margin_c: 1 } } }))
+    route.request().method() === 'PUT' ? route.request().postDataJSON() :
+      { min_c: route.request().url().includes(envB) ? 4 : 2, max_c: 8, attention_margin_c: 1 } } }))
   await page.route('**/api/v3/**', (route) => {
     const url = new URL(route.request().url()), method = route.request().method()
     if (url.pathname === '/api/v3/insights') {
@@ -80,8 +81,11 @@ async function mockDraftApi(page: Page) {
   return state
 }
 
+const editRules = (page: Page) => page.getByRole('button', { name: 'Editar regras', exact: true })
+
 async function openInsights(page: Page) {
   await page.goto(`/insights?environment=${envA}&device=${devA}`)
+  await editRules(page).click()
   await expect(openingCount(page)).toHaveValue('2')
 }
 
@@ -105,6 +109,9 @@ test('Insights: permanecer conserva edição, foco, URL e escopo; descartar troc
   await environment(page).selectOption(envB)
   await dialog(page).getByRole('button', { name: 'Descartar alterações', exact: true }).click()
   await expect(page).toHaveURL(`/insights?environment=${envB}&device=${devB}`)
+  await expect(editRules(page)).toBeVisible()
+  await expect(openingCount(page)).toHaveCount(0)
+  await editRules(page).click()
   await expect(openingCount(page)).toHaveValue('2')
   expect(await page.evaluate(() => history.length)).toBe(historyLength + 1)
   expect(state.rulePuts).toBe(0)
@@ -115,6 +122,7 @@ test('Insights: voltar permanece na rota; Escape conserva o rascunho e descarte 
   await page.goto('/manage')
   await globalNav(page).getByRole('link', { name: 'Monitoramento', exact: true }).click()
   await localNav(page).getByRole('link', { name: 'Saúde e previsões', exact: true }).click()
+  await editRules(page).click()
   await expect(openingCount(page)).toHaveValue('2')
   const current = page.url()
   await openingCount(page).fill('4')
@@ -127,7 +135,7 @@ test('Insights: voltar permanece na rota; Escape conserva o rascunho e descarte 
   await page.evaluate(() => history.back())
   await dialog(page).getByRole('button', { name: 'Descartar alterações', exact: true }).click()
   await expect(page).toHaveURL(/\/dashboard\?/)
-  await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente', exact: true })).toBeFocused()
+  await expect(page.getByRole('heading', { name: 'Visão geral', exact: true })).toBeFocused()
 })
 
 test('Insights: voltar ao valor original ou salvar confirmado deixa navegar sem aviso; erro conserva edição', async ({ page }) => {
@@ -139,6 +147,7 @@ test('Insights: voltar ao valor original ou salvar confirmado deixa navegar sem 
   await expect(page).toHaveURL('/manage')
   await expect(dialog(page)).not.toBeVisible()
   await page.goBack()
+  await editRules(page).click()
   await expect(openingCount(page)).toHaveValue('2')
   state.failSave = true
   await openingCount(page).fill('5')
@@ -221,10 +230,14 @@ test('Gestão: ambiente troca somente após decisão e mantém inclusão global 
   await dialog(page).getByRole('button', { name: 'Permanecer', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Limites de temperatura de Câmara A', exact: true })).toBeVisible()
   await expect(page.getByLabel('Margem de atenção (°C)', { exact: true })).toHaveValue('2')
+  const applied = page.getByRole('group', { name: 'Faixa em vigor', exact: true })
+  await expect(applied).toContainText('2–8 °C')
+  await expect(applied).toContainText('1 °C')
   await expect(nextEnvironment).toBeFocused()
   await nextEnvironment.click()
   await dialog(page).getByRole('button', { name: 'Descartar alterações', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Limites de temperatura de Câmara B', exact: true })).toBeVisible()
+  await expect(applied).toContainText('4–8 °C')
   await expect(page.getByLabel('Margem de atenção (°C)', { exact: true })).toHaveValue('1')
   await expect(page.getByLabel('Nome do novo ambiente', { exact: true })).toHaveValue('Rascunho global')
 })
@@ -232,12 +245,12 @@ test('Gestão: ambiente troca somente após decisão e mantém inclusão global 
 test('Laboratório: edição avisa ao sair; job enviado navega sem aviso nem cancelamento', async ({ page }) => {
   const state = await mockDraftApi(page)
   await page.goto('/laboratory')
-  await page.getByRole('spinbutton', { name: 'Seed', exact: true }).fill('43')
+  await page.getByRole('spinbutton', { name: 'Equipamentos', exact: true }).fill('43')
   await localNav(page).getByRole('link', { name: 'Treinamento de modelos', exact: true }).click()
   await expect(dialog(page)).toBeVisible()
   await dialog(page).getByRole('button', { name: 'Permanecer', exact: true }).click()
-  await expect(page.getByRole('spinbutton', { name: 'Seed', exact: true })).toHaveValue('43')
-  await page.getByRole('button', { name: 'Gerar dataset', exact: true }).click()
+  await expect(page.getByRole('spinbutton', { name: 'Equipamentos', exact: true })).toHaveValue('43')
+  await page.getByRole('button', { name: 'Gerar dados de teste', exact: true }).click()
   await expect(page).toHaveURL(new RegExp(`job=${fixture.job_id}`))
   await localNav(page).getByRole('link', { name: 'Treinamento de modelos', exact: true }).click()
   await expect(page).toHaveURL('/training')
@@ -282,15 +295,15 @@ test('Treinamento: job confirmado deixa sair sem aviso e sem pedido de cancelame
 test('recarga usa aviso nativo do Chromium; recusar mantém edição sem diálogo personalizado', async ({ page }) => {
   await mockDraftApi(page)
   await page.goto('/laboratory')
-  await page.getByRole('spinbutton', { name: 'Seed', exact: true }).click()
-  await page.getByRole('spinbutton', { name: 'Seed', exact: true }).fill('43')
+  await page.getByRole('spinbutton', { name: 'Equipamentos', exact: true }).click()
+  await page.getByRole('spinbutton', { name: 'Equipamentos', exact: true }).fill('43')
   const nativeDialog = page.waitForEvent('dialog')
   const reloading = page.reload({ timeout: 2000 }).catch(() => null)
   const warning = await nativeDialog
   expect(warning.type()).toBe('beforeunload')
   await warning.dismiss()
   await reloading
-  await expect(page.getByRole('spinbutton', { name: 'Seed', exact: true })).toHaveValue('43')
+  await expect(page.getByRole('spinbutton', { name: 'Equipamentos', exact: true })).toHaveValue('43')
   await expect(dialog(page)).not.toBeVisible()
 })
 
@@ -299,7 +312,7 @@ for (const width of [1440, 320]) test(`aviso acessível ${width}px: foco contido
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await mockDraftApi(page)
   await page.goto('/laboratory')
-  await page.getByRole('spinbutton', { name: 'Seed', exact: true }).fill('43')
+  await page.getByRole('spinbutton', { name: 'Equipamentos', exact: true }).fill('43')
   const destination = localNav(page).getByRole('link', { name: 'Treinamento de modelos', exact: true })
   await destination.click()
   await expect(dialog(page)).toBeVisible()
@@ -311,13 +324,13 @@ for (const width of [1440, 320]) test(`aviso acessível ${width}px: foco contido
   expect(await dialog(page).evaluate((node) => node.contains(document.activeElement) || document.activeElement === document.body)).toBe(true)
   await page.keyboard.press('Tab')
   expect(await dialog(page).evaluate((node) => node.contains(document.activeElement))).toBe(true)
-  const backdropBlocks = await page.getByRole('heading', { name: 'Laboratório de Dados', exact: true }).evaluate((node) => {
+  const backdropBlocks = await page.getByRole('heading', { name: 'Dados sintéticos', exact: true }).evaluate((node) => {
     ;(node as HTMLElement).focus()
     return document.activeElement !== node
   })
   expect(backdropBlocks).toBe(true)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
-  await mkdir(path('.'), { recursive: true })
+  await mkdir(new URL('.', path('desktop.png')), { recursive: true })
   if (width === 320) {
     await page.screenshot({ path: path('mobile-320.png').pathname, fullPage: false })
     await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
@@ -336,14 +349,14 @@ for (const width of [1440, 320]) test(`aviso acessível ${width}px: foco contido
   await page.keyboard.press('Escape')
   await expect(dialog(page)).not.toBeVisible()
   await expect(destination).toBeFocused()
-  await expect(page.getByRole('spinbutton', { name: 'Seed', exact: true })).toHaveValue('43')
+  await expect(page.getByRole('spinbutton', { name: 'Equipamentos', exact: true })).toHaveValue('43')
 })
 
 test('menu móvel permanece aberto ao conservar rascunho e só fecha após navegar', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 })
   await mockDraftApi(page)
   await page.goto('/laboratory')
-  await page.getByRole('spinbutton', { name: 'Seed', exact: true }).fill('43')
+  await page.getByRole('spinbutton', { name: 'Equipamentos', exact: true }).fill('43')
   await page.getByRole('button', { name: 'Menu', exact: true }).click()
   const menu = page.getByRole('dialog', { name: 'Menu de navegação', exact: true })
   const destination = menu.getByRole('link', { name: 'Monitoramento', exact: true })
@@ -356,7 +369,7 @@ test('menu móvel permanece aberto ao conservar rascunho e só fecha após naveg
   await destination.click()
   await dialog(page).getByRole('button', { name: 'Descartar alterações', exact: true }).click()
   await expect(menu).not.toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente', exact: true })).toBeFocused()
+  await expect(page.getByRole('heading', { name: 'Visão geral', exact: true })).toBeFocused()
 })
 
 test('Gestão:403 ao salvar fecha aviso, limpa detalhes e deixa escolher outro ambiente sem ciclo', async ({ page }) => {

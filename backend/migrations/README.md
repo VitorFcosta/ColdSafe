@@ -151,4 +151,4 @@ três contas com papéis definidos, ambientes e metadados privados pequenos,
 senhas aleatórias hasheadas sem credenciais reutilizáveis. Não são seeds de
 produção nem modelos realmente treinados. Os testes comparam todas as tabelas
 antigas numa cópia real da fixture legada e provocam falha SQL para verificar
-rollback/reaplicação. Resultados atuais e limites estão no cartão B2-05.
+rollback/reaplicação. [Resultados e limites](../../docs/evidence/b2-05.json).

@@ -52,9 +52,10 @@ test.describe('dashboard operacional', () => {
 
       await page.goto('/dashboard')
 
-      await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
       await expect(page.getByText(scenario.label, { exact: true })).toBeVisible()
-      await expect(page.getByText('Laboratório Refrigerado / esp32-lab-01', { exact: true })).toBeVisible()
+      await expect(page.getByRole('combobox', { name: 'Ambiente' }).locator('option:checked')).toHaveText('Laboratório Refrigerado')
+      await expect(page.getByRole('combobox', { name: 'Dispositivo' }).locator('option:checked')).toHaveText('Sensor 1 · esp32-lab-01')
       await expect(page.getByText(scenario.freshnessLabel, { exact: true })).toBeVisible()
       await expect(
         page
@@ -98,7 +99,7 @@ test.describe('dashboard operacional', () => {
 
     await expect(page.getByText('Sem dados', { exact: true })).toBeVisible()
     await expect(page.getByText('Sem leitura recebida', { exact: true })).toBeVisible()
-    await expect(page.getByText('Recebida em —', { exact: true })).toBeVisible()
+    await expect(page.getByText('Última leitura recebida: —', { exact: true })).toBeVisible()
     await expect(
       page
         .getByRole('article')
@@ -209,7 +210,7 @@ test('mantém nomes longos e temperatura extrema legíveis em 320 px', async ({ 
   const primary = page.getByRole('region', { name: 'Medições do ambiente' }).getByRole('article').filter({ has: page.getByRole('heading', { name: 'Temperatura ambiente', exact: true }) }).first()
   await expect(primary).toContainText('-123,5 °C')
   await expect(primary).toContainText('Crítico')
-  await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
 
   for (const locator of [page.locator('.dashboard-heading'), page.locator('.selection-panel'), primary]) {
@@ -256,7 +257,8 @@ test('recupera o catálogo sem clique quando a API volta', async ({ page }) => {
   await expect(page.getByText('Não foi possível carregar ambientes ou dispositivos.')).toBeVisible()
   apiUnavailable = false
   await expect(page.getByRole('combobox', { name: 'Dispositivo' })).toBeEnabled()
-  await expect(page.getByText('Laboratório Refrigerado / esp32-lab-01', { exact: true })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Dispositivo' }).locator('option:checked')).toHaveText('Sensor 1 · esp32-lab-01')
+  await expect(page.getByRole('region', { name: 'Medições do ambiente' })).toContainText('5 °C')
 })
 
 test('troca de dispositivo e só mostra LED ligado após confirmação', async ({ page }) => {
@@ -295,11 +297,11 @@ test('troca de dispositivo e só mostra LED ligado após confirmação', async (
   }))
 
   await page.goto('/dashboard')
-  await expect(page.getByText('Laboratório Refrigerado / esp32-lab-01', { exact: true })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Medições do ambiente' })).toContainText('5 °C')
   await page.getByRole('combobox', { name: 'Dispositivo' }).selectOption('00000000-0000-4000-8000-000000000012')
-  await expect(page.getByText('Laboratório Refrigerado / esp32-lab-02', { exact: true })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Dispositivo' }).locator('option:checked')).toHaveText('Sensor 2 · esp32-lab-02')
   await expect(page.getByRole('region', { name: 'Medições do ambiente' }).getByRole('article').filter({ has: page.getByRole('heading', { name: 'Temperatura ambiente', exact: true }) }).getByText('4 °C')).toBeVisible()
-  await page.locator('details[aria-label="Estado dos atuadores"] summary').click()
+  await page.locator('details[aria-label="Estado da luz e do som de aviso"] summary').click()
   await page.getByRole('button', { name: 'Ligar Luz' }).focus()
   await page.keyboard.press('Enter')
   await expect(page.getByText('Aguardando confirmação', { exact: true })).toBeVisible()
@@ -315,7 +317,7 @@ test('abre os atuadores por teclado sem enviar comandos', async ({ page }) => {
   })
   await page.goto('/dashboard')
 
-  const details = page.locator('details[aria-label="Estado dos atuadores"]')
+  const details = page.locator('details[aria-label="Estado da luz e do som de aviso"]')
   const summary = details.locator('summary')
   await expect(details).not.toHaveAttribute('open')
   await expect(summary).toContainText('Luz manual: Sem confirmação registrada')
@@ -381,7 +383,7 @@ test('visualizador consulta diagnóstico e atuadores sem emitir comandos', async
   })
   await page.goto('/dashboard')
   await expect(page.getByRole('heading', { name: 'Normal', exact: true })).toBeVisible()
-  await page.getByRole('group', { name: 'Estado dos atuadores' }).locator('summary').click()
+  await page.getByRole('group', { name: 'Estado da luz e do som de aviso' }).locator('summary').click()
   await expect(page.getByText('Modo visualizador: você pode consultar o estado dos atuadores.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Ligar Luz' })).toBeDisabled()
   expect(writes).toBe(0)

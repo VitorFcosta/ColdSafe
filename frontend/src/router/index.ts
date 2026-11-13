@@ -35,7 +35,7 @@ const router = createRouter({
       path: '/assistant',
       name: 'assistant',
       component: () => import('../views/AssistantView.vue'),
-      meta: { requiresAuth: true, contentId: 'assistant-title', title: 'Assistente · ColdSafe' }
+      meta: { requiresAuth: true, area: 'assistant', contentId: 'assistant-title', title: 'Assistente · ColdSafe' }
     },
     {
       path: '/laboratory',

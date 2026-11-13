@@ -71,18 +71,13 @@ async function submit() {
 
 <template>
   <main class="access-page cs-controls">
-    <div class="identity presentation-theme">
+    <header class="access-header">
       <p class="brand">ColdSafe</p>
-      <div class="identity-copy">
-        <p class="identity-title">Precisão para acompanhar.</p>
-        <p>Acesse os dados e as ferramentas autorizadas da sua conta.</p>
-      </div>
       <RouterLink to="/" class="return-link">Voltar à apresentação</RouterLink>
-    </div>
+    </header>
     <div class="form-region">
       <section class="panel" aria-labelledby="access-title">
         <h1 id="access-title" ref="title" tabindex="-1">{{ mode === 'login' ? 'Entrar' : 'Criar conta' }}</h1>
-        <p class="intro">{{ mode === 'login' ? 'Use sua conta para continuar.' : 'Crie sua conta com email e senha para continuar.' }}</p>
         <form :aria-busy="busy" :aria-describedby="error ? 'access-error' : undefined" @submit.prevent="submit" @invalid.capture.prevent="invalid">
           <div class="field">
             <label for="email">Email</label>
@@ -90,8 +85,14 @@ async function submit() {
           </div>
           <div class="field">
             <label for="password">Senha</label>
-            <input id="password" ref="passwordInput" v-model="password" name="password" type="password" :autocomplete="mode === 'login' ? 'current-password' : 'new-password'" :minlength="mode === 'register' ? 8 : 1" :aria-invalid="passwordInvalid || undefined" :aria-describedby="mode === 'register' ? `password-hint${passwordInvalid ? ' access-error' : ''}` : passwordInvalid ? 'access-error' : undefined" maxlength="128" required :disabled="busy" @input="clearValidation" />
-            <p v-if="mode === 'register'" id="password-hint" class="hint">Use ao menos 8 caracteres. O cadastro aceita até 72 bytes UTF-8; acentos e emojis podem ocupar mais de um byte.</p>
+            <input id="password" ref="passwordInput" v-model="password" name="password" type="password" :autocomplete="mode === 'login' ? 'current-password' : 'new-password'" :minlength="mode === 'register' ? 8 : 1" :aria-invalid="passwordInvalid || undefined" :aria-describedby="passwordInvalid ? 'access-error' : mode === 'register' ? 'password-hint' : undefined" maxlength="128" required :disabled="busy" @input="clearValidation" />
+            <template v-if="mode === 'register'">
+              <p id="password-hint" class="hint">Use ao menos 8 caracteres.</p>
+              <details class="password-details">
+                <summary>Sobre o limite da senha</summary>
+                <p class="hint">O limite é de 72 bytes em UTF-8. Letras com acento e emojis podem ocupar mais de um byte.</p>
+              </details>
+            </template>
           </div>
           <p v-if="error" id="access-error" role="alert" class="feedback error">{{ error }}</p>
           <button class="primary" type="submit" :disabled="busy">{{ busy ? (mode === 'login' ? 'Entrando…' : 'Criando conta…') : mode === 'login' ? 'Entrar' : 'Criar conta e entrar' }}</button>
@@ -100,40 +101,32 @@ async function submit() {
           <p>{{ mode === 'login' ? 'Ainda não tem conta?' : 'Já tem conta?' }}</p>
           <button class="mode-switch" type="button" :disabled="busy" @click="switchMode">{{ mode === 'login' ? 'Criar conta' : 'Entrar' }}</button>
         </div>
-        <p class="session-note">Sessão e acesso serão verificados antes de abrir o destino solicitado.</p>
       </section>
     </div>
   </main>
 </template>
 
 <style scoped>
-.access-page { display: grid; grid-template-columns: 43% minmax(0, 1fr); min-height: 100vh; min-height: 100svh; }
-.identity { display: flex; flex-direction: column; gap: var(--cs-space-48); padding: var(--cs-space-64); background: var(--cs-color-canvas); color: var(--cs-color-ink); }
-.brand { margin: 0; font-size: var(--cs-type-32); font-weight: 650; }
-.identity-copy { margin-block: auto; padding-block: var(--cs-space-48); max-width: 34ch; }
-.identity-title { margin: 0 0 var(--cs-space-48); font-size: var(--cs-type-48); font-weight: 650; line-height: 1.2; text-wrap: balance; }
-.identity-copy > p:last-child { margin: 0; color: var(--cs-color-ink-muted); }
-.return-link { align-self: flex-start; display: inline-flex; align-items: center; min-height: var(--cs-control-min-height); color: var(--cs-color-accent); text-underline-offset: .2em; }
-.form-region { display: grid; align-items: center; padding: var(--cs-space-64) var(--cs-space-48); }
-.panel { width: 100%; max-width: 31rem; margin-inline: auto; min-width: 0; }
-h1 { margin: 0 0 var(--cs-space-16); font-size: var(--cs-type-32); }
-.intro { margin: 0; color: var(--cs-color-ink-muted); }
-form { display: grid; gap: var(--cs-space-24); margin-top: var(--cs-space-48); }
+.access-page { display: grid; grid-template-rows: auto 1fr; min-height: 100vh; min-height: 100svh; }
+.access-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--cs-space-4) var(--cs-space-24); padding: var(--cs-space-12) var(--cs-space-32); border-bottom: 1px solid var(--cs-color-line); background: var(--cs-color-surface); }
+.brand { margin: 0; font-size: var(--cs-type-24); font-weight: 650; letter-spacing: -.025em; }
+.return-link { display: inline-flex; align-items: center; min-height: var(--cs-control-min-height); color: var(--cs-color-accent); font-size: var(--cs-type-14); text-decoration: underline; text-underline-offset: .2em; }
+.form-region { display: grid; place-items: center; padding: var(--cs-space-32) var(--cs-space-24) var(--cs-space-64); }
+.panel { width: 100%; max-width: 30rem; min-width: 0; padding: var(--cs-space-32); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-16); background: var(--cs-color-surface); box-shadow: var(--cs-shadow-panel); }
+h1 { margin: 0 0 var(--cs-space-32); font-size: var(--cs-type-32); }
+form { display: grid; gap: var(--cs-space-24); }
 .field { display: grid; gap: var(--cs-space-8); min-width: 0; }
 .hint { margin: 0; }
-.primary { margin-top: var(--cs-space-8); text-align: left; }
+.password-details { font-size: var(--cs-type-14); }
+.password-details summary { width: fit-content; min-height: var(--cs-control-min-height); padding-block: var(--cs-space-12); color: var(--cs-color-accent); cursor: pointer; }
+.password-details .hint { margin-top: var(--cs-space-8); }
 .feedback { margin: 0; }
-.mode-choice { margin-top: var(--cs-space-24); }
+.mode-choice { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--cs-space-12); margin-top: var(--cs-space-24); padding-top: var(--cs-space-8); border-top: 1px solid var(--cs-color-line); }
 .mode-choice p { margin: 0; color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
 .mode-switch { padding-inline: 0; border-color: transparent; background: transparent; color: var(--cs-color-accent); text-decoration: underline; text-underline-offset: .2em; text-align: left; }
-.session-note { margin: var(--cs-space-48) 0 0; color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
-@media (max-width: 800px) {
-  .access-page { display: block; }
-  .identity { --cs-color-canvas: inherit; --cs-color-ink: inherit; --cs-color-accent: inherit; --cs-focus-ring: inherit; color-scheme: light; gap: var(--cs-space-8); padding: var(--cs-space-24); background: var(--cs-color-canvas); color: var(--cs-color-ink); }
-  .identity .brand { font-size: var(--cs-type-24); }
-  .identity .return-link { color: var(--cs-color-accent); }
-  .identity-copy { display: none; }
-  .form-region { padding: var(--cs-space-32) var(--cs-space-24) var(--cs-space-48); }
-  form { margin-top: var(--cs-space-32); }
+@media (max-width: 480px) {
+  .access-header { padding-inline: var(--cs-space-16); }
+  .form-region { align-items: start; padding: var(--cs-space-24) var(--cs-space-16); }
+  .panel { padding: var(--cs-space-16); }
 }
 </style>

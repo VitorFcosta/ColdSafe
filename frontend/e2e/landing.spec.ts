@@ -5,16 +5,21 @@ import { mockMonitoringApi } from './monitoring-api'
 test('apresenta o projeto sem depender da API ou iniciar o monitoramento', async ({ page }) => {
   const monitoringRequests: string[] = []
   page.on('request', (request) => {
-    if (new URL(request.url()).pathname.startsWith('/api/v1/')) {
+    if (new URL(request.url()).pathname.startsWith('/api/')) {
       monitoringRequests.push(request.url())
     }
   })
-  await page.route('**/api/v1/**', (route) => route.abort())
+  page.on('websocket', (socket) => {
+    if (new URL(socket.url()).pathname.startsWith('/api/')) {
+      monitoringRequests.push(socket.url())
+    }
+  })
+  await page.route('**/api/**', (route) => route.abort())
   await page.clock.install()
 
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Ver código', exact: true }).first()).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'GitHub', exact: true })).toHaveAttribute(
     'href', 'https://github.com/VitorFcosta/ColdSafe',
   )
   await page.clock.runFor(10_100)
@@ -25,15 +30,17 @@ test('apresenta o projeto sem depender da API ou iniciar o monitoramento', async
 
 test('abre a demonstração por teclado e oferece vídeo simulado com controles nativos', async ({ page }) => {
   await page.goto('/')
-  const demoLink = page.getByRole('link', { name: 'Ver demonstração', exact: true }).first()
+  const demoLink = page.getByRole('link', { name: 'Ver demonstração gravada', exact: true })
   await expect(demoLink).toHaveAttribute('href', '#demonstracao')
+  await expect(demoLink).toHaveAccessibleDescription(/Versão anterior.*dados simulados/)
+  await expect(page.getByText('Versão anterior · dados simulados', { exact: true })).toBeVisible()
   await demoLink.focus()
   await expect(demoLink).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/#demonstracao$/)
 
   const demonstration = page.locator('#demonstracao')
-  await expect(demonstration).toContainText(/simulad[ao]/i)
+  await expect(demonstration.locator('.section-heading')).toContainText(/dados simulados.*versão anterior.*histórico de temperatura.*desatualizadas.*comando de LED/)
   const video = demonstration.locator('video')
   await expect(video).toBeVisible()
   await expect(video).toHaveJSProperty('controls', true)
@@ -68,7 +75,7 @@ test('menu móvel abre por teclado e mantém acesso à demonstração, código e
   await expect(page.locator('.mobile-nav')).toHaveAttribute('open', '')
   await expect(page.getByRole('navigation', { name: 'Navegação principal móvel' }).getByRole('link')).toHaveCount(3)
   await expect(page.getByRole('navigation', { name: 'Navegação principal móvel' }).getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/VitorFcosta/ColdSafe')
-  const demonstration = page.getByRole('navigation', { name: 'Navegação principal móvel' }).getByRole('link', { name: 'Demonstração' })
+  const demonstration = page.getByRole('navigation', { name: 'Navegação principal móvel' }).getByRole('link', { name: 'Gravação anterior' })
   await demonstration.focus()
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/#demonstracao$/)
@@ -84,7 +91,7 @@ for (const width of [320, 375, 768, 1440]) {
       await page.goto(route)
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
       if (route === '/') {
-        await expect(page.getByRole('link', { name: 'Ver demonstração', exact: true }).first()).toBeVisible()
+        await expect(page.getByRole('link', { name: 'Ver demonstração gravada', exact: true })).toBeVisible()
         await page.locator('#demonstracao').scrollIntoViewIfNeeded()
         await expect(page.locator('#demonstracao video')).toBeVisible()
       } else {
@@ -120,7 +127,7 @@ test('ampliação de 200% preserva conteúdo e controles nas duas rotas', async 
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await page.evaluate(() => { document.documentElement.style.zoom = '2' })
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440)
-    const control = route === '/' ? page.getByRole('link', { name: 'Ver demonstração', exact: true }) : page.getByRole('button', { name: '24h', exact: true })
+    const control = route === '/' ? page.getByRole('link', { name: 'Ver demonstração gravada', exact: true }) : page.getByRole('button', { name: '24h', exact: true })
     await control.focus()
     await expect(control).toBeFocused()
     await expect(control).toBeVisible()
@@ -222,27 +229,35 @@ test('reproduz o vídeo local e verifica as oito legendas nos cenários gravados
 })
 
 for (const scenario of [{ width: 1440, height: 1024, text: 100 }, { width: 390, height: 844, text: 100 }, { width: 320, height: 640, text: 200 }]) {
-  test(`M-01 narrativa, âncoras, contraste e reflow ${scenario.width}px texto ${scenario.text}%`, async ({ page, browser }) => {
+  test(`UX-11 propósito, gravação anterior, âncoras e reflow ${scenario.width}px texto ${scenario.text}%`, async ({ page, browser }) => {
     await page.setViewportSize({ width: scenario.width, height: scenario.height })
     await page.emulateMedia({ reducedMotion: 'reduce' })
     const api: string[] = []
     await page.route('**/api/**', route => { api.push(route.request().url()); return route.abort() })
     await page.goto('/')
     if (scenario.text === 200) await page.addStyleTag({ content: 'html { font-size: 200% !important; }' })
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Da leitura do sensor à compreensão do equipamento.')
-    await expect(page.locator('.hero-preview')).toContainText('imagem gerada por IA')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Monitore ambientes refrigerados e seus equipamentos')
+    await expect(page.locator('.hero-copy')).toContainText('Acompanhe a temperatura do ambiente e as medições do motor')
+    const preview = page.locator('.hero-preview')
+    await expect(preview).toContainText('Painel atual · captura com dados simulados')
+    const access = page.getByRole('link', { name: 'Acessar painel', exact: true })
+    if (scenario.width === 1440) {
+      await expect(preview).toBeInViewport({ ratio: 1 })
+      await expect(access).toBeInViewport({ ratio: 1 })
+      await expect(page.getByText('Versão anterior · dados simulados', { exact: true })).toBeInViewport({ ratio: 1 })
+    }
     await expect(page.locator('.architecture-step')).toHaveCount(3)
+    expect((await page.locator('#como-funciona').boundingBox())!.y).toBeGreaterThan((await page.locator('#demonstracao').boundingBox())!.y)
     await expect(page.locator('.demo-video figcaption')).toContainText('versão anterior')
     await expect(page.locator('footer')).toContainText('Não é equipamento médico, sanitário ou regulatório certificado')
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Ir para o conteúdo', exact: true })).toBeFocused()
     await page.keyboard.press('Enter'); await expect(page.locator('main')).toBeFocused()
     await expect(page.locator('.hero-copy')).toHaveCSS('animation-name', 'none')
-    const access = page.getByRole('link', { name: 'Acessar painel', exact: true })
     await expect(access).toHaveAttribute('href', '/dashboard')
     await access.focus(); await expect(access).toBeInViewport()
     await expect(access).toHaveCSS('outline-style', 'solid')
-    await page.getByRole('link', { name: 'Ver demonstração', exact: true }).focus()
+    await page.getByRole('link', { name: 'Ver demonstração gravada', exact: true }).focus()
     await page.keyboard.press('Enter')
     await expect(page.locator('#demonstracao')).toBeFocused()
     await page.locator('#como-funciona').evaluate((el: HTMLElement) => el.focus())
@@ -270,7 +285,7 @@ for (const scenario of [{ width: 1440, height: 1024, text: 100 }, { width: 390, 
         const el = document.querySelector(selector)!, style = getComputedStyle(el)
         let surface: Element | null = el
         while (surface && getComputedStyle(surface).backgroundColor === 'rgba(0, 0, 0, 0)') surface = surface.parentElement
-        return [selector, { color: style.color, background: surface ? getComputedStyle(surface).backgroundColor : '', outline: getComputedStyle(document.querySelector('.access-link')!).getPropertyValue('--cs-focus-ring').trim(), fontSize: style.fontSize }]
+        return [selector, { color: style.color, background: surface ? getComputedStyle(surface).backgroundColor : '', outline: getComputedStyle(document.querySelector('.button-primary')!).getPropertyValue('--cs-focus-ring').trim(), fontSize: style.fontSize }]
       })))
       await writeFile(new URL(`${name}.json`, dir), JSON.stringify({ scenario, browser: browser.version(), styles }, null, 2))
       await page.locator('video').evaluate(el => el.dispatchEvent(new Event('error')))

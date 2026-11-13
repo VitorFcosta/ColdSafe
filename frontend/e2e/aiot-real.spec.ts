@@ -19,7 +19,7 @@ async function login(page: Page, email = 'writer-test@example.invalid') {
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Senha').fill(password)
   await page.getByRole('button', { name: 'Entrar', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
 }
 
 async function callApi(page: Page, path: string, method = 'GET', body?: object) {
@@ -61,7 +61,7 @@ test('sensor real chega a seis medições, gráfico e tabela; LED aguarda ACK; b
   await expect(page.getByRole('table', { name: /Leituras individuais/ })).toBeVisible()
   expect(await page.getByRole('table', { name: /Leituras individuais/ }).getByRole('row').count()).toBeGreaterThan(1)
 
-  const actuators = page.locator('details[aria-label="Estado dos atuadores"]')
+  const actuators = page.locator('details[aria-label="Estado da luz e do som de aviso"]')
   await actuators.locator('summary').click()
   const before = snapshot.body.data.telemetry.data.actuators.led.actual_state
   const button = actuators.getByRole('button', { name: before ? 'Desligar Luz' : 'Ligar Luz' })
@@ -142,7 +142,7 @@ test('mobile teclado e perda real de rede envelhecem leitura; REST recupera apó
 test('conta visualizadora real não comanda e não acessa o dispositivo do operador', async ({ page }) => {
   await login(page, 'dashboard-viewer@example.invalid')
   await expect(page.getByRole('combobox', { name: 'Ambiente' })).toContainText('Viewer environment')
-  const actuators = page.locator('details[aria-label="Estado dos atuadores"]')
+  const actuators = page.locator('details[aria-label="Estado da luz e do som de aviso"]')
   await actuators.locator('summary').click()
   await expect(page.getByText('Modo visualizador: você pode consultar o estado dos atuadores.')).toBeVisible()
   await expect(actuators.getByRole('button', { name: 'Ligar Luz' })).toBeDisabled()
@@ -158,7 +158,7 @@ test('visualizador do equipamento configurado lê sensores e gráfico sem comand
     await login(page)
     await expect(page.getByRole('heading', { name: 'Vibração RMS', exact: true })).toBeVisible()
     await expect(page.getByRole('img', { name: 'Gráfico de linha da temperatura no período selecionado' })).toBeVisible()
-    const actuators = page.locator('details[aria-label="Estado dos atuadores"]')
+    const actuators = page.locator('details[aria-label="Estado da luz e do som de aviso"]')
     await actuators.locator('summary').click()
     await expect(actuators.getByRole('button', { name: /Ligar Luz|Desligar Luz/ })).toBeDisabled()
     expect((await callApi(page, `/api/v3/devices/${device}/led/commands`, 'POST', { desired_state: false })).status).toBe(403)
@@ -171,7 +171,7 @@ test('gêmeo digital real congela após parar simulador com WebSocket aberto e r
   simulator('start')
   await login(page)
   const socketPromise = page.waitForEvent('websocket', (socket) => socket.url().includes('/api/v3/events?'))
-  await page.locator('nav a[href="/digital-twin"]').click()
+  await page.getByRole('navigation', { name: 'Navegação da área' }).getByRole('link', { name: 'Gêmeo digital', exact: true }).click()
   const socket = await socketPromise
   let closed = false
   socket.on('close', () => { closed = true })
@@ -212,14 +212,14 @@ test('painel 3D real inspeciona nove IDs, comanda LED e servidor recusa papel re
   const list = page.getByRole('region', { name: 'Componentes do gêmeo digital', exact: true })
   const panel = page.getByRole('region', { name: 'Detalhes do componente', exact: true })
   await expect(list.getByRole('button')).toHaveCount(9)
-  for (const button of await list.getByRole('button').all()) {
+  for (const [index, button] of (await list.getByRole('button').all()).entries()) {
     await button.click()
     const name = (await button.locator('strong').textContent())!
     await expect(panel.getByRole('heading', { level: 2 }).first()).toHaveText(name)
-    await expect(panel).toContainText('Idade da leitura')
-    await expect(panel.getByRole('img', { name: /Gráfico de linha/ })).toHaveCount(1)
-    if (name !== 'Ventilador') await expect(panel).toContainText('Saúde/RUL deste item: não aplicável')
-    await expect(panel.getByText('Saúde estimada', { exact: true })).toHaveCount(0)
+    if (index === 0) await panel.getByText('Histórico e identificação', { exact: true }).click()
+    await expect(panel.getByText('Idade da leitura', { exact: true })).toBeVisible()
+    await expect(panel.getByRole('img', { name: /Gráfico de linha/ })).toBeVisible()
+    await expect(panel.getByText('Saúde estimada', { exact: true })).toBeHidden()
   }
   await list.getByRole('button', { name: /^LED/ }).click()
   const control = panel.getByRole('region', { name: 'Controle do LED selecionado' })

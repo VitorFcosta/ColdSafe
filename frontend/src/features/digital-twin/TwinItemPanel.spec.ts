@@ -41,8 +41,8 @@ it('inspeciona sensores pelo ID e mantém previsão do equipamento separada de s
   expect(view.text()).toContain(items[0]!.id)
   expect(view.text()).toContain('6,5 °C')
   expect(view.text()).toContain('Agora mesmo')
-  expect(view.text()).toContain('Saúde/RUL deste item: não aplicável')
-  expect(view.text()).toContain('equipamento associado')
+  expect(view.get('[aria-label="Equipamento associado"]').text()).toContain('A previsão de saúde e vida útil pertence ao ventilador.')
+  expect(view.findAll('details.technical-details[open]')).toHaveLength(0)
   expect(view.text()).toContain(summary.equipment!.equipment_id)
   expect(view.getComponent({ name: 'PredictionPanel' }).props('summary')).toEqual(summary)
   expect(view.getComponent({ name: 'TemperatureHistoryChart' }).props('metric')).toBe('temperature_c')
@@ -62,20 +62,20 @@ it('exclui leituras de outro sensor, ambiente, registro ou equipamento mesmo sob
   expect(view.getComponent({ name: 'TemperatureHistoryChart' }).props('readings')).toEqual([reading])
   await view.setProps({ item: { ...items[0]!, id: 'another-sensor' } })
   expect(view.find('[data-chart]').exists()).toBe(false)
-  expect(view.text()).toContain('Sem leituras históricas para este ID')
+  expect(view.text()).toContain('Sem leituras para esta série no período')
 })
 
 it('equipamento usa sua previsão; atuadores explicam histórico associado e só LED oferece controle manual', async () => {
   const view = render('fan'); await flushPromises()
-  expect(view.text()).not.toContain('Saúde/RUL deste item: não aplicável')
+  expect(view.text()).not.toContain('A previsão de saúde e vida útil pertence ao ventilador.')
   expect(view.text()).toContain('Em operação')
   expect(view.text()).toContain('0 h')
   await view.setProps({ item: items.find((item) => item.key === 'led')! })
   expect(view.find('[data-led-control]').exists()).toBe(true)
-  expect(view.text()).toContain('não possui histórico próprio')
+  expect(view.text()).toContain('O histórico de estado desta peça está indisponível.')
   await view.setProps({ item: items.find((item) => item.key === 'buzzer')! })
   expect(view.find('[data-led-control]').exists()).toBe(false)
-  expect(view.text()).toContain('Buzzer segue a regra térmica')
+  expect(view.text()).toContain('O som de aviso segue a regra de temperatura do ambiente.')
 })
 
 it('ordena histórico antes da previsão e identifica série contextual nos três itens sem série própria', async () => {
@@ -83,8 +83,8 @@ it('ordena histórico antes da previsão e identifica série contextual nos trê
   for (const key of ['led', 'buzzer', 'fan']) {
     await view.setProps({ item: items.find((item) => item.key === key)! })
     expect(view.getComponent({ name: 'TemperatureHistoryChart' }).props()).toMatchObject({ metric: 'temperature_c', period: '15m' })
-    expect(view.get('[aria-label="Histórico do componente"] h3').text()).toContain('contextual')
-    const sections = view.findAll('.detail-grid > section')
+    expect(view.get('[aria-label="Histórico do componente"]').text()).toContain('Série de referência da temperatura ambiente.')
+    const sections = view.findAll('.technical-details > section')
     expect(sections[0]!.attributes('aria-label')).toBe('Histórico do componente')
     expect(sections[1]!.attributes('aria-label')).toBe('Equipamento associado')
   }
@@ -93,7 +93,7 @@ it('ordena histórico antes da previsão e identifica série contextual nos trê
 it('leitura vencida é histórica, idade continua explícita e saúde/RUL atuais são ocultadas', async () => {
   const view = render('fan'); await flushPromises()
   await view.setProps({ fresh: false, ageSeconds: 35, item: { ...items.find((item) => item.key === 'fan')!, status: 'no_data', value: 'Sem dados atuais' } })
-  expect(view.text()).toContain('Leitura histórica; situação atual não confirmada')
+  expect(view.text()).toContain('Leitura histórica. A situação atual segue sem confirmação.')
   expect(view.text()).toContain('Há 35 s')
   expect(view.text()).toContain('Em operação')
   expect(view.text()).not.toContain('0 h')

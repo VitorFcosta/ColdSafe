@@ -23,13 +23,15 @@ Ela não consome nem publica mensagens, não altera filas e não administra usu�
 As outras dez identidades continuam sem tags.
 
 ```bash
-docker compose config --quiet
-docker compose up -d --build --wait rabbitmq
-docker compose exec rabbitmq rabbitmqctl -q list_users
-docker compose exec rabbitmq rabbitmqctl -q list_queues -p coldsafe name messages consumers
+docker compose -f compose.yaml config --quiet
+docker compose -f compose.yaml up -d --build --wait rabbitmq
+docker compose -f compose.yaml exec rabbitmq rabbitmqctl -q list_users
+docker compose -f compose.yaml exec rabbitmq rabbitmqctl -q list_queues -p coldsafe name messages consumers
 ```
 
-O primeiro comando também exige as variáveis dos demais serviços do Compose.
+Os exemplos selecionam a base explícita para o comissionamento. Prepare
+primeiro os [segredos e tokens](../../docs/runbook.md). Com a pilha completa
+já saudável, consulte o broker com `docker compose exec rabbitmq ...`.
 `rabbitmq-init` gera `definitions.json` atomicamente e entrega diretório `0750`
 e arquivo `0440` ao UID/GID `100:101` da imagem fixada. Somente esse volume é
 montado como leitura pelo broker. `rabbitmq-data` mantém as mensagens; hostname

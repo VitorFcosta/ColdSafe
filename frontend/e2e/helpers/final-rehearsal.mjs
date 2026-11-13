@@ -106,7 +106,7 @@ async function main() {
     const token = (await authenticated.json()).data.token
     assert(typeof token === 'string' && token.length)
     sensitive.push(token)
-    await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente', exact: true })).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByRole('heading', { name: 'Visão geral', exact: true })).toBeVisible({ timeout: 30_000 })
     const api = (path, method = 'GET', body) => page.evaluate(async ({ origin, path, token, method, body }) => {
       const result = await fetch(origin + path, { method,
         headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
@@ -126,11 +126,11 @@ async function main() {
     output.screenshots = [...(output.screenshots ?? []), filename]
   }
 
-  async function select(page, equipment = false) {
+  async function select(page) {
     const environment = page.getByRole('combobox', { name: 'Ambiente', exact: true })
     await expect(environment).toBeEnabled({ timeout: 30_000 })
     await environment.selectOption(state.catalog.environment_id)
-    const device = page.getByRole('combobox', { name: equipment ? 'Equipamento' : 'Dispositivo', exact: true })
+    const device = page.getByRole('combobox', { name: 'Dispositivo', exact: true })
     await expect(device).toBeEnabled()
     await device.selectOption(state.catalog.device_record_id)
   }
@@ -141,11 +141,13 @@ async function main() {
       const { page, api, context } = await login(role)
       checkpoint = `permissions-${role}`
       await page.goto('/laboratory')
-      await expect(page.getByRole('heading', { name: 'Laboratório de Dados', exact: true })).toBeVisible()
-      if (role === 'admin') await expect(page.getByRole('button', { name: 'Gerar dataset', exact: true })).toBeVisible()
-      else {
-        await expect(page.getByText(/laboratório está disponível apenas para administradores/)).toBeVisible()
-        await expect(page.getByRole('button', { name: 'Gerar dataset', exact: true })).toHaveCount(0)
+      if (role === 'admin') {
+        await expect(page.getByRole('heading', { name: 'Dados sintéticos', exact: true })).toBeVisible()
+        await expect(page.getByRole('button', { name: 'Gerar dados de teste', exact: true })).toBeVisible()
+      } else {
+        await expect(page.getByRole('heading', { name: 'Acesso restrito', exact: true })).toBeVisible()
+        await expect(page.getByRole('link', { name: 'Voltar ao Monitoramento', exact: true })).toBeVisible()
+        await expect(page.getByRole('button', { name: 'Gerar dados de teste', exact: true })).toHaveCount(0)
       }
       const metrics = await api('/api/v3/messaging')
       assert.equal(metrics.status, role === 'admin' ? 200 : 403)
@@ -159,9 +161,8 @@ async function main() {
       await shot(page, `roles-${role}`)
       await page.goto('/manage')
       const addEnvironment = page.getByRole('button', { name: 'Adicionar ambiente', exact: true })
-      await expect(addEnvironment).toBeVisible()
-      if (role === 'viewer') await expect(addEnvironment).toBeDisabled()
-      else await expect(addEnvironment).toBeEnabled()
+      if (role === 'viewer') await expect(addEnvironment).toHaveCount(0)
+      else { await expect(addEnvironment).toBeVisible(); await expect(addEnvironment).toBeEnabled() }
       await shot(page, `roles-${role}-cadastro`)
       output.roles.push({ role, ui_login: true, administrative_metrics_status: metrics.status,
         live_owner_snapshot_status: privateSnapshot.status, viewer_write_status: writeStatus,
@@ -260,7 +261,7 @@ async function main() {
       assert.equal(typeof state.desired_led_state, 'boolean')
       await page.goto('/dashboard')
       await select(page)
-      const actuators = page.locator('details[aria-label="Estado dos atuadores"]')
+      const actuators = page.locator('details[aria-label="Estado da luz e do som de aviso"]')
       await actuators.locator('summary').click()
       const button = actuators.getByRole('button', { name: state.desired_led_state ? 'Ligar Luz' : 'Desligar Luz', exact: true })
       await expect(button).toBeEnabled({ timeout: 30_000 })
@@ -284,7 +285,7 @@ async function main() {
       await page.goto('/messaging')
       const table = page.getByRole('region', { name: /Métricas por fila/ })
       await expect(table).toBeVisible({ timeout: 30_000 })
-      await expect(table.getByRole('rowheader', { name: 'coldsafe.writer', exact: true })).toBeVisible()
+      await expect(table.getByRole('rowheader').getByText('coldsafe.writer', { exact: true })).toBeVisible()
       const metrics = await api('/api/v3/messaging')
       const samples = await api('/api/v3/messaging/messages')
       assert.equal(metrics.status, 200)
@@ -298,17 +299,18 @@ async function main() {
       const generation = phase === 'laboratory'
       let id = generation ? state.generation_job_id : state.training_job_id
       await page.goto(`/${phase}${id ? `?job=${encodeURIComponent(id)}` : state.dataset_id && !generation ? `?dataset=${encodeURIComponent(state.dataset_id)}` : ''}`)
-      await expect(page.getByRole('heading', { name: generation ? 'Laboratório de Dados' : 'Treinamento', exact: true })).toBeVisible()
+      await expect(page.getByRole('heading', { name: generation ? 'Dados sintéticos' : 'Treinamento de modelos', exact: true })).toBeVisible()
       if (!id && state.action === 'create') {
         if (generation) {
           await page.getByLabel('Linhas', { exact: true }).fill('1000000')
-          await page.getByLabel('Seed', { exact: true }).fill(String(state.seed ?? 42))
+          await page.getByText('Opções avançadas', { exact: true }).click()
+          await page.getByLabel('Semente', { exact: true }).fill(String(state.seed ?? 42))
         } else {
           assert(state.dataset_id)
           await page.getByLabel('Dataset', { exact: true }).selectOption(state.dataset_id)
         }
         const submitted = page.waitForResponse(response => new URL(response.url()).pathname === '/api/v3/jobs' && response.request().method() === 'POST')
-        const submit = page.getByRole('button', { name: generation ? 'Gerar dataset' : 'Iniciar treinamento', exact: true })
+        const submit = page.getByRole('button', { name: generation ? 'Gerar dados de teste' : 'Iniciar treinamento', exact: true })
         await expect(submit).toBeEnabled()
         const llmStates = []
         let sampling = true
@@ -370,8 +372,8 @@ async function main() {
         }
       })
       await page.goto('/insights')
-      await select(page, true)
-      const panel = page.getByRole('region', { name: 'Insights do equipamento', exact: true })
+      await select(page)
+      const panel = page.getByRole('region', { name: 'Previsão do equipamento', exact: true })
       await expect(panel).toBeVisible()
       const metric = label => panel.locator('dl > div').filter({ has: page.locator('dt', { hasText: new RegExp(`^${label}$`) }) }).locator('dd')
       let observedInsights
@@ -397,7 +399,7 @@ async function main() {
       if (availability === 'available') {
         await expect(panel.getByText('Previsão disponível', { exact: true })).toBeVisible()
       } else if (availability === 'stale') {
-        await expect(panel.getByText('Previsão desatualizada. Aguardando uma entrada recente.', { exact: true })).toBeVisible()
+      await expect(panel.getByText('Previsão desatualizada. Aguardando uma leitura recente.', { exact: true })).toBeVisible()
       }
       if (state.require_alert) {
         assert(insights.body.data.active_alerts.length > 0)
@@ -409,7 +411,7 @@ async function main() {
       output.insights_source = 'GET response consumed by the UI; four visible fields matched together'
       await shot(page, `fault-insights-${availability}`)
       await page.goto('/digital-twin')
-      await select(page, true)
+      await select(page)
       const items = page.getByRole('region', { name: 'Componentes do gêmeo digital', exact: true })
       await expect(items.getByRole('button')).toHaveCount(9)
       const canvas = page.locator('[data-testid=twin-scene] canvas')
@@ -420,13 +422,14 @@ async function main() {
       if (!fresh) {
         await expect(page.getByText('Leitura desatualizada. Aguardando dados recentes.', { exact: true })).toBeVisible()
         await expect(page.getByRole('status').filter({ hasText: 'Cena congelada:' })).toBeVisible()
-        for (const button of await items.getByRole('button').all()) await expect(button).toContainText('Sem dados atuais · Sem dados')
+        for (const button of await items.getByRole('button').all()) await expect(button).toContainText('Sem dados atuais')
       } else if (state.require_alert) await expect(fan).toContainText('Crítico')
       const ids = [state.catalog.equipment_id, ...Object.values(state.catalog.sensors), ...Object.values(state.catalog.actuators)]
       const inspected = []
-      for (const button of await items.getByRole('button').all()) {
+      for (const [index, button] of (await items.getByRole('button').all()).entries()) {
         await button.click()
         const details = page.getByRole('region', { name: 'Detalhes do componente', exact: true })
+        if (index === 0) await details.getByText('Histórico e identificação', { exact: true }).click()
         const id = await details.locator('dl > div').filter({ has: page.locator('dt', { hasText: /^ID$/ }) }).locator('dd').innerText()
         assert(ids.includes(id))
         await expect(details).toContainText('Idade da leitura')

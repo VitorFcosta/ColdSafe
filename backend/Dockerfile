@@ -14,10 +14,12 @@ RUN groupadd --system coldsafe \
 COPY backend/requirements.lock.txt /tmp/requirements.lock.txt
 RUN python -m pip install --no-cache-dir --requirement /tmp/requirements.lock.txt
 
-COPY --chown=coldsafe:coldsafe backend /app/backend
-COPY --chown=coldsafe:coldsafe gateway /app/gateway
-COPY --chown=coldsafe:coldsafe simulator /app/simulator
-COPY --chown=coldsafe:coldsafe contracts /app/contracts
+COPY --chown=coldsafe:coldsafe backend/__init__.py /app/backend/
+COPY --chown=coldsafe:coldsafe backend/app /app/backend/app
+COPY --chown=coldsafe:coldsafe backend/migrations/*.sql /app/backend/migrations/
+COPY --chown=coldsafe:coldsafe gateway/*.py /app/gateway/
+COPY --chown=coldsafe:coldsafe simulator/*.py /app/simulator/
+COPY --chown=coldsafe:coldsafe contracts/*.schema.json /app/contracts/
 
 USER coldsafe
 

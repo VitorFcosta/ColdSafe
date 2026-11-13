@@ -47,16 +47,16 @@ const stale = computed(() => staleReading.value || predictionAge.value > STALE_A
 const available = computed(() => prediction.value?.data.status === 'available' && !stale.value)
 const reasons: Record<PredictionUnavailableReason, string> = {
   no_model: 'Nenhum modelo ativo. Aguardando ativação de um modelo para este equipamento.',
-  insufficient_history: 'Histórico insuficiente. Aguardando leituras para completar a janela da previsão.',
-  invalid_features: 'Variáveis inválidas. Não foi possível calcular uma previsão com estas leituras.',
+  insufficient_history: 'Histórico insuficiente. Aguardando mais leituras para calcular a previsão.',
+  invalid_features: 'Não foi possível calcular a previsão com estas leituras.',
   model_unavailable: 'Modelo indisponível. Não foi possível carregar ou executar a versão ativa.',
-  stale_input: 'Leitura desatualizada. Aguardando uma entrada recente para calcular a previsão.',
+  stale_input: 'Leitura desatualizada. Aguardando uma nova leitura para calcular a previsão.',
 }
 const message = computed(() => {
   if (staleReading.value) return reasons.stale_input
   if (prediction.value && stale.value) return 'Previsão desatualizada. Aguardando um novo resultado para o equipamento.'
   const reason = prediction.value?.data.reason ?? props.summary.prediction_unavailable_reason
-  return available.value ? 'Última previsão recebida: estimativas disponíveis.' : reason ? reasons[reason] : 'Aguardando previsão para a última leitura.'
+  return available.value ? 'Previsão disponível' : reason ? reasons[reason] : 'Aguardando previsão para a última leitura.'
 })
 const formatNumber = (value: number | null | undefined) => value?.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) ?? '—'
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -66,27 +66,27 @@ const formatTime = (value: string) => formatReadingTime(value, timeZone)
 <template>
   <section aria-label="Previsão do equipamento" class="prediction-panel">
     <h2 class="text-xl font-semibold">Previsão do equipamento</h2>
-    <p class="prediction-origin">Estimativas baseadas em dados sintéticos · sem calibração física.</p>
+    <p class="prediction-origin">Modelo treinado com dados gerados para teste, sem calibração em equipamento real.</p>
     <p class="mt-2 text-sm leading-6 text-ink-muted" role="status" aria-live="polite">{{ message }}</p>
     <dl class="prediction-values">
       <div><dt>Saúde estimada</dt><dd>{{ available ? `${formatNumber(prediction?.data.health_score)} / 100` : '—' }}</dd></div>
-      <div><dt>Vida útil restante estimada (RUL)</dt><dd>{{ available ? `${formatNumber(prediction?.data.rul_hours)} h` : '—' }}</dd></div>
+      <div><dt>Vida útil restante</dt><dd>{{ available ? `${formatNumber(prediction?.data.rul_hours)} h` : '—' }}</dd></div>
     </dl>
     <dl class="prediction-summary">
       <div><dt>Modelo</dt><dd>{{ prediction?.data.model_version ?? (prediction?.data.reason === 'no_model' ? 'Nenhum modelo ativo' : '—') }}</dd></div>
-      <div><dt>Idade da entrada</dt><dd>{{ prediction ? formatFreshness(predictionAge) : 'Sem entrada de previsão' }}</dd></div>
+      <div><dt>Idade da leitura</dt><dd>{{ prediction ? formatFreshness(predictionAge) : 'Sem leitura associada à previsão' }}</dd></div>
     </dl>
     <details class="prediction-details">
-      <summary>Identificação e horários</summary>
+      <summary>Origem da previsão e horários</summary>
       <dl class="prediction-meta">
         <div><dt>Equipamento</dt><dd>{{ prediction?.data.equipment_id ?? summary.equipment?.equipment_id ?? summary.inventory?.equipment_id ?? summary.reading?.equipment_id ?? 'Não identificado' }}</dd></div>
         <div><dt>Versão das variáveis</dt><dd>{{ prediction?.data.features_version ?? '—' }}</dd></div>
-        <div><dt>Entrada da última previsão recebida em</dt><dd><time v-if="prediction" :datetime="prediction.data.input_received_at">{{ formatTime(prediction.data.input_received_at) }}</time><span v-else>—</span></dd></div>
+        <div><dt>Horário da leitura usada</dt><dd><time v-if="prediction" :datetime="prediction.data.input_received_at">{{ formatTime(prediction.data.input_received_at) }}</time><span v-else>—</span></dd></div>
         <div><dt>Previsão calculada em</dt><dd><time v-if="prediction" :datetime="prediction.occurred_at">{{ formatTime(prediction.occurred_at) }}</time><span v-else>—</span></dd></div>
       </dl>
       <p class="mt-2 text-sm text-ink-muted">Horários no fuso {{ timeZone }}.</p>
     </details>
-    <p class="mt-3 text-sm leading-6 text-ink-muted">Último resultado recebido para este equipamento, referente à entrada identificada acima. Uma previsão não renova a atualidade dos sensores.</p>
+    <p class="mt-3 text-sm leading-6 text-ink-muted">A idade da leitura é contada a partir da chegada dos dados dos sensores.</p>
   </section>
 </template>
 

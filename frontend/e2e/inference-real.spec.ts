@@ -64,9 +64,9 @@ test('previsão real chega pelo barramento e troca versão na mesma página e wo
   for (const [index, model] of models.slice(0, 2).entries()) {
     const activation = await activate(model, 'active')
     await control('stream')
-    await expect(panel.getByRole('status')).toHaveText('Última previsão recebida: estimativas disponíveis.')
+    await expect(panel.getByRole('status')).toHaveText('Previsão disponível: estimativas disponíveis.')
     await expect(panel.getByText(activation.model_version, { exact: true })).toBeVisible()
-    await expect(panel.getByRole('status')).toHaveText('Última previsão recebida: estimativas disponíveis.')
+    await expect(panel.getByRole('status')).toHaveText('Previsão disponível: estimativas disponíveis.')
     await control('pause')
     // Let the final source/receipt/inference drain before comparing stable REST values to the UI.
     await expect.poll(async () => {

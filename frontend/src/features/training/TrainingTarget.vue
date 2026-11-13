@@ -13,6 +13,14 @@ onMounted(() => { const style = getComputedStyle(root.value!); colors.value = { 
 const name = computed(() => props.result.target === 'health_score_true' ? 'Saúde' : 'Vida útil restante (RUL)')
 const unit = computed(() => props.result.unit === 'points' ? 'pontos de saúde' : 'horas')
 const number = (v: number | null) => v === null ? 'Indefinido (alvo constante)' : new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 }).format(v)
+const validation = computed(() => props.result.metrics.validation)
+const preciseMae = computed(() => validation.value.candidate.mae !== validation.value.baseline.mae &&
+  number(validation.value.candidate.mae) === number(validation.value.baseline.mae))
+function validationError(value: number) {
+  const amount = preciseMae.value ? value.toLocaleString('pt-BR', { maximumSignificantDigits: 17 }) : number(value)
+  const label = value === 1 ? (props.result.unit === 'points' ? 'ponto de saúde' : 'hora') : unit.value
+  return `${amount} ${label}`
+}
 const partitions = [['validation', 'Validação'], ['test', 'Teste reservado']] as const
 const features = computed(() => [...props.result.diagnostics.permutation.features].sort((a, b) => b.mean - a.mean))
 const maxImportance = computed(() => Math.max(...features.value.map((f) => Math.abs(f.mean)), Number.EPSILON))
@@ -38,40 +46,51 @@ const options = computed<ChartOptions<'scatter'>>(() => ({ responsive: true, mai
 
 <template>
   <section ref="root" class="target" :aria-label="`Resultados de ${name}`">
-    <h2>{{ name }} <span class="unit">{{ unit }}</span></h2>
+    <h3>{{ name }}</h3>
     <p class="verdict" :class="result.status">{{ result.status === 'eligible' ? 'Apto pela validação' : 'Rejeitado pela validação' }}</p>
-    <p>O candidato supera a baseline quando seu MAE de validação é menor. A seleção usa somente a validação. O teste reservado mede a generalização depois da escolha. Apto não significa modelo ativo nem precisão operacional comprovada.</p>
-    <p>MAE e RMSE: menor é melhor ({{ unit }}). R²: maior é melhor; pode ser negativo. Baseline prevê um valor constante aprendido no treino.</p>
-    <p :id="`table-help-${result.target}`" class="table-hint">As tabelas permitem rolagem horizontal. Foque a tabela e use as setas para acessar todas as colunas.</p>
-    <div class="table-scroll" role="region" :aria-describedby="`table-help-${result.target}`" :aria-label="`Métricas de ${name}`" tabindex="0">
-      <table><caption>Comparação no conjunto completo de cada partição</caption><thead><tr><th scope="col">Partição</th><th scope="col">Modelo</th><th scope="col">MAE</th><th scope="col">RMSE</th><th scope="col">R²</th></tr></thead>
-        <tbody><template v-for="[key, label] in partitions" :key="key"><tr v-for="model in (['baseline', 'candidate'] as const)" :key="model"><th scope="row">{{ label }}</th><td class="model-name">{{ model === 'baseline' ? 'Baseline' : 'Candidato' }}</td><td>{{ number(result.metrics[key][model].mae) }}</td><td>{{ number(result.metrics[key][model].rmse) }}</td><td>{{ number(result.metrics[key][model].r2) }}</td></tr></template></tbody>
-      </table>
-    </div>
-    <p>Linhas: treino {{ number(result.partition_rows.train) }}, validação {{ number(result.partition_rows.validation) }}, teste {{ number(result.partition_rows.test) }}.</p>
-    <h3>Previsto × real</h3>
-    <p>{{ result.diagnostics.sample_count }} de {{ number(result.diagnostics.total_rows) }} linhas do teste, sorteadas sem reposição após a escolha (seed {{ result.diagnostics.sample_seed }}; máximo 500). Pontos próximos da diagonal indicam previsões próximas do valor real. Erro = previsto − real; positivo superestima.</p>
-    <div class="chart" role="img" :aria-label="`Previsto versus real de ${name}, em ${unit}; tabela de erros disponível abaixo`"><Scatter :data="chartData" :options="options" /></div>
-    <details><summary>Inspecionar erros em tabela ({{ result.diagnostics.sample_count }} linhas)</summary>
-      <div class="table-scroll sample" role="region" :aria-describedby="`table-help-${result.target}`" :aria-label="`Erros de ${name}`" tabindex="0"><table><caption>Amostra reservada; valores em {{ unit }}</caption><thead><tr><th scope="col">Real</th><th scope="col">Previsto</th><th scope="col">Baseline</th><th scope="col">Erro</th></tr></thead><tbody><tr v-for="(point, index) in result.diagnostics.scatter" :key="index"><td>{{ number(point.actual) }}</td><td>{{ number(point.predicted) }}</td><td>{{ number(point.baseline) }}</td><td>{{ number(point.error) }}</td></tr></tbody></table></div>
+    <p class="metric-label">Erro médio absoluto na validação (MAE)</p>
+    <dl class="validation-summary">
+      <div><dt>Candidato</dt><dd>{{ validationError(validation.candidate.mae) }}</dd></div>
+      <div><dt>Referência</dt><dd>{{ validationError(validation.baseline.mae) }}</dd></div>
+    </dl>
+    <p v-if="result.near_failure" class="warning">O erro da estimativa pode ser alto nas últimas {{ result.near_failure.threshold_hours }} horas antes da falha.</p>
+    <details class="diagnostics">
+      <summary>Métricas e diagnósticos</summary>
+      <p>MAE e RMSE são medidos em {{ unit }}. Valores menores indicam menos erro. R² maior é melhor e pode ser negativo. A referência (baseline) prevê um valor constante aprendido no treino.</p>
+      <p :id="`table-help-${result.target}`" class="table-hint">As tabelas permitem rolagem horizontal. Foque a tabela e use as setas para acessar todas as colunas.</p>
+      <div class="table-scroll" role="region" :aria-describedby="`table-help-${result.target}`" :aria-label="`Métricas de ${name}`" tabindex="0">
+        <table><caption>Comparação no conjunto completo de cada partição</caption><thead><tr><th scope="col">Partição</th><th scope="col">Modelo</th><th scope="col">MAE</th><th scope="col">RMSE</th><th scope="col">R²</th></tr></thead>
+          <tbody><template v-for="[key, label] in partitions" :key="key"><tr v-for="model in (['baseline', 'candidate'] as const)" :key="model"><th scope="row">{{ label }}</th><td class="model-name">{{ model === 'baseline' ? 'Baseline' : 'Candidato' }}</td><td>{{ number(result.metrics[key][model].mae) }}</td><td>{{ number(result.metrics[key][model].rmse) }}</td><td>{{ number(result.metrics[key][model].r2) }}</td></tr></template></tbody>
+        </table>
+      </div>
+      <p>Linhas: treino {{ number(result.partition_rows.train) }}, validação {{ number(result.partition_rows.validation) }}, teste {{ number(result.partition_rows.test) }}.</p>
+      <h4>Previsto × real</h4>
+      <p>{{ result.diagnostics.sample_count }} de {{ number(result.diagnostics.total_rows) }} linhas do teste, sorteadas sem reposição após a escolha (seed {{ result.diagnostics.sample_seed }}; máximo 500). Pontos próximos da diagonal indicam previsões próximas do valor real. Erro = previsto − real; positivo superestima.</p>
+      <div class="chart" role="img" :aria-label="`Previsto versus real de ${name}, em ${unit}; tabela de erros disponível abaixo`"><Scatter :data="chartData" :options="options" /></div>
+      <details><summary>Inspecionar erros em tabela ({{ result.diagnostics.sample_count }} linhas)</summary>
+        <div class="table-scroll sample" role="region" :aria-describedby="`table-help-${result.target}`" :aria-label="`Erros de ${name}`" tabindex="0"><table><caption>Amostra reservada; valores em {{ unit }}</caption><thead><tr><th scope="col">Real</th><th scope="col">Previsto</th><th scope="col">Baseline</th><th scope="col">Erro</th></tr></thead><tbody><tr v-for="(point, index) in result.diagnostics.scatter" :key="index"><td>{{ number(point.actual) }}</td><td>{{ number(point.predicted) }}</td><td>{{ number(point.baseline) }}</td><td>{{ number(point.error) }}</td></tr></tbody></table></div>
+      </details>
+      <h4>Importância por permutação</h4>
+      <p>Aumento médio de MAE ao embaralhar uma variável, em {{ unit }}, com 3 repetições na mesma amostra reservada. Importância negativa indica melhora na amostra ao embaralhar; não demonstra causalidade. MAE de referência da amostra: {{ number(result.diagnostics.permutation.reference_mae) }}.</p>
+      <div class="table-scroll" role="region" :aria-describedby="`table-help-${result.target}`" :aria-label="`Importância em ${name}`" tabindex="0"><table><caption>Variáveis e variação média de erro; barras mantêm o sinal</caption><thead><tr><th scope="col">Variável</th><th scope="col">Aumento médio do MAE</th><th scope="col">Desvio padrão</th></tr></thead><tbody><tr v-for="feature in features" :key="feature.name"><th scope="row"><span>{{ featureLabel(feature.name) }}</span><small>{{ feature.name }}</small></th><td><span class="importance" aria-hidden="true"><i :class="{ negative: feature.mean < 0 }" :style="{ width: `${Math.abs(feature.mean) / maxImportance * 50}%`, left: feature.mean < 0 ? `${50 - Math.abs(feature.mean) / maxImportance * 50}%` : '50%' }"></i></span>{{ number(feature.mean) }}</td><td>{{ number(feature.std) }}</td></tr></tbody></table></div>
+      <template v-if="result.near_failure">
+        <h4>Últimas {{ result.near_failure.threshold_hours }} horas antes da falha</h4>
+        <p class="warning">Recorte de avaliação: erros ainda podem ser grandes perto da falha. R² negativo indica desempenho pior que prever a média do próprio recorte; não use esta estimativa como garantia operacional.</p>
+        <div class="table-scroll" role="region" :aria-describedby="`table-help-${result.target}`" aria-label="Métricas perto da falha" tabindex="0"><table><caption>RUL perto da falha, em horas</caption><thead><tr><th scope="col">Partição</th><th scope="col">Linhas</th><th scope="col">Modelo</th><th scope="col">MAE</th><th scope="col">RMSE</th><th scope="col">R²</th></tr></thead><tbody><template v-for="[key, label] in partitions" :key="key"><tr v-for="model in (['baseline', 'candidate'] as const)" :key="model"><th scope="row">{{ label }}</th><td>{{ number(result.near_failure[key].row_count) }}</td><td class="model-name">{{ model === 'baseline' ? 'Baseline' : 'Candidato' }}</td><td>{{ result.near_failure[key][model] ? number(result.near_failure[key][model]!.mae) : 'Sem linhas' }}</td><td>{{ result.near_failure[key][model] ? number(result.near_failure[key][model]!.rmse) : 'Sem linhas' }}</td><td>{{ result.near_failure[key][model] ? number(result.near_failure[key][model]!.r2) : 'Sem linhas' }}</td></tr></template></tbody></table></div>
+      </template>
     </details>
-    <h3>Importância por permutação</h3>
-    <p>Aumento médio de MAE ao embaralhar uma variável, em {{ unit }}, com 3 repetições na mesma amostra reservada. Importância negativa indica melhora na amostra ao embaralhar; não demonstra causalidade. MAE de referência da amostra: {{ number(result.diagnostics.permutation.reference_mae) }}.</p>
-    <div class="table-scroll" role="region" :aria-describedby="`table-help-${result.target}`" :aria-label="`Importância em ${name}`" tabindex="0"><table><caption>Variáveis e variação média de erro; barras mantêm o sinal</caption><thead><tr><th scope="col">Variável</th><th scope="col">Aumento médio do MAE</th><th scope="col">Desvio padrão</th></tr></thead><tbody><tr v-for="feature in features" :key="feature.name"><th scope="row"><span>{{ featureLabel(feature.name) }}</span><small>{{ feature.name }}</small></th><td><span class="importance" aria-hidden="true"><i :class="{ negative: feature.mean < 0 }" :style="{ width: `${Math.abs(feature.mean) / maxImportance * 50}%`, left: feature.mean < 0 ? `${50 - Math.abs(feature.mean) / maxImportance * 50}%` : '50%' }"></i></span>{{ number(feature.mean) }}</td><td>{{ number(feature.std) }}</td></tr></tbody></table></div>
-    <template v-if="result.near_failure">
-      <h3>Últimas {{ result.near_failure.threshold_hours }} horas antes da falha</h3>
-      <p class="warning">Recorte de avaliação: erros ainda podem ser grandes perto da falha. R² negativo indica desempenho pior que prever a média do próprio recorte; não use esta estimativa como garantia operacional.</p>
-      <div class="table-scroll" role="region" :aria-describedby="`table-help-${result.target}`" aria-label="Métricas perto da falha" tabindex="0"><table><caption>RUL perto da falha, em horas</caption><thead><tr><th scope="col">Partição</th><th scope="col">Linhas</th><th scope="col">Modelo</th><th scope="col">MAE</th><th scope="col">RMSE</th><th scope="col">R²</th></tr></thead><tbody><template v-for="[key, label] in partitions" :key="key"><tr v-for="model in (['baseline', 'candidate'] as const)" :key="model"><th scope="row">{{ label }}</th><td>{{ number(result.near_failure[key].row_count) }}</td><td class="model-name">{{ model === 'baseline' ? 'Baseline' : 'Candidato' }}</td><td>{{ result.near_failure[key][model] ? number(result.near_failure[key][model]!.mae) : 'Sem linhas' }}</td><td>{{ result.near_failure[key][model] ? number(result.near_failure[key][model]!.rmse) : 'Sem linhas' }}</td><td>{{ result.near_failure[key][model] ? number(result.near_failure[key][model]!.r2) : 'Sem linhas' }}</td></tr></template></tbody></table></div>
-    </template>
   </section>
 </template>
 
 <style scoped>
-.target { border-radius: var(--cs-radius-panel); padding: var(--cs-space-24); background: var(--cs-color-surface); min-width: 0; overflow-wrap: anywhere; }
-h2 { font-size: var(--cs-type-20); font-weight: 650; } h3 { margin-top: var(--cs-space-24); font-size: var(--cs-type-16); font-weight: 600; }
+.target { border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); padding: var(--cs-space-24); min-width: 0; overflow-wrap: anywhere; }
+h3 { font-size: var(--cs-type-20); font-weight: 650; } h4 { margin-top: var(--cs-space-24); font-size: var(--cs-type-16); font-weight: 600; }
 p { margin-top: var(--cs-space-12); line-height: 1.6; }
-.table-hint { font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
-.unit, small { display: block; font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
+.table-hint, .metric-label, dt { font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
+small { display: block; font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
+.validation-summary { display: flex; flex-wrap: wrap; gap: var(--cs-space-8) var(--cs-space-24); margin-top: var(--cs-space-8); }
+dd { font-weight: 650; font-variant-numeric: tabular-nums; }
+.diagnostics { margin-top: var(--cs-space-12); }
 .verdict { display: inline-block; font-weight: 650; padding: var(--cs-space-8) var(--cs-space-12); border-radius: var(--cs-radius-4); }
 .eligible { color: var(--cs-color-status-normal); background: var(--cs-color-normal-surface); }.rejected { color: var(--cs-color-status-attention); background: var(--cs-color-attention-surface); }
 .table-scroll { overflow: auto; max-width: 100%; margin-top: var(--cs-space-16); }

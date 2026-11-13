@@ -41,8 +41,11 @@ describe('Assistente privado', () => {
 
   it('explica antes da primeira pergunta a perda inclusive das respostas concluídas', async () => {
     wrapper = render(); await flushPromises()
-    expect(wrapper.get('#assistant-scope').text()).toContain('inclusive respostas concluídas')
+    expect(wrapper.get('form #assistant-scope').text()).toContain('resumo dos dados autorizados da sua conta')
+    expect(wrapper.get('#assistant-history').text()).toContain('inclusive respostas concluídas')
     expect(wrapper.get('textarea').attributes('aria-describedby')).toContain('assistant-scope')
+    expect(wrapper.get('textarea').attributes('aria-describedby')).toContain('assistant-history')
+    expect(wrapper.find('section[aria-label="Conversa com o assistente"]').exists()).toBe(false)
     expect(askAssistant).not.toHaveBeenCalled()
   })
   it('avisa ao sair durante resposta; permanecer conserva o stream e sair aguarda desmontagem', async () => {
@@ -153,6 +156,19 @@ describe('Assistente privado', () => {
     expect(conversation.findAll('li')).toHaveLength(8)
     expect(conversation.text()).not.toContain('🧊')
     expect(conversation.text()).toContain('Pergunta 8')
+  })
+
+  it('orienta a corrigir o excesso em bytes durante a edição', async () => {
+    wrapper = render(); await flushPromises()
+    const field = wrapper.get('textarea')
+    await field.setValue('🧊'.repeat(65))
+    expect(wrapper.get('#question-limit').text()).toContain('260 / 256 bytes UTF-8')
+    expect(field.attributes('aria-describedby')).toContain('question-error')
+    expect(wrapper.get('#question-error').text()).toContain('Encurte o texto para enviar')
+    await field.setValue('🧊'.repeat(64))
+    expect(wrapper.find('#question-error').exists()).toBe(false)
+    expect(field.attributes('aria-invalid')).toBeUndefined()
+    expect(askAssistant).not.toHaveBeenCalled()
   })
   it('marca interrupção como incompleta, preserva o parcial e não repete o POST', async () => {
     vi.mocked(askAssistant).mockImplementationOnce(async (_token, _question, delta) => {

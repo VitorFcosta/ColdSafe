@@ -2,9 +2,9 @@
 
 import { useRoute } from 'vue-router'
 import { clearMonitoringSelection } from '../features/account/session'
-import { flushPromises, shallowMount } from '@vue/test-utils'
+import { config, flushPromises, shallowMount } from '@vue/test-utils'
 import { computed, ref } from 'vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { listDevices, listEnvironments } from '../features/account/catalog'
 import { sessionToken, sessionRole } from '../features/account/session'
@@ -50,7 +50,10 @@ const pending: ActuatorCommand = {
 }
 
 describe('FoundationView', () => {
+  const defaultSlotSetting = config.global.renderStubDefaultSlot
+  afterEach(() => { config.global.renderStubDefaultSlot = defaultSlotSetting })
   beforeEach(() => {
+    config.global.renderStubDefaultSlot = true
   Object.assign(useRoute(), { path: '/dashboard', query: {}, hash: '' })
   clearMonitoringSelection()
 
@@ -92,7 +95,7 @@ describe('FoundationView', () => {
     expect(wrapper.text()).toContain('0,123 mm/s')
     expect(wrapper.text()).toContain('1,456 A')
     expect(wrapper.text()).toContain('38 °C')
-    expect(wrapper.text()).toContain('Gravação em andamento')
+    expect(wrapper.text()).toContain('Falta salvar no histórico')
     expect(wrapper.text()).toContain('Luz observada na última leitura: Ligado')
     expect(wrapper.text()).toContain('Sem confirmação registrada')
     const metric = wrapper.get('select[aria-label="Medição do gráfico"]')
@@ -190,7 +193,7 @@ describe('FoundationView', () => {
     const wrapper = shallowMount(FoundationView, { global: { stubs: { LiveDataRegion: false, RouterLink: true, LedControl: false } } })
     await flushPromises()
     expect(wrapper.text()).toContain('35 %')
-    expect(wrapper.text()).toContain('Faixa térmica atual: 2–8 °C')
+    expect(wrapper.text()).toContain('Faixa configurada: 2–8 °C')
     expect(fetchMonitoringHistory).toHaveBeenCalledWith(expect.objectContaining({
       token: 'token', deviceId: 'esp32-lab-01', period: '1h',
     }))
@@ -321,7 +324,7 @@ describe('FoundationView', () => {
     })
     const wrapper = shallowMount(FoundationView, { global: { stubs: { LiveDataRegion: false, RouterLink: true, LedControl: false } } })
     await flushPromises()
-    const details = wrapper.get('details[aria-label="Estado dos atuadores"]')
+    const details = wrapper.get('details[aria-label="Estado da luz e do som de aviso"]')
     expect(details.attributes('open')).toBeUndefined()
     expect(details.get('summary').text()).toContain(`Luz manual: ${label}`)
     expect(details.get('summary').text()).toContain('Som de aviso automático: Sem confirmação registrada')
@@ -332,7 +335,7 @@ describe('FoundationView', () => {
     vi.mocked(fetchActuators).mockRejectedValueOnce(new Error('API indisponível'))
     const wrapper = shallowMount(FoundationView, { global: { stubs: { LiveDataRegion: false, RouterLink: true, LedControl: false } } })
     await flushPromises()
-    expect(wrapper.get('details summary').text()).toContain('Estado dos atuadores indisponível')
+    expect(wrapper.get('details summary').text()).toContain('Não foi possível consultar a luz e o som.')
     wrapper.unmount()
   })
 
@@ -455,9 +458,9 @@ describe('FoundationView', () => {
       loadSummary: vi.fn(), monitoringState: computed(() => ({ kind: 'no_data', history: 'unavailable' } as const)),
       refreshRevision: ref(0), summary: ref(null), connectionState: ref('offline'), ageSeconds: computed(() => null),
     })
-    const empty = shallowMount(FoundationView, { global: { stubs: { LiveDataRegion: false, RouterLink: true, LedControl: false } } })
+    const empty = shallowMount(FoundationView, { global: { stubs: { LiveDataRegion: false, MonitoringEmptyState: false, RouterLink: true, LedControl: false } } })
     await flushPromises()
-    expect(empty.text()).toContain('Nenhum ambiente cadastrado')
+    expect(empty.text()).toContain('Nenhum ambiente disponível para sua conta')
     expect(fetchActuators).not.toHaveBeenCalled()
     empty.unmount()
 
@@ -468,7 +471,7 @@ describe('FoundationView', () => {
       loadSummary: vi.fn(), monitoringState: computed(() => ({ kind: 'no_data', history: 'unavailable' } as const)),
       refreshRevision: ref(0), summary: ref(null), connectionState: ref('offline'), ageSeconds: computed(() => null),
     })
-    const inactive = shallowMount(FoundationView, { global: { stubs: { LiveDataRegion: false, RouterLink: true, LedControl: false } } })
+    const inactive = shallowMount(FoundationView, { global: { stubs: { LiveDataRegion: false, MonitoringEmptyState: false, RouterLink: true, LedControl: false } } })
     await flushPromises()
     expect(inactive.text()).toContain('Nenhum dispositivo ativo neste ambiente')
     expect(fetchActuators).not.toHaveBeenCalled()
@@ -500,7 +503,7 @@ describe('FoundationView', () => {
     })
     const wrapper = shallowMount(FoundationView, { global: { stubs: { LiveDataRegion: false, RouterLink: true, LedControl: false } } })
     await flushPromises()
-    expect(wrapper.text()).toContain('A API retornou dados de outro ambiente')
+    expect(wrapper.get('[role="alert"]').text()).toContain('O servidor enviou dados de outro ambiente')
     expect(wrapper.find('.status-panel').exists()).toBe(false)
     expect(wrapper.find('.metrics-grid').exists()).toBe(false)
     await wrapper.findAll('button').find((button) => button.text() === 'Tentar novamente')?.trigger('click')
@@ -527,11 +530,11 @@ describe('FoundationView', () => {
     expect(wrapper.get('[aria-label="Diagnóstico atual"] h3').text()).toBe(label)
     if (kind === 'no_data') {
       expect(wrapper.get('.measurement .metric-value').text()).toBe('—')
-      expect(wrapper.text()).toContain('Verifique se ele está ativo e enviando dados')
+      expect(wrapper.text()).toContain('Verifique se o dispositivo está ativo e enviando dados')
     }
     if (kind === 'stale') {
-      expect(wrapper.text()).toContain('situação atual não está confirmada')
-      expect(wrapper.text()).toContain('aguarde uma leitura nova')
+      expect(wrapper.text()).toContain('A última leitura não confirma a temperatura de agora')
+      expect(wrapper.text()).toContain('aguarde uma nova leitura')
     }
     wrapper.unmount()
   })

@@ -17,7 +17,7 @@ const localNav = (page: Page) => page.getByRole('navigation', { name: 'Navegaç�
 const resume = (page: Page) => page.getByLabel('Retomar trabalhos conhecidos', { exact: true })
 const generationLink = (page: Page) => page.getByRole('link', { name: 'Retomar geração', exact: true })
 const trainingLink = (page: Page) => page.getByRole('link', { name: 'Retomar treinamento', exact: true })
-const evidence = (name: string) => new URL(`../../.impeccable/review/rd-06/${name}`, import.meta.url)
+const evidence = (name: string) => new URL(`../../.impeccable/review/ux-07/retomada-${name}`, import.meta.url)
 
 function job(kind: 'generation' | 'training') {
   const generation = kind === 'generation'
@@ -86,7 +86,7 @@ async function storedJobs(page: Page) {
 test('criação confirmada registra referências mínimas nas duas vistas; retorno e recarga não reenviam', async ({ page }) => {
   const state = await mockResumeApi(page)
   await page.goto('/laboratory')
-  await page.getByRole('button', { name: 'Gerar dataset', exact: true }).click()
+  await page.getByRole('button', { name: 'Gerar dados de teste', exact: true }).click()
   await expect(page).toHaveURL(`/laboratory?job=${generationId}`)
   await expect(generationLink(page)).toBeVisible()
   expect(await storedJobs(page)).toEqual({ generation: known.generation })
@@ -118,7 +118,10 @@ test('GET direto conserva job/dataset/hash, registra conhecimento e consulta dat
   await page.goto(`/training?dataset=${datasetId}&job=${trainingId}&source=manual#resultado`)
   await expect(trainingLink(page)).toBeVisible()
   await expect(page.getByLabel('Dataset', { exact: true })).toHaveValue(datasetId)
-  await expect(page.getByRole('region', { name: 'Selecionar dataset concluído', exact: true })).toContainText(`Dataset: ${datasetId}`)
+  const setup = page.getByRole('region', { name: 'Selecionar dataset concluído', exact: true })
+  await expect(setup.locator('option:checked')).toHaveText(/^Dataset de /)
+  await setup.getByText('Configuração do dataset', { exact: true }).click()
+  await expect(setup.getByText(`Dataset: ${datasetId}`, { exact: false })).toBeVisible()
   await expect(page).toHaveURL(`/training?dataset=${datasetId}&job=${trainingId}&source=manual#resultado`)
   expect(await storedJobs(page)).toEqual(known)
   expect(state.datasetGets).toContain(datasetId)
@@ -200,7 +203,7 @@ for (const kind of ['generation', 'training'] as const) test(`${kind} 503 conser
 test('envio incerto sem ID não inventa retomada nem repete geração ao retornar', async ({ page }) => {
   const state = await mockResumeApi(page); state.postStatus = 503
   await page.goto('/laboratory')
-  await page.getByRole('button', { name: 'Gerar dataset', exact: true }).click()
+  await page.getByRole('button', { name: 'Gerar dados de teste', exact: true }).click()
   await expect(page.getByRole('alert')).toContainText('O job pode ter sido criado')
   await expect(generationLink(page)).toHaveCount(0)
   expect(await storedJobs(page)).toEqual({})
@@ -223,7 +226,7 @@ test('logout e nova conta limpam referências privadas da aba', async ({ page })
   await page.getByRole('button', { name: 'Entrar', exact: true }).click()
   await expect(page.getByText('other@example.invalid', { exact: true })).toBeVisible()
   await page.goto('/laboratory')
-  await expect(page.getByRole('heading', { name: 'Laboratório de Dados', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Dados sintéticos', exact: true })).toBeVisible()
   await expect(trainingLink(page)).toHaveCount(0); await expect(generationLink(page)).toHaveCount(0)
   expect(await storedJobs(page)).toEqual({})
   expect(state.jobGets).toEqual([])
@@ -249,7 +252,7 @@ test('resposta antiga após logout não registra trabalho na nova conta', async 
   await expect(page.getByText('other@example.invalid', { exact: true })).toBeVisible()
   await page.goto('/laboratory')
   release(); await finished
-  await expect(page.getByRole('heading', { name: 'Laboratório de Dados', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Dados sintéticos', exact: true })).toBeVisible()
   await expect(generationLink(page)).toHaveCount(0); await expect(trainingLink(page)).toHaveCount(0)
   expect(await storedJobs(page)).toEqual({})
 })
@@ -261,7 +264,7 @@ test('aba independente não recebe referências da outra aba; sessão expirada n
   try {
     await mockResumeApi(other)
     await other.goto('/laboratory')
-    await expect(other.getByRole('heading', { name: 'Laboratório de Dados', exact: true })).toBeVisible()
+    await expect(other.getByRole('heading', { name: 'Dados sintéticos', exact: true })).toBeVisible()
     await expect(trainingLink(other)).toHaveCount(0)
     expect(await storedJobs(other)).toEqual({})
     await other.evaluate(() => {
@@ -309,7 +312,7 @@ for (const width of [1440, 320]) test(`retomada ${width}px: foco, texto ampliado
   await expect(generationLink(page)).toBeVisible(); await expect(trainingLink(page)).toBeVisible()
   await generationLink(page).focus()
   await expect(generationLink(page)).toBeFocused()
-  await mkdir(evidence('.'), { recursive: true })
+  await mkdir(new URL('.', evidence('desktop.png')), { recursive: true })
   if (width === 320) {
     await page.screenshot({ path: evidence('mobile-320.png').pathname, fullPage: false })
     await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })

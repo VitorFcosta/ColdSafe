@@ -17,12 +17,12 @@ async function login(page: Page, email = admin) {
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Senha').fill(password)
   await page.getByRole('button', { name: 'Entrar', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Diagnóstico do ambiente' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
   if (email === admin) {
     const menuButton = page.getByRole('button', { name: 'Menu', exact: true })
     if (await menuButton.isVisible()) await menuButton.click()
     await page.getByRole('link', { name: 'Filas e mensagens', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Mensageria', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Filas e mensagens', exact: true })).toBeVisible()
   } else {
     await page.goto('/messaging')
     await expect(page.getByRole('heading', { name: 'Acesso restrito', exact: true })).toBeVisible()
@@ -44,17 +44,19 @@ test('métricas reais, atualização e navegação por teclado no mobile; navega
   await login(page)
   const data = (await (await firstSample).json()).data
   expect(data.queues).toHaveLength(10)
-  await expect(page.getByRole('heading', { name: 'Mensageria', exact: true })).toBeFocused()
+  await expect(page.getByRole('heading', { name: 'Filas e mensagens', exact: true })).toBeFocused()
   await expect(page.locator('tbody tr')).toHaveCount(data.queues.length)
   for (const queue of data.queues) {
-    const row = page.getByRole('row').filter({ has: page.getByRole('rowheader', { name: queue.name, exact: true }) })
+    const row = page.getByRole('row').filter({ has: page.getByRole('rowheader').filter({ has: page.getByText(queue.name, { exact: true }) }) })
     await expect(row).toBeVisible()
     const cells = row.getByRole('cell')
     for (const [index, key] of ['messages', 'messages_ready', 'messages_unacknowledged', 'consumers'].entries()) {
-      await expect(cells.nth(index)).toHaveText(String(queue[key]))
+      await expect(cells.nth(index)).toHaveText(Number(queue[key]).toLocaleString('pt-BR'))
     }
     for (const [index, key] of ['publish_rate', 'deliver_rate'].entries()) {
-      const label = queue[key] === null ? 'Indisponível' : `${Number(queue[key]).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} /s`
+      const rate = queue[key] as number | null
+      const label = rate === null ? 'Indisponível' : rate > 0 && rate < 0.01 ? '< 0,01 /s'
+        : `${rate.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} /s`
       await expect(cells.nth(index + 4)).toHaveText(label)
     }
   }
@@ -72,21 +74,23 @@ test('queda real do RabbitMQ mantém última amostra, idade e falha; recupera au
   test.setTimeout(120_000)
   await login(page)
   await expect(page.locator('tbody tr')).toHaveCount(10)
-  const before = await page.locator('time').getAttribute('datetime')
+  const summary = page.getByRole('region', { name: 'Estado das filas', exact: true })
+  const collectionTime = summary.locator('time')
+  const before = await collectionTime.getAttribute('datetime')
   // Keep Docker's ephemeral host mapping stable while the real broker is unavailable.
   broker('pause')
   try {
-    await expect(page.getByRole('alert')).toContainText('Não foi possível atualizar', { timeout: 20_000 })
-    await expect(page.getByRole('alert')).toContainText('Última consulta bem-sucedida')
+    await expect(summary.getByRole('alert')).toContainText('Não foi possível atualizar', { timeout: 20_000 })
+    await expect(summary.getByRole('alert')).toContainText('Última consulta bem-sucedida')
     await expect(page.locator('tbody tr')).toHaveCount(10)
-    await expect(page.locator('time')).toHaveAttribute('datetime', before!)
-    await expect(page.getByRole('status')).toContainText('Informação desatualizada', { timeout: 20_000 })
+    await expect(collectionTime).toHaveAttribute('datetime', before!)
+    await expect(summary.getByRole('status')).toContainText('Informação desatualizada', { timeout: 20_000 })
     expect(await messagingStatus(page)).toBe(503)
   } finally {
     broker('unpause')
   }
   await expect(page.getByRole('alert')).toHaveCount(0, { timeout: 40_000 })
-  await expect(page.locator('time')).not.toHaveAttribute('datetime', before!)
+  await expect(collectionTime).not.toHaveAttribute('datetime', before!)
 })
 
 for (const role of ['operator', 'viewer'] as const) {

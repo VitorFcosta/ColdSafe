@@ -22,6 +22,10 @@ describe('resultados de regressão', () => {
     } }
     const wrapper = mount(TrainingTarget, { props: { result } })
     try {
+      const comparison = wrapper.get('.validation-summary')
+      expect(comparison.text()).toMatch(/Candidato.*1 ponto de saúde.*Referência.*10 pontos de saúde/s)
+      expect(comparison.text()).not.toContain('20')
+      expect(wrapper.get('details').attributes('open')).toBeUndefined()
       const rows = wrapper.get('[aria-label="Métricas de Saúde"]').findAll('tbody tr')
         .map(row => row.findAll('th,td').map(cell => cell.text()))
       expect(rows).toEqual([
@@ -30,6 +34,16 @@ describe('resultados de regressão', () => {
         ['Teste reservado', 'Baseline', '20', '21', '-0,5'],
         ['Teste reservado', 'Candidato', '3', '4', '0,8'],
       ])
+    } finally { wrapper.unmount() }
+  })
+  it('mostra precisão suficiente quando arredondar faria os erros parecerem iguais', () => {
+    const result = structuredClone(fixture.health) as TargetResult
+    result.metrics.validation.candidate.mae = 0.12341
+    result.metrics.validation.baseline.mae = 0.12342
+    const wrapper = mount(TrainingTarget, { props: { result } })
+    try {
+      const errors = wrapper.get('.validation-summary').findAll('dd').map((error) => error.text())
+      expect(errors).toEqual(['0,12341 pontos de saúde', '0,12342 pontos de saúde'])
     } finally { wrapper.unmount() }
   })
   it('preserva zero legítimo e explica recorte de RUL sem linhas sem fabricar métricas', () => {

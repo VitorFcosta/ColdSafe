@@ -58,7 +58,7 @@ it('preserva a previsão mais nova após evento atrasado, falha REST e recupera�
     monitoringState: computed(() => ({ kind: 'normal', history: 'ready' } as const)),
     ageSeconds: computed(() => 1),
   })
-  const wrapper = shallowMount(FoundationView, { global: { stubs: { LiveDataRegion: false, RouterLink: true, PredictionPanel: false } } })
+  const wrapper = shallowMount(FoundationView, { global: { renderStubDefaultSlot: true, stubs: { LiveDataRegion: false, RouterLink: true, PredictionPanel: false } } })
   await flushPromises()
   const onEvent = vi.mocked(useMonitoringSummary).mock.calls[0]![2]!
   const newest: Prediction = {

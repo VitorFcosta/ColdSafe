@@ -18,10 +18,11 @@ async function setup(role = 'operator') {
     { path: '/dashboard', name: 'dashboard', component: { template: '<main />' }, meta: { area: 'monitoring', contentId: 'dashboard-title' } },
     { path: '/digital-twin', name: 'digital-twin', component: { template: '<main />' }, meta: { area: 'monitoring', contentId: 'digital-twin-title' } },
     { path: '/manage', component: { template: '<main />' }, meta: { area: 'manage' } },
+    { path: '/assistant', component: { template: '<main />' }, meta: { area: 'assistant' } },
     { path: '/training', component: { template: '<main />' }, meta: { area: 'data', requiresAdmin: true } },
   ] })
   await router.push('/dashboard')
-  wrapper = mount(AuthenticatedShell, { attachTo: document.body, slots: { default: defineComponent({ components: { AreaNavigation }, template: '<main><h1 id="dashboard-title" tabindex="-1">Página privada</h1><AreaNavigation v-if="[\'dashboard\', \'digital-twin\'].includes($route.name)" /></main>' }) }, global: { plugins: [router] } })
+  wrapper = mount(AuthenticatedShell, { attachTo: document.body, slots: { default: defineComponent({ components: { AreaNavigation }, template: '<main><h1 id="dashboard-title" tabindex="-1">Página privada</h1><AreaNavigation /></main>' }) }, global: { plugins: [router] } })
   await flushPromises()
   return router
 }
@@ -55,7 +56,7 @@ it('logout ocupado não duplica pedidos e retorno antigo não apaga a nova conta
 })
 it.each(['viewer', 'operator', 'admin'])('aplica áreas e links locais ao papel %s', async (role) => {
   const router = await setup(role)
-  expect(wrapper!.findAll('nav[aria-label="Navegação principal"] a')).toHaveLength(role === 'admin' ? 4 : 2)
+  expect(wrapper!.findAll('nav[aria-label="Navegação principal"] a')).toHaveLength(role === 'admin' ? 5 : 3)
   expect(wrapper!.findAll('nav[aria-label="Navegação da área"] a')).toHaveLength(3)
   expect(wrapper!.get('a.brand').attributes('href')).toBe('/dashboard')
   expect(wrapper!.get('nav[aria-label="Utilitários"] a[target="_blank"]').text()).toContain('nova aba')
@@ -75,9 +76,9 @@ it('preserva o diagnóstico habilitado para conta confirmada sem conceder área 
   expect(wrapper!.find(diagnostics).exists()).toBe(false)
 })
 
-it('deixa a página do gêmeo posicionar uma única navegação após seu contexto', async () => {
+it('deixa a página do gêmeo posicionar sua navegação local após o título', async () => {
   const router = await setup()
   await router.push('/digital-twin'); await flushPromises()
   expect(wrapper!.findAll('nav[aria-label="Navegação da área"]')).toHaveLength(1)
-  expect(wrapper!.find('main nav').exists()).toBe(true)
+  expect(wrapper!.find('main h1 + nav').exists()).toBe(true)
 })

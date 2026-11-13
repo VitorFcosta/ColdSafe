@@ -1,14 +1,15 @@
 # Gateway MQTT ↔ AMQP — B2-11
 
-Serviço Python opcional do perfil `aiot`. Transporta somente v3: telemetria e ACK
+Serviço Python da pilha completa. Transporta telemetria e ACK v3
 do Mosquitto para RabbitMQ; comandos da fila `coldsafe.gateway` para Mosquitto.
 Não declara topologia nem conecta a API ao MQTT neste fluxo. A API v1/v2 conserva
 seu transporte anterior. O [gravador B2-12](../writer/README.md) persiste telemetria
-em fila própria; entrega Web v3 continua posterior.
+em fila própria. A API correlaciona o recibo da gravação com a telemetria antes
+de entregar a leitura v3. Veja o [fluxo completo](../docs/aiot/architecture.md#telemetria-recibo-e-entrega-web).
 
 ## Preparar e iniciar
 
-1. Prepare os segredos pelo [procedimento existente](../docs/configuration.md).
+1. Comissione a pilha pelo [runbook](../docs/runbook.md).
    `MQTT_GATEWAY_PASSWORD` e `RABBITMQ_GATEWAY_PASSWORD` são senhas distintas.
    Recrie o inicializador/broker MQTT se a conta ainda não foi provisionada,
    seguindo o [README do simulador](../simulator/README.md).
@@ -22,8 +23,8 @@ em fila própria; entrega Web v3 continua posterior.
 4. Confira e inicie:
 
    ```sh
-   docker compose --profile aiot --profile simulator config --quiet
-   docker compose --profile aiot --profile simulator up -d --build gateway simulator
+   docker compose config --quiet
+   docker compose up -d --build --wait gateway simulator
    docker compose logs --tail 30 gateway
    ```
 

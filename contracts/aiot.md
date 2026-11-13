@@ -11,9 +11,8 @@ JSON Schema sozinho não verifica banco, autorização, tópico ou outra mensage
 Os testes em `backend/tests/contract/test_aiot_contract.py` conferem exemplos e
 essas relações usando um catálogo fictício, sem substituir validação em produção.
 
-Referências: [tarefa B2-04](../docs/aiot/tasks/B2-04.md),
-[plano aprovado](../docs/aiot/plan.md),
-[arquitetura alvo](../docs/aiot/architecture.md).
+Referências: [verificação do contrato](../docs/evidence/b2-04.json) e
+[arquitetura](../docs/aiot/architecture.md).
 
 ## Identidades, unidades e estado real
 

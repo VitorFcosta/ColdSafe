@@ -1,24 +1,31 @@
 # Arquitetura AIoT implementada
 
-**Atualizado em 23/10/2026 — B2-35.** Este mapa descreve o código v3 e os
-serviços declarados no Compose. Não significa que a pilha pessoal foi iniciada
-ou que a capacidade foi reavaliada nesta revisão documental. Formatos/unidades
-continuam no [contrato v3](../../contracts/aiot.md); operação no
-[runbook](../runbook.md) e resultados datados nos cartões/evidências.
+Este mapa descreve o caminho v3, do simulador ao navegador, e explica como
+telemetria, atuação, treino e assistência compartilham a infraestrutura.
+Consulte o [contrato v3](../../contracts/aiot.md) para formatos e unidades,
+o [runbook](../runbook.md) para operar a pilha e as
+[evidências](../README.md) para resultados datados.
 
 ## Serviços e fronteiras
 
-A composição canônica usa cinco arquivos: [compose.yaml](../../compose.yaml) e
-os overlays [AIoT](../../compose.aiot.yaml), [jobs](../../compose.jobs.yaml),
-[inferência](../../compose.inference.yaml) e [Ollama](../../compose.ollama.yaml),
-com os perfis `aiot` e `simulator`. O overlay AIoT já inclui observabilidade;
-[compose.messaging.yaml](../../compose.messaging.yaml) é a alternativa mínima
-para mensageria no caminho legado, sem ser um sexto arquivo obrigatório.
-São **14 serviços contínuos**: `frontend`, `backend`, `postgres`, `influxdb`,
-`mosquitto`, `rabbitmq`, `simulator`, `gateway`, `writer`, `generation`, `training`,
-`models`, `ollama` e `llm`. Há três serviços de preparação fora dessa contagem:
-`mosquitto-init` e `rabbitmq-init` inicializam os brokers; `ollama-prepare` prepara
-os pesos separadamente, somente quando escolhido o perfil `llm-setup`.
+Na operação normal, `docker compose up` combina
+[`compose.yaml`](../../compose.yaml) e [`compose.override.yaml`](../../compose.override.yaml).
+O override ativa simulador, gateway e writer e reaproveita definições de
+[AIoT](../../compose.aiot.yaml), [jobs](../../compose.jobs.yaml) e
+[Ollama](../../compose.ollama.yaml). Já `docker compose -f compose.yaml`
+seleciona a base de comissionamento, com seis serviços contínuos.
+
+| Função | Serviços contínuos da pilha completa |
+| --- | --- |
+| Aplicação Web | `frontend` (Nginx) e `backend` (FastAPI) |
+| Telemetria e atuação | `simulator`, `mosquitto`, `gateway`, `rabbitmq`, `writer` |
+| Persistência | `postgres` e `influxdb` |
+| Dados e modelos | `generation`, `training` e `models` |
+| Assistente local | `ollama` e `llm` |
+
+Os 14 serviços têm healthchecks. `mosquitto-init` e `rabbitmq-init` preparam os
+brokers e encerram. O perfil explícito `llm-setup` inclui `ollama-prepare`,
+que baixa os pesos para o volume local.
 
 ```mermaid
 flowchart LR
@@ -29,17 +36,33 @@ flowchart LR
   W --> I[("influxdb: live")]
   W -->|recibo AMQP| R
   R <-->|filas privadas| A["backend: FastAPI"]
-  A <--> P[("postgres")]
+  A <-->|sessões, projeções e jobs| P[("postgres")]
+  R <-->|jobs, ativação e previsões| J["generation, training e models"]
+  J <-->|status, locks e modelo ativo| P
   B["Navegador: Vue + Three.js"] <-->|HTTP / WS / SSE| F["frontend: Nginx"]
-  F <--> A
+  F <-->|proxy| A
+  A <-->|HTTP interno| O["ollama"]
+  L["llm: coordenador"] -->|preload e estado| O
 ```
 
 O navegador acessa Nginx/API; bancos, brokers e Ollama não recebem conexões do
 navegador. Nginx entrega o build estático Vue 3/TypeScript/Vite e faz proxy HTTP,
 WebSocket e SSE. Node é ferramenta de build/desenvolvimento, não um servidor
-contínuo adicional. A publicação padrão é em loopback; overlays de depuração
-exigem escolha explícita. O backend conserva também o caminho MQTT v1/v2 legado,
-isolado do consumidor AMQP v3.
+contínuo adicional. Somente Nginx publica uma porta no host por padrão
+(`127.0.0.1:5173`). A API conserva o caminho MQTT v1/v2 para o firmware legado,
+com gravação no bucket `telemetry`. As telas operacionais da pilha completa usam
+as rotas v3 para telemetria, previsão e atuação. Login e cadastro usam as rotas v1.
+
+### Onde os dados ficam
+
+| Dado | Armazenamento | Uso |
+| --- | --- | --- |
+| Telemetria v3 persistida | InfluxDB, bucket `telemetry_live` | Writer grava o ponto e emite o recibo. A retenção inicial é de sete dias. |
+| Contas, regras, eventos, jobs e modelo ativo | PostgreSQL | A API consulta as projeções v3 para recuperar o estado e o histórico. |
+| Eventos e erros do gateway | SQLite, volume `gateway-state` | O gateway retoma pendências e reconhece reentregas após reinício. |
+| Datasets e pacotes de saúde/RUL | Volumes `job-artifacts` e `training-artifacts` | Geração e treino escrevem artefatos. A API lê resultados e o worker `models` carrega o pacote ativo. |
+| Pesos do assistente | Volume `ollama-data` | O serviço de preparo grava. O Ollama lê os pesos durante a operação. |
+| Estado físico simulado | Memória de `simulator` | Reiniciar o processo reinicia o desgaste e o estado dos atuadores. |
 
 Fontes: [proxy Nginx](../../frontend/nginx.conf),
 [dependências frontend](../../frontend/package.json) e
@@ -177,8 +200,8 @@ Ativação é outro pedido administrativo assíncrono: a API registra
 `model_activations` + `model_outbox`; o worker consome a fila
 `coldsafe.model-activation`. Valida e carrega o bundle completo antes de trocar
 `active_models`. Ponteiro, status e outbox mudam na mesma transação SQL; falha
-mantém o modelo anterior e um erro consultável. O overlay de inferência faz o
-serviço **`models` executar ativação e inferência no mesmo worker**. O ativo é
+mantém o modelo anterior e um erro consultável. Na composição padrão,
+o serviço **`models` executa ativação e inferência no mesmo worker**. O ativo é
 reidratado no startup; a troca não exige reiniciar o navegador.
 
 Fontes: [rotas HTTP/SSE](../../backend/app/api/jobs.py),
@@ -304,4 +327,4 @@ são ilustrações locais, sem calibração física.
 Fontes adicionais: [topologia/limites/ACL](../../infra/rabbitmq/bootstrap.py),
 [observador](../../backend/app/amqp/observation.py),
 [diário gateway](../../gateway/bridge.py), [jobs](../../backend/app/services/jobs.py)
-e [guia AIoT](README.md). Este arquivo não cria dependências nem altera execução.
+e [guia de operação](../runbook.md).

@@ -84,6 +84,7 @@ describe('conta e catálogo', () => {
     await createDevice('token-1', 'env/1', 'Sensor', 'esp32-1')
     await updateDevice('token-1', 'dev/1', 'Sensor principal')
     await deactivateDevice('token-1', 'dev/1')
+    fetchMock.mockResolvedValueOnce(ok({ min_c: 2, max_c: 8, attention_margin_c: 0.5 }))
     await getRules('token-1', 'env/1')
 
     expect(fetchMock.mock.calls.map(([url, options]) => [new URL(url).pathname, options.method])).toEqual([
@@ -106,6 +107,17 @@ describe('conta e catálogo', () => {
     await expect(listEnvironments('token-1')).rejects.toThrow('resposta inválida')
     await expect(listEnvironments('token-1')).rejects.toThrow('ambientes inválidos')
     await expect(listDevices('token-1', 'env-1')).rejects.toThrow('dispositivos inválidos')
+  })
+
+  it.each([
+    null,
+    { min_c: 2, max_c: 8 },
+    { min_c: 8, max_c: 2, attention_margin_c: 0 },
+    { min_c: 2, max_c: 8, attention_margin_c: -1 },
+    { min_c: 2, max_c: 8, attention_margin_c: 3 },
+  ])('rejeita limites não confirmáveis pela resposta %j', async (data) => {
+    fetchMock.mockResolvedValueOnce(ok(data))
+    await expect(getRules('token-1', 'env-1')).rejects.toThrow('limites de temperatura inválidos')
   })
 
   it('recusa sessão malformada e mantém a sessão se o logout não foi confirmado', async () => {

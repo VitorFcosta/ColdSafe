@@ -1,9 +1,0 @@
-{
-  "source": "Computed colors in desktop-layout.json, same colors in the mobile layouts",
-  "ratios": {
-    "body_on_surface": 14.34,
-    "secondary_on_surface": 5.62,
-    "stale_status": 5.1
-  },
-  "scope": "body/secondary text on surface and stale observer text; not an exhaustive WCAG audit"
-}

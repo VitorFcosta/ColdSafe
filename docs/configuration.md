@@ -2,6 +2,23 @@
 
 Esta página separa configuração versionável de credenciais locais.
 
+## Partida padrão da pilha completa
+
+Após o comissionamento descrito no [runbook](runbook.md), execute
+`docker compose up` ou `docker compose up -d` na raiz do checkout.
+O Compose combina automaticamente `compose.yaml` e `compose.override.yaml`:
+14 serviços persistentes e dois inicializadores, sem selecionar arquivos ou perfis.
+Conta, catálogo, tokens e pesos preparados continuam sendo pré-requisitos;
+o download dos pesos usa `ollama-prepare` com o perfil explícito `llm-setup`.
+
+Os exemplos com `-f` nas seções abaixo conservam composições explícitas para
+comissionamento, compatibilidade e testes isolados. Informar `-f` desativa a
+descoberta automática do override: para acrescentar diagnóstico à pilha completa,
+inclua também `-f compose.override.yaml`. Não é necessário reaplicar os cinco
+arquivos antigos para a operação normal. `COMPOSE_FILE`/`COMPOSE_PROFILES`
+externos também podem alterar a seleção padrão; confira `docker compose config
+--services`, sem divulgar a configuração resolvida que contém segredos.
+
 ## Versões do projeto
 
 A fonte principal é a [matriz de versões](version-matrix.md), com runtimes,
@@ -11,9 +28,11 @@ O computador pode ter outra versão instalada, mas desenvolvimento, Docker e CI 
 
 ## Criar a configuração local
 
-O procedimento de criação está no [runbook](runbook.md#2-criar-a-configuração-local).
-Esta página explica valores e permissões. Preencha somente os arquivos locais
-`.env` e `firmware/include/secrets.h`.
+O [runbook](runbook.md#2-criar-a-configuração-local) cria o `.env` da raiz e
+orienta o [cadastro do simulador](runbook.md#pilha-final-aiot-jobs-inferência-e-assistente)
+em `simulator/local/catalog.json`. Mantenha as credenciais no `.env`; o catálogo
+contém somente identidade e configuração da borda. Use
+`firmware/include/secrets.h` apenas para ESP32/Wokwi.
 
 Use `python3 scripts/generate-secrets.py` para criar/completar o `.env` com
 segredos aleatórios distintos, sem imprimir valores ou sobrescrever credenciais
@@ -74,6 +93,9 @@ O SSID `Wokwi-GUEST`, o host `host.wokwi.internal` e os identificadores
 
 ## Simulador opcional B2-09/10
 
+O simulador integra a pilha completa padrão. Na base explícita
+`-f compose.yaml`, ele é opcional e fica no perfil `simulator`.
+
 O perfil `simulator` usa `MQTT_SIMULATOR_PASSWORD` e
 `MQTT_SIMULATOR_OPERATOR_PASSWORD`, geradas pelo mesmo script idempotente.
 Campos vazios não criam essas contas no broker e não impedem a pilha v1/v2.
@@ -98,16 +120,17 @@ alterado na execução B2-09; integração usa credenciais descartáveis.
 
 ## Ollama local e memória B2-30
 
-O overlay opcional `compose.ollama.yaml` deve acompanhar `compose.jobs.yaml`.
-Ele passa `OLLAMA_URL=http://ollama:11434` à API, aos dois workers pesados e ao
-coordenador `llm`. Sem essa variável, o runtime anterior permanece desativado
-para LLM. Fora do Compose, só são aceitos HTTP em `ollama` ou loopback, sem
+As definições de `compose.ollama.yaml` e `compose.jobs.yaml` são reutilizadas
+pela composição padrão. Ela passa `OLLAMA_URL=http://ollama:11434` à API, aos
+dois workers pesados e ao coordenador `llm`. A base explícita `-f compose.yaml`
+continua sem essa variável para o comissionamento inicial. Fora do Compose,
+só são aceitos HTTP em `ollama` ou loopback, sem
 credenciais, caminho ou query; não apontar para servidores de nuvem.
 
 Prepare os pesos **antes da apresentação**, com `ollama` e `llm` parados:
 
 ```sh
-docker compose -f compose.yaml -f compose.jobs.yaml -f compose.ollama.yaml run --rm --no-deps ollama-prepare
+docker compose --profile llm-setup run --rm --no-deps ollama-prepare
 ```
 
 Somente esse serviço temporário possui saída de rede, baixa pesos públicos e
@@ -119,21 +142,21 @@ transporte sem proxy/redirecionamento e ausência de saída de rede evitam
 envio de dados a serviços externos. O primeiro download exige internet; a
 operação posterior usa o volume local, inclusive após recriar o container.
 
-Para habilitar junto dos overlays AIoT/inferência já escolhidos:
+Para iniciar a pilha completa depois do preparo:
 
 ```sh
-docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml -f compose.inference.yaml -f compose.ollama.yaml config --quiet
-docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml -f compose.inference.yaml -f compose.ollama.yaml up -d --build ollama llm backend generation training frontend
+docker compose config --quiet
+docker compose up -d
 ```
 
 O modelo configurado na correção B2-32 é `llama3.2:3b-instruct-q4_K_M`, variante
 explícita Llama 3.2 **3B Q4**. O perfil 1B anterior reprovou a avaliação factual;
 as comparações e o aceite do perfil novo ficam no
-[cartão B2-32](aiot/tasks/B2-32.md). Ollama `0.40.3`, CPU, contexto de 1.024
+[registro da avaliação B2-32](evidence/b2-32-final-2026-10-22.json). Ollama `0.40.3`, CPU, contexto de 1.024
 tokens, quatro threads, uma requisição e um modelo por vez; limite de
 **3,25 GiB/4 CPUs** (`3328m`). A margem de 256 MiB sobre 3 GiB foi introduzida
 na correção após eventos de teto de memória e um timeout na rodada repetida.
-Os resultados medidos ficam no cartão; isso não prova causalidade isolada.
+O registro inclui as medições e os limites da avaliação.
 Esses limites não certificam a capacidade da pilha completa,
 reservada à B2-33. Os registros antigos B2-03/B2-30 descrevem seus perfis originais.
 Pré-carga e chat fixam `num_batch=128` em vez do padrão 512 para medir menor
@@ -217,7 +240,7 @@ do backend. Não publicam portas. Na B2-33, o healthcheck HTTP herdado foi
 substituído por heartbeat do próprio laço AMQP, inclusive enquanto aguarda
 trabalhos longos. Ele indica atividade do laço; conclusão do cálculo e prontidão
 do assistente são estados separados. Limites e ensaio ficam no
-[cartão B2-33](aiot/tasks/B2-33.md).
+[ensaio B2-33](evidence/b2-33.json).
 
 API instala as rotas de jobs e de consulta privada de datasets quando a sua credencial está presente; sem ela,
 o comportamento anterior permanece. `202` significa solicitação persistida;
@@ -347,6 +370,9 @@ manual da mensagem original na DLQ. Ver [contrato](../contracts/aiot.md#inferên
 
 ## API AIoT opcional B2-13
 
+A pilha completa padrão habilita a API v3 e compila o frontend para v3.
+Esta seção descreve o overlay para quem escolhe uma composição explícita.
+
 Depois de preparar catálogo, proprietário, brokers e token exclusivo do writer,
 habilite a API com o overlay explícito:
 
@@ -360,7 +386,8 @@ O overlay define `AIOT_ENABLED=true`, `AIOT_CATALOG_PATH=/catalog/catalog.json`,
 senhas AMQP `commands`/`delivery` e a credencial HTTP `monitor` no backend. Monte o mesmo catálogo privado do
 gateway/writer; `WRITER_OWNER_USER_ID` deve ser o mesmo dono. Fora do Docker,
 informe esses campos e `RABBITMQ_HOST/PORT`. Configuração incompleta é recusada.
-Sem overlay a API v3 permanece desabilitada e o backend conserva v1/v2.
+Na base explícita `-f compose.yaml`, a API v3 fica desabilitada e o backend
+conserva v1/v2.
 
 Na B2-14, o overlay também passa `VITE_AIOT_ENABLED=true` ao build do frontend.
 Reconstrua `frontend` com o mesmo overlay para conectar a tela ao stream/REST v3.
@@ -388,8 +415,8 @@ manutenção (o restart interrompe conexões brevemente):
 
 ```sh
 python3 scripts/generate-secrets.py
-docker compose run --rm --no-deps --build rabbitmq-init
-docker compose restart rabbitmq
+docker compose -f compose.yaml -f compose.messaging.yaml run --rm --no-deps --build rabbitmq-init
+docker compose -f compose.yaml -f compose.messaging.yaml restart rabbitmq
 docker compose -f compose.yaml -f compose.messaging.yaml up -d --build --no-deps backend frontend
 ```
 
@@ -436,26 +463,18 @@ Para ensaio de parada/retomada e limites, veja o [runbook](runbook.md#mensageria
 
 ## Permissões do token InfluxDB
 
-O gravador v3 usa `INFLUXDB_WRITER_TOKEN`, distinto dos tokens abaixo, sem leitura
-e sem acesso a `telemetry` ou a dados sintéticos. Configure `WRITER_OWNER_USER_ID`
-com o proprietário esperado do cadastro compartilhado com o gateway.
-Criação do bucket live, retenção, autorização e execução opcional estão em
-[`writer/README.md`](../writer/README.md). A tarefa não provisiona credenciais na pilha pessoal.
+Use o [bootstrap do InfluxDB](runbook.md#3-inicializar-o-influxdb-e-provisionar-tokens-restritos)
+para provisionar e verificar as autorizações. Mantenha os três tokens no `.env` local.
 
-`INFLUXDB_TOKEN` deve ser um token exclusivo do backend, com leitura e escrita
-somente no bucket `telemetry`. Não reutilize `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`:
-ele possui privilégios administrativos e deve ficar reservado à administração.
+| Variável | Serviço ou operação | Permissão |
+| --- | --- | --- |
+| `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN` | Inicialização e administração local | Administração do InfluxDB. |
+| `INFLUXDB_TOKEN` | Backend legado | Leitura e escrita apenas no bucket legado (`telemetry` por padrão). |
+| `INFLUXDB_WRITER_TOKEN` | Writer v3 | Escrita apenas em `telemetry_live`. |
 
-Com a CLI do container autenticada para administração, consulte o ID do bucket
-usando `docker compose exec influxdb influx bucket list --name telemetry`.
-Crie uma autorização com `influx auth create`, organização `coldsafe`, descrição
-`coldsafe-backend-telemetry` e opções `--read-bucket` e `--write-bucket` apontando
-para esse ID. Não use `--all-access` ou `--operator` para o backend.
-
-Guarde o token retornado somente em `INFLUXDB_TOKEN` no `.env` local. Não copie o
-valor para documentação, commits, Notion ou mensagens. Depois execute
-`docker compose up -d --no-deps backend` para carregar a configuração alterada;
-editar o `.env` não atualiza automaticamente o ambiente do container existente.
+Defina `WRITER_OWNER_USER_ID` com o mesmo dono configurado no gateway.
+Depois de mudar uma variável de um serviço, recrie seu container na mesma
+composição. Um simples `restart` mantém o ambiente anterior.
 
 ### Revisão de segurança da CS-36 — 10 de setembro de 2026
 

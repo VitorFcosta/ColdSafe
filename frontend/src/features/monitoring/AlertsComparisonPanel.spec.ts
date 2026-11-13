@@ -114,6 +114,41 @@ describe('AlertsComparisonPanel', () => {
     wrapper.unmount()
   })
 
+  it.each([
+    { available: 'selecionado', missing: 'anterior', count: 300 },
+    { available: 'anterior', missing: 'selecionado', count: 1 },
+  ])('mostra só o período $available quando falta o $missing', async ({ available, missing, count }) => {
+    vi.spyOn(Date, 'now').mockReturnValue(end)
+    const emptyResponse = installFetch(true)
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+      const url = new URL(String(input))
+      const response = await emptyResponse(input)
+      const isPrevious = url.searchParams.get('start') === '2026-09-24T10:00:00.000Z'
+      if (url.pathname.endsWith('/alerts') || isPrevious !== (available === 'anterior')) return response
+      const body = await response.json()
+      body.data.readings = Array.from({ length: count }, (_, index) => ({
+        ...reading, received_at: new Date(Date.parse(body.meta.end) - (count - index) * 5_000).toISOString(),
+      }))
+      body.meta.count = count
+      return new Response(JSON.stringify(body))
+    })
+    const wrapper = mount(AlertsComparisonPanel, {
+      props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h' },
+    })
+    try {
+      await flushPromises()
+      expect(wrapper.text()).toContain(`Sem leituras no período ${missing} para comparar.`)
+      expect(wrapper.get('[role="img"]').attributes('aria-label')).toBe(`Gráfico de temperatura do período ${available}`)
+      expect(wrapper.getComponent({ name: 'Line' }).props('data').datasets.map(
+        (dataset: { label: string }) => dataset.label,
+      )).toEqual([`Período ${available}`])
+      expect(wrapper.findAll('table')).toHaveLength(1)
+      expect(wrapper.get('tbody').findAll('tr')).toHaveLength(count)
+      expect(wrapper.text()).not.toContain('0 lacuna')
+      if (count === 300) expect(wrapper.text()).toContain('Limite de 300 atingido')
+    } finally { wrapper.unmount() }
+  })
+
   it('preserva a comparação se a consulta de alertas falhar e recarrega ao mudar a revisão', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
     vi.setSystemTime(end)
@@ -136,6 +171,34 @@ describe('AlertsComparisonPanel', () => {
     await flushPromises()
     expect(fetcher).toHaveBeenCalledTimes(6)
     wrapper.unmount()
+  })
+
+  it('mantém o foco no resumo de alertas quando uma atualização esvazia a lista', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    vi.setSystemTime(end)
+    const populated = installFetch()
+    const empty = installFetch(true)
+    let showAlert = true
+    vi.stubGlobal('fetch', (input: RequestInfo | URL) => showAlert ? populated(input) : empty(input))
+    const wrapper = mount(AlertsComparisonPanel, {
+      attachTo: document.body,
+      props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h', revision: 0 },
+    })
+    try {
+      await flushPromises()
+      const summary = wrapper.get('[aria-labelledby="device-alerts-title"] summary')
+      expect(wrapper.get('[aria-labelledby="device-alerts-title"]').text()).toContain('1 em aberto')
+      const focused = summary.element as HTMLElement
+      focused.focus()
+      expect(document.activeElement).toBe(summary.element)
+      showAlert = false
+      await wrapper.setProps({ revision: 1 })
+      await vi.advanceTimersByTimeAsync(monitoringPollingIntervalMs)
+      await flushPromises()
+      expect(wrapper.get('[aria-labelledby="device-alerts-title"]').text()).toContain('Nenhum alerta neste período.')
+      expect(wrapper.get('[aria-labelledby="device-alerts-title"] summary').element).toBe(summary.element)
+      expect(document.activeElement).toBe(summary.element)
+    } finally { wrapper.unmount() }
   })
 
   it('distingue 55 leituras de uma consulta que chegou ao limite de 300', async () => {
@@ -185,7 +248,7 @@ describe('AlertsComparisonPanel', () => {
     expect(wrapper.text()).toContain('Temperatura acima do limite')
     expect(wrapper.text()).toContain('Não foi possível comparar as leituras')
     failPrevious = false
-    await wrapper.get('article:nth-child(2) button').trigger('click')
+    await wrapper.get('[aria-labelledby="temperature-comparison-title"] button').trigger('click')
     await flushPromises()
     expect(wrapper.text()).toContain('média de 4 °C')
     wrapper.unmount()
@@ -245,7 +308,7 @@ describe('AlertsComparisonPanel', () => {
     const chart = wrapper.getComponent({ name: 'Line' }).vm
     const oldData = wrapper.getComponent({ name: 'Line' }).props('data')
     failing = true
-    await wrapper.get('article button').trigger('click')
+    await wrapper.get('[aria-labelledby="temperature-comparison-title"] button').trigger('click')
     await flushPromises()
     expect(wrapper.text()).toContain('Não foi possível atualizar os alertas')
     expect(wrapper.text()).toContain('Não foi possível atualizar a comparação')
@@ -253,7 +316,7 @@ describe('AlertsComparisonPanel', () => {
     expect(wrapper.getComponent({ name: 'Line' }).vm).toBe(chart)
     expect(wrapper.getComponent({ name: 'Line' }).props('data')).toEqual(oldData)
     failing = false
-    await wrapper.get('article:nth-child(2) button').trigger('click')
+    await wrapper.get('[aria-labelledby="temperature-comparison-title"] button').trigger('click')
     await flushPromises()
     expect(fetcher).toHaveBeenCalledTimes(9)
     expect(wrapper.text()).not.toContain('Não foi possível atualizar')
@@ -275,7 +338,7 @@ describe('AlertsComparisonPanel', () => {
         props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h', revision: 0 },
       })
       await flushPromises()
-      await wrapper.get('article button').trigger('click')
+      await wrapper.get('[aria-labelledby="temperature-comparison-title"] button').trigger('click')
       await wrapper.setProps({ revision: 1 })
       await wrapper.setProps(selection)
       expect(signals[3]!.aborted).toBe(true)
@@ -303,7 +366,7 @@ describe('AlertsComparisonPanel', () => {
       props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h', revision: 0 },
     })
     await flushPromises()
-    await wrapper.get('article button').trigger('click')
+    await wrapper.get('[aria-labelledby="temperature-comparison-title"] button').trigger('click')
     await wrapper.setProps({ auth: null })
     waiting.forEach((resolve) => resolve())
     await flushPromises()

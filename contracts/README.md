@@ -8,11 +8,11 @@ Esta pasta é a fonte técnica de verdade para as fronteiras do ColdSafe.
   dispositivos, limites, monitoramento e saúde; deve acompanhar `/openapi.json`.
 - `evolution.schema.json`: telemetria, comandos, confirmações, resposta REST v2
   e eventos WebSocket implementados.
-- `aiot.schema.json` e [aiot.md](aiot.md): contrato planejado AIoT v3,
-  com seis sensores, eventos internos, previsões e labels offline separados.
-  Simulador, gateway MQTT/AMQP e gravador InfluxDB implementados; API,
-  regras e entrega privada implementadas na B2-13; dashboard integrado na B2-14.
-  Inferência continua posterior. Não enviar v3 nos tópicos ou streams v1/v2.
+- `aiot.schema.json` e [aiot.md](aiot.md): contrato AIoT v3 implementado,
+  com seis sensores, eventos internos, comandos, recibos, previsões e labels
+  offline separados. O [mapa de arquitetura](../docs/aiot/architecture.md)
+  mostra os produtores, consumidores e a recuperação Web. Use os tópicos e
+  streams próprios de cada versão.
 - `examples/`: mensagens válidas e inválidas verificadas pelos testes de contrato.
 
 Uma mudança de formato deve começar aqui e nos testes de contrato antes de chegar aos produtores ou consumidores.

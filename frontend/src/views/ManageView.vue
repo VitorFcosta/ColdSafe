@@ -16,6 +16,7 @@ const selectedEnvironment = computed(() => environments.value.find((environment)
 const editingEnvironment = computed(() => environments.value.find(environment => environment.id === editingEnvironmentId.value))
 const rules = ref<Rules | null>(null)
 const rulesBaseline = ref<Rules | null>(null)
+const temperatureFormat = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
 let rulesEnvironmentId = ''
 const showEnvironmentForm = ref(false)
 const showDeviceForm = ref(false)
@@ -136,9 +137,11 @@ async function loadEnvironments() {
 
 async function loadSelection() {
   const revision = ++loadRevision, token = sessionToken.value, id = selectedEnvironmentId.value
-  const preserveRules = rulesEnvironmentId === id && rulesDirty.value
   devices.value = []
-  if (!preserveRules) { rules.value = null; rulesBaseline.value = null; ruleErrors.value = {}; rulesSaveError.value = '' }
+  if (rulesEnvironmentId !== id) {
+    rulesBaseline.value = null; rulesEnvironmentId = ''
+    discardRules()
+  }
   success.value = ''; selectionFailed.value = false
   if (!token || !id) { loading.value = false; return }
   loading.value = true; error.value = ''
@@ -146,7 +149,9 @@ async function loadSelection() {
     const [nextDevices, nextRules] = await Promise.all([listDevices(token, id), getRules(token, id)])
     if (disposed || token !== sessionToken.value || revision !== loadRevision) return
     devices.value = nextDevices
-    if (!preserveRules || !rulesDirty.value) { rules.value = { ...nextRules }; rulesBaseline.value = { ...nextRules } }
+    const preserveDraft = rulesDirty.value
+    rulesBaseline.value = { ...nextRules }
+    if (!preserveDraft) discardRules()
     rulesEnvironmentId = id
     error.value = ''
   } catch (cause) {
@@ -346,7 +351,7 @@ async function saveRules() {
   const token = sessionToken.value
   const environmentId = selectedEnvironmentId.value
   const revision = privateRevision
-  if (busy.value || !canWrite.value || !token || !environmentId || !rules.value) return
+  if (busy.value || loading.value || !canWrite.value || !token || !environmentId || !rules.value) return
   const value = { ...rules.value }
   const nextErrors = validateRules(value)
   ruleErrors.value = nextErrors
@@ -362,7 +367,8 @@ async function saveRules() {
   try {
     const saved = await updateRules(token, environmentId, value)
     if (!current(token, revision) || selectedEnvironmentId.value !== environmentId) return
-    rules.value = { ...saved }; rulesBaseline.value = { ...saved }
+    rulesBaseline.value = { ...saved }
+    discardRules()
     success.value = `Limites de ${selectedEnvironment.value?.name ?? 'temperatura'} salvos.`
   } catch (cause) {
     if (current(token, revision) && !accessError(cause)) rulesSaveError.value = cause instanceof Error ? cause.message : 'Não foi possível salvar os limites.'
@@ -378,7 +384,7 @@ async function saveRules() {
     <div class="shell">
       <section class="heading">
         <h1 id="manage-title" tabindex="-1">Ambientes e dispositivos</h1>
-        <p>Cadastre as unidades e ajuste a faixa de temperatura usada no monitoramento.</p>
+        <p>{{ canWrite ? 'Cadastre ambientes e dispositivos e ajuste a faixa de temperatura do monitoramento.' : 'Consulte os ambientes, dispositivos e limites de temperatura disponíveis para sua conta.' }}</p>
       </section>
       <p v-if="!canWrite" role="status">{{ sessionRole === 'viewer' ? 'Modo visualizador: você pode consultar seus ambientes, dispositivos e limites.' : 'Permissões ainda não confirmadas. As alterações estão indisponíveis.' }}</p>
       <p v-if="error" role="alert" class="feedback error">{{ error }}</p>
@@ -389,11 +395,11 @@ async function saveRules() {
       <div class="grid">
         <section class="panel" aria-labelledby="environments-title">
           <h2 id="environments-title" tabindex="-1">Ambientes</h2>
-          <p class="section-note">Seleção própria desta página de Gestão.</p>
+          <p v-if="environments.length" class="section-note">Selecione um ambiente para consultar seus dispositivos e limites.</p>
           <p v-if="!loading && !error && environments.length === 0">Nenhum ambiente cadastrado. {{ canWrite ? 'Adicione o primeiro ambiente para configurar dispositivos e limites.' : 'Um operador ou administrador precisa cadastrar o ambiente.' }}</p>
           <div v-if="environments.length" class="environment-picker"><label for="manage-environment">Ambiente</label><select id="manage-environment" :value="selectedEnvironmentId" :disabled="busy" @change="changeEnvironment"><option value="" disabled>Selecione um ambiente</option><option v-for="environment in environments" :key="environment.id" :value="environment.id">{{ environment.name }}</option></select></div>
           <ul class="item-list desktop-environments">
-            <li v-for="environment in environments" :key="environment.id" :class="{ selected: selectedEnvironmentId === environment.id }">
+            <li v-for="environment in environments" :key="environment.id">
                 <button type="button" class="item-name" :aria-pressed="selectedEnvironmentId === environment.id" :disabled="busy" @click="selectEnvironment(environment.id)">{{ environment.name }}</button>
                 <button v-if="canWrite" type="button" class="small-action" :data-edit-environment="environment.id" :disabled="busy" :aria-label="`Renomear ambiente ${environment.name}`" @click="editEnvironment(environment)">Renomear</button>
             </li>
@@ -422,9 +428,12 @@ async function saveRules() {
             <p v-if="!loading && !selectionFailed && devices.length === 0">Nenhum dispositivo cadastrado neste ambiente. {{ canWrite ? 'Adicione um dispositivo para começar a monitorar.' : 'Um operador ou administrador precisa cadastrar um dispositivo.' }}</p>
             <ul class="item-list">
               <li v-for="device in devices" :key="device.id">
-                <div class="device-info"><strong>{{ device.name }}</strong><span>MQTT ID: {{ device.mqtt_device_id }}</span><span class="device-state" :class="{ active: device.is_active }">{{ device.is_active ? 'Ativo' : 'Desativado' }}</span></div>
+                <div class="device-info"><strong>{{ device.name }}</strong><span>MQTT ID: {{ device.mqtt_device_id }}</span><span class="device-state" :class="{ active: device.is_active }">{{ device.is_active ? 'Cadastro ativo' : 'Cadastro desativado' }}</span></div>
                 <form :aria-busy="busy" v-if="canWrite && editingDeviceId === device.id" class="edit-form" novalidate @submit.prevent="saveDevice(device.id)"><label class="edit-name">Nome do dispositivo<input id="device-edit-name" v-model="deviceEditName" :aria-label="`Nome do dispositivo ${device.name}`" maxlength="120" required :disabled="busy" :aria-invalid="Boolean(fieldErrors.deviceEdit)" :aria-describedby="fieldErrors.deviceEdit ? 'device-edit-name-error' : undefined" @input="clearFieldError('deviceEdit')" /></label><p v-if="fieldErrors.deviceEdit" id="device-edit-name-error" class="field-error">{{ fieldErrors.deviceEdit }}</p><button type="submit" :aria-label="`${busy ? 'Salvando' : 'Salvar'} dispositivo ${device.name}`" :disabled="busy">{{ busy ? 'Salvando…' : 'Salvar' }}</button><button type="button" :aria-label="`Cancelar edição do dispositivo ${device.name}`" :disabled="busy" @click="cancelDeviceEdit">Cancelar</button></form>
-                <div v-else-if="canWrite" class="actions"><button type="button" :disabled="busy" :data-edit-device="device.id" :aria-label="`Editar dispositivo ${device.name}`" @click="editDevice(device)">Editar</button><button v-if="device.is_active" type="button" class="danger" :aria-label="`Desativar dispositivo ${device.name}`" :disabled="busy" @click="disableDevice(device, $event)">Desativar</button></div>
+                <div v-else-if="canWrite" class="actions">
+                  <button type="button" :disabled="busy" :data-edit-device="device.id" :aria-label="`Renomear dispositivo ${device.name}`" @click="editDevice(device)">Renomear dispositivo</button>
+                  <button v-if="device.is_active" type="button" class="danger" :aria-label="`Desativar cadastro de ${device.name}`" :disabled="busy" @click="disableDevice(device, $event)">Desativar cadastro</button>
+                </div>
               </li>
             </ul>
             <p class="section-note">O MQTT ID permanece imutável após o cadastro.</p>
@@ -441,11 +450,19 @@ async function saveRules() {
             </form>
           </section>
 
-          <section v-if="rules" class="panel" aria-labelledby="rules-title">
+          <section v-if="rulesBaseline" class="panel" aria-labelledby="rules-title">
             <h2 id="rules-title">Limites de temperatura de {{ selectedEnvironment.name }}</h2>
-            <p v-if="selectionFailed && rulesDirty" class="joint-error">Rascunho dos limites preservado; a consulta conjunta não confirmou valores novos.</p>
-            <dl class="rules-summary" :class="{ editable: canWrite }"><div><dt>Faixa</dt><dd>{{ rules.min_c }}–{{ rules.max_c }} °C</dd></div><div><dt>Margem de atenção</dt><dd>{{ rules.attention_margin_c }} °C</dd></div></dl>
-            <form v-if="canWrite" :aria-busy="busy" class="fields" novalidate @submit.prevent="saveRules">
+            <div class="rules-summary" role="group" aria-labelledby="rules-applied-title">
+              <h3 id="rules-applied-title">Faixa em vigor</h3>
+              <dl>
+                <div><dt>Temperatura</dt><dd>{{ temperatureFormat.format(rulesBaseline.min_c) }}–{{ temperatureFormat.format(rulesBaseline.max_c) }} °C</dd></div>
+                <div><dt>Margem de atenção</dt><dd>{{ temperatureFormat.format(rulesBaseline.attention_margin_c) }} °C</dd></div>
+              </dl>
+              <p v-if="selectionFailed" class="hint">Valores da última consulta ou gravação confirmada.</p>
+            </div>
+            <form v-if="canWrite && rules" aria-labelledby="rules-edit-title" :aria-busy="busy" class="fields" novalidate @submit.prevent="saveRules">
+              <h3 id="rules-edit-title">Editar limites</h3>
+              <p v-if="selectionFailed && rulesDirty" class="joint-error">Rascunho dos limites preservado. A nova consulta falhou.</p>
               <p v-if="Object.values(ruleErrors).some(Boolean)" role="alert" class="error">Revise os limites destacados abaixo.</p>
               <div class="rule-grid"><div>
               <label for="min-c">Mínimo (°C)</label><input id="min-c" v-model.number="rules.min_c" type="number" step="0.01" required :disabled="busy || !canWrite" :aria-invalid="Boolean(ruleErrors.min_c)" :aria-describedby="ruleErrors.min_c ? 'min-c-error' : undefined" @input="clearRuleError('min_c')" />
@@ -457,9 +474,10 @@ async function saveRules() {
               <label for="margin-c">Margem de atenção (°C)</label><input id="margin-c" v-model.number="rules.attention_margin_c" type="number" step="0.01" min="0" required :disabled="busy || !canWrite" :aria-invalid="Boolean(ruleErrors.attention_margin_c)" :aria-describedby="`margin-c-hint${ruleErrors.attention_margin_c ? ' margin-c-error' : ''}`" @input="clearRuleError('attention_margin_c')" />
               <p v-if="ruleErrors.attention_margin_c" id="margin-c-error" class="field-error">{{ ruleErrors.attention_margin_c }}</p>
               </div></div>
-              <p id="margin-c-hint" class="hint">Dentro da faixa, a leitura entra em Atenção quando está a até esta margem do mínimo ou do máximo. A margem deve ser menor que metade da faixa.</p>
+              <p id="margin-c-hint" class="hint">Em uma faixa de 2 a 8 °C com margem de 0,5 °C, há Atenção de 2 a 2,5 °C e de 7,5 a 8 °C, dentro da faixa. A margem deve ser menor que metade da faixa.</p>
+              <p v-if="rulesDirty" class="hint" role="status">Alterações pendentes de salvamento.</p>
               <p v-if="rulesSaveError" id="rules-save-error" role="alert" class="field-error">{{ rulesSaveError }}</p>
-              <button class="primary" type="submit" :disabled="busy || !canWrite">{{ busy ? 'Salvando…' : 'Salvar limites' }}</button>
+              <button class="primary" type="submit" :disabled="busy || loading">{{ busy ? 'Salvando…' : 'Salvar limites' }}</button>
             </form>
           </section>
         </div>
@@ -468,10 +486,10 @@ async function saveRules() {
     <Teleport to="body">
       <dialog ref="deactivationDialog" class="deactivation-dialog cs-controls" aria-labelledby="deactivation-title" aria-describedby="deactivation-description" @cancel.prevent="!busy && closeDeactivation()">
         <template v-if="deactivation">
-        <h2 id="deactivation-title">Desativar {{ deactivation?.name }}?</h2>
-        <p id="deactivation-description">O cadastro ficará desativado e deixará de ser uma opção ativa no Monitoramento. A ação não exclui o cadastro nem interrompe fisicamente o equipamento.</p>
+        <h2 id="deactivation-title">Desativar cadastro de {{ deactivation.name }}?</h2>
+        <p id="deactivation-description">O dispositivo sai das opções ativas do Monitoramento e o cadastro fica preservado. O equipamento mantém seu estado físico atual.</p>
         <p>MQTT ID: <strong>{{ deactivation?.mqtt_device_id }}</strong></p>
-        <div class="actions"><button ref="deactivationCancel" data-test="cancel-deactivation" type="button" autofocus :disabled="busy" @click="closeDeactivation()">Cancelar</button><button data-test="confirm-deactivation" type="button" class="danger" :disabled="busy" @click="confirmDeactivation">{{ busy ? 'Desativando…' : 'Desativar dispositivo' }}</button></div>
+        <div class="actions"><button ref="deactivationCancel" data-test="cancel-deactivation" type="button" autofocus :disabled="busy" @click="closeDeactivation()">Cancelar</button><button data-test="confirm-deactivation" type="button" class="danger" :disabled="busy" @click="confirmDeactivation">{{ busy ? 'Desativando…' : 'Desativar cadastro' }}</button></div>
         </template>
       </dialog>
     </Teleport>
@@ -500,19 +518,23 @@ h2 { margin: 0 0 var(--cs-space-24); font-size: var(--cs-type-20); }
 h3 { margin: 0; font-size: var(--cs-type-16); }
 .item-list { padding: 0; margin: var(--cs-space-24) 0 0; list-style: none; }
 .item-list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--cs-space-12); padding: var(--cs-space-12); border-top: 1px solid var(--cs-color-line); }
-.item-list li.selected { background: var(--cs-color-surface-muted); }
-.item-name[aria-pressed='true'] { border-color: var(--cs-color-accent); color: var(--cs-color-accent); font-weight: 650; text-decoration: underline; text-underline-offset: .2em; }
-.item-name { min-width: 0; flex: 1; text-align: left; }
-.device-info { display: grid; gap: var(--cs-space-4); overflow-wrap: anywhere; }
+.desktop-environments li { display: grid; justify-content: stretch; gap: var(--cs-space-4); padding-inline: 0; }
+.item-name { min-width: 0; text-align: left; }
+.item-name[aria-pressed='true'] { border-color: var(--cs-color-accent); background: var(--cs-color-surface-muted); color: var(--cs-color-accent); font-weight: 650; }
+.small-action { justify-self: start; border-color: transparent; color: var(--cs-color-ink-muted); }
+.device-info { display: grid; min-width: 0; gap: var(--cs-space-4); overflow-wrap: anywhere; }
 .device-info span { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
 .device-info .device-state { justify-self: start; padding: var(--cs-space-4) var(--cs-space-8); border-radius: var(--cs-radius-4); background: var(--cs-color-stale-surface); color: var(--cs-color-status-stale); }.device-info .device-state.active { background: var(--cs-color-normal-surface); color: var(--cs-color-status-normal); }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cs-space-16); }
 .edit-form { display: flex; flex-wrap: wrap; align-items: end; gap: var(--cs-space-8); width: 100%; }
 .edit-name { display: grid; gap: var(--cs-space-8); flex: 1 1 12rem; min-width: 0; }
-.rules-summary { display: grid; gap: var(--cs-space-16); margin-bottom: var(--cs-space-24); }.rules-summary.editable { display: none; }.rules-summary > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--cs-space-8); padding-bottom: var(--cs-space-8); border-bottom: 1px solid var(--cs-color-line); }.rules-summary dt { color: var(--cs-color-ink-muted); }.rules-summary dd { font-weight: 600; font-variant-numeric: tabular-nums; }
+.rules-summary { display: grid; gap: var(--cs-space-8); margin-bottom: var(--cs-space-24); padding: var(--cs-space-16); border-radius: var(--cs-radius-8); background: var(--cs-color-surface-muted); }
+.rules-summary dl { display: flex; flex-wrap: wrap; gap: var(--cs-space-8) var(--cs-space-32); }
+.rules-summary dt { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
+.rules-summary dd { font-weight: 650; font-variant-numeric: tabular-nums; }
 .deactivation-dialog { width: min(100% - 32px, 540px); max-width: none; max-height: calc(100dvh - 32px); margin: auto; padding: var(--cs-space-24); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-panel); background: var(--cs-color-surface); color: var(--cs-color-ink); overflow-y: auto; overflow-wrap: anywhere; }.deactivation-dialog::backdrop { background: rgb(8 27 32 / .55); }.deactivation-dialog h2 { margin-bottom: var(--cs-space-16); }.deactivation-dialog p { margin-top: var(--cs-space-12); }.deactivation-dialog .actions { margin-top: var(--cs-space-24); }.deactivation-dialog button { flex: 1 1 180px; }
 @media (max-width: 1100px) { .manage { padding: var(--cs-space-16); } .grid { grid-template-columns: minmax(0, 1fr); } h1 { font-size: var(--cs-type-24); line-height: 1.3333; }
-.desktop-environments { display: none; }.environment-picker { display: grid; gap: var(--cs-space-8); }.environment-picker select { min-height: var(--cs-control-min-height); min-width: 0; width: 100%; border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); color: var(--cs-color-ink); padding: var(--cs-space-8); }.mobile-rename { display: block; margin-top: var(--cs-space-12); }.rules-summary.editable { display: grid; }
+.desktop-environments { display: none; }.environment-picker { display: grid; gap: var(--cs-space-8); }.environment-picker select { min-height: var(--cs-control-min-height); min-width: 0; width: 100%; border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); color: var(--cs-color-ink); padding: var(--cs-space-8); }.mobile-rename { display: block; margin-top: var(--cs-space-12); }
 .panel { padding: var(--cs-space-16); } }
 @media (max-width: 600px) { .rule-grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

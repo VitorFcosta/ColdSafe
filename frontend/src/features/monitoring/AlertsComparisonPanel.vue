@@ -31,6 +31,7 @@ const limits = ref({ current: 300, previous: 300 })
 const alertPhase = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
 const comparisonPhase = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
 const alertsLoaded = ref(false)
+const alertDetailsShown = ref(false)
 const comparisonLoaded = ref(false)
 let refreshNow = () => {}
 let queueRefresh = () => {}
@@ -53,6 +54,7 @@ watch([() => props.auth, () => props.deviceId, () => props.period],
     current.value = []
     previous.value = []
     alertsLoaded.value = false
+    alertDetailsShown.value = false
     comparisonLoaded.value = false
     alertPhase.value = 'idle'
     comparisonPhase.value = 'idle'
@@ -108,6 +110,7 @@ watch([() => props.auth, () => props.deviceId, () => props.period],
       if (alertResult.status === 'fulfilled') {
         alerts.value = alertResult.value
         alertsLoaded.value = true
+        alertDetailsShown.value ||= alertResult.value.length > 0
         alertPhase.value = 'ready'
       } else {
         alertPhase.value = 'error'
@@ -134,37 +137,41 @@ watch([() => props.auth, () => props.deviceId, () => props.period],
 watch(() => props.revision, () => queueRefresh())
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+const openAlerts = computed(() => alerts.value.filter((alert) => alert.status === 'open').length)
 const comparisonPeriods = computed(() => [
-  { label: 'Selecionado', readings: [...current.value].sort((a, b) => Date.parse(a.received_at) - Date.parse(b.received_at)), start: windows.value.currentStart, end: windows.value.currentEnd },
-  { label: 'Anterior', readings: [...previous.value].sort((a, b) => Date.parse(a.received_at) - Date.parse(b.received_at)), start: windows.value.previousStart, end: windows.value.previousEnd },
-])
+  { name: 'selecionado', readings: current.value, start: windows.value.currentStart, end: windows.value.currentEnd, limit: limits.value.current },
+  { name: 'anterior', readings: previous.value, start: windows.value.previousStart, end: windows.value.previousEnd, limit: limits.value.previous },
+].map((interval) => {
+  const readings = [...interval.readings].sort((a, b) => Date.parse(a.received_at) - Date.parse(b.received_at))
+  return { ...interval, readings, series: buildTemperatureChart(readings) }
+}))
+const periodsWithReadings = computed(() => comparisonPeriods.value.filter((interval) => interval.readings.length > 0))
+const missingPeriod = computed(() => comparisonPeriods.value.find((interval) => !interval.readings.length))
+const comparisonLabel = computed(() => periodsWithReadings.value.length === 2
+  ? 'Gráfico de temperaturas dos períodos selecionado e anterior, alinhados pelo tempo decorrido'
+  : `Gráfico de temperatura do período ${periodsWithReadings.value[0]?.name}`)
 const chartData = computed<ChartData<'line', { x: number; y: number | null }[]>>(() => ({
-  datasets: [
-    {
-      label: 'Período selecionado',
-      data: plot(current.value, windows.value.currentStart),
-      borderColor: colors.value.accent,
-      backgroundColor: colors.value.accent,
-      pointRadius: 2,
+  datasets: periodsWithReadings.value.map((interval) => {
+    const isPrevious = interval.name === 'anterior'
+    const color = isPrevious ? colors.value.muted : colors.value.accent
+    const offset = Date.parse(interval.start)
+    return {
+      label: `Período ${interval.name}`,
+      data: interval.series.points.map(({ x, y }) => ({ x: (x - offset) / 60_000, y })),
+      borderColor: color,
+      backgroundColor: color,
+      borderDash: isPrevious ? [6, 4] : [],
+      borderWidth: 2,
+      pointRadius: interval.readings.length >= interval.limit ? 1 : 2,
       pointHoverRadius: 4,
       tension: 0,
       spanGaps: false,
-    },
-    {
-      label: 'Período anterior',
-      data: plot(previous.value, windows.value.previousStart),
-      borderColor: colors.value.muted,
-      backgroundColor: colors.value.muted,
-      borderDash: [6, 4],
-      pointRadius: 2,
-      pointHoverRadius: 4,
-      tension: 0,
-      spanGaps: false,
-    },
-  ],
+    }
+  }),
 }))
 
 const chartOptions = computed<ChartOptions<'line'>>(() => ({
+  locale: 'pt-BR',
   responsive: true,
   maintainAspectRatio: false,
   animation: false,
@@ -185,16 +192,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
   },
 }))
 
-function plot(readings: readonly HistoricalReading[], start: string) {
-  const offset = Date.parse(start)
-  return buildTemperatureChart(readings).points.map((point) => ({
-    x: (point.x - offset) / 60_000,
-    y: point.y,
-  }))
-}
-
 function describe(readings: readonly HistoricalReading[]) {
-  if (!readings.length) return 'Sem leituras neste intervalo.'
   const mean = readings.reduce((sum, reading) => sum + reading.temperature_c, 0) / readings.length
   return `média de ${mean.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} °C.`
 }
@@ -208,67 +206,87 @@ function formatDate(value: string) {
 </script>
 
 <template>
-  <section ref="panel" aria-label="Alertas e comparação de períodos" class="mt-8 grid items-start gap-6 lg:grid-cols-2">
-    <article class="min-w-0 rounded-panel border border-line bg-surface p-6">
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 class="text-xl font-semibold">Alertas do dispositivo</h2>
-          <p class="mt-2 text-sm text-ink-muted">Histórico · {{ period }}</p>
-        </div>
-        <button v-if="deviceId && auth" type="button" class="min-h-11 rounded-md border border-control-border px-3 py-2 text-sm hover:bg-surface-muted" @click="refreshNow">Atualizar</button>
-      </div>
-      <p v-if="!deviceId || !auth" class="mt-5 text-sm text-ink-muted">Selecione um dispositivo e entre na conta para consultar alertas.</p>
-      <p v-else-if="alertPhase === 'loading'" class="mt-5 text-sm text-ink-muted" aria-live="polite">Carregando alertas…</p>
-      <p v-else-if="alertPhase === 'error'" class="mt-5 text-sm text-ink-muted" role="status">{{ alertsLoaded ? 'Não foi possível atualizar os alertas. Exibindo os últimos dados recebidos.' : 'Não foi possível carregar os alertas.' }}</p>
-      <p v-if="alertsLoaded && !alerts.length" class="mt-5 text-sm text-ink-muted">Nenhum alerta neste período para o dispositivo selecionado.</p>
-      <ul v-else-if="alertsLoaded" class="mt-5 divide-y divide-line">
-        <li v-for="alert in alerts" :key="alert.alert_id" class="py-3 text-sm">
-          <p class="font-medium">{{ alert.kind === 'temperature_high' ? 'Temperatura acima do limite' : 'Temperatura abaixo do limite' }} · {{ alert.status === 'open' ? 'Aberto' : 'Encerrado' }}</p>
-          <p class="mt-1 text-ink-muted">Aberto em {{ formatDate(alert.opened_at) }}<template v-if="alert.closed_at"> · Encerrado em {{ formatDate(alert.closed_at) }}</template></p>
-        </li>
-      </ul>
-    </article>
+  <div ref="panel" class="grid items-start gap-4 xl:gap-6" :class="{ 'xl:grid-cols-2': $slots.default }">
+    <section aria-labelledby="device-alerts-title" class="panel min-w-0 rounded-panel border border-line bg-surface px-4 py-3">
+      <h2 id="device-alerts-title" class="font-semibold">Alertas do dispositivo <span class="text-sm font-normal text-ink-muted">· {{ period }}</span></h2>
+      <p v-if="!deviceId || !auth" class="mt-1 text-sm text-ink-muted">Selecione um dispositivo e entre na conta para consultar alertas.</p>
+      <p v-else-if="alertPhase === 'loading'" class="mt-1 text-sm text-ink-muted" role="status">Carregando alertas…</p>
+      <p v-else-if="alertPhase === 'error'" class="mt-1 text-sm text-status-stale" role="status">{{ alertsLoaded ? 'Não foi possível atualizar os alertas. Exibindo os últimos dados recebidos.' : 'Não foi possível carregar os alertas.' }}</p>
+      <p v-if="alertsLoaded" class="mt-1 text-sm" :class="openAlerts ? 'font-medium text-status-attention' : 'text-ink-muted'" role="status">
+        {{ alerts.length ? `${openAlerts} em aberto · ${alerts.length} no período` : 'Nenhum alerta neste período.' }}
+        <span v-if="alerts.length >= 300">A consulta atingiu o limite de 300 alertas.</span>
+      </p>
+      <details v-if="alertDetailsShown">
+        <summary class="min-h-11 cursor-pointer py-2 text-sm font-medium text-accent">Ver alertas do período</summary>
+        <ul v-if="alerts.length" class="divide-y divide-line">
+          <li v-for="alert in alerts" :key="alert.alert_id" class="py-3 text-sm">
+            <p class="font-medium">{{ alert.kind === 'temperature_high' ? 'Temperatura acima do limite' : 'Temperatura abaixo do limite' }} · {{ alert.status === 'open' ? 'Aberto' : 'Encerrado' }}</p>
+            <p class="mt-1 text-ink-muted">Aberto em {{ formatDate(alert.opened_at) }}<template v-if="alert.closed_at"> · Encerrado em {{ formatDate(alert.closed_at) }}</template></p>
+          </li>
+        </ul>
+        <p v-else class="text-sm text-ink-muted">A última consulta não encontrou alertas neste período.</p>
+      </details>
+    </section>
 
-    <article class="min-w-0 rounded-panel border border-line bg-surface p-6">
-      <h2 class="text-xl font-semibold">Comparação de temperatura</h2>
-      <p class="mt-2 font-medium">{{ period }} atual e anterior</p>
-      <p class="mt-2 text-sm text-ink-muted">O período anterior termina quando o selecionado começa; ambos têm a mesma duração.</p>
+    <slot />
+
+    <section aria-labelledby="temperature-comparison-title" class="comparison col-span-full min-w-0 rounded-panel border border-line bg-surface p-6">
+      <header class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 id="temperature-comparison-title" class="text-xl font-semibold">Comparação de temperatura</h2>
+          <p class="mt-1 text-sm text-ink-muted">Períodos de {{ period }}: selecionado e anterior.</p>
+        </div>
+        <button v-if="deviceId && auth" type="button" class="min-h-11 rounded-md border border-control-border px-3 py-2 text-sm font-medium text-accent hover:bg-surface-muted" @click="refreshNow">Atualizar alertas e comparação</button>
+      </header>
       <p v-if="!deviceId || !auth" class="mt-5 text-sm text-ink-muted">Selecione um dispositivo para comparar leituras.</p>
       <p v-else-if="comparisonPhase === 'loading'" class="mt-5 text-sm text-ink-muted" aria-live="polite">Carregando comparação…</p>
-      <p v-else-if="comparisonPhase === 'error'" class="mt-5 text-sm text-ink-muted" role="status">{{ comparisonLoaded ? 'Não foi possível atualizar a comparação. Exibindo os últimos dados recebidos.' : 'Não foi possível comparar as leituras.' }} <button type="button" class="min-h-11 font-medium text-accent underline" @click="refreshNow">Tentar novamente</button></p>
+      <p v-else-if="comparisonPhase === 'error'" class="mt-5 text-sm text-status-stale" role="status">{{ comparisonLoaded ? 'Não foi possível atualizar a comparação. Exibindo os últimos dados recebidos.' : 'Não foi possível comparar as leituras.' }}</p>
       <template v-if="comparisonLoaded">
-        <dl class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
-          <div><dt class="font-medium">Selecionado</dt><dd class="mt-1 text-ink-muted">{{ describe(current) }}<br>{{ describeHistoryCoverage(current, limits.current) }}</dd></div>
-          <div><dt class="font-medium">Anterior</dt><dd class="mt-1 text-ink-muted">{{ describe(previous) }}<br>{{ describeHistoryCoverage(previous, limits.previous) }}</dd></div>
-        </dl>
-        <p v-if="!current.length && !previous.length" class="mt-5 text-sm text-ink-muted">Não há leituras em nenhum dos dois períodos.</p>
-        <div v-else role="img" aria-label="Gráfico de temperaturas dos períodos selecionado e anterior, alinhados pelo tempo decorrido" aria-describedby="comparison-note" class="mt-5 h-72 min-w-0 overflow-hidden">
-          <Line aria-hidden="true" :data="chartData" :options="chartOptions" />
-        </div>
-        <p id="comparison-note" class="mt-3 text-xs leading-5 text-ink-muted">Cada consulta retorna até 300 leituras mais recentes do intervalo. Os dois intervalos são alinhados pelo tempo decorrido, não pelo horário do dia.</p>
-        <p v-for="interval in comparisonPeriods" :key="interval.label" class="mt-2 text-sm text-ink-muted">
-          {{ interval.label }}: {{ formatReadingTime(interval.start, timeZone) }} a {{ formatReadingTime(interval.end, timeZone) }}.
-          {{ buildTemperatureChart(interval.readings).gaps }} lacuna(s) de mais de 30 s; a linha é interrompida nesses trechos.
-        </p>
-        <details v-if="current.length || previous.length" class="mt-5 border-t border-line pt-4">
-          <summary class="min-h-11 cursor-pointer py-2 font-medium text-accent">Ver leituras dos dois períodos em tabela</summary>
-          <div v-for="interval in comparisonPeriods" :key="interval.label" role="region" :aria-label="`Leituras do período ${interval.label.toLocaleLowerCase('pt-BR')}`" tabindex="0" class="mt-3 max-h-80 overflow-auto">
-            <table class="w-full border-collapse text-left text-sm">
-              <caption class="mb-2 text-left text-ink-muted">{{ interval.label }} · temperatura · fuso {{ timeZone }}</caption>
-              <thead><tr class="border-b border-line"><th scope="col" class="py-2 pr-4">Horário</th><th scope="col" class="py-2 text-right">Temperatura</th></tr></thead>
-              <tbody><tr v-for="(reading, index) in interval.readings" :key="`${reading.received_at}-${index}`" class="border-b border-line">
-                <td class="py-2 pr-4"><time :datetime="reading.received_at">{{ formatReadingTime(reading.received_at, timeZone) }}</time></td>
-                <td class="py-2 text-right">{{ reading.temperature_c.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) }} °C</td>
-              </tr></tbody>
-            </table>
+        <p v-if="!periodsWithReadings.length" class="mt-5 text-sm text-ink-muted">Não há leituras em nenhum dos dois períodos.</p>
+        <template v-else>
+          <div id="comparison-note" class="mt-4 max-w-prose text-sm leading-6 text-ink-muted">
+            <p v-if="missingPeriod" class="font-medium text-ink">Sem leituras no período {{ missingPeriod.name }} para comparar.</p>
+            <p v-else>O gráfico alinha os períodos pelos minutos desde o início de cada um.</p>
+            <p v-if="periodsWithReadings.some((interval) => interval.series.gaps)">A linha é interrompida onde passaram mais de 30 s sem leitura.</p>
           </div>
-        </details>
+          <dl class="mt-4 flex flex-wrap gap-x-8 gap-y-3 text-sm">
+            <div v-for="interval in periodsWithReadings" :key="interval.name">
+              <dt class="font-medium">Período {{ interval.name }}</dt>
+              <dd class="mt-1 text-ink-muted">{{ describe(interval.readings) }} {{ interval.readings.length }} {{ interval.readings.length === 1 ? 'leitura' : 'leituras' }}.</dd>
+              <dd v-if="interval.readings.length >= interval.limit" class="text-status-stale">Limite de {{ interval.limit }} atingido. Pode haver leituras anteriores neste período.</dd>
+            </div>
+          </dl>
+          <div role="img" :aria-label="comparisonLabel" aria-describedby="comparison-note" class="mt-4 h-72 min-w-0 overflow-hidden">
+            <Line aria-hidden="true" :data="chartData" :options="chartOptions" />
+          </div>
+          <details class="mt-4 border-t border-line pt-2">
+            <summary class="min-h-11 cursor-pointer py-2 font-medium text-accent">Ver leituras de temperatura em tabela</summary>
+            <div v-for="interval in periodsWithReadings" :key="interval.name" role="region" :aria-label="`Leituras do período ${interval.name}`" tabindex="0" class="mt-3 max-h-80 overflow-auto">
+              <table class="w-full border-collapse text-left text-sm">
+                <caption class="mb-2 text-left text-ink-muted">Período {{ interval.name }} · temperatura · fuso {{ timeZone }}</caption>
+                <thead><tr class="border-b border-line"><th scope="col" class="py-2 pr-4">Horário</th><th scope="col" class="py-2 text-right">Temperatura</th></tr></thead>
+                <tbody><tr v-for="(reading, index) in interval.readings" :key="`${reading.received_at}-${index}`" class="border-b border-line">
+                  <td class="py-2 pr-4"><time :datetime="reading.received_at">{{ formatReadingTime(reading.received_at, timeZone) }}</time></td>
+                  <td class="py-2 text-right">{{ reading.temperature_c.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) }} °C</td>
+                </tr></tbody>
+              </table>
+            </div>
+          </details>
+          <details>
+            <summary class="min-h-11 cursor-pointer py-2 font-medium text-accent">Ver horários e cobertura</summary>
+            <p v-for="interval in periodsWithReadings" :key="interval.name" class="mb-2 max-w-prose text-sm leading-6 text-ink-muted">
+              <strong>Período {{ interval.name }}:</strong> {{ formatReadingTime(interval.start, timeZone) }} a {{ formatReadingTime(interval.end, timeZone) }}.
+              {{ describeHistoryCoverage(interval.readings, interval.limit, timeZone) }}
+              <template v-if="interval.series.gaps">{{ interval.series.gaps }} {{ interval.series.gaps === 1 ? 'lacuna' : 'lacunas' }} de mais de 30 s.</template>
+            </p>
+          </details>
+        </template>
       </template>
-    </article>
-  </section>
+    </section>
+  </div>
 </template>
 
 <style scoped>
-article { overflow-wrap: anywhere; }
-@media (max-width: 767px) { article { padding: var(--cs-space-16); } }
+.panel, .comparison { overflow-wrap: anywhere; }
+@media (max-width: 767px) { .comparison { padding: var(--cs-space-16); } }
 </style>

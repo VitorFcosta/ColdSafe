@@ -1,36 +1,23 @@
 # Gravador de telemetria — B2-12
 
-Worker Python opcional do perfil `aiot`: consome somente `coldsafe.writer`,
-valida telemetria v3 e grava no InfluxDB antes de confirmar ao RabbitMQ.
-Não consome a fila da API nem entrega WebSocket. A API/dashboard v1/v2 continuam
-consultando o histórico legado; recuperação HTTP v3 está na B2-13.
+Worker Python da pilha completa. Consome `coldsafe.writer`, valida a telemetria
+v3 e grava no InfluxDB. Publica o recibo antes de confirmar a entrega original
+ao RabbitMQ. O backend usa esse recibo para liberar a leitura Web e consulta a
+projeção PostgreSQL na [recuperação HTTP v3](../docs/aiot/architecture.md#telemetria-recibo-e-entrega-web).
 
 ## Preparar
 
 1. Prepare o cadastro privado e os brokers conforme o [gateway](../gateway/README.md).
    `WRITER_OWNER_USER_ID` deve ser o UUID do mesmo proprietário esperado no PostgreSQL.
    O writer monta o mesmo `SIMULATOR_CATALOG_DIR/catalog.json` em leitura.
-2. Com a CLI Influx autenticada como administrador, crie o bucket
-   `telemetry_live` na organização `coldsafe`, com retenção inicial de 7 dias:
+2. Use o [bootstrap do InfluxDB](../docs/runbook.md#3-inicializar-o-influxdb-e-provisionar-tokens-restritos).
+   Ele cria `telemetry_live` com retenção de sete dias e salva no `.env` a
+   autorização exclusiva de escrita em `INFLUXDB_WRITER_TOKEN`.
+3. Com a pilha comissionada, confira e inicie o serviço:
 
    ```sh
-   docker compose exec influxdb influx bucket create --name telemetry_live --org coldsafe --retention 168h
-   docker compose exec influxdb influx bucket list --name telemetry_live
-   ```
-
-   Não recrie o bucket se ele já existir. Não altere o bucket legado `telemetry`.
-   Anote o ID de `telemetry_live` e crie uma autorização exclusiva com
-   `influx auth create --org coldsafe --description coldsafe-writer-live --write-bucket ID_DO_BUCKET`.
-   Não acrescente leitura, `--all-access` ou `--operator`.
-3. Guarde o token retornado apenas em `INFLUXDB_WRITER_TOKEN` no `.env` privado,
-   diferente de `INFLUXDB_TOKEN` e do token administrador. O gerador de segredos
-   deixa esse campo vazio: uma string aleatória não cria autorização no banco.
-   O serviço não recebe o token legado nem o administrador.
-4. Confira/inicie explicitamente os serviços:
-
-   ```sh
-   docker compose --profile aiot --profile simulator config --quiet
-   docker compose --profile aiot --profile simulator up -d --build gateway writer simulator
+   docker compose config --quiet
+   docker compose up -d --build --wait writer
    docker compose logs --tail 30 writer
    ```
 

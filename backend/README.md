@@ -1,13 +1,17 @@
 # Backend
 
-A B2-13 acrescenta consumidor e entrega privada AIoT v3, habilitados explicitamente
-por `compose.aiot.yaml`. Regras, comandos e auditoria são transacionais no PostgreSQL;
+O backend FastAPI expõe contas, catálogo, monitoramento, jobs, modelos e o
+assistente. A [pilha padrão](../docs/runbook.md) habilita o consumidor AMQP e a
+entrega privada AIoT v3. Regras, comandos e auditoria são transacionais no PostgreSQL;
 inbox deduplica eventos e outbox conserva saídas até confirmação AMQP. LED manual
 e buzzer automático usam RabbitMQ → gateway; a API não publica MQTT no fluxo v3.
-O fluxo legado MQTT v1/v2 continua separado.
+O fluxo legado MQTT v1/v2 continua separado e atende a base de comissionamento
+e o firmware ESP32.
 
 Rotas e semântica estão em [contratos AIoT](../contracts/aiot.md#persistência-e-recuperação-http-v3--b2-13).
-Operação no [guia de configuração](../docs/configuration.md#api-aiot-opcional-b2-13).
+Para instalar o ambiente Python e rodar os testes locais, use o
+[lock de desenvolvimento](../docs/configuration.md#instalar-as-dependências-de-teste)
+e execute `.venv/bin/python -m pytest backend/tests` na raiz.
 Com AIoT habilitado, readiness também exige as duas conexões AMQP. O histórico
 HTTP v3 recupera eventos processados no PostgreSQL e informa `pending/persisted`;
 WebSocket só entrega leituras com prova de gravação InfluxDB.
@@ -69,7 +73,8 @@ sendo gerada pelo LLM em streaming.
 O bloco de métricas esclarece que MAE não corrige previsões nem define intervalo
 de erro individual; somá-lo/subtraí-lo da saúde/RUL atual seria interpretação errada.
 O perfil da correção B2-32 usa quatro threads, 3,25 GiB/4 CPUs, contexto 1.024
-e lote de entrada `num_batch=128` no chat e na pré-carga; seu aceite factual fica registrado no cartão.
+e lote de entrada `num_batch=128` no chat e na pré-carga.
+[Avaliação factual](../docs/evidence/b2-32-final-2026-10-22.json).
 Geração e leitura HTTP compartilham o prazo de 90 s. Conexão continua em 3 s,
 descarga/limpeza em até 12 s, com proxy de 120 s de inatividade para receber o
 terminal SSE e limite total de 130 s no navegador.
@@ -103,7 +108,7 @@ variáveis runtime, banco novo `coldsafe_b231_<sufixo>`, `OLLAMA_URL=http://olla
 fontes backend/gateway/simulator/contracts disponíveis, `httpx/httpcore` instalados
 e diretório gravável `/evidence`. Usa fixtures declaradas para telemetria/previsão;
 afirma três respostas incrementais, auditoria e zero comandos. A evidência da
-sessão e suas limitações estão na [B2-31](../docs/aiot/tasks/B2-31.md).
+sessão e suas limitações estão no [registro B2-31](../docs/evidence/b2-31.json).
 
 ## Página e avaliação do Assistente B2-32
 
@@ -137,7 +142,7 @@ limite real por conta. Telemetria, previsões, alerta
 e métricas são fixtures identificadas; a atualidade é congelada somente nelas.
 Cada resposta deve ser revisada contra sujeito, valor, unidade e limitações:
 o script **não aprova por palavras ou números presentes**. Resultados e falhas
-da sessão ficam no [cartão B2-32](../docs/aiot/tasks/B2-32.md).
+da sessão ficam no [registro B2-32](../docs/evidence/b2-32.json).
 
 A correção final de 22/10 aprovou 14 perguntas e 2 extras mistos com revisão
 principal/independente, preservando as falhas anteriores. Perfil 3B/lote 128/3328m,
@@ -208,7 +213,7 @@ O benchmark confere grupos disjuntos, contagem, finitude, censura, hashes da fon
 e igualdade da primeira linha útil entre artefato de treino e entrada online,
 reaplicando o estado salvo. Mede tempo, disco e RSS do processo completo; não
 inclui a pilha de serviços nem o custo de treinar modelos. Usa somente NumPy já
-instalado, sem pandas/scikit-learn novos. Resultados no [cartão](../docs/aiot/tasks/B2-20.md).
+instalado, sem pandas/scikit-learn novos. [Resultados](../docs/evidence/b2-20.json).
 
 ## Treino offline de saúde B2-21
 
@@ -246,7 +251,7 @@ SciPy `1.18.1`, joblib `1.6.0`, threadpoolctl `3.7.0`, narwhals `2.27.1` e
 cloudpickle `3.1.2`. A implementação usa pickle da biblioteca padrão apenas para
 gravar o bundle interno; não oferece carregamento de arquivos recebidos.
 Job AMQP continua exigindo duas regressões e registro do pacote: saúde isolada
-não pode satisfazer esse contrato. Resultados no [cartão B2-21](../docs/aiot/tasks/B2-21.md).
+não pode satisfazer esse contrato. [Resultados B2-21](../docs/evidence/b2-21.json).
 
 ## Treino offline de RUL B2-22
 
@@ -281,7 +286,7 @@ Nenhuma dependência nova. Essas funções são etapas offline; B2-23 abaixo int
 o executor AMQP e registra seus resultados. O aprendizado apenas com falhas observadas pode
 favorecer esse subconjunto: os resultados não comprovam duração de máquinas
 censuradas, calibração física ou capacidade da pilha completa. Resultados no
-[cartão B2-22](../docs/aiot/tasks/B2-22.md).
+[registro B2-22](../docs/evidence/b2-22.json).
 
 ## Treinamento integrado e resultados B2-23
 
@@ -484,7 +489,7 @@ O diretório de saída precisa ser novo. O script verifica hashes, contagem,
 censura/saúde e relata pico RSS do processo inteiro (não só arrays), tempo e
 bytes em disco. Troque `--total` por `2000000` para o teto. Duas execuções com
 mesma seed/configuração/versão reproduzem bytes dos blocos; UUIDs/metadados de
-datasets diferentes podem mudar. Evidência medida em [B2-18](../docs/aiot/tasks/B2-18.md).
+datasets diferentes podem mudar. [Medições B2-18](../docs/evidence/b2-18.json).
 Os testes de integração requerem PostgreSQL descartável (`POSTGRES_TEST_*`);
 `COLDSAFE_RABBITMQ_INTEGRATION=1` habilita também o ensaio com broker descartável.
 
@@ -502,8 +507,9 @@ modelos e ativação por proprietário. A versão 006 acrescenta identificação
 sessões JWT, limites de login e tickets WebSocket. O [guia de migrações](migrations/README.md)
 explica propriedade, backup e recuperação. A persistência prepara o AIoT;
 workers de jobs estão na B2-17, geração offline na B2-18 e saúde/RUL offline nas B2-21/22;
-pacote de treino integrado está na B2-23, ativação na B2-24; inferência é posterior. Autenticação e
-permissões atuais estão no [guia de segurança](../docs/aiot/tasks/B2-06.md).
+pacote de treino integrado está na B2-23, ativação na B2-24 e inferência ao vivo
+na B2-25. Autenticação e
+permissões atuais estão descritas na [arquitetura](../docs/aiot/architecture.md).
 
 A primeira implementação do domínio está em `app/domain/telemetry.py`. Ela transforma
 bytes MQTT não confiáveis em um `TelemetryPayload` estrito e imutável, rejeitando

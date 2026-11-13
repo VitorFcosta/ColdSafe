@@ -16,7 +16,7 @@ const routing = vi.hoisted(() => ({ replace: vi.fn(), route: { query: {} as Reco
 vi.mock('vue-router', () => ({ useRouter: () => ({ replace: routing.replace }), useRoute: () => routing.route }))
 const job: TrainingJob = { id: fixture.job_id, owner_user_id: fixture.job_id, job_type: 'training', status: 'queued', completed_units: 0, total_units: 2, result_id: null, dataset_id: fixture.dataset_id, environment_id: null, error_code: null, config: { job_type: 'training', dataset_id: fixture.dataset_id, environment_id: null }, created_at: '2026-10-17T12:00:00Z', updated_at: '2026-10-17T12:00:00Z' }
 const summary = { id: fixture.dataset_id, generation_job_id: fixture.job_id, owner_user_id: fixture.job_id, row_count: 1000000, created_at: job.created_at, config: defaultGeneration(), storage_version: 'offline-numpy-v1' as const, units: {}, quality: { missing_by_sensor: {}, range_by_sensor: {}, rul_observed_rows: 600000, rul_censored_rows: 400000 } }
-const render = () => mount(TrainingView, { global: { stubs: { LlmStatus: true, JobResumeLinks: true, TrainingTarget: { template: '<div>Resultados de regressão</div>' }, RouterLink: { template: '<a><slot /></a>' } } } })
+const render = () => mount(TrainingView, { global: { stubs: { JobResumeLinks: true, TrainingTarget: { template: '<div>Resultados de regressão</div>' }, RouterLink: { template: '<a><slot /></a>' } } } })
 // Vue mantém refs de script setup internamente; não expor API de produção só para testes.
 const selectionIsDirty = (wrapper: ReturnType<typeof render>) =>
   (wrapper.vm.$ as unknown as { setupState: { selectionDirty: boolean } }).setupState.selectionDirty
@@ -31,6 +31,34 @@ beforeEach(() => {
 })
 afterEach(() => vi.useRealTimers())
 describe('treinamento privado', () => {
+  it('identifica o dataset autorizado fora da lista sem exibir o estado vazio', async () => {
+    routing.route.query = { dataset: job.dataset_id }
+    vi.mocked(fetchDatasets).mockResolvedValue([])
+    const wrapper = render(); await flushPromises()
+    const select = wrapper.get('select').element
+    expect(select.value).toBe(job.dataset_id)
+    expect(select.selectedOptions[0]?.text).toMatch(/Dataset de .* · 1\.000\.000 linhas/)
+    expect(wrapper.text()).not.toContain('Nenhum dataset concluído')
+    expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeUndefined()
+    wrapper.unmount()
+  })
+  it('falha tardia da lista não substitui a mensagem de resultado indisponível', async () => {
+    let failList!: (error: Error) => void
+    routing.route.query = { job: job.id }
+    vi.mocked(fetchTrainingJob).mockResolvedValue({ ...job, status: 'completed', completed_units: 2, result_id: fixture.model_id })
+    vi.mocked(fetchTrainingResult).mockRejectedValueOnce(new Error('resultado indisponível'))
+    vi.mocked(fetchDatasets).mockImplementationOnce(() => new Promise((_resolve, reject) => { failList = reject }))
+    const wrapper = render()
+    try {
+      await flushPromises()
+      failList(new Error('lista indisponível'))
+      await flushPromises()
+      expect(wrapper.get('[role="alert"]').text()).toContain('resultado está indisponível')
+      await wrapper.get('.recovery button').trigger('click'); await flushPromises()
+      expect(wrapper.get('#training-result-title').text()).toBe('Resultado do pacote')
+      expect(createTraining).not.toHaveBeenCalled()
+    } finally { wrapper.unmount() }
+  })
   it.each([false, true])('retry não contorna parâmetro dataset inválido, com job: %s', async (withJob) => {
     routing.route.query = withJob ? { job: job.id, dataset: 'invalid' } : { dataset: 'invalid' }
     const wrapper = render(); await flushPromises()
@@ -335,7 +363,7 @@ describe('treinamento privado', () => {
     routing.route.query = { job: fixture.job_id }; vi.mocked(fetchTrainingJob).mockResolvedValue({ ...job, status: 'completed', completed_units: 2, result_id: fixture.model_id })
     const wrapper = render(); await flushPromises()
     expect(createTraining).not.toHaveBeenCalled(); expect(fetchTrainingResult).toHaveBeenCalledOnce()
-    expect(wrapper.text()).toContain('Concluído'); expect(wrapper.text()).toContain('Pacote rejeitado')
+    expect(wrapper.text()).toContain('Processamento concluído'); expect(wrapper.text()).toContain('Pacote rejeitado')
     expect(wrapper.text()).toContain('offline-42'); expect(wrapper.text()).toContain('Dados sintéticos')
     wrapper.unmount()
   })

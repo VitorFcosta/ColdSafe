@@ -32,10 +32,15 @@ const notice = ref('')
 const inputError = ref('')
 const cooldownUntil = ref(0)
 const now = ref(Date.now())
+const questionLimit = 256
 const bytes = computed(() => new TextEncoder().encode(question.value).length)
+const overLimit = computed(() => bytes.value > questionLimit)
+const questionError = computed(() => overLimit.value
+  ? `A pergunta passou de ${questionLimit} bytes. Encurte o texto para enviar.`
+  : inputError.value)
 const cooldown = computed(() => Math.max(0, Math.ceil((cooldownUntil.value - now.value) / 1000)))
 const canSend = computed(() => Boolean(sessionToken.value) && !accessDenied.value && modelState.value === 'ready' && !responding.value &&
-  cooldown.value === 0 && Boolean(question.value.trim()) && bytes.value <= 256)
+  cooldown.value === 0 && Boolean(question.value.trim()) && !overLimit.value)
 const statusMessages: Record<LlmState, string> = {
   loading: 'Preparando o modelo local. Aguarde o carregamento para perguntar.',
   ready: 'Modelo local pronto. Você já pode perguntar.',
@@ -127,8 +132,8 @@ watch(sessionToken, (token, _old, onCleanup) => {
 
 async function send() {
   inputError.value = ''
-  if (!question.value.trim() || bytes.value > 256) {
-    inputError.value = 'Digite uma pergunta de 1 a 256 bytes UTF-8. Acentos e emojis podem ocupar mais de um byte.'
+  if (!question.value.trim()) inputError.value = 'Digite uma pergunta.'
+  if (questionError.value) {
     textarea.value?.focus(); return
   }
   const token = sessionToken.value
@@ -187,19 +192,40 @@ onUnmounted(() => {
 <template>
   <main class="assistant cs-controls">
     <div class="shell">
-      <section class="heading" aria-labelledby="assistant-title">
-        <h1 id="assistant-title" tabindex="-1">Assistente</h1>
-        <p>Pergunte sobre os equipamentos da sua conta. O modelo local recebe um resumo limitado dos dados autorizados; não consulta os bancos nem executa comandos.</p>
-      </section>
-      <section class="scope" aria-label="Estado e escopo do assistente">
-        <p class="model-status" :class="accessDenied ? 'error' : responding ? 'responding' : cooldown ? 'paused' : modelState" role="status" aria-live="polite">{{ status }}</p>
-        <p id="assistant-scope">A conversa fica somente nesta página, com até oito perguntas. Ao sair ou trocar de conta, ela é apagada, inclusive respostas concluídas. A pergunta não herda o equipamento selecionado no Monitoramento.</p>
-      </section>
+      <h1 id="assistant-title" tabindex="-1">Assistente</h1>
       <div class="workspace">
-        <section class="panel conversation" aria-label="Conversa com o assistente">
-          <h2>Entenda os dados da sua conta</h2>
+        <form class="panel composer" aria-label="Perguntar ao assistente" @submit.prevent="send">
+          <p class="model-status" :class="accessDenied ? 'error' : responding ? 'responding' : cooldown ? 'paused' : modelState" role="status" aria-live="polite">{{ status }}</p>
+          <p id="assistant-scope" class="account-scope">A resposta usa um resumo dos dados autorizados da sua conta. A seleção de equipamento no Monitoramento não é usada aqui.</p>
+          <div class="questions">
+            <h2>Sugestões de perguntas</h2>
+            <p class="field-help">Escolha uma sugestão para preencher o campo. Revise a pergunta antes de enviar.</p>
+            <ul>
+              <li v-for="suggestion in suggestions" :key="suggestion.label">
+                <button type="button" data-testid="suggestion" :disabled="responding" @click="prepare(suggestion.question)">{{ suggestion.label }}</button>
+              </li>
+            </ul>
+          </div>
+          <label for="assistant-question">Sua pergunta</label>
+          <textarea id="assistant-question" ref="textarea" v-model="question" name="question" rows="3" :readonly="responding"
+            :aria-describedby="`assistant-scope assistant-history question-limit${questionError ? ' question-error' : ''}`"
+            :aria-invalid="questionError ? 'true' : undefined" @input="inputError = ''" />
+          <p id="question-limit" class="field-help">
+            <strong>{{ bytes }} / {{ questionLimit }} bytes UTF-8.</strong> Acentos e emojis podem ocupar mais de um byte.
+          </p>
+          <p v-if="questionError" id="question-error" role="alert" class="field-error">{{ questionError }}</p>
+          <p class="field-help">As perguntas são registradas na auditoria local. Não inclua senhas ou segredos.</p>
+          <p class="field-help">Até 5 perguntas por minuto.</p>
+          <p v-if="cooldown" class="field-help">Aguarde {{ cooldown }} s antes de tentar novamente.</p>
+          <div class="actions">
+            <button type="submit" class="primary" :disabled="!canSend">Enviar pergunta</button>
+            <button v-if="responding" type="button" data-testid="cancel" @click="cancel">Cancelar resposta</button>
+          </div>
+        </form>
+        <section v-if="turns.length" class="panel conversation" aria-label="Conversa com o assistente">
+          <h2>Conversa</h2>
           <p v-if="notice" role="status" class="notice">{{ notice }}</p>
-          <ol v-if="turns.length" aria-label="Conversa desta sessão">
+          <ol aria-label="Conversa desta sessão">
             <li v-for="turn in turns" :key="turn.id" class="turn">
               <h3>Sua pergunta</h3><p class="plain-text">{{ turn.question }}</p>
               <h3>Assistente</h3>
@@ -208,27 +234,13 @@ onUnmounted(() => {
               <p class="turn-state" :class="turn.state">{{ turn.state === 'responding' ? 'Resposta em andamento' : turn.state === 'complete' ? 'Resposta concluída' : 'Resposta incompleta' }}</p>
             </li>
           </ol>
-          <p v-else class="empty">Ainda não há perguntas nesta página. Escolha uma sugestão ou escreva sua pergunta abaixo.</p>
         </section>
-        <form class="panel composer" aria-label="Perguntar ao assistente" @submit.prevent="send">
-          <label for="assistant-question">Sua pergunta</label>
-          <textarea id="assistant-question" ref="textarea" v-model="question" name="question" rows="3" :readonly="responding"
-            :aria-describedby="inputError ? 'assistant-scope question-limit question-error' : 'assistant-scope question-limit'" :aria-invalid="inputError || bytes > 256 ? 'true' : undefined" />
-          <p id="question-limit" class="field-help">{{ bytes }} / 256 bytes UTF-8 · Até 5 perguntas por minuto.</p>
-          <p v-if="cooldown" class="field-help">Aguarde {{ cooldown }} s antes de tentar novamente.</p>
-          <p v-if="inputError" id="question-error" role="alert" class="field-error">{{ inputError }}</p>
-          <div class="actions">
-            <button type="submit" class="primary" :disabled="!canSend">Enviar pergunta</button>
-            <button v-if="responding" type="button" data-testid="cancel" @click="cancel">Cancelar resposta</button>
-          </div>
-        </form>
-        <aside class="panel questions" aria-label="Perguntas sugeridas e limites">
-          <h2>Por onde começar</h2>
-          <p>Selecionar uma sugestão apenas preenche a pergunta. O envio é uma ação sua.</p>
-          <ul><li v-for="suggestion in suggestions" :key="suggestion.label"><button type="button" data-testid="suggestion" :disabled="responding" @click="prepare(suggestion.question)">{{ suggestion.label }}</button></li></ul>
+        <aside class="panel limits" aria-labelledby="assistant-limits">
+          <h2 id="assistant-limits">Privacidade e limites</h2>
+          <p id="assistant-history">A conversa guarda até oito perguntas nesta página. Ao sair ou trocar de conta, ela é apagada, inclusive respostas concluídas.</p>
           <p>Cada pergunta é independente. As anteriores não são enviadas ao modelo.</p>
-          <p>As perguntas são registradas na auditoria local. Não inclua senhas ou segredos.</p>
-          <p>Respostas podem conter erros. Saúde e RUL são estimativas sintéticas, sem calibração física. Confirme os dados em <RouterLink to="/insights">Saúde e previsões</RouterLink>.</p>
+          <p>O modelo não consulta os bancos de dados nem executa comandos. Respostas podem conter erros.</p>
+          <p>Saúde e vida útil restante são estimativas sintéticas, sem calibração física. Confirme os dados em <RouterLink to="/insights">Saúde e previsões</RouterLink>.</p>
         </aside>
       </div>
     </div>
@@ -250,15 +262,15 @@ onUnmounted(() => {
 .shell { max-width: 1200px; margin-inline: auto; display: grid; gap: var(--cs-space-24); min-width: 0; }
 h1 { font-size: var(--cs-type-32); } h2 { font-size: var(--cs-type-20); } h3 { margin-top: var(--cs-space-16); font-weight: 600; }
 p { margin-top: var(--cs-space-12); line-height: 1.6; overflow-wrap: anywhere; }
-.heading p { max-width: 70ch; color: var(--cs-color-ink-muted); }
+.account-scope { max-width: 70ch; }
 a { color: var(--cs-color-accent); text-decoration: underline; text-underline-offset: .2em; }
-.scope p { margin-top: 0; }.scope #assistant-scope { margin-top: var(--cs-space-12); color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); max-width: 100ch; }
-.model-status { display: inline-block; padding: var(--cs-space-8) var(--cs-space-12); border-radius: var(--cs-radius-4); font-weight: 600; color: var(--cs-color-status-stale); background: var(--cs-color-stale-surface); }
+.model-status { display: inline-block; margin-top: 0; padding: var(--cs-space-8) var(--cs-space-12); border-radius: var(--cs-radius-4); font-weight: 600; color: var(--cs-color-status-stale); background: var(--cs-color-stale-surface); }
 .model-status.ready { color: var(--cs-color-status-normal); background: var(--cs-color-normal-surface); }.model-status.responding { color: var(--cs-color-accent); background: var(--cs-color-surface-muted); }.model-status.error { color: var(--cs-color-status-critical); background: var(--cs-color-critical-surface); }
-.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-areas: 'conversation questions' 'composer questions'; grid-template-rows: min-content 1fr; align-items: start; gap: var(--cs-space-24); }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; gap: var(--cs-space-24); }
 .panel { min-width: 0; padding: var(--cs-space-24); background: var(--cs-color-surface); border-radius: var(--cs-radius-panel); }
-.conversation { grid-area: conversation; }.composer { grid-area: composer; }.questions { grid-area: questions; }
-.notice { color: var(--cs-color-ink-muted); }.empty { margin-block: var(--cs-space-32); color: var(--cs-color-ink-muted); }
+.composer, .conversation { grid-column: 1; }
+.limits { grid-column: 2; grid-row: 1; }
+.notice { color: var(--cs-color-ink-muted); }
 .turn { padding-block: var(--cs-space-16) var(--cs-space-24); border-bottom: 1px solid var(--cs-color-line); }.turn:last-child { padding-bottom: 0; border-bottom: 0; }
 .plain-text { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 72ch; }
 .turn-state, .field-help { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }.turn-state { display: inline-block; margin-top: var(--cs-space-16); font-weight: 600; padding: var(--cs-space-4) var(--cs-space-8); border-radius: var(--cs-radius-4); }.turn-state.incomplete { color: var(--cs-color-status-attention); background: var(--cs-color-attention-surface); }.turn-state.complete { color: var(--cs-color-status-normal); background: var(--cs-color-normal-surface); }
@@ -266,15 +278,23 @@ label { display: block; margin-bottom: var(--cs-space-8); }
 textarea { width: 100%; min-width: 0; resize: vertical; padding: var(--cs-space-12); background: var(--cs-color-surface); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-8); color: var(--cs-color-ink); caret-color: var(--cs-color-accent); font: inherit; font-size: var(--cs-type-16); line-height: 1.5; }
 textarea[aria-invalid='true'] { border-color: var(--cs-color-status-critical); } textarea:read-only { background: var(--cs-color-surface-muted); }
 .actions { display: flex; flex-wrap: wrap; gap: var(--cs-space-12); margin-top: var(--cs-space-16); }
-.questions ul { display: grid; gap: var(--cs-space-8); margin-top: var(--cs-space-16); }.questions button { text-align: left; justify-content: flex-start; width: 100%; }
-.questions p { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
+.questions { margin-block: var(--cs-space-24); }
+.questions h2 { font-size: var(--cs-type-16); }
+.questions p { margin-top: var(--cs-space-4); }
+.questions ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--cs-space-8); margin-top: var(--cs-space-12); }
+.questions button { text-align: left; width: 100%; height: 100%; }
+.limits p { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
 .leave-dialog { width: min(100% - 32px, 520px); max-width: none; max-height: calc(100dvh - 32px); margin: auto; padding: var(--cs-space-24); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-panel); background: var(--cs-color-surface); color: var(--cs-color-ink); overflow-y: auto; overflow-wrap: anywhere; }
 .leave-dialog::backdrop { background: rgb(8 27 32 / .55); }.leave-dialog h2 { font-size: var(--cs-type-24); }.leave-dialog .actions { margin-top: var(--cs-space-24); }.leave-dialog button { flex: 1 1 180px; }
 ::selection { background: var(--cs-color-accent); color: var(--cs-color-accent-ink); }
 @media (max-width: 1100px) {
-  .assistant { padding: var(--cs-space-16); }.workspace { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'conversation' 'composer' 'questions'; grid-template-rows: auto; }
+  .assistant { padding: var(--cs-space-16); }
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .limits { grid-area: auto; }
   .panel { padding: var(--cs-space-16); } h1 { font-size: var(--cs-type-24); line-height: 1.3333; }
-  .questions ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 600px) { .questions ul { grid-template-columns: minmax(0, 1fr); }.composer .actions button { width: 100%; justify-content: center; } }
+@media (max-width: 600px) {
+  .questions ul { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
+  .composer .actions button { width: 100%; justify-content: center; }
+}
 </style>

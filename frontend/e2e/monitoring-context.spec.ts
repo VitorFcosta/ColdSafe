@@ -20,7 +20,7 @@ const pair = (env: string, dev: string) => `environment=${env}&device=${dev}`
 const evidence = new URL('../../.impeccable/review/rd-04/', import.meta.url)
 const localNav = (page: Page) => page.getByRole('navigation', { name: 'Navegação da área', exact: true })
 const environment = (page: Page) => page.getByRole('combobox', { name: 'Ambiente', exact: true })
-const device = (page: Page) => page.getByRole('combobox', { name: /^(Dispositivo|Equipamento)$/ })
+const device = (page: Page) => page.getByRole('combobox', { name: 'Dispositivo', exact: true })
 
 async function mockContext(page: Page, preference?: { environmentId: string; deviceUuid: string }) {
   await mockDashboardAccount(page)
@@ -139,7 +139,9 @@ test('preferência da aba é revalidada; inativação pede escolha e gestão nã
   mock.deactivateB()
   await page.getByRole('link', { name: 'Monitoramento', exact: true }).click()
   await expect(device(page)).toHaveValue('')
-  await expect(page.locator('.selection-panel [role="status"]')).toContainText(/selecione|escolha/i)
+  const selection = page.getByRole('region', { name: 'Selecionar ambiente e dispositivo', exact: true })
+  await expect(selection.getByRole('status').filter({ hasText: /selecione|escolha/i })).toBeVisible()
+  await expect(selection.getByRole('status').filter({ hasText: 'Nenhum dispositivo ativo neste ambiente.' })).toBeVisible()
   await expect(page.getByText('Câmara A / motor-a', { exact: true })).toHaveCount(0)
 })
 

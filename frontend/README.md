@@ -1,23 +1,12 @@
 # Frontend ColdSafe
 
-## Redesign vigente — 03/11/2026
+## Interface atual
 
-RD-01 a RD-17 estão concluídas; **RD-18 foi concluída por aceite do usuário,
-com ressalvas técnicas**. O fechamento de 03/11 acrescentou “Ocultar dados ao
-vivo” nas quatro telas autoatualizadas. A coleta e os pedidos continuam; mostrar
-novamente apresenta os dados mais recentes recebidos. A verificação atual com
-leitor de tela não foi executada, por escolha do usuário nesta retomada.
-Consulte o [checkpoint RD-18](../docs/redesign/tasks/RD-18.md#checkpoint) para
-o estado da rodada, testes executados e limites; este guia não certifica o aceite
-integrado nem uma nova aprovação estética.
-
-As referências locais são o [guia do redesign](../docs/redesign/README.md), o
-[design system](../docs/redesign/design-system/README.md), as
-[composições](../docs/redesign/compositions/README.md) e o
-[roadmap/cartões](../docs/redesign/tasks/README.md). P-01 a P-06 registram o
-planejamento histórico; a implementação e sua evidência datada estão nos cartões RD
-e no código atual. Tokens executados: [tokens.css](src/styles/tokens.css).
-Os registros B2 abaixo preservam contratos, comandos e contexto de integração.
+Visão geral, Saúde e previsões, Gêmeo digital e Filas e mensagens oferecem
+“Ocultar dados ao vivo”. A coleta e os pedidos continuam em andamento e, ao
+mostrar os dados novamente, a interface apresenta os valores mais recentes.
+No Gêmeo, ocultar também suspende a animação. Os tokens de cor, espaço e
+tipografia estão em [tokens.css](src/styles/tokens.css).
 
 Apresentação de portfólio em `/` e dashboard operacional em `/dashboard`,
 com a direção **Precisão operacional** e apresentação pública escura.
@@ -37,9 +26,9 @@ são enviadas ao modelo; a auditoria do backend permanece persistente.
 O cliente limita a chamada completa a 130 s; a geração no backend tem 90 s e
 limpeza de até 12 s. O proxy admite 120 s de inatividade para receber o terminal.
 
-Reutiliza Vue, sessão e tokens existentes, sem dependências novas. Requer o
-[Ollama opt-in](../docs/configuration.md#ollama-local-e-memória-b2-30) e a API B2-31;
-a entrega não ativa o runtime pessoal. A página distingue carregamento, pausa,
+O assistente usa o [Ollama da pilha completa](../docs/configuration.md#ollama-local-e-memória-b2-30)
+e a API B2-31. Prepare os pesos conforme o [runbook](../docs/runbook.md).
+A página distingue carregamento, pausa,
 indisponibilidade e limite de cinco perguntas/minuto. São até 256 bytes UTF-8,
 incluindo acentos; nenhum conteúdo do modelo é interpretado como HTML/Markdown.
 
@@ -181,7 +170,7 @@ A aparência ambiental conservada pertence à última leitura. Troca de equipame
 recria a cena para não conservar a aparência de outro escopo. Leitura nova retoma
 sem compensar o tempo parado. Aba oculta e preferência de movimento reduzido
 suspendem animações; esta última conserva atualização dos valores/estados.
-Nenhuma dependência nova. Aceite e evidências no [cartão B2-28](../docs/aiot/tasks/B2-28.md).
+[Resultados B2-28](../docs/evidence/b2-28.json).
 
 Na B2-29, selecionar qualquer item abre leitura atual/última leitura, idade,
 horário e mini gráfico de 15 minutos. Sensores filtram o histórico pelo próprio ID,
@@ -195,7 +184,7 @@ envio, ACK e estado observado permanecem distintos, com bloqueio de reenvio,
 rejeição/sem confirmação e permissões atuais. Buzzer continua automático.
 Histórico consulta a cada 5 s, com prazo de 8 s e limpeza ao trocar escopo/sair;
 consulta lenta não é cancelada por eventos live de 1 Hz. Sem dependências novas.
-Resultados/limites no [cartão B2-29](../docs/aiot/tasks/B2-29.md).
+[Resultados B2-29](../docs/evidence/b2-29.json).
 
 Dependências adicionadas e fixadas: `three 0.186.1` para renderização e
 `@types/three 0.186.0` para TypeScript, com seis transitivas de desenvolvimento
@@ -211,7 +200,7 @@ VITE_AIOT_ENABLED=true npm run build
 
 O E2E usa Chromium/WebGL reais com respostas HTTP/WS simuladas e declaradas;
 não representa novo ensaio de MQTT/AMQP, bancos ou sensores físicos.
-Resultados e limitações no [cartão B2-27](../docs/aiot/tasks/B2-27.md).
+[Resultados B2-27](../docs/evidence/b2-27.json).
 
 Na ativação pessoal de 20/10/2026, o build Docker passou a receber `contracts`
 como contexto adicional do Compose. O estágio de build copia seus exemplos para
@@ -228,15 +217,8 @@ No Vite local, defina a variável antes de iniciar o processo e configure
 falhas/403/404 não causam fallback silencioso entre versões. Login e catálogo
 continuam nas rotas v1 em ambos os modos.
 
-- [Definição do produto](PRODUCT.md).
-- [Figma editável](https://www.figma.com/design/EIn6llJ5Fc3uIFlIDdokZu).
-- [Relatório: arquivos, decisões, mídia e validação](../docs/testing/redesign-portfolio.md).
-
-A direção Caderno de bancada foi aprovada na CS-26 em 09/09/2026; o redesign
-de portfólio de setembro também é histórico. O redesign vigente segue Precisão
-operacional, com aplicação clara e apresentação pública escura, conservando
-atualidade explícita, estados com texto e falhas parciais. Figma e relatório acima
-são referências históricas; os documentos locais do redesign orientam a retomada.
+O painel mantém a idade da leitura, os estados por texto e a sinalização de
+falhas parciais. A apresentação pública usa tema escuro.
 
 ## Como executar
 
@@ -254,21 +236,27 @@ As instruções a seguir são para o desenvolvimento local com Vite.
 - Validar tipos e gerar a build: `npm run build`.
 - Executar os testes unitários do frontend: `npm run test:unit:run`.
 - Instalar o Chromium usado pelos testes E2E: `npx playwright install chromium`.
-- Executar os cenários E2E das duas interfaces: `npm run test:e2e`.
+- Executar os cenários E2E com a seleção de modo abaixo.
 
-Os testes E2E sobem o Vite automaticamente e simulam as fronteiras HTTP e
-WebSocket da API. Assim, estados normais, alertas, reconexão e falhas são
+Os testes E2E comuns sobem o Vite automaticamente e simulam HTTP e WebSocket
+na origem de teste (`127.0.0.1:4173`) quando `VITE_API_BASE_URL=''` está definido.
+Assim, estados normais, alertas, reconexão e falhas são
 reproduzíveis sem depender do InfluxDB ou do MQTT.
 
 Para conferir os dois contratos, execute a suíte com a flag explícita antes de
 iniciar o Vite: `VITE_AIOT_ENABLED=false` seleciona o modo legado v1/v2;
 `VITE_AIOT_ENABLED=true`, o modo AIoT v3. A flag é de build/inicialização, não
-um alternador visual. Os cenários condicionados ao AIoT podem ser pulados no
-modo legado; uma execução só não comprova os dois modos.
+um alternador visual. A suíte ampla usa o modo legado para os cenários de
+`dashboard.spec.ts`, `dashboard-selection.spec.ts` e parte de `landing.spec.ts`,
+cujos mocks de monitoramento atendem a API v1/v2. Execute os cenários v3
+selecionados em uma segunda rodada.
 
 ```sh
-VITE_AIOT_ENABLED=false npm run test:e2e
-VITE_AIOT_ENABLED=true npm run test:e2e
+VITE_API_BASE_URL='' VITE_AIOT_ENABLED=true npm run build
+VITE_API_BASE_URL='' VITE_AIOT_ENABLED=false npm run test:e2e -- --workers=1
+VITE_API_BASE_URL='' VITE_AIOT_ENABLED=true npm run test:e2e -- \
+  dashboard-redesign.spec.ts digital-twin.spec.ts inference.spec.ts \
+  live-data-visibility.spec.ts monitoring-context.spec.ts
 ```
 
 Os specs `*-real.spec.ts` são integração externa opt-in, controlada pelos
@@ -320,10 +308,8 @@ exemplo, tela, superfície, texto, foco e estados normal, atenção, crítico e
 desatualizado — em vez de amarrar cores a componentes específicos. Isso permite
 que desktop e mobile conservem os mesmos significados visuais.
 
-As validações históricas de contraste, teclado e responsividade pertencem aos
-cenários e versões identificados nos relatórios/cartões. Mockups são direção
-visual. A verificação integrada atual está no checkpoint RD-18; não presumir
-conformidade WCAG integral a partir de um relatório anterior.
+Os testes de navegador cobrem cenários de contraste, teclado e
+responsividade. A validação com leitor de tela ficou fora dessa rodada.
 
 ## Demonstração reproduzível
 
@@ -339,6 +325,8 @@ npm run capture:demo
 
 O script usa Playwright e os mesmos mocks HTTP dos E2E. Gera quatro PNGs,
 um WebM de cerca de 81 segundos e legendas VTT em `public/media/`.
+A captura `dashboard-mobile.png` serve para conferência local e fica fora do
+Git e da imagem Docker.
 Não precisa de backend. A faixa “DEMONSTRAÇÃO SIMULADA” existe somente na
 captura. O vídeo também explica por texto cada cenário, incluindo a confirmação
 simulada de um comando. Para conferir arquivos antes de substituir a mídia,
@@ -347,8 +335,7 @@ defina `CAPTURE_OUTPUT_DIR` com uma pasta temporária.
 ## Motion e tipagem
 
 Foram adicionados `motion-v@2.4.2` e `@vueuse/core@14.4.0`, fixados no lock.
-Desde a [RD-17](../docs/redesign/tasks/RD-17.md), `LandingView.vue` não importa
-Motion: a entrada breve usa CSS, o conteúdo nasce visível e
+Em `LandingView.vue`, a entrada breve usa CSS, o conteúdo nasce visível e
 `prefers-reduced-motion` remove o movimento. Os pacotes continuam instalados;
 esta atualização documental não remove dependências.
 `skipLibCheck` evita conflitos nas declarações de terceiros

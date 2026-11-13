@@ -18,7 +18,7 @@ const dataset = { id: datasetId, owner_user_id: id, generation_job_id: id, creat
 const envelope = (data: unknown) => ({ success: true, data, meta: { schema_version: 3 } })
 
 for (const path of ['laboratory', 'training'] as const) {
-  test(`${path}: carga, pausa, recarga e falhas do LLM em 320 px (HTTP simulado)`, async ({ page }) => {
+  test(`${path} executa e retoma sem consultar o Assistente em 320 px (HTTP simulado)`, async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 844 })
     await page.addInitScript(() => sessionStorage.setItem('coldsafe-session', JSON.stringify({
       token: 'llm-status-test', expires_at: '2099-01-01T00:00:00Z',
@@ -26,7 +26,6 @@ for (const path of ['laboratory', 'training'] as const) {
     await page.route('**/api/v1/auth/me', (route) => route.fulfill({ json: {
       success: true, data: { user_id: id, email: 'admin@example.com', role: 'admin' },
     } }))
-    let state = 'loading'
     let complete = false
     let posts = 0
     let statusRequests = 0
@@ -43,8 +42,8 @@ for (const path of ['laboratory', 'training'] as const) {
       const endpoint = new URL(request.url()).pathname
       expect(request.headers().authorization).toBe('Bearer llm-status-test')
       if (endpoint === '/api/v3/llm/status') {
-        statusRequests++; expect(request.method()).toBe('GET')
-        return route.fulfill({ json: envelope({ state, model: 'llama3.2:3b-instruct-q4_K_M' }) })
+        statusRequests++
+        return route.fulfill({ status: 503 })
       }
       if (endpoint === '/api/v3/jobs' && request.method() === 'POST') {
         posts++; expect(request.postDataJSON()).toEqual(jobConfig)
@@ -60,29 +59,19 @@ for (const path of ['laboratory', 'training'] as const) {
     })
     await page.goto(`/${path}${path === 'training' ? `?dataset=${datasetId}` : ''}`)
     const status = page.locator('.llm-status')
-    await expect(status).toContainText('Preparando o modelo local')
-    state = 'ready'
-    await expect(status).toContainText('Modelo local carregado')
-    expect(posts).toBe(0)
-    await expect(page.getByRole('textbox', { name: /mensagem|conversa|pergunta/i })).toHaveCount(0)
-    await page.getByRole('button', { name: path === 'laboratory' ? 'Gerar dataset' : 'Iniciar treinamento', exact: true }).click()
+    await expect(status).toHaveCount(0)
+    const submitLabel = path === 'laboratory' ? 'Gerar dados de teste' : 'Iniciar treinamento'
+    const resultTitle = path === 'laboratory' ? 'Dataset concluído' : 'Resultado do pacote'
+    await page.getByRole('button', { name: submitLabel, exact: true }).click()
     await expect(page).toHaveURL(new RegExp(`job=${id}`))
-    state = 'paused'
-    await expect(status).toContainText('pausado durante geração ou treinamento')
-    await expect(status).toContainText('recarregado automaticamente')
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    await page.screenshot({ path: test.info().outputPath(`${path}-llm-paused-320.png`), fullPage: true })
-    complete = true; state = 'ready'
-    await expect(status).toContainText('Modelo local carregado')
-    await expect(page.getByRole('heading', { name: path === 'laboratory' ? 'Dataset concluído' : 'Resultado do pacote', exact: true })).toBeVisible()
+    complete = true
+    const result = page.getByRole('heading', { name: resultTitle, exact: true })
+    await expect(result).toBeVisible()
     await page.reload()
-    await expect(status).toContainText('Modelo local carregado')
+    await expect(result).toBeVisible()
+    await expect(status).toHaveCount(0)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
+    expect(statusRequests).toBe(0)
     expect(posts).toBe(1)
-    state = 'unavailable'
-    await expect(status).toContainText('Modelo local indisponível')
-    state = 'model_missing'
-    await expect(status).toContainText('Modelo local ainda não preparado')
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    expect(posts).toBe(1); expect(statusRequests).toBeGreaterThanOrEqual(6)
   })
 }

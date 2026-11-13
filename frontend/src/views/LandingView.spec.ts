@@ -3,10 +3,16 @@ import { mount } from '@vue/test-utils'
 import { expect, it, vi } from 'vitest'
 import LandingView from './LandingView.vue'
 
-it('apresenta a arquitetura e identifica claramente a demonstração simulada', () => {
+it('apresenta o painel atual e identifica a gravação anterior no link', () => {
   const wrapper = mount(LandingView, { global: { stubs: ['RouterLink'] } })
 
-  expect(wrapper.get('h1').text()).toContain('Da leitura do sensor')
+  expect(wrapper.get('h1').text()).toBe('Monitore ambientes refrigerados e seus equipamentos')
+  expect(wrapper.get('.hero-preview img').attributes('src')).toBe('/media/dashboard-overview.png')
+  expect(wrapper.get('.hero-preview figcaption').text()).toContain('dados simulados')
+  expect(wrapper.get('.hero router-link-stub').attributes('to')).toBe('/dashboard')
+  const recording = wrapper.get('.hero a[href="#demonstracao"]')
+  expect(recording.text()).toBe('Ver demonstração gravada')
+  expect(wrapper.get(`#${recording.attributes('aria-describedby')}`).text()).toContain('Versão anterior')
   expect(wrapper.findAll('.architecture-step')).toHaveLength(3)
   expect(wrapper.get('video').attributes('controls')).toBeDefined()
   expect(wrapper.get('track').attributes('src')).toBe('/media/coldsafe-demo.vtt')
@@ -36,7 +42,6 @@ it('recupera falha de vídeo sem autoplay e oferece alternativa fora do player',
 
 it('identifica gravação anterior e oferece transcrição quando legendas falham', async () => {
   const wrapper = mount(LandingView, { global: { stubs: ['RouterLink'] } })
-  expect(wrapper.get('.hero-preview figcaption').text()).toContain('imagem gerada por IA')
   expect(wrapper.get('.demo-video figcaption').text()).toContain('setembro de 2026')
   expect(wrapper.get('#transcript').text()).toContain('LED')
   await wrapper.get('track').trigger('error')

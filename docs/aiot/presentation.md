@@ -7,11 +7,128 @@ Resultados anteriores são identificados como evidência histórica; este docume
 não afirma que os 12 passos tenham sido executados novamente. A preparação
 Docker de 02/11/2026 está registrada separadamente abaixo.
 
+## Ensaio do passo 1 — 09/11/2026
+
+O Compose padrão já inclui a pilha completa. Na primeira subida deste ensaio,
+os volumes eram novos e o PostgreSQL estava sem contas, ambientes e dispositivos.
+O `models` reiniciava porque o catálogo apontava para um cadastro ausente. O
+Ollama também reiniciava porque seu volume somente leitura ainda não tinha os
+diretórios e pesos preparados. O preparo baixou o modelo, e a recuperação criou
+um admin local, o ambiente Hospital 1 e o dispositivo `sim-lab-01`, atualizou o
+vínculo do catálogo e provisionou dois tokens restritos para o InfluxDB novo.
+Os volumes atuais foram preservados e os arquivos locais anteriores tiveram backup.
+
+`docker compose up -d --wait --wait-timeout 420` terminou com 14 serviços
+saudáveis e dois inicializadores em `Exited (0)`. A inferência ficou saudável
+com zero reinícios após a recriação. Liveness e readiness retornaram HTTP 200.
+O login confirmou o papel admin, e o resumo autenticado retornou seis medições
+com persistência confirmada. O Insights retornou `no_model`, pois esta base
+ainda está sem modelo ativo. O próximo passo do roteiro é preparar e demonstrar
+os três papéis. Geração, treino, ativação e resposta do assistente continuam
+pendentes de validação ao vivo nesta instalação.
+
+## Ensaio do passo 2 — 09/11/2026
+
+As três contas locais estão preparadas. O admin preservou a propriedade do
+Hospital 1 e do simulador, enquanto operador e visualizador têm ambientes
+próprios para demonstrar permissões. Pela API autenticada, os três logins e
+papéis foram confirmados. A escrita como visualizador e o acesso do operador
+à Mensageria retornaram HTTP 403. O admin consultou a Mensageria e a telemetria
+do simulador. O visualizador consultou o dispositivo ativo `demo-leitura-01`
+no catálogo e recebeu HTTP 403 ao tentar cadastrar outro. Esse dispositivo é
+apenas para demonstrar o cadastro e não publica telemetria. O próximo passo
+é mostrar as leituras do simulador passando pelo Mosquitto na conta admin.
+
+## Ensaio do passo 5 — 10/11/2026
+
+Com o simulador em execução, foi pausado somente o gravador (`writer`). A
+fila `coldsafe.writer` teve 0 mensagens prontas antes da pausa, depois 1 e 3.
+Na primeira amostra da retomada havia 5; nas duas seguintes havia 0. O
+gravador voltou a `healthy`. A API administrativa mostrou a fila durante a
+retomada e o observador registrou `telemetry_persisted` para `sim-lab-01`.
+O ensaio mediu o acúmulo e a drenagem pelo RabbitMQ, sem injetar mensagens
+inválidas. Na apresentação, acompanhar a coluna **Prontas** da página
+Mensageria e mostrar a DLQ na condição encontrada. Próximo passo: bancos e
+histórico.
+
+## Ensaio do passo 6 — 10/11/2026
+
+O InfluxDB retornou duas temperaturas recentes de `sim-lab-01` em
+`telemetry_live`. O PostgreSQL confirmou Hospital 1, Ventilador ColdSafe,
+cadastro ativo, faixa de 2 a 8 °C e registros de auditoria de autenticação.
+As consultas autenticadas de histórico v3 retornaram HTTP 200 com 179 leituras
+em 15 min e 280 em 1 h na amostra. O histórico HTTP usa a projeção relacional.
+Para mostrar o InfluxDB ao vivo no navegador, habilite a interface local antes
+do ensaio. Este comando recria somente o InfluxDB e preserva seus volumes:
+
+```sh
+docker compose -f compose.yaml -f compose.override.yaml -f compose.influx-ui.yaml \
+  up -d --no-deps --wait --wait-timeout 90 influxdb
+```
+
+Abra [InfluxDB local](http://127.0.0.1:8086), entre com a conta configurada no
+`.env` e, no Data Explorer, selecione `telemetry_live`, `equipment_reading_v3`,
+`sim-lab-01` e `ambient_temperature_c`. Foram confirmados acesso HTTP, login,
+bucket e novas leituras após recriar o container. A porta fica só em loopback.
+Se rodar novamente a subida padrão sem esse arquivo adicional, reaplique o
+comando acima antes da demonstração visual. No ColdSafe, mostrar a troca de
+período e de medição no painel. Próximo passo: atualização pelo WebSocket.
+
+## Ensaio do passo 7 — 10/11/2026
+
+Um cliente autenticado recebeu dois eventos `telemetry` distintos na mesma
+conexão `/api/v3/events` para `sim-lab-01`. Cada evento trouxe seis medições,
+com cerca de cinco segundos entre leituras. No Chrome, usar **Network → WS →
+events → Messages** e mostrar uma mensagem recebida ao lado do dashboard. O
+cliente atual usa o evento para atualizar a consulta do resumo por REST. A
+troca visual no navegador e a recuperação após reconexão não foram repetidas
+neste ensaio. Próximo passo: buzzer por regra e LED pelo dashboard.
+
+## Ensaio do passo 8 — 10/11/2026
+
+No Hospital 1, a leitura inicial foi de 5,12 °C. Reduzir o máximo de 8 para
+4 °C ligou o buzzer automaticamente na telemetria. Restaurar a faixa de
+2 a 8 °C, com margem de 0,5 °C, confirmou o buzzer desligado. Pela API v3,
+ligar e desligar o LED produziram `pending`, ACK `confirmed` e o estado
+esperado em uma leitura persistida. A faixa original e o LED desligado
+foram confirmados no final. Os cliques no navegador ainda devem ser ensaiados.
+Próximo passo: geração de leituras no Laboratório de Dados.
+
+## Ensaio do passo 9 — 10/11/2026
+
+O formulário do Laboratório foi conferido no Chrome. O ensaio de geração foi
+disparado pela API autenticada com os mesmos padrões: 1.000.000 de linhas,
+seed 42, 100 equipamentos, 30 dias simulados e os seis tipos de sensor.
+O job `c40fc114-de78-4790-8dd9-0718b8c5dc6d` passou pela fila, execução e
+conclusão, observada em cerca de 3,2 s. A API confirmou 1.000.000 de linhas no
+dataset `d75e0e8c-4673-5513-898b-3af0e085ac0d` e retornou uma amostra de dez
+linhas. O assistente apareceu pausado durante o job e carregando após a
+conclusão. O clique de envio pelo navegador ainda precisa de ensaio.
+Próximo passo: treinar os dois modelos com o dataset concluído.
+
+## Ensaio do passo 10 — 11/11/2026
+
+O dataset mais recente do admin (`26f637ee-55e5-5810-bb63-aa29caa68e7d`,
+1.000.000 de linhas, seed 42) foi usado no treino disparado pela API. O job
+`dea83c44-0b44-4df3-98a0-95ae708b29d7` concluiu as duas etapas em cerca de
+173 s, com partições de 70/15/15 equipamentos. Ambos os modelos foram aptos.
+No teste reservado, saúde teve MAE 2,54 pontos (baseline 23,29), RMSE 3,25 e
+R² 0,986. RUL teve MAE 35,88 h (baseline 148,46 h), RMSE 52,34 h e R² 0,912.
+No recorte das últimas 24 h, a RUL teve MAE 14,05 h e R² −5,358 no teste.
+
+O pacote `27d326f4-83e3-544d-8d32-b784b478a4ea` foi ativado pela API de
+modelos e o Insights retornou previsão disponível para essa versão. O worker
+permaneceu com o mesmo container e zero reinícios. Na aula, iniciar o treino
+pela interface e mostrar as métricas e o gráfico **Previsto × real**. A
+ativação fica no Swagger (`POST /api/v3/model-activations`); use o ID do pacote
+da rodada demonstrada. Próximo passo: falha simulada, Insights e Gêmeo Digital.
+
 ## Preparação Docker do redesign — 02–03/11/2026
 
 **Redesign e núcleo operacionais; apresentação completa pendente do assistente.**
 O redesign foi reconstruído com AIoT habilitado,
-usando os cinco arquivos Compose do runbook e os volumes pessoais existentes.
+usando a composição de cinco arquivos adotada naquele ensaio e os volumes
+pessoais existentes.
 A entrada continua em [http://localhost:5173/](http://localhost:5173/), com Nginx
 sem root e API/Swagger locais. Não houve commit, push, troca de senha ou papel,
 nem descarte de volumes, filas, datasets ou modelos.
@@ -118,14 +235,6 @@ não uma medição neste Mac: exige conferir disponibilidade local, adaptar os
 contratos de inferência/carga/descarga e repetir os testes de memória, segurança
 e qualidade. Depende de nova escolha do usuário; não foi instalado nem ativado.
 
-Planejamento posterior, em 03/11: o usuário escolheu documentar um
-[roadmap do assistente com Metal](assistant-metal-roadmap.md), com ensaio futuro
-na bateria e aplicativos pessoais abertos. O documento separa viabilidade
-isolada de integração com a pilha, define critérios e reversão e registra as
-consultas de disponibilidade já realizadas. Somente a documentação foi
-autorizada nesta entrega; implementação, download e execução continuam pendentes.
-Esse cenário não altera a condição na tomada do roteiro de apresentação abaixo.
-
 O navegador autenticado confirmou seis medições, histórico e modelo ativo;
 WebGL 2 real com nove componentes, seleção por teclado, ID/dados associados e
 reflow em 390 px. A captura em
@@ -137,22 +246,22 @@ e consultados novamente, não geração/treino novos.
 No fechamento complementar da RD-18 em 03/11, as quatro telas autoatualizadas
 receberam controle de ocultar/mostrar dados ao vivo, mantendo coleta e comandos.
 O ensaio atual com leitor de tela foi dispensado pelo usuário e continua sem
-validação demonstrada. Consulte o [checkpoint RD-18](../redesign/tasks/RD-18.md#checkpoint).
-Esse fechamento não qualifica o assistente nem inicia outro RD.
+validação demonstrada.
 
 ## Preparação antes de chamar o professor
 
 - [ ] Entrega identificada por `git rev-parse HEAD` e `git status --short`.
   A base dos ensaios/revisão é `c6fa42d0314409610ab1dd4db14e4bfc9b55040f`;
-  conferir os commits de entrega posteriores na branch `codex/block-5-validation`.
+  conferir os commits de entrega posteriores no histórico da `main`.
   Um clone somente da base não contém as mudanças B2-34/B2-35. Não fabricar
   autores/commits para completar a rubrica.
 - [ ] Fazer o [comissionamento do runbook](../runbook.md#pilha-final-aiot-jobs-inferência-e-assistente):
   segredos, tokens InfluxDB restritos, conta proprietária, ambiente, `sim-lab-01`,
   catálogo e os dois UUIDs de proprietário. Baixar imagens/pesos previamente.
-- [ ] Definir a função `coldsafe` do runbook nesta sessão de terminal. Ela conserva
-  os cinco arquivos e perfis `aiot`/`simulator`. Todos os comandos abaixo usam
-  essa composição; não trocar por `docker compose` da base no meio do percurso.
+- [ ] Executar os comandos na raiz do projeto. `docker compose` combina a base
+  com o override e seleciona a pilha completa. Se for mostrar o InfluxDB no
+  navegador, aplique o [overlay local](#ensaio-do-passo-6--10112026) após a subida
+  padrão e antes da etapa 6.
 - [ ] Máquina ligada à tomada, Docker disponível e sem outra suíte/cálculo pesado.
   Verificar memória e espaço livre. A B2-34/R4 aprovou o Mac em AC/60 W; isso não
   comprova que a bateria foi a causa exclusiva das falhas anteriores.
@@ -185,9 +294,9 @@ usar `down`/recriação do simulador reinicia sua trajetória física.
 
 | Passo | Ação e observação esperada | Fonte para conferir |
 | --- | --- | --- |
-| 1. Infraestrutura | Executar `coldsafe up -d --build --wait --wait-timeout 420` e `coldsafe ps -a`. Mostrar 14 contínuos saudáveis; inicializadores de brokers encerrados com zero. Preparo de pesos já concluído. Conferir `/health/live` e `/health/ready`. | [Compose base](../../compose.yaml), [runbook](../runbook.md), [B2-34/R4](../evidence/b2-34.json) |
+| 1. Infraestrutura | Executar `docker compose up -d --wait --wait-timeout 420` e `docker compose ps -a`. Mostrar 14 serviços saudáveis e dois inicializadores com saída zero. Conferir `/health/live` e `/health/ready`. Prepare pesos e imagens antes da aula. | [Compose padrão](../../compose.override.yaml), [runbook](../runbook.md), [B2-34/R4](../evidence/b2-34.json) |
 | 2. Login e três papéis | Entrar separadamente como viewer, operator e admin; conferir papel atual. Viewer consulta, escrita deve ser recusada; operator altera apenas o seu cadastro/regras/LED; páginas administrativas exigem admin. Usar requisições autenticadas pelo OpenAPI para conferir recusa 403 quando a UI não oferece o botão. Outro proprietário recebe 404/recusa, mesmo sendo admin. | [Autenticação/papéis](../../backend/app/api/auth.py), [rotas v3](../../backend/app/api/aiot.py), [catálogo](../../backend/app/api/catalog.py) |
-| 3. Sensores e MQTT | Voltar à conta proprietária live; mostrar catálogo com seis sensores, dois atuadores e um ventilador. `coldsafe logs --tail 20 simulator gateway` mostra operação sem revelar credenciais. Mostrar tópicos e fluxo MQTT → gateway; no dashboard conferir idade/valores mudando, não apenas conexão. | [Simulador](../../simulator/README.md), [contrato v3](../../contracts/aiot.md), [diagrama de telemetria](architecture.md#telemetria-recibo-e-entrega-web) |
+| 3. Sensores e MQTT | Voltar à conta proprietária live; mostrar catálogo com seis sensores, dois atuadores e um ventilador. `docker compose logs --tail 20 simulator gateway` mostra operação sem revelar credenciais. Mostrar tópicos e fluxo MQTT → gateway; no dashboard conferir horário e valores das leituras. | [Simulador](../../simulator/README.md), [contrato v3](../../contracts/aiot.md), [diagrama de telemetria](architecture.md#telemetria-recibo-e-entrega-web) |
 | 4. FastAPI/REST | Abrir o link da API na interface ou `/docs` pela porta 5173. Mostrar contratos, autenticação, resumo/histórico do próprio dispositivo e respostas sem dados de terceiros. Não projetar o token ao autorizar. | [Proxy](../../frontend/nginx.conf), [rotas](../../backend/app/api/aiot.py), [OpenAPI local](http://localhost:5173/docs) |
 | 5. RabbitMQ | Em `/messaging`, mostrar taxas, filas, horário da coleta e amostras privadas. Parar só writer, ver backlog aumentar, retomar e ver reduzir. Mostrar DLQ, inclusive vazia; não inventar erro para preencher contador. Detalhes e comandos abaixo. | [Ensaio de backlog](../runbook.md#mensageria-b2-16-parar-e-retomar-o-gravador), [teste real de observação](../../backend/tests/infra/test_observation_integration.py) |
 | 6. Bancos e histórico | Conferir uma leitura live no InfluxDB (`telemetry_live`, `equipment_reading_v3`) e os seis campos de sensores. No PostgreSQL mostrar cadastro/regras/auditoria do próprio dispositivo. Consultar histórico via HTTP/UI e explicar a projeção SQL v3: não é leitura direta do Influx. Anotar event_id e UTC para cruzar evidências. | [Writer/teste](../../backend/tests/infra/test_writer_integration.py), [migrações](../../backend/migrations/README.md), [recibo e projeção](architecture.md#telemetria-recibo-e-entrega-web) |
@@ -196,7 +305,7 @@ usar `down`/recriação do simulador reinicia sua trajetória física.
 | 9. Laboratório | Em `/laboratory`, informar seed, intervalo, equipamentos, sensores, falhas e condições de operação. Gerar ≥1.000.000 de linhas; acompanhar job até conclusão, quantidade/validação/dataset_id. HTTP 202 é aceite, não dataset pronto. Mostrar a pausa do assistente durante o job. | [Geração](../../backend/app/services/generation.py), [UI](../../frontend/src/features/laboratory/), [B2-34/R4](../evidence/b2-34.json) |
 | 10. Treinamento/ativação | Em `/training`, selecionar o dataset concluído; treinar saúde e RUL. Mostrar MAE/RMSE/R², baseline, partições por equipamento, previsto × real e importância. Explicar rótulos sintéticos e ausência de vazamento. Ativar o pacote completo, aguardar estado concluído e conferir UUID/versão ativa; falha conserva o anterior. | [Métricas](../../backend/app/services/training.py), [features](../../backend/app/domain/features.py), [ativação](architecture.md#geração-treino-e-ativação) |
 | 11. Falha/Insights/3D | Injetar `bearing_wear` pelo controle operacional autorizado abaixo. Acompanhar degradação gradual, previsão válida de saúde/RUL e tendência em `/insights`, versão/freshness, sequência de histerese e alerta. Em `/digital-twin`, selecionar ventilador/sensores/LED/buzzer e comparar IDs/valores com dashboard. Demonstrar ausência de dados pausando pelo controle MQTT, depois retomar sem reset. | [Controles](../../simulator/README.md#controles-autorizados-do-operador), [inferência/alertas](architecture.md#inferência-e-alertas), [cena](../../frontend/src/features/digital-twin/DigitalTwinScene.vue) |
-| 12. LLM local | Após jobs terminarem e status pronto em `/assistant`, perguntar “Qual a situação do meu equipamento?” e uma pergunta específica baseada nos dados realmente presentes. Mostrar streaming, conclusão e referência à mesma falha/versão/idade. Perguntar sobre métricas/arquitetura e conferir a resposta contra a tela/documentos; se o resumo não contiver o dado, a resposta correta é declarar essa ausência. O LLM não controla LED nem consulta outros donos. | [Contexto autorizado](../../backend/app/services/assistant_context.py), [limites](architecture.md#assistente-local-e-coordenação-de-memória), [avaliação B2-32](tasks/B2-32.md), [R4](../evidence/b2-34.json) |
+| 12. LLM local | Após jobs terminarem e status pronto em `/assistant`, perguntar “Qual a situação do meu equipamento?” e uma pergunta específica baseada nos dados realmente presentes. Mostrar streaming, conclusão e referência à mesma falha/versão/idade. Perguntar sobre métricas/arquitetura e conferir a resposta contra a tela/documentos; se o resumo não contiver o dado, a resposta correta é declarar essa ausência. O LLM não controla LED nem consulta outros donos. | [Contexto autorizado](../../backend/app/services/assistant_context.py), [limites](architecture.md#assistente-local-e-coordenação-de-memória), [avaliação do assistente](../evidence/b2-32-final-2026-10-22.json), [R4](../evidence/b2-34.json) |
 
 Papéis não compartilham ambientes. O único `sim-lab-01` provisionado pertence ao
 admin live; não trocar a propriedade durante a prova. Para operador/viewer,
@@ -209,10 +318,10 @@ credencial/ACL própria; este roteiro não afirma que ele existe.
 Com o produtor ativo e a página Mensageria aberta:
 
 ```sh
-coldsafe stop writer
-coldsafe exec rabbitmq rabbitmqctl -q list_queues -p coldsafe name messages_ready messages_unacknowledged
-coldsafe start writer
-coldsafe logs --tail 30 writer
+docker compose stop writer
+docker compose exec rabbitmq rabbitmqctl -q list_queues -p coldsafe name messages_ready messages_unacknowledged
+docker compose start writer
+docker compose logs --tail 30 writer
 ```
 
 Espere o polling da página e compare horários/contagens. `consumers=0` pode ser
@@ -225,7 +334,7 @@ O teste de observação vinculado na etapa 5 injeta mensagem inválida em pilha
 **descartável** e comprova DLQ; se usar seu resultado histórico, declare isso.
 Não execute esse teste contra recursos pessoais durante a apresentação.
 
-Use `coldsafe start writer` se a demonstração for interrompida. Antes de um
+Use `docker compose start writer` se a demonstração for interrompida. Antes de um
 `down/up`, anote um evento, cadastro, job e versão ativa. Preserve todos os
 volumes e confira os mesmos IDs depois. O [runbook de recuperação](../runbook.md#reinício-e-recuperação-preservando-dados)
 explica brokers/jobs/Ollama e a trava ambígua; não limpar locks com carregador vivo
@@ -239,7 +348,7 @@ antes que ela é a identidade escolhida na instalação. Não exibir detalhes JS
 de auditoria, payloads de outras contas ou saídas de configuração.
 
 ```sh
-coldsafe exec -T postgres sh -ec \
+docker compose exec -T postgres sh -ec \
   'exec psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' <<'SQL'
 SELECT d.id, d.environment_id, d.mqtt_device_id, d.is_active,
        r.temp_min_c, r.temp_max_c
@@ -250,7 +359,7 @@ FROM audit_events a JOIN devices d ON d.id = a.device_id
 WHERE d.mqtt_device_id = 'sim-lab-01'
 ORDER BY a.occurred_at DESC LIMIT 5;
 SQL
-coldsafe exec -T influxdb sh -ec \
+docker compose exec -T influxdb sh -ec \
   'exec influx query --org "$DOCKER_INFLUXDB_INIT_ORG" --token "$DOCKER_INFLUXDB_INIT_ADMIN_TOKEN" "$1"' \
   sh 'from(bucket: "telemetry_live") |> range(start: -5m) |> filter(fn: (r) => r._measurement == "equipment_reading_v3" and r.device_id == "sim-lab-01") |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value") |> group() |> sort(columns: ["_time"], desc: true) |> limit(n: 2)'
 ```
@@ -267,7 +376,7 @@ Não digite a senha literal no comando projetado e não carregue `.env` como scr
 `-e` repassa o nome da variável; o valor não aparece nos argumentos do host.
 
 ```sh
-coldsafe run --rm --no-deps --entrypoint python \
+docker compose run --rm --no-deps --entrypoint python \
   -e MQTT_SIMULATOR_OPERATOR_PASSWORD simulator \
   -m simulator.control inject_fault --fault bearing_wear
 ```
@@ -281,16 +390,16 @@ deve medir a trajetória e ajustar a preparação, sem inventar aprovação.
 Para ausência de dados, use os controles MQTT, preservando a trajetória de falha:
 
 ```sh
-coldsafe run --rm --no-deps --entrypoint python \
+docker compose run --rm --no-deps --entrypoint python \
   -e MQTT_SIMULATOR_OPERATOR_PASSWORD simulator -m simulator.control stop
 # Aguarde mais de 30 s e confira freshness/indisponibilidade e animação congelada.
-coldsafe run --rm --no-deps --entrypoint python \
+docker compose run --rm --no-deps --entrypoint python \
   -e MQTT_SIMULATOR_OPERATOR_PASSWORD simulator -m simulator.control start
 ```
 
 O processo continua saudável quando pausado por esse controle; a retomada
-conserva desgaste/controles em memória. Já `coldsafe stop simulator` seguido de
-`coldsafe start simulator` reinicia o processo e seu estado físico. Não apresentar
+conserva desgaste/controles em memória. Já `docker compose stop simulator` seguido de
+`docker compose start simulator` reinicia o processo e seu estado físico. Não apresentar
 esse reset como recuperação física da falha. Confira telemetria nova antes do LLM.
 
 ## Perguntas para ensaiar e contribuições
@@ -340,24 +449,9 @@ a versão entregue.
   Git. Na apresentação, relacionar cada fluxo ao código, ao commit e à evidência
   real; uso de ferramentas não substitui saber explicar as decisões.
 
-## Registro de ensaio — preencher na B2-36
+## Evidências de referência
 
-O quadro abaixo preserva o estado da revisão B2-35. O encerramento posterior da
-[B2-36](tasks/B2-36.md), com evidências, limites e confirmação pelo usuário da
-correção final do assistente, está registrado no cartão; não representa nova
-execução automatizada ou medição dos campos históricos abaixo.
-
-| Campo | Estado nesta B2-35 |
-| --- | --- |
-| Data, versão final e máquina | Ensaio pendente; revisão documental em 23/10/2026 |
-| Passos 1–12, resultado observado e evidência nova | Pendentes; não executados por esta tarefa |
-| Duração total e de geração/treino/LLM | A medir; tempos anteriores são referências históricas |
-| Catálogo/seed/passo/limiares/modelo/contas usados | A registrar sem credenciais; identificar IDs autorizados |
-| Falha → previsão → histerese → alerta → 3D → resposta LLM | Trajetória live completa ainda a ensaiar |
-| Outro integrante seguiu a instalação | Não executado; revisão técnica independente não substitui teste humano |
-| Bloqueadores, correções e nova rodada | A registrar e repetir após mudanças materiais |
-
-As [evidências B2-34](../evidence/b2-34.json) registram stack real e regressão,
-mas não substituem o ensaio integral da falha live. A [B2-32](tasks/B2-32.md)
-avaliou respostas com dados preparados declarados. Exponha essas diferenças e
-os limites em vez de tratar inclusão de biblioteca ou captura antiga como prova.
+A [B2-34](../evidence/b2-34.json) registra a pilha real e a regressão.
+A [avaliação do assistente](../evidence/b2-32-final-2026-10-22.json) usou
+dados preparados. Registre a versão, a máquina, os passos executados e
+os resultados ao repetir o roteiro com a pilha da apresentação.

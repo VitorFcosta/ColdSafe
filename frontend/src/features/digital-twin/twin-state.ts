@@ -59,7 +59,7 @@ export function buildTwinItems(summary: MonitoringSummary | null, fresh: boolean
   })
   const actuators: TwinItem[] = (['led', 'buzzer'] as const).map((key, index) => ({
     key, id: summary?.inventory?.actuators[key] ?? summary?.equipment?.[key].actuator_id ?? null,
-    label: key === 'led' ? 'LED' : 'Buzzer', kind: 'actuator', position: [index ? 1 : -1, -2, 0],
+    label: key === 'led' ? 'LED' : 'Som de aviso', kind: 'actuator', position: [index ? 1 : -1, -2, 0],
     value: equipment ? equipment[key].actual_state ? 'Ligado' : 'Desligado' : noData,
     status: !equipment ? 'no_data' : key === 'buzzer' && equipment.buzzer.actual_state ? 'critical' : 'normal',
   }))

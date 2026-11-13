@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -7,7 +7,7 @@ import { chromium } from '@playwright/test'
 import assert from 'node:assert/strict'
 const here = dirname(fileURLToPath(import.meta.url))
 const base = process.env.RD02_BASE_URL ?? 'http://127.0.0.1:4175/experiments/rd02/'
-const output = resolve(process.env.RD02_OUTPUT ?? join(here, '../../../docs/redesign/assets/rd-09'))
+const output = resolve(process.env.RD02_OUTPUT ?? join(here, '../../../.impeccable/review/rd-09'))
 const profile = await mkdtemp(join(tmpdir(), 'coldsafe-rd09-cdp-'))
 const proc = spawn(chromium.executablePath(), ['--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', 'about:blank'], { stdio: 'ignore' })
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -45,6 +45,7 @@ try {
   const report={date:new Date().toISOString(),protocol:'Chromium nativo via CDP, perfil temporário, sem Playwright/Emulation de foco; troca real para outra aba. Mesmo build otimizado da medição RD-09.',browser:version.Browser,active,hiddenBefore,hiddenAfter,resumed}
   report.criteria={active:active.hidden===false&&active.state.animating,actuallyHidden:hiddenBefore.hidden&&hiddenAfter.hidden,stopped:hiddenBefore.state.animating===false&&hiddenAfter.state.animating===false,zeroRenders:hiddenAfter.probe.totalRenders===hiddenBefore.probe.totalRenders,resumed:resumed.hidden===false&&resumed.state.animating}
   report.passed=Object.values(report.criteria).every(Boolean)
+  await mkdir(output, { recursive: true })
   await writeFile(join(output, 'visibility-native.json'),JSON.stringify(report,null,2))
   console.log(JSON.stringify(report,null,2))
   assert.ok(report.passed,'Visibilidade real deve passar')

@@ -4,14 +4,14 @@ import { expect, test, type Page } from '@playwright/test'
 const requestId = '12345678-1234-4234-9234-123456789abc'
 const token = 'rd15-account'
 const envelope = (data: unknown) => ({ success: true, data, meta: { schema_version: 3 } })
-const evidence = new URL('../../.impeccable/review/rd-15/', import.meta.url)
+const evidence = new URL('../../.impeccable/review/ux-09/', import.meta.url)
 type FixtureWindow = Window & { rd15Stream: { enabled: boolean; posts: string[]; tokens: (string | null)[]; aborts: number; controller?: ReadableStreamDefaultController<Uint8Array> } }
 const question = (page: Page) => page.getByRole('textbox', { name: 'Sua pergunta', exact: true })
 const sendButton = (page: Page) => page.getByRole('button', { name: 'Enviar pergunta', exact: true })
 const exitDialog = (page: Page) => page.getByRole('dialog', { name: 'Sair e apagar a conversa?', exact: true })
 const checkLink = (page: Page) => page.getByRole('link', { name: 'Saúde e previsões', exact: true })
 
-async function assistant(page: Page) {
+async function assistant(page: Page, state = () => 'ready') {
   await page.addInitScript(({ token }) => {
     if (!sessionStorage.getItem('coldsafe-session')) sessionStorage.setItem('coldsafe-session', JSON.stringify({ token, expires_at: '2099-01-01T00:00:00Z' }))
     // Stream controlado no navegador: o cliente e o parser SSE de produção permanecem reais.
@@ -33,7 +33,7 @@ async function assistant(page: Page) {
   await page.route('**/api/**', route => route.fulfill({ status: 503, json: { success: false } }))
   await page.route('**/api/v1/auth/me', route => route.fulfill({ json: { success: true, data: { user_id: requestId, email: 'viewer@example.invalid', role: 'viewer' } } }))
   await page.route('**/api/v1/auth/logout', route => route.fulfill({ status: 200 }))
-  await page.route('**/api/v3/llm/status', route => route.fulfill({ json: envelope({ state: 'ready', model: 'test-model' }) }))
+  await page.route('**/api/v3/llm/status', route => route.fulfill({ json: envelope({ state: state(), model: 'test-model' }) }))
 }
 async function frame(page: Page, kind: string, data: unknown, close = false) {
   await page.evaluate(({ kind, data, close }) => {
@@ -56,17 +56,19 @@ async function settleCapture(page: Page) {
 async function postCount(page: Page) { return page.evaluate(() => (window as FixtureWindow).rd15Stream.posts.length) }
 
 for (const scenario of [{ width: 1440, text: 100 }, { width: 390, text: 100 }, { width: 320, text: 200 }]) {
-  test(`M-10 stream, foco e saída consciente: ${scenario.width}px texto ${scenario.text}% (stream simulado)`, async ({ page }) => {
-    await page.setViewportSize({ width: scenario.width, height: 1024 })
+  test(`M-10 primeiro uso, stream, foco e saída consciente: ${scenario.width}px texto ${scenario.text}% (stream simulado)`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: scenario.width, height: scenario.width === 390 ? 844 : 1024 })
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await assistant(page)
     await page.goto('/assistant?environment=ignored&device=ignored')
     if (scenario.text === 200) await page.addStyleTag({ content: 'html { font-size: 200% !important; }' })
     await expect(page.getByText('Modelo local pronto. Você já pode perguntar.', { exact: true })).toBeVisible()
-    await expect(question(page)).toHaveAccessibleDescription(/inclusive respostas concluídas/)
-    await expect(page.getByTestId('suggestion')).toHaveCount(6)
-    await mkdir(evidence, { recursive: true })
-    const name = scenario.width === 1440 ? 'desktop' : scenario.width === 390 ? 'mobile' : 'mobile-320-text-200'
+    const composer = page.getByRole('form', { name: 'Perguntar ao assistente' })
+    await expect(composer.getByTestId('suggestion')).toHaveCount(6)
+    await expect(question(page)).toHaveAccessibleDescription(/resumo dos dados autorizados da sua conta.*Monitoramento.*inclusive respostas concluídas/i)
+    await expect(composer.getByText(/As perguntas são registradas na auditoria local/)).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Conversa com o assistente' })).toHaveCount(0)
+    await expect(sendButton(page)).toBeDisabled()
     await expect(page.locator('.model-status')).toHaveClass(/ready/)
     await expect(question(page)).toHaveCSS('font-size', scenario.text === 200 ? '32px' : '16px')
     await settleCapture(page)
@@ -74,8 +76,16 @@ for (const scenario of [{ width: 1440, text: 100 }, { width: 390, text: 100 }, {
       const root = getComputedStyle(document.documentElement)
       return Object.fromEntries(['ink', 'ink-muted', 'surface', 'surface-muted', 'control-border', 'accent', 'accent-ink', 'status-normal', 'normal-surface', 'status-attention', 'attention-surface'].map(name => [name, root.getPropertyValue(`--cs-color-${name}`).trim()]))
     })
-    await page.screenshot({ path: new URL(`${name}.png`, evidence).pathname, fullPage: true })
+    if (scenario.width === 1440) {
+      await expect(composer).toBeInViewport({ ratio: 1 })
+      await mkdir(evidence, { recursive: true })
+      await page.screenshot({ path: new URL('desktop.png', evidence).pathname })
+    } else {
+      if (scenario.width === 390) await expect(question(page)).toBeInViewport({ ratio: 1 })
+      await page.screenshot({ path: testInfo.outputPath('first-use.png'), fullPage: true })
+    }
     await page.getByTestId('suggestion').first().click()
+    await expect(question(page)).toHaveValue('Qual é o estado atual dos equipamentos da minha conta?')
     await expect(question(page)).toBeFocused(); expect(await postCount(page)).toBe(0)
     await question(page).press('Tab'); await expect(sendButton(page)).toBeFocused(); await page.keyboard.press('Enter')
     await expect(page.getByText('Resposta em andamento', { exact: true })).toBeVisible()
@@ -90,14 +100,14 @@ for (const scenario of [{ width: 1440, text: 100 }, { width: 390, text: 100 }, {
     expect(await page.getByTestId('answer').evaluate(el => el.closest('[aria-live], [role="status"], [role="log"]') === null)).toBe(true)
     await expect(page.getByRole('list', { name: 'Conversa desta sessão', exact: true }).locator('img,script,a')).toHaveCount(0)
     await settleCapture(page)
-    await page.screenshot({ path: new URL(`${name}-stream.png`, evidence).pathname, fullPage: true })
+    await page.screenshot({ path: testInfo.outputPath('stream.png'), fullPage: true })
     await page.getByTestId('cancel').focus(); await page.keyboard.press('Enter')
     await expect(question(page)).toBeFocused()
     await expect(page.getByText('Resposta incompleta', { exact: true })).toBeVisible()
     await expect(page.getByText('Resposta concluída', { exact: true })).toHaveCount(0)
     expect(await page.evaluate(() => (window as FixtureWindow).rd15Stream.aborts)).toBeGreaterThan(0)
     await settleCapture(page)
-    await page.screenshot({ path: new URL(`${name}-incomplete.png`, evidence).pathname, fullPage: true })
+    await page.screenshot({ path: testInfo.outputPath('incomplete.png'), fullPage: true })
     await start(page, 'Pergunta de navegação')
     await frame(page, 'delta', { text: 'Ainda recebendo.' })
     await checkLink(page).click()
@@ -106,7 +116,7 @@ for (const scenario of [{ width: 1440, text: 100 }, { width: 390, text: 100 }, {
     expect(await dialog.evaluate(el => el.matches(':modal'))).toBe(true)
     await question(page).evaluate(el => (el as HTMLTextAreaElement).focus())
     await expect(stay).toBeFocused()
-    await page.screenshot({ path: new URL(`${name}-leave.png`, evidence).pathname })
+    await page.screenshot({ path: testInfo.outputPath('leave.png') })
     await page.keyboard.press('Escape')
     await expect(dialog).not.toBeVisible(); await expect(checkLink(page)).toBeFocused()
     await expect(page).toHaveURL('/assistant?environment=ignored&device=ignored')
@@ -118,7 +128,7 @@ for (const scenario of [{ width: 1440, text: 100 }, { width: 390, text: 100 }, {
         panels: [...document.querySelectorAll('.workspace > *')].map(el => ({ name: el.getAttribute('aria-label'), width: el.clientWidth, scrollWidth: el.scrollWidth })) }
     })
     expect(layout.scrollWidth).toBe(scenario.width)
-    await writeFile(new URL(`${name}-layout.json`, evidence), JSON.stringify({ ...layout, palette }, null, 2))
+    await writeFile(testInfo.outputPath('layout.json'), JSON.stringify({ ...layout, palette }, null, 2))
     await checkLink(page).click()
     await dialog.getByRole('button', { name: 'Sair do assistente', exact: true }).click()
     await expect(page).toHaveURL('/insights')
@@ -128,6 +138,37 @@ for (const scenario of [{ width: 1440, text: 100 }, { width: 390, text: 100 }, {
     expect(await postCount(page)).toBe(2)
   })
 }
+
+test('explica excesso em bytes junto ao campo e libera envio ao corrigir', async ({ page }) => {
+  await assistant(page); await page.goto('/assistant')
+  await expect(question(page)).toHaveAccessibleDescription(/Acentos e emojis podem ocupar mais de um byte/)
+  await question(page).fill('🧊'.repeat(65))
+  await expect(page.locator('#question-limit')).toContainText('260 / 256 bytes UTF-8')
+  await expect(question(page)).toHaveAttribute('aria-invalid', 'true')
+  await expect(question(page)).toHaveAccessibleDescription(/Encurte o texto para enviar/)
+  await expect(page.getByRole('alert')).toContainText('A pergunta passou de 256 bytes')
+  await expect(sendButton(page)).toBeDisabled()
+  expect(await postCount(page)).toBe(0)
+  await question(page).fill('🧊'.repeat(64))
+  await expect(page.locator('#question-limit')).toContainText('256 / 256 bytes UTF-8')
+  await expect(question(page)).not.toHaveAttribute('aria-invalid', 'true')
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(sendButton(page)).toBeEnabled()
+})
+
+test('indisponibilidade conserva a pergunta preparada e recuperação aguarda envio', async ({ page }) => {
+  let state = 'unavailable'
+  await assistant(page, () => state); await page.goto('/assistant')
+  const composer = page.getByRole('form', { name: 'Perguntar ao assistente' })
+  await expect(composer.getByRole('status')).toContainText('Assistente local indisponível')
+  await composer.getByTestId('suggestion').first().click()
+  await expect(question(page)).toBeFocused()
+  await expect(sendButton(page)).toBeDisabled()
+  state = 'ready'
+  await expect(sendButton(page)).toBeEnabled()
+  await expect(question(page)).toHaveValue('Qual é o estado atual dos equipamentos da minha conta?')
+  expect(await postCount(page)).toBe(0)
+})
 
 test('resposta concluída continua local e saída não abre aviso de resposta em andamento', async ({ page }) => {
   await assistant(page); await page.goto('/assistant'); await start(page)

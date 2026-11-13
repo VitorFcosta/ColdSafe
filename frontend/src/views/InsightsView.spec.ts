@@ -28,7 +28,9 @@ const device = { id: prediction.device_record_id, environment_id: prediction.env
 const otherDevice = { ...device, id: '00000000-0000-4000-8000-000000000999', mqtt_device_id: 'other-device', name: 'Outro motor' }
 const snapshot: InsightsSnapshot = { device_id: device.mqtt_device_id, equipment_id: prediction.data.equipment_id, rules, prediction, availability: 'available', age_seconds: 0, trend: 'declining', active_alerts: [] }
 const alert = { alert_id: '00000000-0000-4000-8000-000000000999', kind: 'predictive_failure' as const, opened_at: prediction.received_at, source_event_id: prediction.data.source_event_id, prediction_event_id: prediction.event_id }
-const mount = (attached = false) => shallowMount(InsightsView, { attachTo: attached ? document.body : undefined, global: { stubs: { LiveDataRegion: false, RouterLink: { template: '<a><slot /></a>' } } } })
+const mount = (attached = false) => shallowMount(InsightsView, { attachTo: attached ? document.body : undefined, global: { stubs: { LiveDataRegion: false, MonitoringEmptyState: false, RouterLink: { template: '<a><slot /></a>' } } } })
+
+const editRules = (wrapper: ReturnType<typeof mount>) => wrapper.get('button.rules-edit').trigger('click')
 
 beforeEach(() => {
   Object.assign(useRoute(), { path: '/dashboard', query: {}, hash: '' })
@@ -48,16 +50,16 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers())
 
 describe('InsightsView', () => {
-  it('exibe equipamento autorizado, zero real, tendência, versão e idade', async () => {
+  it('exibe equipamento autorizado, zero real, situação da última previsão, versão e idade', async () => {
     const wrapper = mount()
     await flushPromises()
     expect(wrapper.get('h1').text()).toBe('Saúde e previsões')
     expect(wrapper.get('h1').attributes('tabindex')).toBe('-1')
-    expect(wrapper.get('[aria-label="Insights do equipamento"]').text()).toContain('0 h')
+    expect(wrapper.get('[aria-label="Previsão do equipamento"]').text()).toContain('0 h')
     expect(wrapper.text()).toContain('Em queda')
     expect(wrapper.text()).toContain('fan-model-1')
     expect(wrapper.text()).toContain('Agora mesmo')
-    expect(wrapper.text()).toContain('não calibrados')
+    expect(wrapper.text()).toContain('sem calibração em equipamento real')
     expect(fetchInsights).toHaveBeenCalledWith('token-A', device, expect.any(AbortSignal))
     wrapper.unmount()
   })
@@ -66,15 +68,15 @@ describe('InsightsView', () => {
     const wrapper = mount()
     await flushPromises()
     expect(wrapper.text()).toContain('Saúde estimada')
-    expect(wrapper.text()).toContain('Vida útil restante estimada')
-    expect(wrapper.text()).toContain('dados sintéticos')
+    expect(wrapper.text()).toContain('Vida útil restante')
+    expect(wrapper.text()).toContain('dados gerados para teste')
     expect(wrapper.text()).toContain(snapshot.equipment_id)
     expect(wrapper.text()).toContain(prediction.data.features_version)
     expect(wrapper.text()).toContain(Intl.DateTimeFormat().resolvedOptions().timeZone)
     expect(wrapper.findAll('time').map((time) => time.attributes('datetime'))).toEqual(expect.arrayContaining([
       prediction.data.input_received_at, prediction.occurred_at, alert.opened_at,
     ]))
-    const events = wrapper.get('[aria-label="Alertas preditivos ativos"]')
+    const events = wrapper.get('[aria-labelledby="insights-alerts"]')
     expect(events.text()).toContain(alert.source_event_id)
     expect(events.text()).toContain(alert.prediction_event_id)
     wrapper.unmount()
@@ -86,6 +88,7 @@ describe('InsightsView', () => {
   ] as const)('associa o erro de %s e foca o primeiro campo inválido, sem salvar', async (key, value, message) => {
     const wrapper = mount(true)
     await flushPromises()
+    await editRules(wrapper)
     const input = wrapper.get(`input[name="${key}"]`)
     await input.setValue(value)
     await wrapper.get('form').trigger('submit')
@@ -98,24 +101,32 @@ describe('InsightsView', () => {
     wrapper.unmount()
   })
 
-  it('cancelar restaura os seis valores confirmados, limpa o aviso e não envia PUT', async () => {
-    const wrapper = mount()
+  it('cancelar retorna à consulta, restaura os valores confirmados e não envia PUT', async () => {
+    const wrapper = mount(true)
     await flushPromises()
+    await editRules(wrapper)
     await wrapper.get('input[name="open_count"]').setValue(7)
     await wrapper.get('input[name="health_critical"]').setValue(25)
     expect(wrapper.text()).toContain('Há alterações não salvas')
     await vi.advanceTimersByTimeAsync(2000)
     expect((wrapper.get('input[name="open_count"]').element as HTMLInputElement).value).toBe('7')
-    await wrapper.findAll('button').find((button) => button.text() === 'Cancelar alterações')!.trigger('click')
+    await wrapper.findAll('button').find((button) => button.text() === 'Cancelar edição')!.trigger('click')
+    expect(wrapper.find('form').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Alterações descartadas.')
+    expect(document.activeElement).toBe(wrapper.get('button.rules-edit').element)
+    await editRules(wrapper)
     for (const [key, value] of Object.entries(rules)) expect((wrapper.get(`input[name="${key}"]`).element as HTMLInputElement).value).toBe(String(value))
     expect(wrapper.text()).not.toContain('Há alterações não salvas')
+    await wrapper.findAll('button').find((button) => button.text() === 'Cancelar edição')!.trigger('click')
+    expect(wrapper.find('form').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('Alterações descartadas.')
     expect(savePredictiveRules).not.toHaveBeenCalled()
     wrapper.unmount()
   })
 
   it.each([
     ['no_model', 'Nenhum modelo ativo'], ['insufficient_history', 'Histórico insuficiente'],
-    ['invalid_features', 'Variáveis inválidas'], ['model_unavailable', 'modelo ativo'],
+    ['invalid_features', 'Não foi possível calcular a previsão com estas leituras'], ['model_unavailable', 'modelo ativo'],
   ] as const)('distingue o motivo %s sem inventar estimativas ou encerrar alerta', async (reason, label) => {
     vi.mocked(fetchInsights).mockResolvedValueOnce({ ...snapshot, prediction: { ...prediction,
       data: { ...prediction.data, status: 'unavailable', reason, health_score: null, rul_hours: null } },
@@ -123,8 +134,8 @@ describe('InsightsView', () => {
     const wrapper = mount()
     await flushPromises()
     expect(wrapper.text()).toContain(label)
-    expect(wrapper.get('[aria-label="Insights do equipamento"]').text()).not.toContain('0 h')
-    expect(wrapper.text()).toContain('Alerta preditivo persistente')
+    expect(wrapper.get('[aria-label="Previsão do equipamento"]').text()).not.toContain('0 h')
+    expect(wrapper.text()).toContain('Alerta preditivo')
     wrapper.unmount()
   })
   it.each(['viewer', null] as const)('papel %s lê regras mas não pode editá-las', async (role) => {
@@ -133,24 +144,29 @@ describe('InsightsView', () => {
     await flushPromises()
     expect(wrapper.find('input').exists()).toBe(false)
     expect(wrapper.text()).toContain('Somente operadores e administradores')
-    expect(wrapper.text()).toContain('3 previsões críticas')
+    expect(wrapper.get('.applied-rules').text()).toContain('3 previsões críticas')
+    expect(wrapper.find('button.rules-edit').exists()).toBe(false)
     wrapper.unmount()
   })
   it.each(['operator', 'admin'] as const)('papel %s salva regras completas e confirma resultado', async (role) => {
     sessionRole.value = role
     const wrapper = mount()
     await flushPromises()
+    await editRules(wrapper)
     await wrapper.get('input[name="open_count"]').setValue(4)
     vi.mocked(savePredictiveRules).mockResolvedValueOnce({ ...rules, open_count: 4 })
     await wrapper.get('form').trigger('submit')
     await flushPromises()
     expect(savePredictiveRules).toHaveBeenCalledWith('token-A', device, { ...rules, open_count: 4 }, expect.any(AbortSignal))
     expect(wrapper.text()).toContain('Regras salvas')
+    expect(wrapper.find('form').exists()).toBe(false)
+    expect(wrapper.get('.applied-rules').text()).toContain('4 previsões críticas')
     wrapper.unmount()
   })
   it('não envia regras inválidas nem apaga edição durante polling', async () => {
     const wrapper = mount()
     await flushPromises()
+    await editRules(wrapper)
     await wrapper.get('input[name="health_critical"]').setValue(50)
     await vi.advanceTimersByTimeAsync(2000)
     expect((wrapper.get('input[name="health_critical"]').element as HTMLInputElement).value).toBe('50')
@@ -165,11 +181,11 @@ describe('InsightsView', () => {
     await flushPromises()
     vi.mocked(fetchInsights).mockRejectedValue(new Error('secret diagnostic'))
     await vi.advanceTimersByTimeAsync(2000)
-    expect(wrapper.text()).toContain('Alerta preditivo persistente')
+    expect(wrapper.text()).toContain('Alerta preditivo')
     expect(wrapper.text()).toContain('Não foi possível atualizar')
     expect(wrapper.text()).not.toContain('secret diagnostic')
-    expect(wrapper.get('[aria-label="Insights do equipamento"]').text()).not.toContain('0 h')
-    expect(wrapper.text()).not.toContain('Nenhum alerta preditivo ativo')
+    expect(wrapper.get('[aria-label="Previsão do equipamento"]').text()).not.toContain('0 h')
+    expect(wrapper.text()).not.toContain('Nenhum alerta preditivo em aberto')
     wrapper.unmount()
   })
   it('ausência de previsão não é recuperação nem limpa alerta', async () => {
@@ -177,8 +193,8 @@ describe('InsightsView', () => {
     const wrapper = mount()
     await flushPromises()
     expect(wrapper.text()).toContain('Sem previsão')
-    expect(wrapper.text()).toContain('não significa recuperação')
-    expect(wrapper.text()).toContain('Alerta preditivo persistente')
+    expect(wrapper.get('.events').text()).toContain('Aberto em')
+    expect(wrapper.text()).toContain('Alerta preditivo')
     wrapper.unmount()
   })
   it('idade local vence previsão durante consulta pendente e cancela ao desmontar', async () => {
@@ -189,7 +205,7 @@ describe('InsightsView', () => {
     expect(fetchInsights).toHaveBeenCalledTimes(2)
     expect(wrapper.text()).toContain('Previsão desatualizada')
     expect(wrapper.text()).toContain('Há 31 s')
-    expect(wrapper.get('[aria-label="Insights do equipamento"]').text()).not.toContain('0 h')
+    expect(wrapper.get('[aria-label="Previsão do equipamento"]').text()).not.toContain('0 h')
     const signal = vi.mocked(fetchInsights).mock.calls[1]![2]!
     wrapper.unmount()
     expect(signal.aborted).toBe(true)
@@ -208,7 +224,7 @@ describe('InsightsView', () => {
     resolve({ ...snapshot, active_alerts: [alert] })
     await flushPromises()
     expect(wrapper.text()).not.toContain('fan-model-1')
-    expect(wrapper.text()).not.toContain('Alerta preditivo persistente')
+    expect(wrapper.text()).not.toContain('Alerta preditivo')
     wrapper.unmount()
   })
   it.each([401, 403, 404])('revogação HTTP %s remove valores e alertas privados', async (status) => {
@@ -217,7 +233,7 @@ describe('InsightsView', () => {
     vi.mocked(fetchInsights).mockRejectedValueOnce(new InsightsAccessError(status))
     await vi.advanceTimersByTimeAsync(2000)
     expect(wrapper.text()).not.toContain('fan-model-1')
-    expect(wrapper.text()).not.toContain('Nenhum alerta preditivo ativo')
+    expect(wrapper.text()).not.toContain('Nenhum alerta preditivo em aberto')
     if (status === 401) expect(sessionToken.value).toBeNull()
     else expect(wrapper.text()).toContain('Acesso ao equipamento indisponível')
     wrapper.unmount()
@@ -238,13 +254,13 @@ describe('InsightsView', () => {
     vi.mocked(listEnvironments).mockResolvedValueOnce([])
     const wrapper = mount()
     await flushPromises()
-    expect(wrapper.text()).toContain('Nenhum ambiente autorizado')
+    expect(wrapper.text()).toContain('Nenhum ambiente disponível para sua conta')
     expect(fetchInsights).not.toHaveBeenCalled()
     wrapper.unmount()
     vi.mocked(listEnvironments).mockRejectedValueOnce(new Error('secret'))
     const failed = mount()
     await flushPromises()
-    expect(failed.text()).toContain('Não foi possível carregar o catálogo')
+    expect(failed.text()).toContain('Não foi possível carregar ambientes ou dispositivos')
     failed.unmount()
   })
   it('não consulta sem sessão', async () => {
@@ -262,16 +278,16 @@ describe('InsightsView', () => {
     await flushPromises()
     expect(wrapper.text()).toContain('Previsão indisponível')
     expect(wrapper.text()).toContain('Nenhum modelo ativo')
-    expect(wrapper.text()).not.toContain('Nenhum alerta preditivo ativo')
+    expect(wrapper.text()).not.toContain('Nenhum alerta preditivo em aberto')
     wrapper.unmount()
   })
   it.each(['no_data', 'stale'] as const)('mostra idade da entrada sem envelope de previsão: %s', async (availability) => {
     vi.mocked(fetchInsights).mockResolvedValueOnce({ ...snapshot, prediction: null, availability, age_seconds: availability === 'stale' ? 31 : 4, trend: 'unknown' })
     const wrapper = mount()
     await flushPromises()
-    expect(wrapper.text()).toContain('Idade da entrada')
+    expect(wrapper.text()).toContain('Idade da leitura')
     expect(wrapper.text()).toContain(availability === 'stale' ? 'Há 31 s' : 'Agora mesmo')
-    expect(wrapper.text()).not.toContain('Nenhum alerta preditivo ativo')
+    expect(wrapper.text()).not.toContain('Nenhum alerta preditivo em aberto')
     wrapper.unmount()
   })
   it('erro inicial não inventa previsão nem alertas vazios e polling recupera', async () => {
@@ -279,10 +295,10 @@ describe('InsightsView', () => {
     const wrapper = mount()
     await flushPromises()
     expect(wrapper.text()).toContain('Não foi possível atualizar')
-    expect(wrapper.text()).not.toContain('Nenhum alerta preditivo ativo')
+    expect(wrapper.text()).not.toContain('Nenhum alerta preditivo em aberto')
     await vi.advanceTimersByTimeAsync(2000)
     expect(wrapper.text()).toContain('Previsão disponível')
-    expect(wrapper.text()).toContain('Nenhum alerta preditivo ativo')
+    expect(wrapper.text()).toContain('Nenhum alerta preditivo em aberto')
     wrapper.unmount()
   })
   it('timeout cancela consulta e polling retoma sem sobreposição', async () => {
@@ -309,7 +325,7 @@ describe('InsightsView', () => {
     await wrapper.get('select[name="environment"]').setValue(envB)
     await flushPromises()
     expect(wrapper.text()).not.toContain('fan-model-1')
-    expect(wrapper.text()).toContain('Nenhum equipamento ativo')
+    expect(wrapper.text()).toContain('Nenhum dispositivo ativo')
     wrapper.unmount()
   })
   it('ignora catálogo antigo após mudar conta e após desmontar', async () => {
@@ -337,7 +353,7 @@ describe('InsightsView', () => {
     vi.mocked(listDevices).mockRejectedValueOnce(new Error('private'))
     const wrapper = mount()
     await flushPromises()
-    expect(wrapper.text()).toContain('Não foi possível carregar o catálogo')
+    expect(wrapper.text()).toContain('Não foi possível carregar ambientes ou dispositivos')
     expect(fetchInsights).not.toHaveBeenCalled()
     wrapper.unmount()
   })
@@ -346,6 +362,7 @@ describe('InsightsView', () => {
     vi.mocked(refreshSessionIdentity).mockRejectedValueOnce(new Error('offline'))
     const wrapper = mount()
     await flushPromises()
+    await editRules(wrapper)
     await wrapper.get('form').trigger('submit')
     await flushPromises()
     expect(wrapper.text()).not.toContain('private')
@@ -357,6 +374,7 @@ describe('InsightsView', () => {
     vi.mocked(savePredictiveRules).mockImplementationOnce(() => new Promise((_, fail) => { reject = fail }))
     const wrapper = mount()
     await flushPromises()
+    await editRules(wrapper)
     await wrapper.get('form').trigger('submit')
     const signal = vi.mocked(savePredictiveRules).mock.calls[0]![3]!
     sessionToken.value = 'token-B'
@@ -366,6 +384,7 @@ describe('InsightsView', () => {
     await flushPromises()
     expect(sessionToken.value).toBe('token-B')
     vi.mocked(savePredictiveRules).mockImplementationOnce(() => new Promise((_, fail) => { reject = fail }))
+    await editRules(wrapper)
     await wrapper.get('form').trigger('submit')
     wrapper.unmount()
     reject(new InsightsAccessError(401))
@@ -377,6 +396,7 @@ describe('InsightsView', () => {
     vi.mocked(savePredictiveRules).mockImplementationOnce(() => new Promise((done) => { resolve = done }))
     const wrapper = mount()
     await flushPromises()
+    await editRules(wrapper)
     await wrapper.get('form').trigger('submit')
     await wrapper.get('select[name="device"]').setValue(otherDevice.id)
     await flushPromises()
