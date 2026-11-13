@@ -83,22 +83,7 @@ conta; as outras podem mostrar ausência de leitura. Não reutilize UUIDs nem
 credenciais do catálogo live entre contas. Não rebaixe o único administrador:
 a API atual permite alterar o próprio papel e não protege o último admin.
 
-## Demonstrar, verificar e retomar
-
-O [roteiro final](docs/aiot/presentation.md) segue os 12 passos do professor:
-infraestrutura, papéis, MQTT, REST, RabbitMQ, bancos, WebSocket, atuadores,
-geração de ≥1 milhão, treino/ativação, falha/3D e LLM. Inclui comandos, evidências,
-recuperação e perguntas. A previsão live exige modelo ativo e histórico causal
-(padrão: uma hora); acelerar desgaste não acelera o relógio UTC desse histórico.
-A falha aumenta a degradação gradualmente. Não prometa alerta instantâneo.
-
-A [evidência da B2-34](docs/evidence/b2-34.json) registra regressão e pilha real
-aprovada no Mac conectado à tomada, sem OOM nas amostras. Quatro respostas SSE
-levaram 35–67 s; treino ficou próximo do teto de 1 GiB. Houve falhas anteriores
-preservadas. Esses resultados não são SLA nem ensaio final da apresentação.
-A B2-36 foi encerrada em 25/10/2026 por aceite manual do usuário, incluindo
-sua confirmação da correção do assistente. Os ensaios posteriores constam do
-[roteiro da apresentação](docs/aiot/presentation.md).
+## Desenvolvimento e testes
 
 Para desenvolvimento, instale o [ambiente Python](docs/configuration.md#instalar-as-dependências-de-teste)
 e as [dependências do frontend e do Playwright](frontend/README.md#como-executar).
@@ -113,17 +98,5 @@ Depois do build, execute o [Playwright nos modos legado e v3](frontend/README.md
 O ensaio de stack é descartável e exige suas condições específicas. Use
 os ambientes de teste descritos nos guias.
 O firmware tem validação separada no guia legado.
-O [índice documental](docs/README.md) reúne os guias de instalação, operação,
-arquitetura e demonstração.
-
-## Autoria e estado da entrega
-
-Em 23/10/2026, `git shortlog -sne HEAD` registra 74 commits sob o nome **vitor hugo**.
-O usuário confirmou **vitor hugo como único integrante e responsável pelo projeto**.
-O histórico Git registra a mesma autoria. Alterações locais não contam como
-commits publicados.
-Não foram fabricados commits, autores ou contribuições para satisfazer a rubrica.
-
-Nenhuma conta de demonstração é criada por este documento. Segredos e catálogo
-local continuam ignorados pelo Git. O acesso remoto/publicação não integra esta
-entrega; configuração e limites estão no [guia de configuração](docs/configuration.md).
+O [índice documental](docs/README.md) reúne os guias de instalação, operação e
+arquitetura.
