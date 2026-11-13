@@ -81,3 +81,86 @@ nav [aria-current='page'] {
   text-decoration-thickness: 2px;
   text-underline-offset: 0.3em;
 }
+
+.area-heading > h1 {
+  font-size: var(--cs-type-32);
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.025em;
+}
+
+.area-heading > p {
+  max-width: 70ch;
+  margin: var(--cs-space-12) 0 0;
+  color: var(--cs-color-ink-muted);
+  font-size: var(--cs-type-14);
+  line-height: 1.6;
+}
+
+@media (max-width: 50rem) {
+  .area-heading > h1 { font-size: var(--cs-type-24); }
+}
+
+/* RD-01: primeiros consumidores; outras páginas migram nos próprios cartões. */
+.cs-controls {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.cs-controls :where(h1, h2) { font-weight: 650; }
+.cs-controls h1 { line-height: 1.25; }
+.cs-controls h2 { line-height: 1.4; }
+.cs-controls :where(label, button) { font-size: var(--cs-type-14); font-weight: 600; line-height: 1.4286; }
+
+.cs-controls :where(input) {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--cs-control-min-height);
+  padding: var(--cs-space-8) var(--cs-space-12);
+  border: 1px solid var(--cs-color-control-border);
+  border-radius: var(--cs-radius-8);
+  background: var(--cs-color-surface);
+  color: var(--cs-color-ink);
+  font: inherit;
+  font-size: var(--cs-type-16);
+  caret-color: var(--cs-color-accent);
+}
+
+.cs-controls :where(input)::placeholder { color: var(--cs-color-ink-muted); opacity: 1; }
+.cs-controls :where(input)[aria-invalid='true'] { border-color: var(--cs-color-status-critical); }
+.cs-controls :where(input):disabled { background: var(--cs-color-surface-muted); cursor: not-allowed; }
+
+.cs-controls :where(button) {
+  min-height: var(--cs-control-min-height);
+  padding: var(--cs-space-12) var(--cs-space-16);
+  border: 1px solid var(--cs-color-control-border);
+  border-radius: var(--cs-radius-8);
+  background: var(--cs-color-surface);
+  color: var(--cs-color-ink);
+  cursor: pointer;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  transition: background-color var(--cs-motion-quick), color var(--cs-motion-quick), border-color var(--cs-motion-quick);
+}
+
+.cs-controls :where(button):hover:enabled { background: var(--cs-color-surface-muted); }
+.cs-controls :where(button):active:enabled { border-color: var(--cs-color-accent); }
+.cs-controls .primary { border-color: transparent; background: var(--cs-color-accent); color: var(--cs-color-accent-ink); }
+.cs-controls .primary:hover:enabled { background: var(--cs-color-accent-hover); }
+.cs-controls .primary:active:enabled { background: var(--cs-color-accent-hover); }
+.cs-controls .danger { color: var(--cs-color-status-critical); border-color: var(--cs-color-status-critical); }
+.cs-controls .danger:hover:enabled { background: var(--cs-color-critical-surface); }
+.cs-controls :where(button):disabled {
+  background: var(--cs-color-surface-muted);
+  border-color: var(--cs-color-control-border);
+  color: var(--cs-color-ink-muted);
+  cursor: not-allowed;
+}
+.cs-controls form[aria-busy='true'] :where(button, input):disabled { cursor: progress; }
+
+.cs-controls .feedback { margin-block: var(--cs-space-16); padding: var(--cs-space-12); border: 1px solid; border-radius: var(--cs-radius-8); }
+.cs-controls .error { color: var(--cs-color-status-critical); }
+.cs-controls .feedback.error { background: var(--cs-color-critical-surface); border-color: var(--cs-color-status-critical); }
+.cs-controls .feedback.success { background: var(--cs-color-normal-surface); border-color: var(--cs-color-status-normal); color: var(--cs-color-status-normal); }
+.cs-controls .field-error { color: var(--cs-color-status-critical); font-size: var(--cs-type-14); }
+.cs-controls .hint { color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }

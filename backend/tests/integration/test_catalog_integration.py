@@ -61,7 +61,7 @@ def test_owner_isolation_unique_devices_rules_and_soft_deactivation() -> None:
             return x_test_user
 
         app = FastAPI()
-        app.include_router(create_catalog_router(catalog, current_user))
+        app.include_router(create_catalog_router(catalog, current_user, require_operator=current_user))
         client = TestClient(app)
         headers = {"X-Test-User": str(stranger)}
         assert client.get(f"/api/v1/environments/{environment_id}", headers=headers).status_code == 404

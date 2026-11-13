@@ -1,6 +1,9 @@
 from datetime import UTC, datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import Mock
+import copy
+import json
+from pathlib import Path
 
 import pytest
 
@@ -287,3 +290,48 @@ def test_query_translates_influx_client_failure(repository, query_api):
 
     with pytest.raises(DependencyUnavailableError, match="query failed"):
         repository.get_latest("esp32-lab-01")
+
+
+def accepted_event():
+    examples = json.loads((Path(__file__).resolve().parents[3] /
+                           'contracts/examples/aiot.valid.json').read_text())
+    event = next(item['payload'] for item in examples if item['name'] == 'telemetry_edge')
+    event['received_at'] = '2026-10-12T18:00:00.123456Z'
+    return event
+
+
+def test_save_event_keeps_six_sensors_identity_states_and_stable_point(repository, write_api):
+    event = accepted_event()
+    original = copy.deepcopy(event)
+    repository.save_event(event=event)
+    repository.save_event(event=event)
+    assert write_api.write.call_args_list[0] == write_api.write.call_args_list[1]
+    record = write_api.write.call_args.kwargs['record']
+    assert record['measurement'] == 'equipment_reading_v3'
+    assert record['tags'] == {key: event[key] for key in
+                              ('device_id', 'device_record_id', 'environment_id', 'event_id')} | {
+                                  'equipment_id': event['data']['equipment']['equipment_id']}
+    assert record['time'] == event['received_at']
+    fields = record['fields']
+    for role, field in (
+        ('ambient_temperature', 'ambient_temperature_c'), ('humidity', 'humidity_percent'),
+        ('light', 'light_percent'), ('vibration', 'vibration_rms_mm_s'),
+        ('motor_current', 'motor_current_a'), ('motor_temperature', 'motor_temperature_c'),
+    ):
+        assert fields[field] == event['data']['measurements'][role]['value']
+        assert type(fields[field]) is float  # JSON integers must not create Influx field conflicts.
+        assert fields[role + '_sensor_id'] == event['data']['measurements'][role]['sensor_id']
+    assert fields['running'] is True
+    for role in ('led', 'buzzer'):
+        assert fields[role + '_actual_state'] == event['data']['actuators'][role]['actual_state']
+        assert fields[role + '_actuator_id'] == event['data']['actuators'][role]['actuator_id']
+    assert fields['occurred_at'] == event['occurred_at']
+    assert fields['received_at'] == event['received_at']
+    assert fields['correlation_id'] == event['event_id']
+    assert event == original
+
+
+def test_save_event_translates_failure_without_exposing_details(repository, write_api):
+    write_api.write.side_effect = OSError('private-token-payload')
+    with pytest.raises(DependencyUnavailableError, match='^InfluxDB write failed$'):
+        repository.save_event(event=accepted_event())

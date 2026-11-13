@@ -94,16 +94,17 @@ mudança do sensor, atualização do dashboard, reinício dos containers e prova
 persistência. Esta evidência é do **primeiro bimestre** e não valida as novas
 funções com duas contas e dois dispositivos.
 
-## Roteiro do segundo bimestre — bloco 5
+## Roteiro legado do segundo bimestre — bloco 5
 
 Esta seção é o roteiro para ensaiar a versão atual no computador da
 apresentação. A evidência antiga acima não substitui a execução destes passos.
 Use contas e dispositivos já cadastrados; não apague nem transfira dados
 persistidos só para preparar o ensaio.
 
-1. Confira `docker compose config --quiet` e
-   `docker compose up -d --build --wait --wait-timeout 180`. Verifique os cinco
-   serviços persistentes como `healthy` e `mosquitto-init` com saída `0`.
+1. Siga o [modo ESP32/Wokwi](../runbook.md#esp32wokwi-legado) para iniciar com
+   `-f compose.yaml -f compose.debug.yaml`. Use esses arquivos em todos os
+   comandos Compose deste roteiro. Verifique seis serviços persistentes
+   `healthy` e os dois inicializadores com saída `0`.
 2. Compile os dois alvos com
    `~/.platformio/penv/bin/pio run --project-dir firmware -e esp32dev -e esp32dev-02`.
    Abra os dois projetos Wokwi descritos em [`firmware/README.md`](../../firmware/README.md).
@@ -127,9 +128,10 @@ persistidos só para preparar o ensaio.
 8. Pare e retome o Mosquitto. A falha deve ficar visível, os dois ESP32 devem
    reconectar e novas leituras devem voltar. Interrompa a conexão WebSocket no
    navegador e confira reconexão com restauração do estado por REST.
-9. Anote um cadastro e uma leitura, execute `docker compose down` **sem
-   `--volumes`**, suba novamente e confirme o mesmo cadastro no PostgreSQL e a
-   mesma leitura no InfluxDB.
+9. Anote um cadastro e uma leitura, execute
+   `docker compose -f compose.yaml -f compose.debug.yaml down` **sem
+   `--volumes`** e suba novamente com os mesmos arquivos. Confirme o mesmo
+   cadastro no PostgreSQL e a mesma leitura no InfluxDB.
 10. Refaça uma verificação curta das duas contas, LED, buzzer e histórico.
     Cada integrante deve conseguir explicar o papel de ESP32, MQTT, FastAPI,
     PostgreSQL, InfluxDB, REST, WebSocket e Vue sem slides.

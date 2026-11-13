@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { motion, useReducedMotion } from 'motion-v'
+import { ref } from 'vue'
 
 const repositoryUrl = 'https://github.com/VitorFcosta/ColdSafe'
-const reduceMotion = useReducedMotion()
-const entrance = computed(() => ({
-  initial: { opacity: reduceMotion.value ? 1 : 0, y: reduceMotion.value ? 0 : 16 },
-  whileInView: { opacity: 1, y: 0 },
-  animate: reduceMotion.value ? { opacity: 1, y: 0 } : undefined,
-  inViewOptions: { once: true, amount: 0.1 },
-  transition: { duration: reduceMotion.value ? 0 : 0.56 },
-}))
+const video = ref<HTMLVideoElement | null>(null)
+const videoFailed = ref(false)
+const captionsFailed = ref(false)
+const mobileMenu = ref<HTMLDetailsElement | null>(null)
 const architecture = [
-  { number: '01 / CAPTURA', title: 'O ambiente vira dado.', description: 'DHT22 + ESP32 medem temperatura e umidade na simulação.' },
-  { number: '02 / TRANSPORTE', title: 'Cada leitura segue seu caminho.', description: 'MQTT transporta a telemetria com reconexão e QoS 1.' },
-  { number: '03 / CONTEXTO', title: 'Dados com significado.', description: 'FastAPI valida e classifica. InfluxDB mantém o histórico.' },
-  { number: '04 / VISUALIZAÇÃO', title: 'Uma visão do ambiente.', description: 'Vue apresenta o estado atual, a idade da leitura e o gráfico.' },
+  { title: 'Sensores e transmissão', description: 'O simulador Python gera seis grandezas do ambiente e do motor. A telemetria segue por MQTT até o gateway.' },
+  { title: 'Processamento e histórico', description: 'O gateway valida os eventos e os encaminha pelo RabbitMQ. InfluxDB guarda as leituras; PostgreSQL mantém contas, regras e a projeção consultada pela API.' },
+  { title: 'Interface e inspeção', description: 'Vue reúne histórico, alertas e inspeção 3D. Saúde e vida útil restante são estimativas de modelos treinados com dados sintéticos.' },
 ]
+
+function retryVideo() {
+  videoFailed.value = false
+  video.value?.focus()
+  video.value?.load()
+}
 </script>
 
 <template>
@@ -24,139 +24,142 @@ const architecture = [
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
     <div class="presentation-shell">
       <header class="navigation">
-        <a class="brand" href="/" aria-label="ColdSafe — início"><span aria-hidden="true">◉</span> ColdSafe</a>
+        <a class="brand" href="/" aria-label="ColdSafe — início">ColdSafe</a>
         <nav class="desktop-nav" aria-label="Navegação principal">
+          <a href="#demonstracao">Gravação anterior</a>
           <a href="#como-funciona">Como funciona</a>
-          <a href="#demonstracao">Demonstração</a>
-          <RouterLink to="/dashboard">Acessar painel</RouterLink>
-          <a :href="repositoryUrl">GitHub <span aria-hidden="true">↗</span></a>
+          <a :href="repositoryUrl">GitHub</a>
         </nav>
-        <details class="mobile-nav">
+        <details ref="mobileMenu" class="mobile-nav">
           <summary>Menu</summary>
-          <nav aria-label="Navegação principal móvel">
+          <nav aria-label="Navegação principal móvel" @click="mobileMenu && (mobileMenu.open = false)">
+            <a href="#demonstracao">Gravação anterior</a>
             <a href="#como-funciona">Como funciona</a>
-            <a href="#demonstracao">Demonstração</a>
-            <RouterLink to="/dashboard">Acessar painel</RouterLink>
-            <a :href="repositoryUrl">GitHub <span aria-hidden="true">↗</span></a>
+            <a :href="repositoryUrl">GitHub</a>
           </nav>
         </details>
       </header>
 
-      <main id="conteudo" class="sections">
+      <main id="conteudo" tabindex="-1" class="sections">
         <section class="hero" aria-labelledby="presentation-title">
           <div class="hero-copy">
-            <p class="eyebrow">Projeto acadêmico / Internet das coisas</p>
-            <h1 id="presentation-title" tabindex="-1">Cada grau<br />conta.</h1>
-            <p class="lead">Monitore temperatura, umidade e histórico de ambientes refrigerados. Veja o estado e a idade da última leitura antes de decidir o próximo passo.</p>
+            <p class="small muted">Protótipo acadêmico · AIoT</p>
+            <h1 id="presentation-title" tabindex="-1">Monitore ambientes refrigerados e seus equipamentos</h1>
+            <p class="lead">Acompanhe a temperatura do ambiente e as medições do motor. Veja a idade da última leitura, o histórico e os alertas do dispositivo.</p>
             <div class="hero-actions">
-              <a class="button button-primary" href="#demonstracao">Ver demonstração</a>
-              <RouterLink class="button" to="/dashboard">Entrar no painel</RouterLink>
+              <RouterLink class="button button-primary" to="/dashboard">Acessar painel</RouterLink>
+              <div class="recording-action">
+                <a class="button" href="#demonstracao" aria-describedby="recording-version">Ver demonstração gravada</a>
+                <p id="recording-version" class="small">Versão anterior · dados simulados</p>
+              </div>
             </div>
-            <a class="code-link" :href="repositoryUrl">Ver código <span aria-hidden="true">↗</span></a>
-            <p class="small muted">Protótipo acadêmico · Demonstração com dados simulados</p>
           </div>
-          <figure class="media-frame hero-preview">
-            <figcaption class="eyebrow">01 / Visão operacional · Demonstração simulada</figcaption>
-            <img
-              src="/media/dashboard-normal.png"
-              alt="Dashboard ColdSafe com estado normal, temperatura de 5 °C, idade da leitura e histórico de temperatura. Dados simulados."
-              width="1440" height="1080" fetchpriority="high"
-            />
+          <figure class="hero-preview">
+            <img src="/media/dashboard-overview.png" alt="Visão geral do laboratório refrigerado, com temperatura de 6,5 °C em estado normal, medições do motor, alertas e estado da luz e do som." width="1184" height="736" fetchpriority="high" />
+            <figcaption>Painel atual · captura com dados simulados</figcaption>
           </figure>
         </section>
 
-        <dl class="project-facts" aria-label="Características do projeto">
-          <div><dt>medidas exibidas</dt><dd>Temperatura e umidade</dd></div>
-          <div><dt>períodos de histórico</dt><dd>4</dd></div>
-          <div><dt>organização</dt><dd>Ambientes e dispositivos</dd></div>
-        </dl>
-
-        <motion.section v-bind="entrance" class="context reveal" aria-labelledby="context-title">
+        <section id="demonstracao" tabindex="-1" class="content-section" aria-labelledby="demo-title">
           <div class="section-heading">
-            <p class="eyebrow">01 / Contexto</p>
+            <h2 id="demo-title">Demonstração gravada</h2>
+            <p class="lead">Com dados simulados, a versão anterior do painel mostra o histórico de temperatura, leituras fora da faixa ou desatualizadas e a confirmação de um comando de LED.</p>
+          </div>
+          <figure class="media-frame demo-video">
+            <video
+              ref="video" controls preload="metadata" playsinline tabindex="0"
+              src="/media/coldsafe-demo.webm" poster="/media/dashboard-normal.png"
+              aria-label="Demonstração do dashboard ColdSafe com dados simulados"
+              aria-describedby="video-description"
+              @error="videoFailed = true" @loadedmetadata="videoFailed = false"
+            >
+              <track kind="captions" src="/media/coldsafe-demo.vtt" srclang="pt-BR" label="Português" default @error="captionsFailed = true" @load="captionsFailed = false" />
+              Seu navegador não reproduz este vídeo. A demonstração também está disponível para download e em texto abaixo.
+            </video>
+            <figcaption id="video-description">
+              <strong>Demonstração simulada · versão anterior da interface</strong>
+              <p>Gravação documentada em setembro de 2026. Não demonstra a pilha AIoT atual nem atuação física. Sem narração; legendas descritivas em português.</p>
+              <p>O vídeo percorre leituras, histórico e estados do painel. Uma leitura antiga não confirma a situação atual. O LED só aparece ligado após a confirmação simulada do comando.</p>
+            </figcaption>
+            <div v-if="videoFailed" class="media-error">
+              <div role="status">
+                <h3>Vídeo indisponível</h3>
+                <p>A demonstração não pôde ser carregada. O restante da apresentação continua disponível. Tente novamente ou leia a transcrição abaixo.</p>
+              </div>
+              <button class="button" type="button" data-testid="retry-video" @click="retryVideo">Tentar carregar vídeo</button>
+            </div>
+            <p v-if="captionsFailed" class="caption-error">As legendas não puderam ser carregadas. <a href="#transcript">Ler transcrição da demonstração</a>.</p>
+            <div class="media-links">
+              <a href="/media/coldsafe-demo.webm" download>Baixar demonstração (WebM, 6,1 MB)</a>
+              <a href="/media/coldsafe-demo.vtt" download>Baixar legendas em português</a>
+            </div>
+            <section id="transcript" tabindex="-1" class="transcript" aria-labelledby="transcript-title">
+              <h3 id="transcript-title">Demonstração em texto</h3>
+              <ol>
+                <li>0–9 s: temperatura, estado e idade da leitura simulada aparecem juntos.</li>
+                <li>10–19 s: o período de 24 horas mostra a variação da temperatura simulada.</li>
+                <li>19–28 s: o estado de atenção indica proximidade do limite demonstrativo.</li>
+                <li>28–37 s: temperatura simulada fora da faixa recebe estado crítico, com texto e cor.</li>
+                <li>37–48 s: uma leitura antiga dentro da faixa não confirma a condição atual.</li>
+                <li>48–59 s: falha simulada no histórico preserva o diagnóstico atual.</li>
+                <li>59–69 s: uma nova consulta recupera o histórico simulado.</li>
+                <li>69–81 s: o comando LED passa por pendente e só aparece ligado após confirmação simulada.</li>
+              </ol>
+            </section>
+          </figure>
+          <div class="state-gallery">
+            <figure>
+              <img src="/media/dashboard-critical.png" alt="Versão anterior da interface com temperatura simulada fora da faixa demonstrativa e estado crítico." width="1440" height="1080" loading="lazy" />
+              <figcaption>
+                <h3>Quando a temperatura sai da faixa.</h3>
+                <p class="muted">O estado crítico ganha destaque sem esconder a medição. Captura anterior com dados simulados.</p>
+              </figcaption>
+            </figure>
+            <figure>
+              <img src="/media/dashboard-stale.png" alt="Versão anterior da interface com leitura simulada desatualizada, apresentada como última medição conhecida." width="1440" height="1080" loading="lazy" />
+              <figcaption>
+                <h3>Quando a leitura deixa de ser atual.</h3>
+                <p class="muted">O painel mostra a última leitura conhecida, sem confirmar a situação atual. Captura anterior com dados simulados.</p>
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section id="como-funciona" tabindex="-1" class="content-section" aria-labelledby="architecture-title">
+          <div class="section-heading">
+            <h2 id="architecture-title">Como os dados chegam ao painel</h2>
+          </div>
+          <ol class="architecture-grid">
+            <li v-for="step in architecture" :key="step.title" class="architecture-step">
+              <h3>{{ step.title }}</h3>
+              <p class="muted">{{ step.description }}</p>
+            </li>
+          </ol>
+          <p class="small muted">ESP32 com DHT22 no Wokwi permanece como caminho legado opcional. A demonstração AIoT atual usa sensores simulados, sem validar desempenho físico.</p>
+        </section>
+
+        <section class="context content-section" aria-labelledby="context-title">
+          <div class="section-heading">
             <h2 id="context-title">Um número sozinho não conta tudo.</h2>
           </div>
           <div class="context-copy">
             <p class="context-statement">5 °C pode ser uma boa notícia. Se a leitura for de agora.</p>
             <p class="muted">O ColdSafe reúne a medição, a idade da leitura e sua variação ao longo do tempo. Assim, um valor antigo não se confunde com uma situação normal.</p>
-            <p class="eyebrow">Valor + atualidade + histórico</p>
-          </div>
-        </motion.section>
-
-        <section id="como-funciona" class="content-section" aria-labelledby="architecture-title">
-          <motion.div v-bind="entrance" class="section-heading reveal">
-            <p class="eyebrow">02 / Como funciona</p>
-            <h2 id="architecture-title">Do sensor à sua tela.</h2>
-            <p class="lead">Uma cadeia completa de hardware, comunicação e software. Cada etapa tem uma responsabilidade.</p>
-          </motion.div>
-          <ol class="architecture-grid">
-            <motion.li
-              v-for="(step, index) in architecture" :key="step.number"
-              v-bind="entrance"
-              :transition="{ duration: reduceMotion ? 0 : 0.56, delay: reduceMotion ? 0 : index * 0.08 }"
-              class="architecture-step reveal"
-            >
-              <p class="eyebrow">{{ step.number }}</p>
-              <h3>{{ step.title }}</h3>
-              <p class="muted">{{ step.description }}</p>
-            </motion.li>
-          </ol>
-        </section>
-
-        <section id="demonstracao" class="content-section" aria-labelledby="demo-title">
-          <motion.div v-bind="entrance" class="section-heading reveal">
-            <p class="eyebrow">03 / Demonstração</p>
-            <h2 id="demo-title">Veja os dados<br />ganharem contexto.</h2>
-            <p class="lead">Do estado normal à leitura desatualizada. Explore o comportamento do painel nesta demonstração gravada com dados simulados.</p>
-          </motion.div>
-          <figure class="media-frame demo-video">
-            <video
-              controls preload="metadata" playsinline
-              src="/media/coldsafe-demo.webm" poster="/media/dashboard-normal.png"
-              aria-label="Demonstração do dashboard ColdSafe com dados simulados"
-              aria-describedby="video-description"
-            >
-              <track kind="captions" src="/media/coldsafe-demo.vtt" srclang="pt-BR" label="Português" default />
-              Seu navegador não reproduz este vídeo. <a href="/media/coldsafe-demo.webm">Baixar demonstração</a>.
-            </video>
-            <figcaption id="video-description">
-              <span class="eyebrow">Demonstração simulada</span>
-              <p>O vídeo percorre as leituras, o histórico e os estados do painel. Uma temperatura fora da faixa gera um estado crítico; uma leitura antiga não confirma a situação atual. O LED só aparece ligado após a confirmação simulada do comando.</p>
-            </figcaption>
-          </figure>
-          <div class="state-gallery">
-            <figure>
-              <img src="/media/dashboard-critical.png" alt="Exemplo simulado do dashboard em estado crítico, com a temperatura fora da faixa demonstrativa." width="1440" height="1080" loading="lazy" />
-              <figcaption>
-                <p class="eyebrow">Cenário simulado / Crítico</p>
-                <h3>Quando a temperatura sai da faixa.</h3>
-                <p class="muted">O estado crítico ganha destaque sem esconder a medição.</p>
-              </figcaption>
-            </figure>
-            <figure>
-              <img src="/media/dashboard-stale.png" alt="Exemplo simulado de leitura desatualizada: o dashboard mostra a última medição conhecida sem confirmar a situação atual." width="1440" height="1080" loading="lazy" />
-              <figcaption>
-                <p class="eyebrow">Cenário simulado / Leitura desatualizada</p>
-                <h3>Quando a leitura deixa de ser atual.</h3>
-                <p class="muted">O painel mostra a última leitura conhecida, sem confirmar a situação atual.</p>
-              </figcaption>
-            </figure>
+            <p class="muted">A inspeção 3D permite selecionar componentes e consultar seus dados. O movimento é ilustrativo: não mede RPM nem representa uma simulação física validada.</p>
           </div>
         </section>
 
-        <motion.section v-bind="entrance" class="construction content-section reveal" aria-labelledby="construction-title">
-          <div class="section-heading">
-            <p class="eyebrow">04 / Construído de ponta a ponta</p>
-            <h2 id="construction-title">Hardware encontra software.</h2>
-          </div>
-          <p class="muted">ESP32 · DHT22 · MQTT · FastAPI · InfluxDB · Vue · TypeScript</p>
-          <p class="lead">Ambientes e dispositivos podem ser cadastrados e selecionados no painel. Este projeto acadêmico explora a conexão entre o mundo físico e os dados.</p>
-          <a class="button" :href="repositoryUrl">Explorar o repositório <span aria-hidden="true">↗</span></a>
-        </motion.section>
+        <section class="construction content-section" aria-labelledby="construction-title">
+          <div class="section-heading"><h2 id="construction-title">Hardware encontra software.</h2></div>
+          <p class="muted">Python · MQTT · FastAPI · InfluxDB · PostgreSQL · RabbitMQ · Vue · TypeScript · Three.js</p>
+          <p class="lead">Este projeto acadêmico explora a conexão entre o mundo físico e os dados. Ambientes e dispositivos ficam vinculados à conta; as ações disponíveis dependem das permissões.</p>
+          <p class="muted">Saúde e vida útil restante usam dados sintéticos: não comprovam a confiabilidade de um equipamento real. O assistente local pode errar e não comanda dispositivos. Consulte o repositório para conhecer os contratos, os ensaios e os limites do protótipo.</p>
+          <a class="button" :href="repositoryUrl">Explorar o repositório</a>
+        </section>
       </main>
 
       <footer class="footer">
-        <a class="brand" href="/" aria-label="ColdSafe — início"><span aria-hidden="true">◉</span> ColdSafe</a>
+        <a class="brand" href="/" aria-label="ColdSafe — início">ColdSafe</a>
         <p>Protótipo acadêmico. Não é equipamento médico, sanitário ou regulatório certificado.</p>
       </footer>
     </div>
@@ -164,91 +167,94 @@ const architecture = [
 </template>
 
 <style scoped>
-.presentation { min-height: 100vh; padding: var(--cs-space-48); background: var(--cs-color-canvas); color: var(--cs-color-ink); line-height: 1.5; }
-.presentation-shell { max-width: 1200px; margin-inline: auto; }
-.navigation, .navigation nav, .brand, .hero-actions, .footer { display: flex; align-items: center; }
-.navigation { justify-content: space-between; gap: var(--cs-space-32); padding-bottom: var(--cs-space-48); border-bottom: 1px solid var(--cs-color-line); }
+.presentation { min-height: 100vh; padding: var(--cs-space-32) var(--cs-space-64) var(--cs-space-48); background: var(--cs-color-canvas); color: var(--cs-color-ink); line-height: 1.5; overflow-wrap: anywhere; }
+.presentation ::selection { background: var(--cs-color-accent); color: var(--cs-color-accent-ink); }
+.presentation-shell { max-width: 1280px; margin-inline: auto; }
+p, h1, h2, h3, figure, ol { margin: 0; }
+.navigation, .navigation nav, .brand, .footer { display: flex; align-items: center; }
+.navigation { gap: var(--cs-space-32); }
+.navigation .brand { margin-right: auto; }
 .navigation nav { flex-wrap: wrap; gap: var(--cs-space-32); font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
-.navigation nav a { min-height: 44px; display: inline-flex; align-items: center; gap: var(--cs-space-4); }
+.navigation nav a { min-height: var(--cs-control-min-height); display: inline-flex; align-items: center; }
 .mobile-nav { display: none; }
-a { text-decoration: none; transition: color var(--cs-motion-quick), background-color var(--cs-motion-quick); }
+a { text-decoration: underline; text-underline-offset: .2em; transition: color var(--cs-motion-quick), background-color var(--cs-motion-quick); }
 a:hover { color: var(--cs-color-accent); }
-.brand { gap: var(--cs-space-12); font-size: var(--cs-type-24); font-weight: 650; white-space: nowrap; }
+.brand { min-height: var(--cs-control-min-height); font-size: var(--cs-type-24); font-weight: 650; text-decoration: none; }
 .sections { display: flex; flex-direction: column; gap: var(--cs-space-64); padding-block: var(--cs-space-64); }
-.hero { display: grid; grid-template-columns: minmax(0, 528fr) minmax(0, 624fr); align-items: center; gap: var(--cs-space-48); }
+.hero { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: center; gap: var(--cs-space-48); }
 .hero-copy, .context-copy, .section-heading { display: flex; flex-direction: column; align-items: start; gap: var(--cs-space-24); }
+.hero-copy { animation: enter var(--cs-motion-entrance) cubic-bezier(.16, 1, .3, 1); }
+@keyframes enter { from { transform: translateY(12px); } to { transform: translateY(0); } }
 h1, h2, h3 { text-wrap: balance; }
-h1 { font-size: var(--cs-type-80); font-weight: 500; line-height: 1.1; letter-spacing: -0.045em; }
-h2 { font-size: var(--cs-type-48); font-weight: 600; line-height: 1.1; letter-spacing: -0.035em; }
-h3 { font-size: var(--cs-type-24); font-weight: 600; line-height: 1.4; letter-spacing: -0.02em; }
-.eyebrow { font-size: var(--cs-type-12); font-weight: 500; color: var(--cs-color-accent); text-transform: uppercase; letter-spacing: 0.035em; }
+h1 { font-size: var(--cs-type-48); font-weight: 650; line-height: 1.1667; letter-spacing: -.025em; }
+h2 { font-size: var(--cs-type-32); font-weight: 650; line-height: 1.25; }
+h3 { font-size: var(--cs-type-20); font-weight: 650; line-height: 1.4; }
 .muted, .lead { color: var(--cs-color-ink-muted); }
 .lead { font-size: var(--cs-type-20); max-width: 62ch; }
-.small { font-size: var(--cs-type-12); }
-.hero-actions { flex-wrap: wrap; gap: var(--cs-space-16); }
-.button { display: inline-flex; align-items: center; justify-content: center; gap: var(--cs-space-8); min-height: 48px; padding: var(--cs-space-12) var(--cs-space-24); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-4); background: var(--cs-color-surface); font-size: var(--cs-type-14); font-weight: 500; }
-.button:hover { background: var(--cs-color-surface-muted); }
-.button-primary { background: var(--cs-color-accent); color: var(--cs-color-accent-ink); }
+.small, figcaption { font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
+.hero-actions { display: flex; align-items: start; flex-wrap: wrap; gap: var(--cs-space-16); }
+.recording-action { display: flex; flex-direction: column; gap: var(--cs-space-8); }
+.button { display: inline-flex; align-items: center; justify-content: center; min-height: var(--cs-control-min-height); padding: var(--cs-space-12) var(--cs-space-24); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); color: var(--cs-color-ink); font-family: inherit; font-size: var(--cs-type-14); font-weight: 600; line-height: 1.4286; text-decoration: none; cursor: pointer; text-align: center; }
+.button:hover { background: var(--cs-color-surface-muted); color: var(--cs-color-ink); }
+.button-primary { background: var(--cs-color-accent); color: var(--cs-color-accent-ink); border-color: transparent; }
 .button-primary:hover { background: var(--cs-color-accent-hover); color: var(--cs-color-accent-ink); }
-.hero-actions .button-primary { min-width: 224px; }
-.hero-actions .button:not(.button-primary) { min-width: 160px; }
-.code-link { display: inline-flex; align-items: center; gap: var(--cs-space-4); min-height: 44px; color: var(--cs-color-accent); text-decoration: underline; text-underline-offset: 0.25em; }
-.media-frame { display: flex; flex-direction: column; gap: var(--cs-space-16); padding: var(--cs-space-16); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); min-width: 0; }
-.hero-preview img { display: block; width: 100%; aspect-ratio: 1.12; object-fit: cover; object-position: top; }
-.project-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cs-space-48); padding-block: var(--cs-space-32); border-block: 1px solid var(--cs-color-line); }
-.project-facts div { display: flex; flex-direction: column-reverse; gap: var(--cs-space-8); }
-.project-facts dt { font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
-.project-facts dd { font-size: var(--cs-type-24); font-weight: 500; line-height: 1.2; text-wrap: balance; }
-.context { display: grid; grid-template-columns: minmax(0, 528fr) minmax(0, 608fr); gap: var(--cs-space-64); }
-.context-statement { font-size: var(--cs-type-24); font-weight: 500; }
+.hero-preview { min-width: 0; overflow: hidden; border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); }
+.hero-preview img { display: block; width: 100%; height: auto; }
+.hero-preview figcaption { padding: var(--cs-space-12) var(--cs-space-16); }
 .content-section { display: flex; flex-direction: column; align-items: start; gap: var(--cs-space-32); scroll-margin-top: var(--cs-space-24); }
-.architecture-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--cs-space-16); list-style: none; width: 100%; }
-.architecture-step { display: flex; flex-direction: column; gap: var(--cs-space-24); padding: var(--cs-space-24); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); }
-.architecture-step .muted { font-size: var(--cs-type-14); }
-.demo-video { width: 100%; }
+.architecture-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cs-space-24); padding: 0; list-style: none; width: 100%; }
+.architecture-step { display: flex; flex-direction: column; gap: var(--cs-space-16); padding: var(--cs-space-24); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); }
+.architecture-step h3 { color: var(--cs-color-accent); }
+.architecture-step p { font-size: var(--cs-type-14); }
+.context { display: grid; grid-template-columns: 1fr 1fr; gap: var(--cs-space-48); border-block: 1px solid var(--cs-color-line); padding-block: var(--cs-space-48); }
+.context-statement { font-size: var(--cs-type-24); }
+.media-frame { display: grid; gap: var(--cs-space-24); padding: var(--cs-space-24); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-16); background: var(--cs-color-surface); min-width: 0; width: 100%; }
 .demo-video video { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: var(--cs-color-canvas); }
-.demo-video figcaption { display: grid; gap: var(--cs-space-8); color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); }
-.state-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cs-space-24); width: 100%; }
-.state-gallery img { display: block; width: 100%; aspect-ratio: 1.45; object-fit: cover; object-position: top; border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); }
-.state-gallery figcaption { display: flex; flex-direction: column; gap: var(--cs-space-12); padding-top: var(--cs-space-24); }
-.state-gallery h3 { font-size: var(--cs-type-20); }
-.state-gallery .muted { font-size: var(--cs-type-14); }
+.demo-video figcaption { display: grid; gap: var(--cs-space-12); }
+.media-error { display: grid; justify-items: start; gap: var(--cs-space-16); padding: var(--cs-space-24); background: var(--cs-color-stale-surface); border-radius: var(--cs-radius-8); }
+.media-error p { margin-top: var(--cs-space-12); }
+.media-links { display: flex; flex-wrap: wrap; gap: var(--cs-space-16) var(--cs-space-32); }
+.media-links a { display: inline-flex; align-items: center; min-height: var(--cs-control-min-height); }
+.transcript { border-top: 1px solid var(--cs-color-line); padding-top: var(--cs-space-24); }
+.transcript ol { margin-top: var(--cs-space-16); padding-left: var(--cs-space-24); color: var(--cs-color-ink-muted); }
+.transcript li + li { margin-top: var(--cs-space-8); }
+.state-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cs-space-32); width: 100%; }
+.state-gallery img { display: block; width: 100%; height: auto; border-radius: var(--cs-radius-8); }
+.state-gallery figcaption { display: grid; gap: var(--cs-space-12); padding-top: var(--cs-space-24); }
+.state-gallery h3 { color: var(--cs-color-ink); }
 .construction { padding-top: var(--cs-space-48); border-top: 1px solid var(--cs-color-line); }
+.construction p { max-width: 70ch; }
 .footer { justify-content: space-between; gap: var(--cs-space-48); padding-top: var(--cs-space-32); border-top: 1px solid var(--cs-color-line); }
-.footer p { max-width: 48ch; color: var(--cs-color-ink-muted); font-size: var(--cs-type-12); text-align: right; }
-@media (max-width: 1100px) {
+.footer p { max-width: 48ch; color: var(--cs-color-ink-muted); font-size: var(--cs-type-14); text-align: right; }
+@media (max-width: 1000px) {
+  .presentation { padding-inline: var(--cs-space-32); }
+  .navigation { gap: var(--cs-space-16); }
+  .navigation nav { gap: var(--cs-space-16); }
   .hero { gap: var(--cs-space-32); }
-  h1 { font-size: var(--cs-type-64); }
-  .architecture-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .architecture-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 767px) {
   .presentation { padding: var(--cs-space-24); }
-  .navigation { position: relative; flex-wrap: wrap; padding-bottom: var(--cs-space-24); }
+  .navigation { position: relative; flex-wrap: wrap; gap: var(--cs-space-12); }
   .desktop-nav { display: none !important; }
   .mobile-nav { display: block; margin-left: auto; }
-  .mobile-nav summary { min-height: 44px; padding: var(--cs-space-8) var(--cs-space-16); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-4); cursor: pointer; }
-  .mobile-nav nav { position: absolute; z-index: 2; top: calc(100% - var(--cs-space-16)); right: 0; min-width: 220px; display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: var(--cs-space-8); border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); box-shadow: var(--cs-shadow-panel); }
+  .mobile-nav summary { min-height: var(--cs-control-min-height); padding: var(--cs-space-8) var(--cs-space-16); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-8); cursor: pointer; }
+  .mobile-nav nav { position: absolute; z-index: 2; top: calc(100% + var(--cs-space-8)); right: 0; max-width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: var(--cs-space-8); border: 1px solid var(--cs-color-control-border); border-radius: var(--cs-radius-8); background: var(--cs-color-surface); }
   .mobile-nav nav a { padding-inline: var(--cs-space-12); }
   .sections { gap: var(--cs-space-48); padding-block: var(--cs-space-48); }
   .hero, .context, .state-gallery { grid-template-columns: minmax(0, 1fr); gap: var(--cs-space-32); }
-  h1 { font-size: var(--cs-type-48); }
-  h2 { font-size: var(--cs-type-32); }
-  .lead, .context-statement { font-size: var(--cs-type-20); }
+  h1, h2 { font-size: var(--cs-type-32); }
+  .lead { font-size: var(--cs-type-16); }
   .hero-actions { gap: var(--cs-space-12); }
-  .hero-actions .button, .hero-actions .button-primary, .hero-actions .button:not(.button-primary) { min-width: 0; padding-inline: var(--cs-space-16); }
-  .project-facts { grid-template-columns: minmax(0, 1fr); gap: var(--cs-space-16); }
-  .project-facts dd { font-size: var(--cs-type-16); }
-  .project-facts dt { font-size: var(--cs-type-12); }
-  .architecture-grid { grid-template-columns: minmax(0, 1fr); }
-  .architecture-step { gap: var(--cs-space-16); }
+  .hero-actions .button { padding-inline: var(--cs-space-16); }
+  .media-frame { padding: var(--cs-space-16); }
+  .media-error { padding: var(--cs-space-16); }
   .footer { align-items: start; flex-direction: column; gap: var(--cs-space-24); }
   .footer p { text-align: left; }
 }
 @media (max-width: 374px) {
-  .presentation { padding: var(--cs-space-16); }
+  .presentation { padding-inline: var(--cs-space-16); }
   .hero-actions { align-items: stretch; flex-direction: column; width: 100%; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1 !important; transform: none !important; }
-}
+@media (prefers-reduced-motion: reduce) { .hero-copy { animation: none; } }
 </style>

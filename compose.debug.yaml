@@ -1,0 +1,24 @@
+# Optional local diagnostics and Wokwi bridge; never enabled by default.
+services:
+  frontend:
+    build:
+      args:
+        VITE_DIAGNOSTICS_ENABLED: "true"
+  backend:
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - coldsafe-internal
+      - coldsafe-edge
+  mosquitto:
+    ports:
+      - "127.0.0.1:1883:1883"
+    networks:
+      - coldsafe-internal
+      - coldsafe-edge
+  rabbitmq:
+    ports:
+      - "127.0.0.1:15672:15672"
+    networks:
+      - coldsafe-internal
+      - coldsafe-edge

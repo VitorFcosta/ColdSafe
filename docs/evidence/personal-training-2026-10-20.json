@@ -1,0 +1,267 @@
+{
+  "operation": "personal-generation-training-activation",
+  "date": "2026-10-20",
+  "status": "completed",
+  "git": {
+    "base": "93049af3e7507e69f92a47652ee9b23bce9ad9ff",
+    "branch": "codex/block-5-validation",
+    "uncommitted_changes_preserved": true,
+    "commit_or_push": false
+  },
+  "generation": {
+    "job_id": "ec553e40-1d7a-4117-893c-baffa0ee3a9e",
+    "dataset_id": "b8268136-5426-59bf-87cc-ad4b58e61027",
+    "status": "completed",
+    "total_units": 1000000,
+    "equipment_count": 100,
+    "days": 30,
+    "seed": 42,
+    "failure_fraction": 0.6,
+    "noise_scale": 1,
+    "missing_rate": 0.01,
+    "outlier_rate": 0.002,
+    "observed_rows": 600000,
+    "censored_rows": 400000,
+    "environment_id": "d62524f7-ac6b-4761-bf6d-f4b0d0093b16"
+  },
+  "training": {
+    "job_id": "4ec768f5-b77d-4059-b27b-020b979fa066",
+    "dataset_id": "b8268136-5426-59bf-87cc-ad4b58e61027",
+    "model_id": "04cc0e2a-dcd0-5f4e-95c6-bebdf9a6660a",
+    "model_version": "training-4ec768f5-b77d-4059-b27b-020b979fa066",
+    "eligible": true,
+    "features_version": "rolling-v1-a4225e172810a0ab+median-clip-v1",
+    "seed": 42,
+    "split_seed": 42,
+    "equipment_counts": {
+      "train": 70,
+      "validation": 15,
+      "test": 15
+    },
+    "versions": {
+      "cloudpickle": "3.1.2",
+      "joblib": "1.6.0",
+      "narwhals": "2.27.1",
+      "numpy": "2.5.4",
+      "python": "3.13.15",
+      "scipy": "1.18.1",
+      "sklearn": "1.9.1",
+      "threadpoolctl": "3.7.0"
+    },
+    "health": {
+      "target": "health_score_true",
+      "unit": "points",
+      "status": "eligible",
+      "metrics": {
+        "validation": {
+          "baseline": {
+            "mae": 23.848973347749435,
+            "rmse": 28.057598178156688,
+            "r2": -0.0046456434264625646
+          },
+          "candidate": {
+            "mae": 1.8114787602985014,
+            "rmse": 2.298308240112459,
+            "r2": 0.9932589356790779
+          }
+        },
+        "test": {
+          "baseline": {
+            "mae": 22.481290180220093,
+            "rmse": 26.49896753390946,
+            "r2": -0.014846078178048172
+          },
+          "candidate": {
+            "mae": 2.020501626770094,
+            "rmse": 2.8916284899497886,
+            "r2": 0.9879155396349492
+          }
+        }
+      },
+      "partition_rows": {
+        "train": 698777,
+        "validation": 149734,
+        "test": 149769
+      },
+      "near_failure": null
+    },
+    "rul": {
+      "target": "rul_hours_true",
+      "unit": "hours",
+      "status": "eligible",
+      "metrics": {
+        "validation": {
+          "baseline": {
+            "mae": 137.79883996805552,
+            "rmse": 163.70937877907454,
+            "r2": -0.002517389557026295
+          },
+          "candidate": {
+            "mae": 48.15509000441312,
+            "rmse": 62.133700322995644,
+            "r2": 0.8555893474452441
+          }
+        },
+        "test": {
+          "baseline": {
+            "mae": 161.3302282055338,
+            "rmse": 190.84689508871264,
+            "r2": -0.041599887547696834
+          },
+          "candidate": {
+            "mae": 46.729800592067114,
+            "rmse": 62.2362198645622,
+            "r2": 0.8892312793901598
+          }
+        }
+      },
+      "partition_rows": {
+        "train": 439141,
+        "validation": 89818,
+        "test": 69881
+      },
+      "near_failure": {
+        "threshold_hours": 24,
+        "validation": {
+          "row_count": 4233,
+          "baseline": {
+            "mae": 260.855081662774,
+            "rmse": 260.9473390580416,
+            "r2": -1413.4853924956305
+          },
+          "candidate": {
+            "mae": 14.520330237958634,
+            "rmse": 18.223133902243948,
+            "r2": -5.898248803662733
+          }
+        },
+        "test": {
+          "row_count": 2779,
+          "baseline": {
+            "mae": 260.85860411486715,
+            "rmse": 260.9508785483829,
+            "r2": -1413.243436559661
+          },
+          "candidate": {
+            "mae": 20.014073639801918,
+            "rmse": 24.645782730151282,
+            "r2": -11.615134240268663
+          }
+        }
+      }
+    }
+  },
+  "activation": {
+    "id": "00fed5bd-6d70-4223-84ec-b3cd6b49a144",
+    "model_id": "04cc0e2a-dcd0-5f4e-95c6-bebdf9a6660a",
+    "previous_model_id": null,
+    "status": "active",
+    "error_code": null,
+    "created_at": "2026-10-20 15:03:16.446013+00:00",
+    "updated_at": "2026-10-20 15:03:17.806297+00:00",
+    "model_version": "training-4ec768f5-b77d-4059-b27b-020b979fa066",
+    "features_version": "rolling-v1-a4225e172810a0ab+median-clip-v1"
+  },
+  "active_model": {
+    "model_id": "04cc0e2a-dcd0-5f4e-95c6-bebdf9a6660a",
+    "activated_at": "2026-10-20 15:03:16.710518+00:00",
+    "model_version": "training-4ec768f5-b77d-4059-b27b-020b979fa066",
+    "features_version": "rolling-v1-a4225e172810a0ab+median-clip-v1"
+  },
+  "live": {
+    "device_id": "sim-lab-01",
+    "device_record_id": "bb61fe7c-71e6-4d03-bd83-cb5e64ad95bf",
+    "persistence": "persisted",
+    "freshness": {
+      "last_event_id": "f9e64b85-e196-4596-9a0b-dcfad93449cc",
+      "last_received_at": "2026-10-20T15:05:09.612015Z",
+      "state": "fresh",
+      "age_seconds": 0.609373,
+      "stale_after_seconds": 30
+    },
+    "prediction": {
+      "data": {
+        "reason": null,
+        "status": "available",
+        "model_id": "04cc0e2a-dcd0-5f4e-95c6-bebdf9a6660a",
+        "rul_hours": 622.0692787812161,
+        "equipment_id": "90039bf3-b7c8-4cb6-815d-6030d719f9de",
+        "health_score": 98.81815273583722,
+        "model_version": "training-4ec768f5-b77d-4059-b27b-020b979fa066",
+        "source_event_id": "f9e64b85-e196-4596-9a0b-dcfad93449cc",
+        "features_version": "rolling-v1-a4225e172810a0ab+median-clip-v1",
+        "input_received_at": "2026-10-20T15:05:09.612015Z"
+      },
+      "type": "prediction",
+      "event_id": "872bd7b9-279b-57aa-a78f-684a88bc1da8",
+      "device_id": "sim-lab-01",
+      "occurred_at": "2026-10-20T15:05:09.754233Z",
+      "received_at": "2026-10-20T15:05:09.754233Z",
+      "correlation_id": "f9e64b85-e196-4596-9a0b-dcfad93449cc",
+      "environment_id": "d62524f7-ac6b-4761-bf6d-f4b0d0093b16",
+      "schema_version": 3,
+      "device_record_id": "bb61fe7c-71e6-4d03-bd83-cb5e64ad95bf"
+    },
+    "availability": "available",
+    "ui_verified": true,
+    "ui_model_version": "training-4ec768f5-b77d-4059-b27b-020b979fa066",
+    "ui_health": 98.82,
+    "ui_rul_hours": 622.07
+  },
+  "verification": [
+    "Generation and training submitted once through authenticated administrative browser UI; completed jobs and environment binding checked in PostgreSQL.",
+    "ModelService/read_training_result validated ownership, artifact integrity and eligibility before administrative activation request.",
+    "Normal durable outbox and models worker processed activation ready to active; no manual active pointer update.",
+    "Actual simulator MQTT/gateway/RabbitMQ/InfluxDB receipt/API path; live prediction available in owner-scoped service and authenticated Insights UI.",
+    "Independent read-only review of metrics and gate; no tuning based on reserved test.",
+    "No code or dependency changes for this operation; test suites from previous task not rerun.",
+    "Documentation JSON parsed successfully; git diff --check passed."
+  ],
+  "limits": [
+    "Synthetic data only; no physical validation or operational maintenance accuracy demonstrated.",
+    "RUL <=24h test MAE 20.0141h and R2 -11.6151; insufficient to promise precision near failure.",
+    "Latest-reading correlation may briefly show no prediction while the corresponding prediction is in flight.",
+    "Default feature windows 900/3600 seconds preserved; pre-existing simulator history supplied warmup.",
+    "No capacity benchmark of complete stack; training memory observation is only a snapshot.",
+    "No rollback/restart/failure scenario rerun in personal environment; previous task evidence remains dated.",
+    "Two pre-existing DLQ messages preserved; no replay or purge."
+  ],
+  "dependencies_added": [],
+  "private_evidence_directory": "/Users/vitorhugofernandescosta/ColdSafe-backups/personal-training-20261020-115705",
+  "files_changed": [
+    "docs/aiot/README.md",
+    "docs/aiot/tasks/B2-23.md",
+    "docs/aiot/tasks/B2-24.md",
+    "docs/aiot/tasks/B2-25.md"
+  ],
+  "files_created": [
+    "docs/evidence/personal-training-2026-10-20.json"
+  ],
+  "checkpoint": "Personal generation/training/activation completed. Open existing job to inspect results; do not regenerate or retrain to resume. No next task started.",
+  "artifacts": {
+    "training-result.json": {
+      "sha256": "97379d5f5f5e47217ec163aa498f16b69d9c4f83aa9ee35d1e2f857f1e704f23",
+      "bytes": 214649
+    },
+    "activation-request.json": {
+      "sha256": "99b552ff203366dfc9c8e825573e49ed036031d98bb6db9ba498c4d3f76d1c28",
+      "bytes": 417
+    },
+    "activation-verification.json": {
+      "sha256": "a9377c1b76c6d3651d086bc1bb5d4cce1fd693b221de1e9d99c8650400d0619b",
+      "bytes": 7975
+    },
+    "training-result.png": {
+      "sha256": "cb66e5a0b9f7647e02074638066dc8f412e17c5fdcf73faaf71a242b3b06247e",
+      "bytes": 78544
+    },
+    "insights-active.png": {
+      "sha256": "871a26a85c9c6821f6be6770f1d2b2d0766faf06010e6295dbfc698ad08e4488",
+      "bytes": 52961
+    }
+  },
+  "links": {
+    "insights": "http://localhost:5173/insights",
+    "training": "http://localhost:5173/training?dataset=b8268136-5426-59bf-87cc-ad4b58e61027&job=4ec768f5-b77d-4059-b27b-020b979fa066"
+  }
+}

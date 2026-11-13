@@ -22,7 +22,7 @@ def test_led_command_checks_owner_and_returns_pending(desired_state: bool) -> No
         "status": "pending",
     }
     app = FastAPI()
-    app.include_router(create_command_router(catalog, commands, lambda: owner))
+    app.include_router(create_command_router(catalog, commands, lambda: owner, require_operator=lambda: owner))
 
     response = TestClient(app).post(
         f"/api/v1/devices/{device_id}/led/commands", json={"desired_state": desired_state}
@@ -40,7 +40,7 @@ def test_foreign_device_cannot_issue_command() -> None:
     catalog, commands = Mock(), Mock()
     catalog.get_device.side_effect = HTTPException(404, "DEVICE_NOT_FOUND")
     app = FastAPI()
-    app.include_router(create_command_router(catalog, commands, lambda: uuid4()))
+    app.include_router(create_command_router(catalog, commands, lambda: uuid4(), require_operator=lambda: uuid4()))
 
     response = TestClient(app).post(
         f"/api/v1/devices/{uuid4()}/led/commands", json={"desired_state": False}
@@ -55,7 +55,7 @@ def test_status_lookup_uses_owner_scoped_query() -> None:
     commands = Mock()
     commands.get_for_user.return_value = None
     app = FastAPI()
-    app.include_router(create_command_router(Mock(), commands, lambda: owner))
+    app.include_router(create_command_router(Mock(), commands, lambda: owner, require_operator=lambda: owner))
 
     response = TestClient(app).get(f"/api/v1/commands/{command_id}")
 

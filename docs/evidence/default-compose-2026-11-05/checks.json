@@ -1,0 +1,475 @@
+{
+  "status": "completed",
+  "date": "2026-11-05",
+  "source_commit": "62cb4cca651a00d74e8b1d627607013637e5ba30",
+  "source_has_local_changes": true,
+  "compose_version": "5.1.0",
+  "before": {
+    "captured_at_utc": "2026-11-05T20:29:31.972893+00:00",
+    "containers": [
+      {
+        "name": "/coldsafe-llm-1",
+        "id": "9ca2d8b29c26960e24412526b7222c50560f51e4c399bba1f7af2ec9d6b5e178",
+        "state": "created",
+        "image_id": "sha256:54b0c18f5b6e8392db9d2675ab4a10eab570524fb22c06ea18851644d765990d",
+        "memory": 134217728,
+        "cpus": 250000000,
+        "mounts": []
+      },
+      {
+        "name": "/coldsafe-frontend-1",
+        "id": "112f90dd0680f28668f0dfcd806093d7bf995f5cec6d1e666f392821f80f6ef5",
+        "state": "created",
+        "image_id": "sha256:a5d7eeaf14b8dfedda7dc5d7b5cc2bc798502036f36a8eee3c71966a68dc655f",
+        "memory": 0,
+        "cpus": 0,
+        "mounts": []
+      },
+      {
+        "name": "/coldsafe-backend-1",
+        "id": "93bca69cdc90b73dae4f381d9e2a9e89f6abaf288493d54c0c68c3e98d131fd0",
+        "state": "created",
+        "image_id": "sha256:5952cbb822c84b320d9ac223911c26f2cae05a1d28c1b3ae0a58b96c3333ae84",
+        "memory": 0,
+        "cpus": 0,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_job-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_job-artifacts/_data",
+            "Destination": "/app/artifacts",
+            "Driver": "local",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_training-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_training-artifacts/_data",
+            "Destination": "/app/training-artifacts",
+            "Driver": "local",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "Mode": "",
+            "RW": false,
+            "Propagation": "rprivate"
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-models-1",
+        "id": "2f20b646cc9e33a69d5a4a8cd694337c3761461a1cb0086a5eb8676dc9c176c8",
+        "state": "created",
+        "image_id": "sha256:7a088b22336b1ed43dc78e2b9c24735b836029911688b2683f672b65192b53a3",
+        "memory": 536870912,
+        "cpus": 1000000000,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_training-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_training-artifacts/_data",
+            "Destination": "/app/training-artifacts",
+            "Driver": "local",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "Mode": "",
+            "RW": false,
+            "Propagation": "rprivate"
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-gateway-1",
+        "id": "ea2ce1a2b23c8bbec444123a00e69c7d2b3b98f401620be5d1b42bb677ddd473",
+        "state": "created",
+        "image_id": "sha256:880471d76b077819afb016818887244e3117fe5fd9546c5f864a0836659bcacb",
+        "memory": 134217728,
+        "cpus": 250000000,
+        "mounts": [
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "Mode": "",
+            "RW": false,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_gateway-state",
+            "Source": "/var/lib/docker/volumes/coldsafe_gateway-state/_data",
+            "Destination": "/state",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-writer-1",
+        "id": "86dbb612c20134edb1f8b384c236814acf2720789425c12a16f5032d25ad05f8",
+        "state": "created",
+        "image_id": "sha256:e2d6dbf21c7b88811a62bd61c5a6babed05368f93e851e25ed2db7911036e9c0",
+        "memory": 134217728,
+        "cpus": 250000000,
+        "mounts": [
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "Mode": "",
+            "RW": false,
+            "Propagation": "rprivate"
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-simulator-1",
+        "id": "7891dd31fa2085222e97a096407299d0c655fef62e5cdc7261ed71438f0b3960",
+        "state": "created",
+        "image_id": "sha256:c909df42e28df31398e640782e38d1a1fda37c59fe40578560ee29cf1a38ec38",
+        "memory": 67108864,
+        "cpus": 250000000,
+        "mounts": [
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "Mode": "",
+            "RW": false,
+            "Propagation": "rprivate"
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-training-1",
+        "id": "6f0c09b1d4d1abe5feaaffab69c54172a7312b0840972ab926e2ea1bd4ee0ebb",
+        "state": "created",
+        "image_id": "sha256:32e5fa2d6077541ea92bf50cb199ff5d42c0c4097ece2cf1034fddac2462a796",
+        "memory": 1073741824,
+        "cpus": 1000000000,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_job-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_job-artifacts/_data",
+            "Destination": "/app/artifacts",
+            "Driver": "local",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_training-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_training-artifacts/_data",
+            "Destination": "/app/training-artifacts",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-generation-1",
+        "id": "9e88773e0c3d5448fe539566488e587b5a794453229a166227586d1b38734f6f",
+        "state": "created",
+        "image_id": "sha256:5a34bb756c031be45f8283c9cb6258bfd463e2a0065f1e8b749add80f20c46c3",
+        "memory": 536870912,
+        "cpus": 1000000000,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_job-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_job-artifacts/_data",
+            "Destination": "/app/artifacts",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-mosquitto-1",
+        "id": "1cb2a269d2b5843be407b086475888686c08a6f8e061d93294ca93ff1cc3e712",
+        "state": "exited",
+        "image_id": "sha256:6a458a7d642350bff8c4d9cce8b088940ec7c881163b10d20c9da42589b4d5a7",
+        "memory": 0,
+        "cpus": 0,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-auth",
+            "Source": "/var/lib/docker/volumes/coldsafe_mosquitto-auth/_data",
+            "Destination": "/mosquitto/auth",
+            "Driver": "local",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_mosquitto-data/_data",
+            "Destination": "/mosquitto/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "5d7cfcd9b0b9a9c689fb319b298a7068c4a948de0fadd91a677174888b7ffbe6",
+            "Source": "/var/lib/docker/volumes/5d7cfcd9b0b9a9c689fb319b298a7068c4a948de0fadd91a677174888b7ffbe6/_data",
+            "Destination": "/mosquitto/log",
+            "Driver": "local",
+            "Mode": "z",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-mosquitto-init-1",
+        "id": "46fa4db745dca9ee4c5d2a06be84d48c147633e2ca737703a4bc2d6ee05045be",
+        "state": "exited",
+        "image_id": "sha256:6a458a7d642350bff8c4d9cce8b088940ec7c881163b10d20c9da42589b4d5a7",
+        "memory": 0,
+        "cpus": 0,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-auth",
+            "Source": "/var/lib/docker/volumes/coldsafe_mosquitto-auth/_data",
+            "Destination": "/mosquitto/auth",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "0882470cd2544d83c1667dfbfafc06d07f1b62656a55bde828e88d14496e9858",
+            "Source": "/var/lib/docker/volumes/0882470cd2544d83c1667dfbfafc06d07f1b62656a55bde828e88d14496e9858/_data",
+            "Destination": "/mosquitto/data",
+            "Driver": "local",
+            "Mode": "z",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "bad7a05248915dcfde9dae86227d26e276071e6b9809c5c5dc4d17711dc4a364",
+            "Source": "/var/lib/docker/volumes/bad7a05248915dcfde9dae86227d26e276071e6b9809c5c5dc4d17711dc4a364/_data",
+            "Destination": "/mosquitto/log",
+            "Driver": "local",
+            "Mode": "z",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-rabbitmq-1",
+        "id": "4f7c9e3b08bae6193b588bc7789eb0f9d3891e1c50b8500d03fef66df080c77c",
+        "state": "exited",
+        "image_id": "sha256:818d5f898a5b2d0978214736bd961d2d53701bc4a76dcf8a81b67af12cab94c4",
+        "memory": 536870912,
+        "cpus": 1000000000,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-definitions",
+            "Source": "/var/lib/docker/volumes/coldsafe_rabbitmq-definitions/_data",
+            "Destination": "/etc/rabbitmq/bootstrap",
+            "Driver": "local",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_rabbitmq-data/_data",
+            "Destination": "/var/lib/rabbitmq",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-postgres-1",
+        "id": "0fa77b130d38562f7bf163d6c132f6ca98f8280f92db4b713ff00ae72f45d8fd",
+        "state": "exited",
+        "image_id": "sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b",
+        "memory": 0,
+        "cpus": 0,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_postgres-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_postgres-data/_data",
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-rabbitmq-init-1",
+        "id": "14dcec193f9bca034a58df24de29e0e2bfe196d99322f0a5e33c6f02932ef3da",
+        "state": "exited",
+        "image_id": "sha256:6433d4a776e29e9a3569e05526bbbd4d8359f89da5e374947977bd20f9686f49",
+        "memory": 67108864,
+        "cpus": 0,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-definitions",
+            "Source": "/var/lib/docker/volumes/coldsafe_rabbitmq-definitions/_data",
+            "Destination": "/output",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-ollama-1",
+        "id": "cc9726b5e11fd39dd19c2dc161d3790def55a6dff75c40e7f1c843822ec864f5",
+        "state": "exited",
+        "image_id": "sha256:adca95a12c2b386a8f9a995e7fa0600e187e3323b5e5522f5a6c3b1ec73eff99",
+        "memory": 3489660928,
+        "cpus": 4000000000,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_ollama-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_ollama-data/_data",
+            "Destination": "/models",
+            "Driver": "local",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": ""
+          }
+        ]
+      },
+      {
+        "name": "/coldsafe-influxdb-1",
+        "id": "6082312c6613a4574f9f3aa7c47f8fd17fcfb84592eb5c5cd652ec6eecdf2fe3",
+        "state": "exited",
+        "image_id": "sha256:991673dc2d237bd79b15d6627410d72de111387e7dac673dbb92cf3333ffcc8c",
+        "memory": 0,
+        "cpus": 0,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_influxdb-config",
+            "Source": "/var/lib/docker/volumes/coldsafe_influxdb-config/_data",
+            "Destination": "/etc/influxdb2",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_influxdb-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_influxdb-data/_data",
+            "Destination": "/var/lib/influxdb2",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      }
+    ],
+    "protected_sha256": {
+      ".env": "1a27f5382e241029fa7e08757dfa703727ceece00d2a433a143ba124abd06d9f",
+      "simulator/local/catalog.before-reset-20261025T021514086625Z.json": "6b8c1b99806a8450bd0359f51174655dce6e03329931c6694c45e5463e5ef874",
+      "simulator/local/catalog.json": "17fa6910887f035636484e933a521505cb21f8637904cd583c117f799d007a3e",
+      ".dockerignore": "2f914cbc425c7262d7779d026ac383e5132754aee6e81c34ec5536b58863b6d5",
+      "backend/Dockerfile": "d8451eb25b9bc7633bdc9397b7fecc51434ddc0438d11c632dd713648a8cac6c",
+      "gateway/Dockerfile": "ed6d04c886572f2def87401199c39b9984daf09859a0b4d9aaf99dd7c9f481b9",
+      "writer/Dockerfile": "968f0ec00a097e2cc051dd92db88e98c669240af1b3bb030321eb978c41f78c4",
+      "backend/tests/infra/test_application_images.py": "683eada2ac479167f76c8125210be39a6d4e5a08bb6447b7f8cff4bb2229c1b7",
+      "docs/evidence/docker-refresh-2026-11-05/state.json": "171630c215a092058e094060199fcdc7f9a318cd47d1aaad4af0caa33fe06b04",
+      "docs/evidence/docker-refresh-2026-11-05/README.md": "583f3a17cf90beb199ca2d49cc4753242a28bd543a06c76f9b0526e9419184f1",
+      "docs/evidence/docker-refresh-2026-11-05/build.log": "a20b35cde991cfbe9684246372fd62a9aca88dbec090435daac9a7bb581e3e8a",
+      "docs/evidence/image-packaging-2026-11-05/report.json": "8e00a17a99c24b22e6a744696cf7fb0be433b123f7a2ed24a60c37735409db8d",
+      "docs/evidence/image-packaging-2026-11-05/README.md": "71de0448b7f78478e720ce4df4add11b7838830f6763aa3b979ec866e46aa0de",
+      "docs/evidence/image-packaging-2026-11-05/tests.log": "9edfcadbdc534df857bfe1bc1934fff56b5ebbeed4a3c6a6e51858c09155672b",
+      "docs/evidence/image-packaging-2026-11-05/build.log": "8e22d7da76464246f20cc48291a4b11a4ca86239de87f56f92095dbdb5f2b0dd"
+    }
+  },
+  "tests": {
+    "red": {
+      "failed": 3,
+      "passed": 1
+    },
+    "green_initial": {
+      "passed": 4
+    },
+    "independent_review": "approved; 4 tests passed with synthetic environment",
+    "focused_suite": {
+      "passed": 59,
+      "elapsed_seconds": 1.18,
+      "coverage_collected": false
+    }
+  },
+  "limits": [
+    "No services or builds were started.",
+    "Configuration equivalence is not integrated runtime validation.",
+    "Existing credentials, catalog and model weights remain prerequisites.",
+    "Current runtime remains the existing Compose CPU/Ollama integration."
+  ],
+  "finalized_on": "2026-11-08",
+  "verification": {
+    "default_services": [
+      "backend",
+      "frontend",
+      "gateway",
+      "generation",
+      "influxdb",
+      "llm",
+      "models",
+      "mosquitto",
+      "mosquitto-init",
+      "ollama",
+      "postgres",
+      "rabbitmq",
+      "rabbitmq-init",
+      "simulator",
+      "training",
+      "writer"
+    ],
+    "equivalent_to_previous_complete_configuration": true,
+    "explicit_preparation_equivalent": true,
+    "container_identities_images_mounts_limits_and_states_match_initial_snapshot": true,
+    "containers_stopped": 16,
+    "protected_file_hashes_match": 15,
+    "new_dependencies": 0
+  }
+}

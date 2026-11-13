@@ -1,0 +1,83 @@
+# Explicit opt-in for private offline generation and training jobs.
+services:
+  backend:
+    volumes:
+      - "job-artifacts:/app/artifacts:ro"
+      - "training-artifacts:/app/training-artifacts:ro"
+    environment:
+      RABBITMQ_API_PASSWORD: "${RABBITMQ_API_PASSWORD:?Preencha a credencial privada da API}"
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  generation:
+    extends:
+      file: compose.yaml
+      service: backend
+    command: [python, -m, backend.app.job_worker, --role, generation]
+    volumes:
+      - "job-artifacts:/app/artifacts"
+    mem_limit: 512m
+    cpus: 1.0
+    environment:
+      COLDSAFE_HEALTHCHECK: "1"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_GENERATION_PASSWORD: "${RABBITMQ_GENERATION_PASSWORD:?Preencha a credencial privada de geracao}"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -m, simulator.health]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+  training:
+    extends:
+      file: compose.yaml
+      service: backend
+    command: [python, -m, backend.app.job_worker, --role, training]
+    volumes:
+      - "job-artifacts:/app/artifacts:ro"
+      - "training-artifacts:/app/training-artifacts"
+    mem_limit: 1g
+    cpus: 1.0
+    environment:
+      COLDSAFE_HEALTHCHECK: "1"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_TRAINING_PASSWORD: "${RABBITMQ_TRAINING_PASSWORD:?Preencha a credencial privada de treino}"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -m, simulator.health]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+  models:
+    extends:
+      file: compose.yaml
+      service: backend
+    command: [python, -m, backend.app.model_worker]
+    volumes:
+      - "training-artifacts:/app/training-artifacts:ro"
+    mem_limit: 512m
+    cpus: 1.0
+    environment:
+      COLDSAFE_HEALTHCHECK: "1"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_INFERENCE_PASSWORD: "${RABBITMQ_INFERENCE_PASSWORD:?Preencha a credencial privada de inferencia}"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -m, simulator.health]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  job-artifacts:
+  training-artifacts:

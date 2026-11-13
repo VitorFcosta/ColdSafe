@@ -1,0 +1,232 @@
+{
+  "task": "B2-28",
+  "status": "completed",
+  "date": "2026-10-20",
+  "timezone": "America/Sao_Paulo",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "214d4a3524ad00de2c1b8a33443cf4f84417e885",
+    "initial_worktree": "clean",
+    "delivery": "local uncommitted changes; no push"
+  },
+  "dependencies_added": [],
+  "implementation": [
+    "fan running/vibration from observed telemetry independent of prediction",
+    "LED emissive and buzzer gentle 1 Hz visual pulse",
+    "ambient light from light_percent; thermal marker from ambient temperature",
+    "existing 30-second freshness stops renderer animation loop; new telemetry resumes without elapsed-time jump",
+    "scope remount, reduced motion, hidden tab, context loss, initial render failure and unmount cleanup",
+    "RabbitMQ diagnostics run as rabbitmq to avoid root-owned cookie race"
+  ],
+  "acceptance": {
+    "two_reactive_environment_elements": true,
+    "all_actuators_represented": true,
+    "real_simulator_stop_freezes_with_socket_open": true
+  },
+  "tests": {
+    "frontend_coverage": {
+      "passed": 395,
+      "files": 35,
+      "seconds": 4.99,
+      "statements": 92.29,
+      "branches": 89.06,
+      "functions": 90.43,
+      "lines": 95.52,
+      "twin_module_lines": 100
+    },
+    "aiot_typecheck_build": {
+      "result": "passed",
+      "node": "24.20.0",
+      "route_minified_kb": 546.94,
+      "route_gzip_kb": 138.48,
+      "warning": "route chunk exceeds 500 kB"
+    },
+    "chromium_fixture_boundary": {
+      "passed": 4,
+      "seconds": 9.7,
+      "real": "Chromium and WebGL",
+      "simulated": "HTTP/WS responses; controlled sensor/actuator values"
+    },
+    "compose_contract": {
+      "passed": 27,
+      "seconds": 0.29
+    },
+    "real_harness": {
+      "python_passed": 1,
+      "python_seconds": 168.21,
+      "chromium_passed": 5,
+      "chromium_minutes": 1.9,
+      "b228_seconds": 37.5,
+      "cadence_hz": 1,
+      "real": [
+        "simulator Python",
+        "MQTT",
+        "gateway",
+        "RabbitMQ",
+        "API/writer",
+        "PostgreSQL",
+        "InfluxDB",
+        "HTTP/WS",
+        "Chromium/WebGL"
+      ],
+      "http_ws_fixtures": false,
+      "assertions": [
+        "nine components present",
+        "fresh canvas changes",
+        "only simulator stopped",
+        "API freshness stale and age_seconds > 30",
+        "same WebSocket remains open",
+        "all nine values unavailable",
+        "canvas PNGs separated by 750 ms equal after stale",
+        "simulator restarted in finally",
+        "new data resumes animation on same open socket"
+      ],
+      "disposable_stack_cleaned": true
+    },
+    "red_green": [
+      "missing visual state/animation/thermal marker",
+      "first render error stops already-started loop",
+      "healthcheck uses broker UID for both diagnostics"
+    ],
+    "failed_attempt": {
+      "stage": "first real harness setup before browser",
+      "seconds": 23.77,
+      "cause": "RabbitMQ .erlang.cookie eacces",
+      "resolution": "both diagnostics run via existing su-exec rabbitmq; full re-run passed"
+    },
+    "cookie_probes": {
+      "root": {
+        "owner": "0:0",
+        "mode": "0400",
+        "readable_by_uid_100": false
+      },
+      "rabbitmq": {
+        "owner": "100:101",
+        "mode": "0400",
+        "readable_by_uid_100": true
+      },
+      "isolated_no_personal_volumes": true
+    },
+    "reviews": "Vue, code and infrastructure reviews completed; actionable findings resolved",
+    "git_diff_check": "passed"
+  },
+  "files_changed": [
+    "backend/tests/infra/test_compose_contract.py",
+    "compose.yaml",
+    "docs/aiot/README.md",
+    "docs/aiot/tasks/B2-28.md",
+    "docs/aiot/tasks/README.md",
+    "frontend/PRODUCT.md",
+    "frontend/README.md",
+    "frontend/e2e/aiot-real.spec.ts",
+    "frontend/e2e/digital-twin.spec.ts",
+    "frontend/src/features/digital-twin/DigitalTwinScene.spec.ts",
+    "frontend/src/features/digital-twin/DigitalTwinScene.vue",
+    "frontend/src/features/digital-twin/twin-state.spec.ts",
+    "frontend/src/features/digital-twin/twin-state.ts",
+    "frontend/src/views/DigitalTwinView.spec.ts",
+    "frontend/src/views/DigitalTwinView.vue",
+    "infra/rabbitmq/README.md"
+  ],
+  "files_created": [
+    "docs/evidence/b2-28.json"
+  ],
+  "validated_source_sha256": {
+    "backend/tests/infra/test_compose_contract.py": "bc2b37dc4874ebc798dd80428112dfac0120b1ea9cd33db4c562cc5e0e06a274",
+    "compose.yaml": "ba56b9dbd8276734518582d380204eab76bd6c333fdcf18835715d7f5a5f7c43",
+    "frontend/e2e/aiot-real.spec.ts": "eb8b37eda7ed19ec6e0024a9abbb6ffc30ed8ed461e98093c85b493f8e0467a3",
+    "frontend/e2e/digital-twin.spec.ts": "3d131c15f6e806a76c6ac57df46414d0427655d01dcb6b33e94fec1a48262144",
+    "frontend/src/features/digital-twin/DigitalTwinScene.spec.ts": "b15dbcc06a961822cdaa7b459eead955e3201858fd8f25f981647d7201f2e80a",
+    "frontend/src/features/digital-twin/DigitalTwinScene.vue": "923f79d293c5aeb2a873664ccf0a21be8b7f6911afa53580fcce45b0044df6b6",
+    "frontend/src/features/digital-twin/twin-state.spec.ts": "6e53ad39f5283ab6c9c3d10805d114294f1eb6ece91e57f6e93afddf41f89b38",
+    "frontend/src/features/digital-twin/twin-state.ts": "608e3effd212cab191fe0bc18f65226d2e4aa8a809fcac9043768320fd04deb4",
+    "frontend/src/views/DigitalTwinView.spec.ts": "e5db0386c628b9b3c516f418a7e9c6d890bca5114858a73fa667115a4b453f4f",
+    "frontend/src/views/DigitalTwinView.vue": "7b241a7e122d5698423d394c2b519fc6e357cec01e5f1d6f761454ad9668c0e2"
+  },
+  "temporary_artifacts_sha256": {
+    "/tmp/coldsafe-b228-coverage.log": "19f3089cd5735227c8f1dbf656f25584468d834971fb2c573d79f5450ffca16b",
+    "/tmp/coldsafe-b228-build.log": "e312302734c40716607a5f6e1542c4b524825d315249371544b60a06c91b7c04",
+    "/tmp/coldsafe-b228-e2e.log": "a80753c158ec17f3ea41987a581649a30ce211b9f4e6a9e8d94253de6676c7c0",
+    "/tmp/coldsafe-b228-real.log": "e119ea859b2c1f25acd55aa70f6831f43319705e73837b99566f3a69957ac307",
+    "/tmp/coldsafe-b228/twin-real-stale.png": "c2c7a1e814eb5b4e2471579e15c932c0d3c0cc5970b5e3b04db0cb80c78b875e",
+    "/tmp/coldsafe-b228/twin-real-resumed.png": "5a5377973881717f38175f90215bf8228d8aea24a46198b2192bbe3d1f234d3e"
+  },
+  "limitations": [
+    "no physical sensors/calibration",
+    "fan speed/vibration gain and thermal color scale illustrative",
+    "no personal deployment or credentials changed",
+    "no final stack capacity measurement",
+    "Chromium only; no mobile hardware/GPU profiling",
+    "temporary images/logs may disappear; results and hashes retained here"
+  ],
+  "next_checkpoint": "B2-28 complete. Read Git, local AIoT guide and user-selected next card; B2-29 not started.",
+  "publication_validation": {
+    "date": "2026-10-20",
+    "authorization": "user requested commit and push",
+    "security_patch_commit": "beffb59b36948cf8d407ef349699bcc55cc17fba",
+    "feature_commit": "commit containing this record",
+    "source_hashes_unchanged": true,
+    "original_tests_repeated": false,
+    "new_dependencies": [],
+    "dependency_update": {
+      "name": "certifi",
+      "before": "2026.7.22",
+      "after": "2026.10.19",
+      "advisory": "GHSA-6q48-6c7w-9gw2",
+      "severity": "critical",
+      "files": [
+        "backend/requirements.lock.txt",
+        "backend/requirements-dev.lock.txt",
+        "writer/requirements.txt"
+      ],
+      "other_versions_changed": false
+    },
+    "post_patch_tests": {
+      "python": "3.13.15",
+      "backend_passed": 87,
+      "backend_seconds": 10.54,
+      "existing_warnings": 2,
+      "pip_check_installed_packages": 61,
+      "trust_store_root_names": 114,
+      "compromised_root_absent": true
+    },
+    "audits": {
+      "backend": {
+        "packages": 45,
+        "known_vulnerabilities": 0
+      },
+      "writer": {
+        "packages": 10,
+        "known_vulnerabilities": 0
+      },
+      "npm": {
+        "moderate": 1,
+        "high": 0,
+        "critical": 0,
+        "package": "vite",
+        "version": "8.2.2",
+        "preexisting": true,
+        "advisory": "GHSA-698v-4r3x-3vcv",
+        "limit": "Windows-specific exploitation prerequisites; current macOS and static Nginx runtime do not meet conditions",
+        "followup": "update Vite and lock with regression checks before affected Windows development"
+      }
+    },
+    "reviews": "commit framing and security approved; critical certifi finding fixed and reviewed",
+    "dependency_files_sha256": {
+      "backend/requirements.lock.txt": "36b29e74c722145effb62e2c920166dae3c73982e0f239635e068eb0f3e8a511",
+      "backend/requirements-dev.lock.txt": "a8e35bb327c857d61ccacf73d465f834e4c637fc6a826dcf1d5e4594c09d6e2f",
+      "writer/requirements.txt": "db27266c261e68c089f181043e92cc68c6742b46c34299c9520f8520487c5ba1"
+    },
+    "temporary_audits_sha256": {
+      "/tmp/coldsafe-b228-precommit-npm-audit.json": "fc66fc6c2d10bd933f723f1c4dd5c09c1965bad856417595033bfdd32025a2f1",
+      "/tmp/coldsafe-b228-precommit-pip-audit-fixed.json": "41ef2f6654061388465b7f9c5bdf170a9233fcda2e0b59cef35bfbf977786f04",
+      "/tmp/coldsafe-b228-precommit-writer-audit.json": "7106a6d9420dc58b54a8166f547524d65f10071dfb7c06777500e6f5d6f767d3",
+      "/tmp/coldsafe-b228-precommit-backend.log": "e39075bf26944b343e2fc52e56d2ec12491d9ee6385c1f7fe495128bb81a5947"
+    },
+    "limits": [
+      "No personal deployment or existing container rebuild; installed images still need certifi update/rebuild",
+      "No repeated physical/fullstack/frontend tests in publication phase; original results retained separately",
+      "pip-audit used via isolated uvx, no project dependency added"
+    ]
+  }
+}

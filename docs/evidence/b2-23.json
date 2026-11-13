@@ -1,0 +1,731 @@
+{
+  "task": "B2-23",
+  "date": "2026-10-18",
+  "status": "completed",
+  "scope": "Private offline health/RUL training jobs and administrative evaluation page; no activation",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "1bcab677a7d0c04c40df5b16ca161548f98cf231",
+    "initial_worktree_clean": true,
+    "commit_created": false,
+    "version": "base_head plus local diff; source hashes below"
+  },
+  "created_files": [
+    "backend/app/services/regression_diagnostics.py",
+    "backend/app/services/training.py",
+    "backend/app/services/training_results.py",
+    "backend/app/services/training_runner.py",
+    "backend/tests/api/test_training_api.py",
+    "backend/tests/integration/test_training_integration.py",
+    "backend/tests/services/test_regression_diagnostics.py",
+    "backend/tests/services/test_training.py",
+    "docs/evidence/b2-23.json",
+    "frontend/e2e/training-real.spec.ts",
+    "frontend/e2e/training.spec.ts",
+    "frontend/playwright.training.config.ts",
+    "frontend/src/features/training/TrainingTarget.spec.ts",
+    "frontend/src/features/training/TrainingTarget.vue",
+    "frontend/src/features/training/training-api.spec.ts",
+    "frontend/src/features/training/training-api.ts",
+    "frontend/src/features/training/training.fixture.json",
+    "frontend/src/views/TrainingView.spec.ts",
+    "frontend/src/views/TrainingView.vue"
+  ],
+  "changed_existing_files": [
+    "backend/Dockerfile",
+    "backend/README.md",
+    "backend/app/api/app.py",
+    "backend/app/api/jobs.py",
+    "backend/app/api/schemas.py",
+    "backend/app/config/settings.py",
+    "backend/app/job_worker.py",
+    "backend/app/repositories/aiot.py",
+    "backend/app/runtime.py",
+    "backend/app/services/health_training.py",
+    "backend/app/services/jobs.py",
+    "backend/app/services/rul_training.py",
+    "backend/tests/infra/test_job_worker_cli.py",
+    "backend/tests/services/test_health_training.py",
+    "backend/tests/services/test_rul_training.py",
+    "compose.jobs.yaml",
+    "contracts/aiot.md",
+    "docs/aiot/README.md",
+    "docs/aiot/tasks/B2-23.md",
+    "docs/aiot/tasks/README.md",
+    "docs/configuration.md",
+    "frontend/PRODUCT.md",
+    "frontend/README.md",
+    "frontend/src/router/index.ts",
+    "frontend/src/views/FoundationView.vue",
+    "frontend/src/views/LaboratoryView.vue",
+    "frontend/src/views/ManageView.vue",
+    "frontend/src/views/MessagingView.vue"
+  ],
+  "code_sha256": {
+    "backend/app/api/app.py": "7274d38d2805e825885a47487e559a3a0bdfdab06228496f2a6a4c371dd2ab70",
+    "backend/app/api/jobs.py": "a53dea4e0c1b11e2281dc94445b143a82a9741f6ce8cef39ec7c1d0813a77987",
+    "backend/app/api/schemas.py": "df4ab6c367865fc99991983f36ab95d7cbf3c03300e5414b9c12f69832eba9e7",
+    "backend/app/config/settings.py": "f8f73405ab7930c8e7af33782ea2c362d8f93bc95b85af7465f5a68d2a40d74b",
+    "backend/app/job_worker.py": "1b5f47141b4c95804d9283dbd62b03a7520bc5828e14047d7facce604bddfc95",
+    "backend/app/repositories/aiot.py": "dc9dd124bd2343c4e4cd57f06c4c08d7cc2cb516b2994941604cde39dd208473",
+    "backend/app/runtime.py": "a269ef1d6ed4bf2aa2ce05ece1f0cbbd2aaefa34d9c793642fbb60b1ad70a93f",
+    "backend/app/services/health_training.py": "a4efed82c17e6630163fa28d4d0b3d8389f0710cb84727ac739f2441723f996c",
+    "backend/app/services/jobs.py": "ac00b36c4738ca32760e6ad22cef9c2f558cca71f9e25d0ee15d4ffbbe07fd87",
+    "backend/app/services/regression_diagnostics.py": "7ebd5510785e7bb30b8465b8bd9b47f5a2a38c018c8bc8ba8cad8caebedbee0d",
+    "backend/app/services/rul_training.py": "dc3bc16514ed0b932538e95812b6a763b7ee02083d5343de93087f49339e1d27",
+    "backend/app/services/training.py": "3f476920040f841a587ae74202f8c0b1cde77a44322a582f1e1c35c429dd896d",
+    "backend/app/services/training_results.py": "54f7d9d0ca3123662945e8a937ec58c851a31f3c3a680cdbdace4183e4002095",
+    "backend/app/services/training_runner.py": "683f352a28b29a4526941e470c6e126d58e8dd411a73420ca17b5a10612360ce",
+    "backend/tests/api/test_training_api.py": "b12e824c2ce26be1328a46458a3ba9f23f2d656dcf2ed6ebc0e89c9f5a82baa4",
+    "backend/tests/infra/test_job_worker_cli.py": "fc461580015c16171edf9fd17b4a1c98e45146848e8d430520504d6de1bab5fb",
+    "backend/tests/integration/test_training_integration.py": "d8989e47d0e453fea39e4acf7e5e1a2b6d1edbc899ef614f48fd7f1a5e8879a5",
+    "backend/tests/services/test_health_training.py": "b415107b6cf7a62a4ee0ee153bf093539968a4f954c2c88f9147ca8484a7ffb4",
+    "backend/tests/services/test_regression_diagnostics.py": "b5ebc66150d4d62dbe85d501cab6a4e01fcbf658dd9af6ed2f7f114ff15f0fce",
+    "backend/tests/services/test_rul_training.py": "10dfcae50dfd8a975285da699e6dd4bcf60a1a8d6b8a9636c3c9b25f1de2e76b",
+    "backend/tests/services/test_training.py": "23f2956940d39dd23ffb4bd84bcdc79d75f2de8bb53324237adacd58d58ed2a8",
+    "compose.jobs.yaml": "81bc800f849662910b3d60ce9e6b8744a028f2d5b7c1471132a10cf91086c411",
+    "frontend/e2e/training-real.spec.ts": "b0874dc3400c48b4507a66af977249948211d8b450c1ac4e47cd4fe91b284b8b",
+    "frontend/e2e/training.spec.ts": "b20b3f52422b6a57dcedfef01663a81d0d7cacae9f709dbfc274140a90321ace",
+    "frontend/playwright.training.config.ts": "4b3907d252cd9d5fdb94d36ea5da7040a17732c6a2f6461f6474d0b194e545b3",
+    "frontend/src/features/training/TrainingTarget.spec.ts": "5cacc7e727a7afac8e3c93f8e2239c7fb69eae74ab9e897e597aa591fcfa465e",
+    "frontend/src/features/training/TrainingTarget.vue": "affc48e6d4d4688640e9a3918690cfb646cd24539291ae8eebd27bb8047e6f70",
+    "frontend/src/features/training/training-api.spec.ts": "1a384318ecec3635afdf33a4864c402c8c963003482c2bf6158aba89041a043e",
+    "frontend/src/features/training/training-api.ts": "c9ebe1b4e955f2cd77b7534db88e45607f9b1e55efa930b63e869679f8a85ec2",
+    "frontend/src/features/training/training.fixture.json": "fd884d2f1d2000ffc1e805f7c0a79644852640a246796918f4d93e1181f1e8ff",
+    "frontend/src/router/index.ts": "8f63b6ec12ff9ad6ebddbbfc7065abb8b6836e533e14a9caab6db5e4456c09e5",
+    "frontend/src/views/FoundationView.vue": "df2f909deef05b77e1a8f2362ccf04cb23b00b4589a5656d3268466f4f9e6db7",
+    "frontend/src/views/LaboratoryView.vue": "2d962caa8dc47a1c92e90910ee88a5a8d7c283a6420955dc4e91bf28c292569d",
+    "frontend/src/views/ManageView.vue": "5094680ed6e0a4642b2bdf156c14f15abb58ef2f152d0cd4cf8f2376a3f50eb7",
+    "frontend/src/views/MessagingView.vue": "205b0d213c5967a828cfebca79a541b65a5059d91aa96b9703d8c455104556d9",
+    "frontend/src/views/TrainingView.spec.ts": "4a87bf637a044394cf384bc7fe219da03add0360dc9bb88774d8b4ceccf6a356",
+    "frontend/src/views/TrainingView.vue": "a88a7e50151c0c694cec3a6cf65b39fc16dfe44a258cb3213c51fe33940ca1b3"
+  },
+  "dependencies_added": [],
+  "real_integration": {
+    "job_id": "96179859-92d0-4bd4-a1e5-901fbcab2225",
+    "model_id": "b5489cbc-1e9a-5c57-a83b-c19df4796de1",
+    "dataset_id": "b8188be5-04fa-5d08-b071-ad36653bb5cd",
+    "generated_rows": 1000000,
+    "job_completed_units": 2,
+    "training_posts": 1,
+    "http_amqp_postgres_browser_real": true,
+    "reload_without_repost": true,
+    "owner_isolation_and_viewer_denial": true,
+    "active_model_count": 0,
+    "reports": {
+      "health": {
+        "status": "eligible",
+        "target": "health_score_true",
+        "metrics": {
+          "test": {
+            "baseline": {
+              "mae": 21.852824682104043,
+              "r2": -0.01164460959924174,
+              "rmse": 25.76334951840441
+            },
+            "candidate": {
+              "mae": 2.2753034305646844,
+              "r2": 0.9841792064434457,
+              "rmse": 3.221828888364882
+            }
+          },
+          "validation": {
+            "baseline": {
+              "mae": 23.10450753964055,
+              "r2": -0.0010114481341270132,
+              "rmse": 27.646025575569915
+            },
+            "candidate": {
+              "mae": 1.6226921134287016,
+              "r2": 0.9943438080794974,
+              "rmse": 2.0781421537930505
+            }
+          }
+        },
+        "model_sha256": "67e3d7803ddb81ade1a8e68b99ace6238eb0c9344095c265d6968dcecbbd27b4",
+        "timings": {
+          "baseline_fit_seconds": 0.0050420420011505485,
+          "baseline_validation_seconds": 0.001448583003366366,
+          "diagnostics_seconds": 0.45860574999824166,
+          "test_load_and_evaluation_seconds": 0.6008386250177864,
+          "total_seconds": 36.3418060420081
+        },
+        "memory": {
+          "peak_rss_bytes": 586448896,
+          "scope": "process lifetime high-water RSS, includes earlier work in this process"
+        },
+        "diagnostics": {
+          "partition": "test",
+          "sample_count": 500,
+          "sample_max": 500,
+          "sample_seed": 42,
+          "sampling": "seeded_without_replacement",
+          "total_rows": 149755,
+          "first_scatter_points": [
+            {
+              "actual": 99.79130904990977,
+              "baseline": 69.89290980004351,
+              "error": -1.8754748302688995,
+              "predicted": 97.91583421964087
+            },
+            {
+              "actual": 99.67520573094095,
+              "baseline": 69.89290980004351,
+              "error": -1.1872186705720793,
+              "predicted": 98.48798706036887
+            },
+            {
+              "actual": 99.57791536720752,
+              "baseline": 69.89290980004351,
+              "error": -0.8637671692906395,
+              "predicted": 98.71414819791688
+            }
+          ],
+          "permutation": {
+            "reference_mae": 2.383404045661629,
+            "repeats": 3,
+            "sample_count": 500,
+            "scoring": "mae_increase",
+            "feature_count": 48,
+            "top_features": [
+              {
+                "mean": 15.030420214330386,
+                "name": "vibration_rms_mm_s__mean__3600s",
+                "std": 0.1958797290696082
+              },
+              {
+                "mean": 1.6924920696336068,
+                "name": "vibration_rms_mm_s__max__900s",
+                "std": 0.015437945758134723
+              },
+              {
+                "mean": 0.7335280902589911,
+                "name": "motor_temperature_c__mean__3600s",
+                "std": 0.05123862405565721
+              },
+              {
+                "mean": 0.6435320159053997,
+                "name": "vibration_rms_mm_s__mean__900s",
+                "std": 0.03434872828976404
+              },
+              {
+                "mean": 0.19995340585591803,
+                "name": "motor_temperature_c__max__900s",
+                "std": 0.00597922555530494
+              },
+              {
+                "mean": 0.1832841970383042,
+                "name": "motor_temperature_c__max__3600s",
+                "std": 0.0013400405776008287
+              }
+            ]
+          }
+        },
+        "near_failure": null
+      },
+      "rul": {
+        "status": "eligible",
+        "target": "rul_hours_true",
+        "metrics": {
+          "test": {
+            "baseline": {
+              "mae": 134.44710274553452,
+              "r2": -0.008905413859739753,
+              "rmse": 158.5704146405906
+            },
+            "candidate": {
+              "mae": 38.195028355700295,
+              "r2": 0.8998648921901813,
+              "rmse": 49.95628337228829
+            }
+          },
+          "validation": {
+            "baseline": {
+              "mae": 148.08704044799634,
+              "r2": -0.0018082394078495767,
+              "rmse": 175.6944708026593
+            },
+            "candidate": {
+              "mae": 62.534676226060476,
+              "r2": 0.7958707504260863,
+              "rmse": 79.30825861752719
+            }
+          }
+        },
+        "model_sha256": "12f737bca4424cd9376e0c67f2fcfbf60fa7c37530de114946b2581b27df4588",
+        "timings": {
+          "baseline_fit_seconds": 0.0028481250046752393,
+          "baseline_validation_seconds": 0.0005578330019488931,
+          "diagnostics_seconds": 0.3268156659905799,
+          "test_load_and_evaluation_seconds": 0.26447662501595914,
+          "total_seconds": 24.2844478340121
+        },
+        "memory": {
+          "peak_rss_bytes": 619429888,
+          "scope": "process lifetime high-water RSS, includes earlier work in this process"
+        },
+        "diagnostics": {
+          "partition": "test",
+          "sample_count": 500,
+          "sample_max": 500,
+          "sample_seed": 42,
+          "sampling": "seeded_without_replacement",
+          "total_rows": 59881,
+          "first_scatter_points": [
+            {
+              "actual": 409.19069442401803,
+              "baseline": 276.4373252443836,
+              "error": 21.09695555473985,
+              "predicted": 430.2876499787579
+            },
+            {
+              "actual": 406.14019432062923,
+              "baseline": 276.4373252443836,
+              "error": -4.338760974015372,
+              "predicted": 401.80143334661386
+            },
+            {
+              "actual": 404.10652758503664,
+              "baseline": 276.4373252443836,
+              "error": 83.70153026131834,
+              "predicted": 487.808057846355
+            }
+          ],
+          "permutation": {
+            "reference_mae": 36.82464622800991,
+            "repeats": 3,
+            "sample_count": 500,
+            "scoring": "mae_increase",
+            "feature_count": 48,
+            "top_features": [
+              {
+                "mean": 56.443163114765134,
+                "name": "vibration_rms_mm_s__mean__3600s",
+                "std": 3.302499786696428
+              },
+              {
+                "mean": 31.25536124730853,
+                "name": "vibration_rms_mm_s__max__900s",
+                "std": 2.0594392377068287
+              },
+              {
+                "mean": 3.7686294245124494,
+                "name": "motor_temperature_c__max__900s",
+                "std": 0.8536794038004978
+              },
+              {
+                "mean": 3.367094280050251,
+                "name": "humidity_percent__mean__3600s",
+                "std": 0.14034221385812773
+              },
+              {
+                "mean": 2.107862404149268,
+                "name": "motor_current_a__mean__3600s",
+                "std": 0.26461733307443447
+              },
+              {
+                "mean": 1.1906214477705344,
+                "name": "light_percent__std__900s",
+                "std": 0.42995167204539153
+              }
+            ]
+          }
+        },
+        "near_failure": {
+          "test": {
+            "baseline": {
+              "mae": 264.4506891918082,
+              "r2": -1453.989654472021,
+              "rmse": 264.541613234552
+            },
+            "candidate": {
+              "mae": 14.633146257128779,
+              "r2": -5.571795318937436,
+              "rmse": 17.778947984450433
+            },
+            "row_count": 2811
+          },
+          "threshold_hours": 24,
+          "validation": {
+            "baseline": {
+              "mae": 264.4480864976671,
+              "r2": -1452.9475357316333,
+              "rmse": 264.5390748484661
+            },
+            "candidate": {
+              "mae": 20.056878911634804,
+              "r2": -10.540792557690956,
+              "rmse": 23.56857255023206
+            },
+            "row_count": 3972
+          }
+        }
+      }
+    },
+    "final_harness_passed": true,
+    "production_publisher_and_worker_run_loops": true,
+    "temporary_infrastructure_removed": true,
+    "screenshots": {
+      "training-desktop.png": {
+        "path": "/tmp/coldsafe-b223-real-evidence/training-desktop.png",
+        "sha256": "f5c862e0e0b58c94272faaa9646eae790d5f09794b18138caf2c032d2ec63aa7"
+      },
+      "training-mobile.png": {
+        "path": "/tmp/coldsafe-b223-real-evidence/training-mobile.png",
+        "sha256": "ee7dfd2a53d9fb62294f20e001d790a0fb010689eacad72bfdcdc5052a2a37c4"
+      }
+    }
+  },
+  "same_prepared_diagnostic_benchmark": {
+    "prepared": "/tmp/coldsafe-b221-1m/prepared",
+    "generated_rows": 1000000,
+    "prepared_rows": 998280,
+    "run_order": [
+      "health",
+      "rul"
+    ],
+    "sequential_processes": true,
+    "source_unchanged": true,
+    "input_sha256": {
+      "manifest.json": "7abe6d3be8e15024f6c7504fcfa388ff0f0c7671a1c56af909dc359de2761022",
+      "test/features.npy": "bcf105ab7aecedb6ecd117bbec82209c20c8f1104d9fb7b67b9cf5588764ab65",
+      "test/targets.npy": "da468dbd3aed596a14902b171928e5d4e0d7a48e175c31ccca4c6be5d45806d8",
+      "train/features.npy": "c076b9a7192a58bccba576a9ea3197ad7bd4dae6bbaabe1a1b114b0f53e2b64f",
+      "train/targets.npy": "ee07e7f44a8a7d7da8b05770fae393dce2ac6b896939e409111ea398d2f00568",
+      "validation/features.npy": "8d65b6f7315c220824d820b9548e127e02d31652519954107b084ab711921d24",
+      "validation/targets.npy": "a5813bf93d1adcb1973233d5e038190bda55a673c14bfde4d6288905fb63259f"
+    },
+    "process_wall_seconds": {
+      "health": 40.89209245800157,
+      "rul": 29.55756724998355
+    },
+    "targets": {
+      "health": {
+        "status": "eligible",
+        "target": "health_score_true",
+        "metrics": {
+          "test": {
+            "baseline": {
+              "mae": 21.62850703965452,
+              "r2": -0.000492811112285052,
+              "rmse": 25.99600617351968
+            },
+            "candidate": {
+              "mae": 2.455681322104561,
+              "r2": 0.985691878909351,
+              "rmse": 3.1087868677450197
+            }
+          },
+          "validation": {
+            "baseline": {
+              "mae": 23.275251084061885,
+              "r2": -0.00030722422415574435,
+              "rmse": 27.854980756961936
+            },
+            "candidate": {
+              "mae": 1.8917356738359326,
+              "r2": 0.992361386771409,
+              "rmse": 2.434128046681615
+            }
+          }
+        },
+        "model_sha256": "9d020b7f6588e29f83be9ab0af81087d3f504f2b0fa8e5f347ddfd9ae8aaf27c",
+        "timings": {
+          "baseline_fit_seconds": 0.006067125010304153,
+          "baseline_validation_seconds": 0.001502166996942833,
+          "diagnostics_seconds": 0.7624477919889614,
+          "test_load_and_evaluation_seconds": 0.7191687500162516,
+          "total_seconds": 38.556184040993685
+        },
+        "memory": {
+          "peak_rss_bytes": 571097088,
+          "scope": "process lifetime high-water RSS, includes earlier work in this process"
+        },
+        "diagnostics": {
+          "partition": "test",
+          "sample_count": 500,
+          "sample_max": 500,
+          "sample_seed": 42,
+          "sampling": "seeded_without_replacement",
+          "total_rows": 149746,
+          "first_scatter_points": [
+            {
+              "actual": 97.80760355002735,
+              "baseline": 70.42606145031766,
+              "error": 1.0488348967636085,
+              "predicted": 98.85643844679096
+            },
+            {
+              "actual": 97.1962111980548,
+              "baseline": 70.42606145031766,
+              "error": 0.48697492983541224,
+              "predicted": 97.68318612789021
+            },
+            {
+              "actual": 96.75643463263343,
+              "baseline": 70.42606145031766,
+              "error": 1.1992938619846,
+              "predicted": 97.95572849461803
+            }
+          ],
+          "permutation": {
+            "reference_mae": 2.532495186636016,
+            "repeats": 3,
+            "sample_count": 500,
+            "scoring": "mae_increase",
+            "feature_count": 48,
+            "top_features": [
+              {
+                "mean": 15.825090020666872,
+                "name": "vibration_rms_mm_s__mean__3600s",
+                "std": 0.49892079859131744
+              },
+              {
+                "mean": 2.262202723093512,
+                "name": "vibration_rms_mm_s__max__900s",
+                "std": 0.04251011343973431
+              },
+              {
+                "mean": 1.0336382332013752,
+                "name": "motor_temperature_c__mean__3600s",
+                "std": 0.0668361808316452
+              },
+              {
+                "mean": 0.7514064067025155,
+                "name": "motor_temperature_c__max__900s",
+                "std": 0.033993568599382226
+              },
+              {
+                "mean": 0.28272023357011083,
+                "name": "vibration_rms_mm_s__mean__900s",
+                "std": 0.024874350500527973
+              },
+              {
+                "mean": 0.13988399608484148,
+                "name": "vibration_rms_mm_s__max__3600s",
+                "std": 0.014743291339413331
+              }
+            ]
+          }
+        },
+        "near_failure": null,
+        "same_model_and_metrics_as_B2_22": true
+      },
+      "rul": {
+        "status": "eligible",
+        "target": "rul_hours_true",
+        "metrics": {
+          "test": {
+            "baseline": {
+              "mae": 144.3789465995793,
+              "r2": -5.382459589431399e-05,
+              "rmse": 172.40317947343863
+            },
+            "candidate": {
+              "mae": 40.55249046399736,
+              "r2": 0.8984252369043967,
+              "rmse": 54.944786775226284
+            }
+          },
+          "validation": {
+            "baseline": {
+              "mae": 149.99009656377646,
+              "r2": -0.003708116688533769,
+              "rmse": 179.24492330251843
+            },
+            "candidate": {
+              "mae": 57.438378435604776,
+              "r2": 0.8317760429450999,
+              "rmse": 73.3815816618494
+            }
+          }
+        },
+        "model_sha256": "be780c22333b8ae85ab8a01e1b9d752580ac5a95a8ed899fb7c9c5b880c7c134",
+        "timings": {
+          "baseline_fit_seconds": 0.003992500016465783,
+          "baseline_validation_seconds": 0.0006275420018937439,
+          "diagnostics_seconds": 0.42742545797955245,
+          "test_load_and_evaluation_seconds": 0.3466320419975091,
+          "total_seconds": 26.81600254200748
+        },
+        "memory": {
+          "peak_rss_bytes": 615481344,
+          "scope": "process lifetime high-water RSS, includes earlier work in this process"
+        },
+        "diagnostics": {
+          "partition": "test",
+          "sample_count": 500,
+          "sample_max": 500,
+          "sample_seed": 42,
+          "sampling": "seeded_without_replacement",
+          "total_rows": 79844,
+          "first_scatter_points": [
+            {
+              "actual": 376.976910479421,
+              "baseline": 274.2644181386994,
+              "error": 41.65460321846052,
+              "predicted": 418.63151369788153
+            },
+            {
+              "actual": 373.18740436360696,
+              "baseline": 274.2644181386994,
+              "error": 82.13795982254561,
+              "predicted": 455.32536418615257
+            },
+            {
+              "actual": 370.6215929310245,
+              "baseline": 274.2644181386994,
+              "error": -5.987486246484991,
+              "predicted": 364.6341066845395
+            }
+          ],
+          "permutation": {
+            "reference_mae": 39.087750718620164,
+            "repeats": 3,
+            "sample_count": 500,
+            "scoring": "mae_increase",
+            "feature_count": 48,
+            "top_features": [
+              {
+                "mean": 54.70660412661976,
+                "name": "vibration_rms_mm_s__mean__3600s",
+                "std": 1.0134999254700143
+              },
+              {
+                "mean": 32.068042893599056,
+                "name": "vibration_rms_mm_s__max__900s",
+                "std": 0.5298361732051748
+              },
+              {
+                "mean": 7.393055499321899,
+                "name": "motor_temperature_c__max__900s",
+                "std": 0.47060491191098747
+              },
+              {
+                "mean": 3.0568228304388256,
+                "name": "motor_temperature_c__std__900s",
+                "std": 0.4676590019459278
+              },
+              {
+                "mean": 2.834038130677269,
+                "name": "vibration_rms_mm_s__trend__900s",
+                "std": 0.0876139532349118
+              },
+              {
+                "mean": 2.4208486064668477,
+                "name": "motor_current_a__trend__900s",
+                "std": 0.1824215424296171
+              }
+            ]
+          }
+        },
+        "near_failure": {
+          "test": {
+            "baseline": {
+              "mae": 262.2747333047673,
+              "r2": -1429.2671214984337,
+              "rmse": 262.3664687367466
+            },
+            "candidate": {
+              "mae": 14.002703841313345,
+              "r2": -5.461533647520636,
+              "rmse": 17.634678949591905
+            },
+            "row_count": 3650
+          },
+          "threshold_hours": 24,
+          "validation": {
+            "baseline": {
+              "mae": 262.2818764614896,
+              "r2": -1430.868073072169,
+              "rmse": 262.3735117672687
+            },
+            "candidate": {
+              "mae": 17.123341145763707,
+              "r2": -7.991744584877248,
+              "rmse": 20.791722322204055
+            },
+            "row_count": 3989
+          }
+        },
+        "same_model_and_metrics_as_B2_22": true
+      }
+    }
+  },
+  "tests": {
+    "backend_regression": {
+      "passed": 1153,
+      "deselected_integration": 153,
+      "seconds": 93.53,
+      "scope": "before final near_failure reader fix; final directed suite below covers it"
+    },
+    "backend_final_directed": {
+      "passed": 104,
+      "seconds": 11.62,
+      "coverage_statements_and_branches_percent": 89.44,
+      "modules": [
+        "regression_diagnostics",
+        "training",
+        "training_results"
+      ]
+    },
+    "frontend_unit": {
+      "passed": 261,
+      "coverage_statements": 90.7,
+      "coverage_branches": 87.42,
+      "coverage_functions": 89.51,
+      "coverage_lines": 94.47
+    },
+    "frontend_build_and_typecheck": "passed",
+    "training_mocked_chromium": {
+      "passed": 2
+    },
+    "training_real_chromium": {
+      "passed": 2
+    },
+    "real_pytest_harness": "passed including teardown",
+    "frontend_broad_chromium": {
+      "passed": 32,
+      "skipped_real_opt_in": 12,
+      "failed": 1,
+      "failure": "dashboard stale at390x844: card bottom876.265625 >844",
+      "reproduced_with": "FoundationView.vue restored from base HEAD in temporary source copy; same876.265625; working tree never reverted"
+    },
+    "backend_docker_build": "passed",
+    "container_readonly_nonroot_smoke": {
+      "uid": 999,
+      "training_root_mode": "0700",
+      "imports": "passed"
+    },
+    "compose_render": "passed: sources RO in API/training; separate results RW training/RO API",
+    "diff_check": "passed",
+    "warnings": [
+      "Existing Starlette HTTPX deprecation",
+      "Existing AnyIO BlockingPortal alias deprecation"
+    ]
+  },
+  "review_fixes": [
+    {
+      "cause": "empty RUL recrop allowed one present metric and one null",
+      "file": "backend/app/services/training_results.py",
+      "fix": "require baseline and candidate independently null iff row_count==0",
+      "regression": "near_partial reproduced failure before fix and passed afterward"
+    },
+    {
+      "cause": "initial test harness held externally opened AMQP connections without serving heartbeat during long fit",
+      "file": "backend/tests/integration/test_training_integration.py",
+      "fix": "use separate production publisher.run/worker.run owner threads, preserve heartbeat, join both",
+      "regression": "repeat full real browser/HTTP/AMQP/PostgreSQL flow through teardown"
+    }
+  ],
+  "limitations": [
+    "Synthetic evidence only; no physical calibration or operational RUL accuracy claim",
+    "No active model, inference activation or personal stack deployment",
+    "No whole-stack capacity claim; worker1GiB/1CPU is initial config, only container build/import smoke was run",
+    "Prepared data, failed attempts and unreferenced directories require manual retention/cleanup",
+    "Result access hashes model files and dataset inspection scans source blocks; I/O cost grows with volume",
+    "POST with uncertain HTTP outcome requires manual job inspection before retry; no jobs-history page added",
+    "Existing stale mobile dashboard viewport failure remains recorded; outside B2-23 acceptance",
+    "Local frontend node_modules had blocked reads; exact unchanged package lock installed in temporary directory"
+  ]
+}

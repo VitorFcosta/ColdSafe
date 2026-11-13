@@ -1,0 +1,244 @@
+{
+  "task": "B2-27 personal activation",
+  "date": "2026-10-20",
+  "timezone": "America/Sao_Paulo",
+  "authorization": "User registered the device and requested execution of the deployment steps.",
+  "base_commit": "93049af3e7507e69f92a47652ee9b23bce9ad9ff",
+  "branch": "codex/block-5-validation",
+  "delivery": "running local Docker stack; no commit/push; B2-28/B2-33 not started",
+  "url": "http://localhost:5173/digital-twin",
+  "catalog": {
+    "path": "simulator/local/catalog.json",
+    "git_ignored": true,
+    "device": "sim-lab-01",
+    "environment": "Hospital 1",
+    "device_name": "Ventilador",
+    "component_count": 9,
+    "registered_links_verified": true
+  },
+  "configuration": {
+    "catalog": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local/catalog.json",
+    "catalog_created": true,
+    "env_keys_changed": [
+      "SIMULATOR_CATALOG_DIR"
+    ],
+    "secrets_preserved": true
+  },
+  "backup": {
+    "directory": "/Users/vitorhugofernandescosta/ColdSafe-backups/b227-activation-20261020-022010",
+    "postgres_restore_verified": true,
+    "source_migrations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "restored_counts_match": true,
+    "temporary_database_removed": true,
+    "env_copy_private": true,
+    "rabbitmq_definitions_copy_private": true
+  },
+  "build_fix": {
+    "cause": "Docker context lacked JSON fixtures imported by specs during vue-tsc.",
+    "solution": "Compose named contracts context and build-stage COPY /examples -> /contracts/examples; primary frontend context and full typecheck retained.",
+    "docker_documentation": "https://docs.docker.com/reference/compose-file/build/#additional_contexts",
+    "new_project_dependencies": []
+  },
+  "tests": {
+    "infra_proxy_passed": 30,
+    "infra_proxy_seconds": 0.34,
+    "red_observed": true,
+    "docker_images_built": 8,
+    "frontend_docker_typecheck_build": "passed",
+    "ready_http": "200 status ok",
+    "unauthenticated_v3_summary": "401, no inventory exposed",
+    "postgres_migrations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "original_source_hashes_unchanged": 20,
+    "diff_check": "passed",
+    "review": "no findings in build/Compose/test delta"
+  },
+  "mqtt": "Gateway/simulator accounts provisioned from existing credentials; no credential rotation.",
+  "rabbitmq": "Current definitions regenerated and imported without deleting queues/messages; fixed model-activation and telemetry_persisted permission refusals.",
+  "runtime_diagnostic": {
+    "environment": "Hospital 1",
+    "device_id": "sim-lab-01",
+    "inventory_count": 9,
+    "sensor_count": 6,
+    "freshness": {
+      "last_event_id": "6d532809-0af6-4cb0-9a49-26d8a4e28cf9",
+      "last_received_at": "2026-10-20T05:26:33.819316Z",
+      "state": "fresh",
+      "age_seconds": 0.128354,
+      "stale_after_seconds": 30
+    },
+    "persistence": "persisted",
+    "prediction_unavailable_reason": null,
+    "insights_availability": "no_data",
+    "active_alerts": 0,
+    "measurements": {
+      "light": {
+        "value": 24.5398,
+        "unit": "percent"
+      },
+      "humidity": {
+        "value": 59.8331,
+        "unit": "percent"
+      },
+      "vibration": {
+        "value": 0.5962,
+        "unit": "mm/s"
+      },
+      "motor_current": {
+        "value": 1.163,
+        "unit": "A"
+      },
+      "motor_temperature": {
+        "value": 32.0724,
+        "unit": "degC"
+      },
+      "ambient_temperature": {
+        "value": 5.0146,
+        "unit": "degC"
+      }
+    }
+  },
+  "services": [
+    {
+      "service": "backend",
+      "state": "running",
+      "health": "healthy",
+      "image": "coldsafe-backend"
+    },
+    {
+      "service": "frontend",
+      "state": "running",
+      "health": "healthy",
+      "image": "coldsafe-frontend"
+    },
+    {
+      "service": "gateway",
+      "state": "running",
+      "health": null,
+      "image": "coldsafe-gateway"
+    },
+    {
+      "service": "generation",
+      "state": "running",
+      "health": null,
+      "image": "coldsafe-generation"
+    },
+    {
+      "service": "influxdb",
+      "state": "running",
+      "health": "healthy",
+      "image": "influxdb:2.7.12-alpine"
+    },
+    {
+      "service": "models",
+      "state": "running",
+      "health": null,
+      "image": "coldsafe-models"
+    },
+    {
+      "service": "mosquitto",
+      "state": "running",
+      "health": "healthy",
+      "image": "coldsafe-mosquitto:2.0.22"
+    },
+    {
+      "service": "mosquitto-init",
+      "state": "exited",
+      "health": null,
+      "image": "coldsafe-mosquitto:2.0.22"
+    },
+    {
+      "service": "postgres",
+      "state": "running",
+      "health": "healthy",
+      "image": "postgres:17.11-alpine3.24"
+    },
+    {
+      "service": "rabbitmq",
+      "state": "running",
+      "health": "healthy",
+      "image": "coldsafe-rabbitmq:4.3.6-management-alpine"
+    },
+    {
+      "service": "rabbitmq-init",
+      "state": "exited",
+      "health": null,
+      "image": "sha256:77fd8a9a87dcac9ecb501e14532ca4e08a43511599e511538e2628baff648297"
+    },
+    {
+      "service": "simulator",
+      "state": "running",
+      "health": null,
+      "image": "coldsafe-simulator"
+    },
+    {
+      "service": "training",
+      "state": "running",
+      "health": null,
+      "image": "coldsafe-training"
+    },
+    {
+      "service": "writer",
+      "state": "running",
+      "health": null,
+      "image": "coldsafe-writer"
+    }
+  ],
+  "browser": {
+    "observed_url": "http://localhost:5173/login?redirect=/digital-twin",
+    "result": "New route recognized and protected by login; tab left open.",
+    "authenticated_test_executed": false,
+    "synthetic_session_created": false
+  },
+  "limits": [
+    "No model registered or active; no generation/training/activation initiated.",
+    "Two messages observed in DLQ and preserved; origin not inferred.",
+    "No final stack capacity benchmark, physical hardware/GPU validation, actuator command test, or new authenticated browser E2E.",
+    "Original 19 October 390-test frontend evidence was not rerun or overwritten."
+  ],
+  "files_changed": [
+    {
+      "path": "compose.yaml",
+      "sha256": "5714cef43fa6e446900d5cdc28d0cb044f2d8cb419569ad23749131fc13a4ba4"
+    },
+    {
+      "path": "frontend/Dockerfile",
+      "sha256": "ca806a70d46b9b3633934b1b1066e5705c49386c9497be045fea1d45d142e7f8"
+    },
+    {
+      "path": "backend/tests/infra/test_compose_contract.py",
+      "sha256": "08d28bbae4be188c53f43ecc7d41ed518a0df5a40a4e3846f7009960e617258d"
+    },
+    {
+      "path": "frontend/README.md",
+      "sha256": "d4267c4b194dd30462532464f4ff060e149eb7210f8d00607599120ecf6197ed"
+    },
+    {
+      "path": "docs/aiot/README.md",
+      "sha256": "91d69fa8ec3ebbc3bd7d205af30612e7c1a79aa9323c1a3e70b06b6b1cfa8eb2"
+    },
+    {
+      "path": "docs/aiot/tasks/B2-27.md",
+      "sha256": "87d573de963d5969ebaccfedb7cfd5a0bb8dc3f2d336816035f45ac8b508fed0"
+    }
+  ]
+}

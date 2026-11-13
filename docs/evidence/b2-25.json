@@ -1,0 +1,439 @@
+{
+  "task": "B2-25",
+  "date": "2026-10-19",
+  "status": "completed",
+  "git": {
+    "base": "49c2a4c216f5320fdb5ee9b2f76e35c1434e4d90",
+    "branch": "codex/block-5-validation",
+    "working_tree": "uncommitted task changes",
+    "commit_created": false,
+    "push_executed": false,
+    "checkpoint": "Validation snapshot before the subsequently authorized B2-25 commit and push; containing commit identifies the delivered revision."
+  },
+  "new_dependencies": [],
+  "files": {
+    "created": [
+      "backend/app/amqp/inference.py",
+      "backend/app/inference_worker.py",
+      "backend/app/services/inference.py",
+      "backend/migrations/010_inference_events.sql",
+      "backend/tests/amqp/test_inference.py",
+      "backend/tests/infra/test_inference_compose.py",
+      "backend/tests/infra/test_inference_worker_cli.py",
+      "backend/tests/integration/test_inference_browser.py",
+      "backend/tests/integration/test_inference_integration.py",
+      "backend/tests/integration/test_inference_migrations.py",
+      "backend/tests/services/test_inference_service.py",
+      "backend/tests/services/test_models_restore.py",
+      "compose.inference.yaml",
+      "docs/evidence/b2-25.json",
+      "frontend/e2e/inference-real.spec.ts",
+      "frontend/e2e/inference.spec.ts",
+      "frontend/playwright.inference.config.ts",
+      "frontend/src/features/monitoring/PredictionPanel.spec.ts",
+      "frontend/src/features/monitoring/PredictionPanel.vue",
+      "frontend/src/features/monitoring/aiot-prediction.spec.ts",
+      "frontend/src/features/monitoring/use-monitoring-prediction.spec.ts"
+    ],
+    "modified": [
+      "backend/README.md",
+      "backend/app/amqp/models.py",
+      "backend/app/repositories/postgres.py",
+      "backend/app/services/models.py",
+      "backend/migrations/README.md",
+      "backend/tests/integration/test_aiot_migrations_integration.py",
+      "backend/tests/integration/test_postgres_schema_integration.py",
+      "contracts/aiot.md",
+      "docs/aiot/README.md",
+      "docs/aiot/tasks/B2-25.md",
+      "docs/aiot/tasks/README.md",
+      "docs/configuration.md",
+      "frontend/PRODUCT.md",
+      "frontend/README.md",
+      "frontend/src/features/monitoring/aiot-api.spec.ts",
+      "frontend/src/features/monitoring/aiot-api.ts",
+      "frontend/src/features/monitoring/monitoring-summary.ts",
+      "frontend/src/features/monitoring/use-monitoring-summary.ts",
+      "frontend/src/views/FoundationView.vue",
+      "infra/rabbitmq/README.md"
+    ]
+  },
+  "source_sha256": {
+    "backend/app/amqp/inference.py": "4141d5147fa16498c215dcad80331355005eadc7d07c2209ad7ddee010867078",
+    "backend/app/amqp/models.py": "3912bc0b60c9963731758a2d48edbc5900fa404b9c1f4defb3be4d2cfb298515",
+    "backend/app/inference_worker.py": "4bf9ee0c5b756a4feedbd644b72446ffd6251c644eb92299cfd523319c2436e8",
+    "backend/app/repositories/postgres.py": "cf78d19d0a778e622eeb0b3a7bd4bef7709b5e31ca6bec265933783cd20e3524",
+    "backend/app/services/inference.py": "068a34b9f123e4a96c101786992886763e234647c6ef35daf799c9c42f4f7dd6",
+    "backend/app/services/models.py": "549fd59b5ca2459e59ba7a7cb2e796a0c5df2ddaacaa8053a1e0ec462e45e277",
+    "backend/migrations/010_inference_events.sql": "16ecc300b37ea85891f379227bf2a9271f72b88eb71980d3ef908feffa6a8bf7",
+    "backend/tests/amqp/test_inference.py": "5f2bc73b741fb39fc36c72095d7d28cce01133fab905e2c0d4e80955837ba87f",
+    "backend/tests/infra/test_inference_compose.py": "53b87db419c01e351635d6d8b8f7152dd82de17e7769e60d0cf0d11e807b5987",
+    "backend/tests/infra/test_inference_worker_cli.py": "7647b7c14ced1a8e98ae1ed3ae4d2f3feee1949887ae5a21af148705c5de124b",
+    "backend/tests/integration/test_aiot_migrations_integration.py": "0ee4ce965195308cb5b2e4f6a0afd4da27b0559ba42db54a468e2194131ca052",
+    "backend/tests/integration/test_inference_browser.py": "7762601d96fc623041a83a175eb28fb033412eecd817d185e188e45dd9944ba2",
+    "backend/tests/integration/test_inference_integration.py": "8dcbdaec0d9f57fa752838e3e68f297958bc628185517db583b24de7e0e5821b",
+    "backend/tests/integration/test_inference_migrations.py": "6b93ebc5efe94882916e1a67a5d8bc12629d1619ff4483d3a4b1eccf53725aed",
+    "backend/tests/integration/test_postgres_schema_integration.py": "2589e90100df45d209d7ddc775ccd977f9c91d9dd32f0d5dbadff7a6ce8f11b9",
+    "backend/tests/services/test_inference_service.py": "6195f446da1b1e0bff9212a876f85e1536f76fb2b69dc1956c5294e93c8774be",
+    "backend/tests/services/test_models_restore.py": "0a695aa7a17a2dfbc8dc8f829e5a8d78f8e2a20c7e10f0d759bef29626cf41db",
+    "compose.inference.yaml": "5df48577c6f026799132af2b3912bb3fbdb87bb86f71b08b3c2a43a3e5133387",
+    "frontend/e2e/inference-real.spec.ts": "63f9ada24deb7eff511ced2b0bfe58225c193efac0826125a07d39bff26eca6d",
+    "frontend/e2e/inference.spec.ts": "398fab9134bed55f99bfc63b7a4a609274538880733878553f8a83c3b09afeae",
+    "frontend/playwright.inference.config.ts": "f00800c8d393a78afa9186f25cc1b00b9e6ee828087eadc34a505cc7020a485e",
+    "frontend/src/features/monitoring/PredictionPanel.spec.ts": "44416e745d1e7f9ded4de91c16204a68265ee5a38cf4e20d51d6f91fb08d7442",
+    "frontend/src/features/monitoring/PredictionPanel.vue": "d873cbb29890ca4c3c8a118f7cca4c696db1c7defa9c4b92382f75f0464dfb89",
+    "frontend/src/features/monitoring/aiot-api.spec.ts": "d3eaf6ca73c4620ca5217d6b3d2abf1e70926125ee4a09977a4b22705d046c77",
+    "frontend/src/features/monitoring/aiot-api.ts": "70d6291ac5312f332ed88afe9a9c680e8fb2e2ff706bf2126c5ca1b6639b5928",
+    "frontend/src/features/monitoring/aiot-prediction.spec.ts": "2adba05a215b44cf60db18721e3154abc50071fec5ac2e8492989aafa6603c88",
+    "frontend/src/features/monitoring/monitoring-summary.ts": "26b68aae7cdc6afb68ad5cd6dd6409b1fa1eb742efa24f451171bc0e8d2bafb8",
+    "frontend/src/features/monitoring/use-monitoring-prediction.spec.ts": "bc71b7bcdbaa6070138a0798c884eea99be2cc1862b0678394cb20d21ce98aad",
+    "frontend/src/features/monitoring/use-monitoring-summary.ts": "3315e7376ac8d002f79994b0b50cf6abb0d864fb84f614db4a3c92c30e3aca05",
+    "frontend/src/views/FoundationView.vue": "a9df0ab198cc48de2740857212548f073b99664ab992a54ee2918662bf8738f7"
+  },
+  "tests": {
+    "backend_unit": {
+      "passed": 1333,
+      "deselected": 187,
+      "warnings": 2,
+      "duration_seconds": 102.43,
+      "command": "python -m pytest backend/tests -m 'not integration' -q -o addopts='' --cov=backend/app --cov-branch --cov-report=term:skip-covered --cov-fail-under=80",
+      "coverage_totals": {
+        "covered_lines": 3936,
+        "num_statements": 4614,
+        "percent_covered": 82.87789692148046,
+        "percent_covered_display": "83",
+        "missing_lines": 678,
+        "excluded_lines": 35,
+        "percent_statements_covered": 85.30559167750324,
+        "percent_statements_covered_display": "85",
+        "num_branches": 1168,
+        "num_partial_branches": 112,
+        "covered_branches": 856,
+        "missing_branches": 312,
+        "percent_branches_covered": 73.28767123287672,
+        "percent_branches_covered_display": "73"
+      },
+      "new_module_coverage": {
+        "backend/app/amqp/inference.py": {
+          "covered_lines": 74,
+          "num_statements": 74,
+          "percent_covered": 100.0,
+          "percent_covered_display": "100",
+          "missing_lines": 0,
+          "excluded_lines": 0,
+          "percent_statements_covered": 100.0,
+          "percent_statements_covered_display": "100",
+          "num_branches": 22,
+          "num_partial_branches": 0,
+          "covered_branches": 22,
+          "missing_branches": 0,
+          "percent_branches_covered": 100.0,
+          "percent_branches_covered_display": "100"
+        },
+        "backend/app/inference_worker.py": {
+          "covered_lines": 35,
+          "num_statements": 40,
+          "percent_covered": 86.95652173913044,
+          "percent_covered_display": "87",
+          "missing_lines": 5,
+          "excluded_lines": 0,
+          "percent_statements_covered": 87.5,
+          "percent_statements_covered_display": "88",
+          "num_branches": 6,
+          "num_partial_branches": 1,
+          "covered_branches": 5,
+          "missing_branches": 1,
+          "percent_branches_covered": 83.33333333333333,
+          "percent_branches_covered_display": "83"
+        },
+        "backend/app/services/inference.py": {
+          "covered_lines": 87,
+          "num_statements": 88,
+          "percent_covered": 99.12280701754386,
+          "percent_covered_display": "99",
+          "missing_lines": 1,
+          "excluded_lines": 0,
+          "percent_statements_covered": 98.86363636363636,
+          "percent_statements_covered_display": "99",
+          "num_branches": 26,
+          "num_partial_branches": 0,
+          "covered_branches": 26,
+          "missing_branches": 0,
+          "percent_branches_covered": 100.0,
+          "percent_branches_covered_display": "100"
+        }
+      },
+      "boundary": "unit suite excludes integration; final additional broker integration test was added afterward, without app runtime changes"
+    },
+    "postgres_migration_and_inference": {
+      "passed": 35,
+      "duration_seconds": 22.63,
+      "boundary": "7 inference cases before final broker case + 2 migration 010 cases + 26 existing migration cases"
+    },
+    "final_postgres_rabbitmq_inference": {
+      "passed": 8,
+      "duration_seconds": 34.39,
+      "file": "backend/tests/integration/test_inference_integration.py",
+      "checks": [
+        "offline-online parity",
+        "production 900/3600-second windows, 3600 samples and 48 features",
+        "duplicates and changed UUID payload",
+        "inverse order and same millisecond strict past",
+        "hot swap and restore",
+        "broken bundle preserves active",
+        "ownership and durable outbox",
+        "broker confirm loss replays identical canonical prediction without recalculation"
+      ]
+    },
+    "frontend_unit": {
+      "passed": 293,
+      "files": 29,
+      "coverage": {
+        "statements_percent": 90.8,
+        "branches_percent": 87.72,
+        "functions_percent": 89.66,
+        "lines_percent": 94.52
+      }
+    },
+    "frontend_build": {
+      "vite": "passed",
+      "vue_tsc": "passed",
+      "node_version": "24.20.0"
+    },
+    "chromium_simulated": {
+      "passed": 2,
+      "duration_seconds": 7.8,
+      "viewports": [
+        1280,
+        375
+      ],
+      "boundary": "mocked REST/WS"
+    },
+    "chromium_real": {
+      "passed": 1,
+      "duration_seconds": 28.65,
+      "warnings": 2,
+      "result": {
+        "versions": [
+          {
+            "activation": {
+              "id": "78779e50-9eb8-4e35-bead-c01d14944aba",
+              "model_id": "b253cab6-3977-574d-8ba4-300d37ae26fb",
+              "previous_model_id": null,
+              "status": "active",
+              "error_code": null,
+              "created_at": "2026-10-19T04:43:47.505642Z",
+              "updated_at": "2026-10-19T04:43:47.962279Z",
+              "model_version": "training-de2af0b7-954d-4a80-b5ab-76b224e6427a",
+              "features_version": "rolling-v1-8bfb1d20cdbc9a81+median-clip-v1"
+            },
+            "prediction": {
+              "data": {
+                "reason": null,
+                "status": "available",
+                "model_id": "b253cab6-3977-574d-8ba4-300d37ae26fb",
+                "rul_hours": 19.034411803787755,
+                "equipment_id": "00000000-0000-4000-8000-000000000003",
+                "health_score": 9.524723608944123,
+                "model_version": "training-de2af0b7-954d-4a80-b5ab-76b224e6427a",
+                "source_event_id": "b8930033-a09e-4c74-912c-0241139cce0a",
+                "features_version": "rolling-v1-8bfb1d20cdbc9a81+median-clip-v1",
+                "input_received_at": "2026-10-19T04:43:48Z"
+              },
+              "type": "prediction",
+              "event_id": "15f9bfaa-097e-5c3e-a434-4c1718d12bf6",
+              "device_id": "inference-670729df8dcd",
+              "occurred_at": "2026-10-19T04:43:48.390208Z",
+              "received_at": "2026-10-19T04:43:48.390208Z",
+              "correlation_id": "b8930033-a09e-4c74-912c-0241139cce0a",
+              "environment_id": "b36a9e8d-a0ee-4f05-9a51-deec868537cf",
+              "schema_version": 3,
+              "device_record_id": "a02be63b-c53b-4fda-91b6-78865f5dde10"
+            },
+            "telemetry_event_id": "b8930033-a09e-4c74-912c-0241139cce0a"
+          },
+          {
+            "activation": {
+              "id": "9165e34f-69c4-4268-8472-52acc4c016b9",
+              "model_id": "31bbafc2-8a9c-5ba2-9b22-b936c977acf2",
+              "previous_model_id": "b253cab6-3977-574d-8ba4-300d37ae26fb",
+              "status": "active",
+              "error_code": null,
+              "created_at": "2026-10-19T04:43:49.782607Z",
+              "updated_at": "2026-10-19T04:43:49.993190Z",
+              "model_version": "training-c953bb4b-e971-47b1-8bfa-4dd29fb73b6f",
+              "features_version": "rolling-v1-8bfb1d20cdbc9a81+median-clip-v1"
+            },
+            "prediction": {
+              "data": {
+                "reason": null,
+                "status": "available",
+                "model_id": "31bbafc2-8a9c-5ba2-9b22-b936c977acf2",
+                "rul_hours": 19.034411803787755,
+                "equipment_id": "00000000-0000-4000-8000-000000000003",
+                "health_score": 9.524723608944123,
+                "model_version": "training-c953bb4b-e971-47b1-8bfa-4dd29fb73b6f",
+                "source_event_id": "bf8e04e5-59a1-4f68-8ef7-d84ae9e79c92",
+                "features_version": "rolling-v1-8bfb1d20cdbc9a81+median-clip-v1",
+                "input_received_at": "2026-10-19T04:43:52Z"
+              },
+              "type": "prediction",
+              "event_id": "90540bd1-a3e3-5aea-97b0-2afd624604a2",
+              "device_id": "inference-670729df8dcd",
+              "occurred_at": "2026-10-19T04:43:52.172099Z",
+              "received_at": "2026-10-19T04:43:52.172099Z",
+              "correlation_id": "bf8e04e5-59a1-4f68-8ef7-d84ae9e79c92",
+              "environment_id": "b36a9e8d-a0ee-4f05-9a51-deec868537cf",
+              "schema_version": 3,
+              "device_record_id": "a02be63b-c53b-4fda-91b6-78865f5dde10"
+            },
+            "telemetry_event_id": "bf8e04e5-59a1-4f68-8ef7-d84ae9e79c92"
+          }
+        ],
+        "failed_activation": {
+          "id": "a7e6ead4-7142-4246-a732-c6d77798c7ac",
+          "model_id": "38e05b1e-091d-52a0-929e-72b1a6538061",
+          "previous_model_id": "31bbafc2-8a9c-5ba2-9b22-b936c977acf2",
+          "status": "failed",
+          "error_code": "MODEL_LOAD_FAILED",
+          "created_at": "2026-10-19T04:43:53.415588Z",
+          "updated_at": "2026-10-19T04:43:53.529208Z",
+          "model_version": "training-0c895d18-b2c0-4751-a93b-013ba6b4b7b6",
+          "features_version": "rolling-v1-8bfb1d20cdbc9a81+median-clip-v1"
+        },
+        "no_model_visible": true,
+        "browser_not_reloaded": true,
+        "navigations": 1,
+        "websocket_predictions": [
+          {
+            "event_id": "46032bd0-1f66-5e42-b109-491ab92b015f",
+            "model_version": null,
+            "source_event_id": "ddf22fa3-7441-48d0-a3e8-65bc844a0d89"
+          },
+          {
+            "event_id": "8a316e71-df6c-5dab-9964-3a5e7ae12f27",
+            "model_version": null,
+            "source_event_id": "0308bb16-6365-4335-97a3-1cc4d9404de8"
+          },
+          {
+            "event_id": "15f9bfaa-097e-5c3e-a434-4c1718d12bf6",
+            "model_version": "training-de2af0b7-954d-4a80-b5ab-76b224e6427a",
+            "source_event_id": "b8930033-a09e-4c74-912c-0241139cce0a"
+          },
+          {
+            "event_id": "86fb1ca4-2996-5a93-8f50-7f5298087c50",
+            "model_version": "training-c953bb4b-e971-47b1-8bfa-4dd29fb73b6f",
+            "source_event_id": "171f4f02-5377-418e-b37b-1a848b987f6b"
+          },
+          {
+            "event_id": "fe6e69d6-5d83-5f75-88d9-c10bdb25b62e",
+            "model_version": "training-c953bb4b-e971-47b1-8bfa-4dd29fb73b6f",
+            "source_event_id": "cbed3a06-8d15-4aa1-93eb-29dbee01a6d7"
+          },
+          {
+            "event_id": "90540bd1-a3e3-5aea-97b0-2afd624604a2",
+            "model_version": "training-c953bb4b-e971-47b1-8bfa-4dd29fb73b6f",
+            "source_event_id": "bf8e04e5-59a1-4f68-8ef7-d84ae9e79c92"
+          }
+        ],
+        "private_owner_denied": true,
+        "revoked_session_denied": true,
+        "mobile_320_without_overflow": true,
+        "mobile_before_layout_settle": {
+          "width": 320,
+          "scrollWidth": 1151,
+          "overflow": [
+            {
+              "tag": "CANVAS",
+              "className": "",
+              "right": 1151,
+              "text": ""
+            },
+            {
+              "tag": "CANVAS",
+              "className": "",
+              "right": 571,
+              "text": ""
+            }
+          ]
+        },
+        "worker_pid": 50777,
+        "worker_thread": 6180352000,
+        "worker_not_restarted": true,
+        "real_postgres_rabbitmq_http_websocket_chromium": true,
+        "source_fixture": "current-clock Simulator telemetry at 1 Hz, timestamps floored to seconds, AMQP gateway identity",
+        "persistence_boundary_fixture": "telemetry_persisted AMQP writer identity; InfluxDB not exercised",
+        "training_fixture_rows": 720,
+        "training_fixture_windows_seconds": [
+          2
+        ],
+        "production_windows_unchanged": true,
+        "physical_accuracy_validated": false,
+        "failure_injection": "third bundle RUL file removed by test barrier immediately before real execute",
+        "prediction_count": 6,
+        "available_model_versions": [
+          "training-c953bb4b-e971-47b1-8bfa-4dd29fb73b6f",
+          "training-de2af0b7-954d-4a80-b5ab-76b224e6427a"
+        ],
+        "prediction_reasons": [
+          "insufficient_history",
+          "no_model"
+        ]
+      }
+    },
+    "container": {
+      "image": "coldsafe-b225-validation",
+      "build": "passed",
+      "runtime_imports": "passed; uid 999, read-only root, network none, 512 MiB/1 CPU",
+      "source_hash_match": "all 5 changed runtime modules match final source",
+      "boundary": "no full inference workload or complete stack measured in resource-limited container"
+    },
+    "review": {
+      "security": "no blocking finding within commissioned one-owner runtime; current ownership checked before cached replay/publication",
+      "default_pytest_collection": "service test renamed to avoid duplicate basename; 73 tests passed without import-mode workaround",
+      "warnings": "existing Starlette/httpx and AnyIO alias deprecations; no dependency upgraded"
+    },
+    "pre_commit_check": {
+      "change": "Removed only a trailing blank line at EOF in test_inference_service.py; application sources unchanged.",
+      "verification": "25 service tests passed in 1.98 s after whitespace-only normalization; staged diff whitespace check passed."
+    }
+  },
+  "acceptance": {
+    "prediction_via_bus_api_ws": true,
+    "version_visible_without_restart_or_document_reload": true,
+    "failure_keeps_previous_version": true,
+    "no_model_history_explicit": true,
+    "stale_or_mismatched_prediction_hidden": true
+  },
+  "limitations": [
+    "Current runtime remains commissioned for one owner/catalog; ownership revocation fails closed and requires recomissioning. Inference and activation share the process; broker backlog is preserved while invalid.",
+    "Default 900/3600-second windows require one hour without earlier persisted history. Kernel sufficiency does not prove continuous coverage or physical calibration.",
+    "History query limited to 10000 samples including prior anchor; overflow is explicit invalid_features without hidden downsampling.",
+    "No automatic retention for inference source/outbox rows. Storage grows; deletion can compromise canonical duplicate replay.",
+    "Browser uses 720-row trained models with 2-second fixture windows; production defaults unchanged. Source and persistence receipt are AMQP fixtures, not a new MQTT/InfluxDB validation.",
+    "No physical accuracy, complete-stack capacity validation, personal deployment, new dependencies, commit or push."
+  ],
+  "screenshots": {
+    "inference-mobile.png": {
+      "sha256": "97a05945d375ec950ddecf80aef277ba77941a5da5fe8c3ea59ba0bc3e07ea45",
+      "temporary_path": "/tmp/coldsafe-b225-real-evidence/inference-mobile.png",
+      "durable_binary_in_repository": false
+    },
+    "inference-no-model.png": {
+      "sha256": "35648d3019a0c2b9a208434db858a37a13477c6e60073dbc9492c7bd2d82e87e",
+      "temporary_path": "/tmp/coldsafe-b225-real-evidence/inference-no-model.png",
+      "durable_binary_in_repository": false
+    },
+    "inference-version-1.png": {
+      "sha256": "8aaa8bf898ddb68b00d797aa5b080a87c71c600d7d6c98e6ceeb8b2d3c303fe1",
+      "temporary_path": "/tmp/coldsafe-b225-real-evidence/inference-version-1.png",
+      "durable_binary_in_repository": false
+    },
+    "inference-version-2.png": {
+      "sha256": "6d4819442e0f3eb41264db9dcee1db83fb861ca595866077301750719ea734a5",
+      "temporary_path": "/tmp/coldsafe-b225-real-evidence/inference-version-2.png",
+      "durable_binary_in_repository": false
+    }
+  },
+  "resume": "B2-25 complete; validate diff before any later commit. B2-26 not started and requires user choice."
+}

@@ -1,4 +1,4 @@
-import { clearSession } from './session'
+import { clearSession, sessionToken } from './session'
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/+$/, '')
 
@@ -12,6 +12,10 @@ export type Device = Readonly<{
 }>
 export type Rules = { min_c: number; max_c: number; attention_margin_c: number }
 
+export class CatalogAccessError extends Error {
+  constructor(readonly status: number, message = 'Acesso ao catálogo indisponível.') { super(message) }
+}
+
 export async function catalogRequest<T>(token: string, path: string, method = 'GET', body?: object): Promise<T> {
   let response: Response
   try {
@@ -23,11 +27,17 @@ export async function catalogRequest<T>(token: string, path: string, method = 'G
   } catch {
     throw new Error('Não foi possível conectar à API. Tente novamente.')
   }
+  if (response.status === 401 && sessionToken.value === token) clearSession()
+  const accessDenied = [401, 403, 404].includes(response.status)
   let payload: { success?: boolean; data?: T; error?: { message?: string } }
-  try { payload = await response.json() } catch { throw new Error('A API retornou uma resposta inválida.') }
-  if (response.status === 401) clearSession()
+  try { payload = await response.json() } catch {
+    if (accessDenied) throw new CatalogAccessError(response.status, 'A API retornou uma resposta inválida.')
+    throw new Error('A API retornou uma resposta inválida.')
+  }
   if (!response.ok || payload.success !== true || payload.data === undefined) {
-    throw new Error(payload.error?.message ?? 'Não foi possível concluir a operação.')
+    const message = payload.error?.message ?? 'Não foi possível concluir a operação.'
+    if (accessDenied) throw new CatalogAccessError(response.status, message)
+    throw new Error(message)
   }
   return payload.data
 }
@@ -55,7 +65,14 @@ export const updateDevice = (token: string, id: string, name: string) =>
   catalogRequest<Device>(token, `/devices/${encodeURIComponent(id)}`, 'PATCH', { name })
 export const deactivateDevice = (token: string, id: string) =>
   catalogRequest<Device>(token, `/devices/${encodeURIComponent(id)}`, 'DELETE')
-export const getRules = (token: string, environmentId: string) =>
-  catalogRequest<Rules>(token, `/environments/${encodeURIComponent(environmentId)}/rules`)
-export const updateRules = (token: string, environmentId: string, rules: Rules) =>
-  catalogRequest<Rules>(token, `/environments/${encodeURIComponent(environmentId)}/rules`, 'PUT', rules)
+async function requestRules(token: string, environmentId: string, method: 'GET' | 'PUT', rules?: Rules): Promise<Rules> {
+  const data = await catalogRequest<Rules | null>(token, `/environments/${encodeURIComponent(environmentId)}/rules`, method, rules)
+  if (!data || ![data.min_c, data.max_c, data.attention_margin_c].every(Number.isFinite) ||
+    data.min_c >= data.max_c || data.attention_margin_c < 0 || data.attention_margin_c * 2 >= data.max_c - data.min_c) {
+    throw new Error('A API retornou limites de temperatura inválidos.')
+  }
+  return data
+}
+
+export const getRules = (token: string, environmentId: string) => requestRules(token, environmentId, 'GET')
+export const updateRules = (token: string, environmentId: string, rules: Rules) => requestRules(token, environmentId, 'PUT', rules)

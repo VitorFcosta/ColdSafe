@@ -1,0 +1,1661 @@
+{
+  "task": "B2-33",
+  "date_local": "2026-10-23",
+  "timezone": "America/Sao_Paulo",
+  "status": "passed",
+  "git_base": "14285e505b91f5b1a993836542d9f90a10700bdf",
+  "branch": "codex/block-5-validation",
+  "working_tree": "uncommitted changes; initially clean; no commit or push",
+  "new_dependencies": [],
+  "source_sha256": {
+    "backend/tests/infra/test_bootstrap_influx.py": "d0602db783f8f858fc9024b429af03bb490cce1a7c75d9add08dd0e60e32c78d",
+    "backend/tests/infra/test_edge_health.py": "9609b7cf9006cc971031524ee2c5d97b8976d5efd25a326170a96d63d19bf484",
+    "backend/tests/infra/test_stack_integration.py": "041220504c59445d99c7a51d2e446933554b3ac8cfffc7127db2e94b90a9a3c7",
+    "backend/tests/infra/test_worker_health.py": "75ac79f14a83134be402f38675d167252546ac26bc2ee2b50746c50ef410914f",
+    "scripts/bootstrap-influx.py": "663a9cee0d67ca612d9bde71dacee4be46c5b839205fb8dd23eec589e8db402f",
+    "simulator/health.py": "e318584bce1f36fe547b1ad2d7f6bc04f5bdda9ae326ac16f9d4257953906ba6",
+    "backend/app/amqp/jobs.py": "344da1aa482541a79220f9ca8f7ff4666d40739121e5cdb91eb40efda86dd76c",
+    "backend/app/amqp/models.py": "e1ec7b50b87618f9eacff073a196c2c9ecddbd6fef691524f149982487e90c81",
+    "backend/app/services/llm.py": "89e4c702267067a69abf2d683a84fb380c97188c99d916622f92e3f337d63e79",
+    "backend/tests/infra/test_compose_contract.py": "9e22c61bd32a31c9b3b909daced182af4c5fb00c2103f34baa872096cc257048",
+    "backend/tests/infra/test_job_worker_cli.py": "72349dea205a1976bf0d8351b1ab525611a2f09cc4457df9be3bd52c0d4bb666",
+    "backend/tests/infra/test_ollama_compose.py": "8be106aa6bad2afea94d65e6eb48bd383f8814283d233a60ed59c84a545bf458",
+    "compose.jobs.yaml": "08a969452c86bc27cc5134f994c7e015fedb4a0df892fb8bb5fb3bc7d6519477",
+    "compose.ollama.yaml": "2dad2b35ca836264ce68ee8dea345fe14262e1d1da8fa3b64cf76b65d4c6820f",
+    "compose.yaml": "8b9e1938a929b5892a8a711a8326e2dd4e4f9eefff13381e5216898f6df19c84",
+    "gateway/Dockerfile": "4b2f3c97530e466aaeba630cd284b0e567052cf30a2ac43db6312eb093f90e76",
+    "gateway/runtime.py": "9b45c3a05b6c1dd6315188ae89c8ed5c7f29cd26db58a1046f7a36eb972a4fa5",
+    "simulator/Dockerfile": "de3b6c7d344040aff4e0a4b2dc8316528a37c0aeeec2fefadb36a7ae3d47de4b",
+    "simulator/runtime.py": "a7ffa5a9ef49ba2465acc9f55aaa200b0b07658dec9032b09ab8504c752d025a",
+    "writer/Dockerfile": "e2f1393fa79092766312254cff0b07e9d5e0673c0603bc0a8aeb59418ee7ea14",
+    "writer/runtime.py": "d2307a747fb22e43dd174778b6edd102025f63ef7e5fbc82f1d17fbb7147a8ec"
+  },
+  "runtime": {
+    "physical_memory_bytes": 8589934592,
+    "docker_vm_memory_bytes": 4108828672,
+    "docker_server": "29.3.0",
+    "compose": "5.1.0",
+    "python_tests": "3.13.15",
+    "ollama_image": "ollama/ollama:0.40.3",
+    "ollama_limit_bytes": 3489660928,
+    "ollama_cpus": 4,
+    "context_tokens": 1024,
+    "num_batch": 128,
+    "assistant_timeout_seconds": 90,
+    "final_round_images": [
+      {
+        "service": "llm",
+        "image_id": "sha256:bc359955fb3c897f56709b083724413e6ef3efc4d7f8807361e7285491467b62",
+        "image_ref": "coldsafe-b233-d316f097-llm",
+        "memory_limit": 134217728,
+        "nano_cpus": 250000000
+      },
+      {
+        "service": "frontend",
+        "image_id": "sha256:d6481d5fd1de7db54829018c7094743743fe575f984d027b41ee322a0f76cfd9",
+        "image_ref": "coldsafe-b233-d316f097-frontend",
+        "memory_limit": 0,
+        "nano_cpus": 0
+      },
+      {
+        "service": "writer",
+        "image_id": "sha256:9aa51eab7ba367250642a83bb481b6726dc2a7b1500e427cbb89b1806c26e209",
+        "image_ref": "coldsafe-b233-d316f097-writer",
+        "memory_limit": 134217728,
+        "nano_cpus": 250000000
+      },
+      {
+        "service": "backend",
+        "image_id": "sha256:c7a97aa1211942dc48b576d94f0aaafbb21a49e6956ef329c79e8bc46772328d",
+        "image_ref": "coldsafe-b233-d316f097-backend",
+        "memory_limit": 0,
+        "nano_cpus": 0
+      },
+      {
+        "service": "generation",
+        "image_id": "sha256:8725c80152aac29d40e3a69d5b59a6b4954dd613031f57030386170eed8ea051",
+        "image_ref": "coldsafe-b233-d316f097-generation",
+        "memory_limit": 536870912,
+        "nano_cpus": 1000000000
+      },
+      {
+        "service": "models",
+        "image_id": "sha256:a3b449a0b7aa0b80f1bb3ac4cd4899084187715056b4df696e0c345bce44ddce",
+        "image_ref": "coldsafe-b233-d316f097-models",
+        "memory_limit": 536870912,
+        "nano_cpus": 1000000000
+      },
+      {
+        "service": "training",
+        "image_id": "sha256:369def9100bc7a4e8eef783a35f84c67746c70bec9b753e2fb413ebe6e82c0fd",
+        "image_ref": "coldsafe-b233-d316f097-training",
+        "memory_limit": 1073741824,
+        "nano_cpus": 1000000000
+      },
+      {
+        "service": "gateway",
+        "image_id": "sha256:d4bc1ee6f4524336f31841ed26c15bfe78c25f3fced6c895339e05d2a37b6951",
+        "image_ref": "coldsafe-b233-d316f097-gateway",
+        "memory_limit": 134217728,
+        "nano_cpus": 250000000
+      },
+      {
+        "service": "simulator",
+        "image_id": "sha256:789d1107857440317dff89734ee73a7f02b180ce1273b02afdafc2305ce8074c",
+        "image_ref": "coldsafe-b233-d316f097-simulator",
+        "memory_limit": 67108864,
+        "nano_cpus": 250000000
+      },
+      {
+        "service": "mosquitto",
+        "image_id": "sha256:098c433f7e819094f0aaae1a6cc88bf1318039feeb81244d7236f7beb8c38684",
+        "image_ref": "coldsafe-mosquitto:2.0.22",
+        "memory_limit": 0,
+        "nano_cpus": 0
+      },
+      {
+        "service": "rabbitmq",
+        "image_id": "sha256:65a40fff3401255774d6120e51eb8c5a98d55d8ea0db1c00456c27a802a79909",
+        "image_ref": "coldsafe-rabbitmq:4.3.6-management-alpine",
+        "memory_limit": 536870912,
+        "nano_cpus": 1000000000
+      },
+      {
+        "service": "ollama",
+        "image_id": "sha256:adca95a12c2b386a8f9a995e7fa0600e187e3323b5e5522f5a6c3b1ec73eff99",
+        "image_ref": "ollama/ollama:0.40.3",
+        "memory_limit": 3489660928,
+        "nano_cpus": 4000000000
+      },
+      {
+        "service": "postgres",
+        "image_id": "sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb",
+        "image_ref": "postgres:17.11-alpine3.24",
+        "memory_limit": 0,
+        "nano_cpus": 0
+      },
+      {
+        "service": "influxdb",
+        "image_id": "sha256:991673dc2d237bd79b15d6627410d72de111387e7dac673dbb92cf3333ffcc8c",
+        "image_ref": "influxdb:2.7.12-alpine",
+        "memory_limit": 0,
+        "nano_cpus": 0
+      }
+    ]
+  },
+  "method": "Separate Compose project per round, disposable credentials and volumes. Real services. Cgroup memory.current/peak/events and Docker state sampled every nominal 5s plus CLI cost; summary uses maxima per service, including multiple container lifetimes. Do not sum service peaks. No hardware device: real simulator, seeded account/catalog. Browser injects a real HTTP-issued session; does not replace HTTP/WS with mocks. Data/model preservation checked before cleanup via down/up without volumes.",
+  "tests": {
+    "focused": {
+      "passed": 512,
+      "coverage": {
+        "covered_lines": 878,
+        "num_statements": 952,
+        "percent_covered": 90.19769357495882,
+        "percent_covered_display": "90",
+        "missing_lines": 74,
+        "excluded_lines": 0,
+        "percent_statements_covered": 92.22689075630252,
+        "percent_statements_covered_display": "92",
+        "num_branches": 262,
+        "num_partial_branches": 11,
+        "covered_branches": 217,
+        "missing_branches": 45,
+        "percent_branches_covered": 82.82442748091603,
+        "percent_branches_covered_display": "83"
+      },
+      "coverage_modules": {
+        "backend/app/amqp/inference.py": {
+          "covered_lines": 74,
+          "num_statements": 74,
+          "percent_covered": 100.0,
+          "percent_covered_display": "100",
+          "missing_lines": 0,
+          "excluded_lines": 0,
+          "percent_statements_covered": 100.0,
+          "percent_statements_covered_display": "100",
+          "num_branches": 22,
+          "num_partial_branches": 0,
+          "covered_branches": 22,
+          "missing_branches": 0,
+          "percent_branches_covered": 100.0,
+          "percent_branches_covered_display": "100"
+        },
+        "backend/app/amqp/jobs.py": {
+          "covered_lines": 129,
+          "num_statements": 131,
+          "percent_covered": 98.74213836477988,
+          "percent_covered_display": "99",
+          "missing_lines": 2,
+          "excluded_lines": 0,
+          "percent_statements_covered": 98.47328244274809,
+          "percent_statements_covered_display": "98",
+          "num_branches": 28,
+          "num_partial_branches": 0,
+          "covered_branches": 28,
+          "missing_branches": 0,
+          "percent_branches_covered": 100.0,
+          "percent_branches_covered_display": "100"
+        },
+        "backend/app/amqp/models.py": {
+          "covered_lines": 83,
+          "num_statements": 85,
+          "percent_covered": 98.05825242718447,
+          "percent_covered_display": "98",
+          "missing_lines": 2,
+          "excluded_lines": 0,
+          "percent_statements_covered": 97.6470588235294,
+          "percent_statements_covered_display": "98",
+          "num_branches": 18,
+          "num_partial_branches": 0,
+          "covered_branches": 18,
+          "missing_branches": 0,
+          "percent_branches_covered": 100.0,
+          "percent_branches_covered_display": "100"
+        },
+        "backend/app/services/llm.py": {
+          "covered_lines": 76,
+          "num_statements": 122,
+          "percent_covered": 55.81395348837209,
+          "percent_covered_display": "56",
+          "missing_lines": 46,
+          "excluded_lines": 0,
+          "percent_statements_covered": 62.295081967213115,
+          "percent_statements_covered_display": "62",
+          "num_branches": 50,
+          "num_partial_branches": 0,
+          "covered_branches": 20,
+          "missing_branches": 30,
+          "percent_branches_covered": 40.0,
+          "percent_branches_covered_display": "40"
+        },
+        "gateway/runtime.py": {
+          "covered_lines": 182,
+          "num_statements": 194,
+          "percent_covered": 92.91666666666667,
+          "percent_covered_display": "93",
+          "missing_lines": 12,
+          "excluded_lines": 0,
+          "percent_statements_covered": 93.81443298969072,
+          "percent_statements_covered_display": "94",
+          "num_branches": 46,
+          "num_partial_branches": 3,
+          "covered_branches": 41,
+          "missing_branches": 5,
+          "percent_branches_covered": 89.1304347826087,
+          "percent_branches_covered_display": "89"
+        },
+        "simulator/health.py": {
+          "covered_lines": 22,
+          "num_statements": 23,
+          "percent_covered": 93.10344827586206,
+          "percent_covered_display": "93",
+          "missing_lines": 1,
+          "excluded_lines": 0,
+          "percent_statements_covered": 95.65217391304348,
+          "percent_statements_covered_display": "96",
+          "num_branches": 6,
+          "num_partial_branches": 1,
+          "covered_branches": 5,
+          "missing_branches": 1,
+          "percent_branches_covered": 83.33333333333333,
+          "percent_branches_covered_display": "83"
+        },
+        "simulator/runtime.py": {
+          "covered_lines": 171,
+          "num_statements": 181,
+          "percent_covered": 92.5311203319502,
+          "percent_covered_display": "93",
+          "missing_lines": 10,
+          "excluded_lines": 0,
+          "percent_statements_covered": 94.47513812154696,
+          "percent_statements_covered_display": "94",
+          "num_branches": 60,
+          "num_partial_branches": 6,
+          "covered_branches": 52,
+          "missing_branches": 8,
+          "percent_branches_covered": 86.66666666666667,
+          "percent_branches_covered_display": "87"
+        },
+        "writer/runtime.py": {
+          "covered_lines": 141,
+          "num_statements": 142,
+          "percent_covered": 98.85057471264368,
+          "percent_covered_display": "99",
+          "missing_lines": 1,
+          "excluded_lines": 0,
+          "percent_statements_covered": 99.29577464788733,
+          "percent_statements_covered_display": "99",
+          "num_branches": 32,
+          "num_partial_branches": 1,
+          "covered_branches": 31,
+          "missing_branches": 1,
+          "percent_branches_covered": 96.875,
+          "percent_branches_covered_display": "97"
+        }
+      },
+      "log_sha256": "4dbf28422daf66acd61af5ba8d0de29fcc1f5e4579afc1efca65ca78164c2c67"
+    },
+    "bootstrap_and_secrets": {
+      "passed": 43,
+      "bootstrap_coverage": {
+        "covered_lines": 120,
+        "num_statements": 129,
+        "percent_covered": 89.3854748603352,
+        "percent_covered_display": "89",
+        "missing_lines": 9,
+        "excluded_lines": 0,
+        "percent_statements_covered": 93.02325581395348,
+        "percent_statements_covered_display": "93",
+        "num_branches": 50,
+        "num_partial_branches": 10,
+        "covered_branches": 40,
+        "missing_branches": 10,
+        "percent_branches_covered": 80.0,
+        "percent_branches_covered_display": "80"
+      },
+      "log_sha256": "156232caac61bdedcfe5f1bc1fb2b9758d5600ca5f4a0f6557d8fb4830de7c32"
+    }
+  },
+  "rounds": [
+    {
+      "project": "coldsafe-b233-ca12ba4c",
+      "git": "14285e505b91f5b1a993836542d9f90a10700bdf",
+      "started_at": "2026-10-23T04:43:46.302156+00:00",
+      "ended_at": "2026-10-23T04:56:44.331655+00:00",
+      "result": "failed",
+      "phases": [
+        {
+          "name": "clean_bootstrap_idempotent",
+          "at": "2026-10-23T04:44:00.929050+00:00"
+        },
+        {
+          "name": "weights_prepared",
+          "at": "2026-10-23T04:44:56.409039+00:00"
+        },
+        {
+          "name": "all_services_healthy",
+          "at": "2026-10-23T04:46:09.373003+00:00",
+          "count": 14
+        },
+        {
+          "name": "live_telemetry_led",
+          "at": "2026-10-23T04:46:11.747967+00:00",
+          "event_id": "8d077d06-09b7-485a-a93f-d00588de273c",
+          "led_seconds": 1.118
+        },
+        {
+          "name": "assistant_preloaded",
+          "at": "2026-10-23T04:47:09.756932+00:00",
+          "first_token_seconds": 54.741243041993584,
+          "total_seconds": 57.902,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        },
+        {
+          "name": "browser_routes",
+          "at": "2026-10-23T04:47:14.187851+00:00",
+          "pages": [
+            {
+              "route": "/dashboard",
+              "heading": "Diagnóstico do ambiente"
+            },
+            {
+              "route": "/digital-twin",
+              "heading": "Gêmeo digital"
+            },
+            {
+              "route": "/insights",
+              "heading": "Insights"
+            },
+            {
+              "route": "/laboratory",
+              "heading": "Laboratório de Dados"
+            },
+            {
+              "route": "/training",
+              "heading": "Treinamento"
+            },
+            {
+              "route": "/messaging",
+              "heading": "Mensageria"
+            },
+            {
+              "route": "/assistant",
+              "heading": "Assistente"
+            }
+          ]
+        },
+        {
+          "name": "writer_recovered",
+          "at": "2026-10-23T04:47:26.947200+00:00"
+        },
+        {
+          "name": "mosquitto_recovered",
+          "at": "2026-10-23T04:47:34.598370+00:00",
+          "led_seconds": 1.096
+        },
+        {
+          "name": "rabbitmq_recovered",
+          "at": "2026-10-23T04:47:46.396482+00:00",
+          "led_seconds": 1.088
+        },
+        {
+          "name": "ollama_recovered",
+          "at": "2026-10-23T04:48:54.792084+00:00",
+          "first_token_seconds": 42.31770162501198,
+          "total_seconds": 47.684,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        },
+        {
+          "name": "jobs_serialized",
+          "at": "2026-10-23T04:48:57.490466+00:00",
+          "led_seconds": 1.179
+        },
+        {
+          "name": "generation_completed",
+          "at": "2026-10-23T04:48:59.652947+00:00",
+          "rows": 1000000,
+          "seconds": 4.856
+        },
+        {
+          "name": "training_completed",
+          "at": "2026-10-23T04:52:39.606099+00:00",
+          "seconds": 219.956
+        },
+        {
+          "name": "model_activated_assistant_reloaded",
+          "at": "2026-10-23T04:54:08.551864+00:00",
+          "first_token_seconds": 61.58141245799197,
+          "total_seconds": 68.716,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        }
+      ],
+      "failure": "['delta', 'delta', 'delta', 'delta', 'delta', 'delta', ...]\nassert ('done' in ['delta', 'delta', 'delta', 'delta', 'delta', 'delta', ...])",
+      "cleaned_up": true,
+      "label": "R3",
+      "question": "Quantos ambientes tenho?",
+      "raw_report_sha256": "589462799fd53a2103e3277130f4eeef25289a97d82559fc2d60d96c1c887999",
+      "sample_count": 1254,
+      "monitor_errors": [],
+      "resources": {
+        "influxdb": {
+          "peak_bytes": 158212096,
+          "max_current_bytes": 139915264,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "71fefeb41b0b",
+            "1c171f4bfaac"
+          ]
+        },
+        "mosquitto": {
+          "peak_bytes": 9322496,
+          "max_current_bytes": 6705152,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "90b5c0eea9ee",
+            "acdf8cc3c3af",
+            "b3ad7f6424b3"
+          ]
+        },
+        "postgres": {
+          "peak_bytes": 93241344,
+          "max_current_bytes": 85426176,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "c3dd12af0b83",
+            "a33a55f2871b"
+          ]
+        },
+        "rabbitmq": {
+          "peak_bytes": 311922688,
+          "max_current_bytes": 304066560,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "61b07d09cba5",
+            "1aeb16440f69",
+            "cef86c140e8a"
+          ]
+        },
+        "ollama": {
+          "peak_bytes": 2930716672,
+          "max_current_bytes": 2850762752,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "b2211df24895",
+            "f4e50a654b54"
+          ]
+        },
+        "backend": {
+          "peak_bytes": 211271680,
+          "max_current_bytes": 196792320,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "8b6098db5ffe",
+            "25e7bbc86995"
+          ]
+        },
+        "gateway": {
+          "peak_bytes": 61579264,
+          "max_current_bytes": 56016896,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "2a6834495d8b",
+            "4f1998c01c63"
+          ]
+        },
+        "generation": {
+          "peak_bytes": 239366144,
+          "max_current_bytes": 226623488,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "3da37d19c323",
+            "5ba75977e9cf"
+          ]
+        },
+        "models": {
+          "peak_bytes": 206598144,
+          "max_current_bytes": 195846144,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "ae8442940a89",
+            "6783819286f3"
+          ]
+        },
+        "simulator": {
+          "peak_bytes": 31023104,
+          "max_current_bytes": 26177536,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "356ef3f850a3",
+            "fdfeaef7a020"
+          ]
+        },
+        "training": {
+          "peak_bytes": 1073741824,
+          "max_current_bytes": 1030189056,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 76,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "ab4c5ac91d75",
+            "7cb609cd9606"
+          ]
+        },
+        "writer": {
+          "peak_bytes": 94482432,
+          "max_current_bytes": 89247744,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "e1a81646b7b7",
+            "1f91ba201e39"
+          ]
+        },
+        "frontend": {
+          "peak_bytes": 12587008,
+          "max_current_bytes": 10956800,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "2bfb53a11715",
+            "397fdfe42d44"
+          ]
+        },
+        "llm": {
+          "peak_bytes": 78135296,
+          "max_current_bytes": 77049856,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "28915804f085",
+            "a739acb93708"
+          ]
+        }
+      },
+      "assistant_requests": [
+        {
+          "name": "assistant_preloaded",
+          "at": "2026-10-23T04:47:09.756932+00:00",
+          "first_token_seconds": 54.741243041993584,
+          "total_seconds": 57.902,
+          "completed": true
+        },
+        {
+          "name": "ollama_recovered",
+          "at": "2026-10-23T04:48:54.792084+00:00",
+          "first_token_seconds": 42.31770162501198,
+          "total_seconds": 47.684,
+          "completed": true
+        },
+        {
+          "name": "model_activated_assistant_reloaded",
+          "at": "2026-10-23T04:54:08.551864+00:00",
+          "first_token_seconds": 61.58141245799197,
+          "total_seconds": 68.716,
+          "completed": true
+        },
+        {
+          "completed": false,
+          "symptom": "deltas without done after down/up",
+          "error_code": "not captured in this harness revision"
+        }
+      ]
+    },
+    {
+      "project": "coldsafe-b233-98964192",
+      "git": "14285e505b91f5b1a993836542d9f90a10700bdf",
+      "started_at": "2026-10-23T04:57:39.839904+00:00",
+      "ended_at": "2026-10-23T05:07:56.951911+00:00",
+      "result": "failed",
+      "phases": [
+        {
+          "name": "clean_bootstrap_idempotent",
+          "at": "2026-10-23T04:57:56.731396+00:00"
+        },
+        {
+          "name": "weights_prepared",
+          "at": "2026-10-23T04:58:50.496852+00:00"
+        },
+        {
+          "name": "all_services_healthy",
+          "at": "2026-10-23T04:59:35.691560+00:00",
+          "count": 14
+        },
+        {
+          "name": "live_telemetry_led",
+          "at": "2026-10-23T04:59:36.966436+00:00",
+          "event_id": "3c7cefa1-bb08-4b46-a254-c69bbdb49713",
+          "led_seconds": 1.136
+        },
+        {
+          "name": "assistant_preloaded",
+          "at": "2026-10-23T05:00:30.189541+00:00",
+          "first_token_seconds": 49.69105341700197,
+          "total_seconds": 53.121,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        },
+        {
+          "name": "browser_routes",
+          "at": "2026-10-23T05:00:34.781295+00:00",
+          "pages": [
+            {
+              "route": "/dashboard",
+              "heading": "Diagnóstico do ambiente"
+            },
+            {
+              "route": "/digital-twin",
+              "heading": "Gêmeo digital"
+            },
+            {
+              "route": "/insights",
+              "heading": "Insights"
+            },
+            {
+              "route": "/laboratory",
+              "heading": "Laboratório de Dados"
+            },
+            {
+              "route": "/training",
+              "heading": "Treinamento"
+            },
+            {
+              "route": "/messaging",
+              "heading": "Mensageria"
+            },
+            {
+              "route": "/assistant",
+              "heading": "Assistente"
+            }
+          ]
+        },
+        {
+          "name": "writer_recovered",
+          "at": "2026-10-23T05:00:47.443177+00:00"
+        },
+        {
+          "name": "mosquitto_recovered",
+          "at": "2026-10-23T05:00:55.066706+00:00",
+          "led_seconds": 1.232
+        },
+        {
+          "name": "rabbitmq_recovered",
+          "at": "2026-10-23T05:01:06.755890+00:00",
+          "led_seconds": 2.179
+        },
+        {
+          "name": "ollama_recovered",
+          "at": "2026-10-23T05:02:16.507109+00:00",
+          "first_token_seconds": 48.32264720801322,
+          "total_seconds": 51.252,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        },
+        {
+          "name": "jobs_serialized",
+          "at": "2026-10-23T05:02:18.961233+00:00",
+          "led_seconds": 1.127
+        },
+        {
+          "name": "generation_completed",
+          "at": "2026-10-23T05:02:21.095593+00:00",
+          "rows": 1000000,
+          "seconds": 4.587
+        },
+        {
+          "name": "training_completed",
+          "at": "2026-10-23T05:05:31.866638+00:00",
+          "seconds": 190.773
+        }
+      ],
+      "failure": "{'first_token_seconds': None, 'total_seconds': 92.013, 'delta_count': 0, 'errors': [{'code': 'LLM_TIMEOUT'}], ...}\nassert ('done' in ['error'])",
+      "cleaned_up": true,
+      "label": "R4 diagnostic",
+      "question": "Quantos ambientes tenho?",
+      "raw_report_sha256": "fb5a621cc8ea2d5cf564db6071f4aac632d120726b7e70d5601ff5712e9f3034",
+      "sample_count": 957,
+      "monitor_errors": [],
+      "resources": {
+        "influxdb": {
+          "peak_bytes": 150327296,
+          "max_current_bytes": 149499904,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "62e563d5efe7"
+          ]
+        },
+        "postgres": {
+          "peak_bytes": 116006912,
+          "max_current_bytes": 109338624,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "d69047f5dd48"
+          ]
+        },
+        "rabbitmq": {
+          "peak_bytes": 247005184,
+          "max_current_bytes": 212811776,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "1ff76e33f5c9",
+            "d9d94e2935ba"
+          ]
+        },
+        "mosquitto": {
+          "peak_bytes": 8970240,
+          "max_current_bytes": 7086080,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "f590d711c4df"
+          ]
+        },
+        "ollama": {
+          "peak_bytes": 2832842752,
+          "max_current_bytes": 2775289856,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "6029ea8ec421"
+          ]
+        },
+        "backend": {
+          "peak_bytes": 183533568,
+          "max_current_bytes": 176422912,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "a6ac9a282078"
+          ]
+        },
+        "gateway": {
+          "peak_bytes": 56508416,
+          "max_current_bytes": 51523584,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "c374418fb0f7"
+          ]
+        },
+        "generation": {
+          "peak_bytes": 244027392,
+          "max_current_bytes": 232062976,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "94827332d2df"
+          ]
+        },
+        "models": {
+          "peak_bytes": 201236480,
+          "max_current_bytes": 191258624,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "c92c4837b1f6"
+          ]
+        },
+        "simulator": {
+          "peak_bytes": 28721152,
+          "max_current_bytes": 23101440,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "23f92096632c"
+          ]
+        },
+        "training": {
+          "peak_bytes": 1073741824,
+          "max_current_bytes": 1072906240,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 14,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "7098b5426249"
+          ]
+        },
+        "writer": {
+          "peak_bytes": 90951680,
+          "max_current_bytes": 85561344,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "fb08a583b9ad"
+          ]
+        },
+        "frontend": {
+          "peak_bytes": 11087872,
+          "max_current_bytes": 8855552,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "aee004058454"
+          ]
+        },
+        "llm": {
+          "peak_bytes": 74964992,
+          "max_current_bytes": 73568256,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "6579739c7dfe"
+          ]
+        }
+      },
+      "assistant_requests": [
+        {
+          "first_token_seconds": 49.69105341700197,
+          "total_seconds": 53.12,
+          "delta_count": 6,
+          "errors": [],
+          "completed": true
+        },
+        {
+          "first_token_seconds": 48.32264720801322,
+          "total_seconds": 51.251,
+          "delta_count": 6,
+          "errors": [],
+          "completed": true
+        },
+        {
+          "first_token_seconds": null,
+          "total_seconds": 92.013,
+          "delta_count": 0,
+          "errors": [
+            {
+              "code": "LLM_TIMEOUT"
+            }
+          ],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "project": "coldsafe-b233-d316f097",
+      "git": "14285e505b91f5b1a993836542d9f90a10700bdf",
+      "started_at": "2026-10-23T05:09:14.345170+00:00",
+      "ended_at": "2026-10-23T05:32:10.499719+00:00",
+      "result": "passed",
+      "phases": [
+        {
+          "name": "clean_bootstrap_idempotent",
+          "at": "2026-10-23T05:09:32.564560+00:00"
+        },
+        {
+          "name": "weights_prepared",
+          "at": "2026-10-23T05:23:01.638541+00:00"
+        },
+        {
+          "name": "all_services_healthy",
+          "at": "2026-10-23T05:23:58.479435+00:00",
+          "count": 14
+        },
+        {
+          "name": "live_telemetry_led",
+          "at": "2026-10-23T05:24:02.790697+00:00",
+          "event_id": "0aa3adb8-8bf0-4ae0-8836-3efa65dba205",
+          "led_seconds": 1.103
+        },
+        {
+          "name": "assistant_preloaded",
+          "at": "2026-10-23T05:24:46.152947+00:00",
+          "first_token_seconds": 38.21652970899595,
+          "total_seconds": 43.187,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        },
+        {
+          "name": "browser_routes",
+          "at": "2026-10-23T05:24:51.407494+00:00",
+          "pages": [
+            {
+              "route": "/dashboard",
+              "heading": "Diagnóstico do ambiente"
+            },
+            {
+              "route": "/digital-twin",
+              "heading": "Gêmeo digital"
+            },
+            {
+              "route": "/insights",
+              "heading": "Insights"
+            },
+            {
+              "route": "/laboratory",
+              "heading": "Laboratório de Dados"
+            },
+            {
+              "route": "/training",
+              "heading": "Treinamento"
+            },
+            {
+              "route": "/messaging",
+              "heading": "Mensageria"
+            },
+            {
+              "route": "/assistant",
+              "heading": "Assistente"
+            }
+          ]
+        },
+        {
+          "name": "writer_recovered",
+          "at": "2026-10-23T05:25:04.084222+00:00"
+        },
+        {
+          "name": "mosquitto_recovered",
+          "at": "2026-10-23T05:25:11.496620+00:00",
+          "led_seconds": 1.1
+        },
+        {
+          "name": "rabbitmq_recovered",
+          "at": "2026-10-23T05:25:23.336353+00:00",
+          "led_seconds": 1.111
+        },
+        {
+          "name": "ollama_recovered",
+          "at": "2026-10-23T05:26:13.477455+00:00",
+          "first_token_seconds": 29.840735125006177,
+          "total_seconds": 32.478,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        },
+        {
+          "name": "jobs_serialized",
+          "at": "2026-10-23T05:26:15.954698+00:00",
+          "led_seconds": 1.161
+        },
+        {
+          "name": "generation_completed",
+          "at": "2026-10-23T05:26:18.133659+00:00",
+          "rows": 1000000,
+          "seconds": 4.655
+        },
+        {
+          "name": "training_completed",
+          "at": "2026-10-23T05:29:29.361252+00:00",
+          "seconds": 191.229
+        },
+        {
+          "name": "model_activated_assistant_reloaded",
+          "at": "2026-10-23T05:30:28.089143+00:00",
+          "first_token_seconds": 35.7238105419965,
+          "total_seconds": 40.834,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        },
+        {
+          "name": "volumes_preserved_before_last_assistant",
+          "at": "2026-10-23T05:31:25.247508+00:00"
+        },
+        {
+          "name": "volumes_restart_preserved",
+          "at": "2026-10-23T05:32:00.742763+00:00",
+          "led_seconds": 1.201,
+          "first_token_seconds": 31.598429917008616,
+          "total_seconds": 34.293,
+          "events": [
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "delta",
+            "done"
+          ]
+        }
+      ],
+      "cleaned_up": true,
+      "ollama_inventory": {
+        "models": [
+          {
+            "name": "llama3.2:3b-instruct-q4_K_M",
+            "model": "llama3.2:3b-instruct-q4_K_M",
+            "modified_at": "2026-10-23T05:23:01.382995012Z",
+            "size": 2019393189,
+            "digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "3.2B",
+              "quantization_level": "Q4_K_M",
+              "context_length": 131072,
+              "embedding_length": 3072,
+              "runner": "ggml"
+            },
+            "capabilities": [
+              "completion",
+              "tools"
+            ]
+          }
+        ]
+      },
+      "label": "R5 final scope",
+      "question": "Quantos equipamentos tenho?",
+      "raw_report_sha256": "2240f0815d1011918bdf90af361ec4faf0e166fea1c7168cefe4da5f7881e69d",
+      "sample_count": 1058,
+      "monitor_errors": [],
+      "resources": {
+        "influxdb": {
+          "peak_bytes": 162201600,
+          "max_current_bytes": 151904256,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "c8a894ccf768",
+            "eef52fe7ae2d"
+          ]
+        },
+        "postgres": {
+          "peak_bytes": 120889344,
+          "max_current_bytes": 108662784,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "5e69e52e8f6c",
+            "4dbff8eb06c4"
+          ]
+        },
+        "rabbitmq": {
+          "peak_bytes": 307769344,
+          "max_current_bytes": 267530240,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "778b4bf49804",
+            "4e3a22cfa8c8",
+            "b13aca73178d"
+          ]
+        },
+        "mosquitto": {
+          "peak_bytes": 10096640,
+          "max_current_bytes": 7651328,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "142c335416e8",
+            "33b3ccb51abd"
+          ]
+        },
+        "ollama": {
+          "peak_bytes": 2834780160,
+          "max_current_bytes": 2766254080,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "49bd675f82f4",
+            "1855d7a78477"
+          ]
+        },
+        "backend": {
+          "peak_bytes": 210087936,
+          "max_current_bytes": 178049024,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "190098dc6dac",
+            "47a9948a4970"
+          ]
+        },
+        "gateway": {
+          "peak_bytes": 60325888,
+          "max_current_bytes": 54800384,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "b1667df13c1c",
+            "2805721d560a"
+          ]
+        },
+        "generation": {
+          "peak_bytes": 240775168,
+          "max_current_bytes": 239857664,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "34e1f80118df",
+            "a5184ba7f8a4"
+          ]
+        },
+        "models": {
+          "peak_bytes": 217559040,
+          "max_current_bytes": 207056896,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "45ca6267239f",
+            "59ba0619b374"
+          ]
+        },
+        "simulator": {
+          "peak_bytes": 30031872,
+          "max_current_bytes": 23625728,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "ad7e7b53acf2",
+            "0a8ea00281f2"
+          ]
+        },
+        "training": {
+          "peak_bytes": 1073741824,
+          "max_current_bytes": 1055870976,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 1,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "a9a9fb481a56",
+            "0793b64b8b75"
+          ]
+        },
+        "writer": {
+          "peak_bytes": 88645632,
+          "max_current_bytes": 83062784,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "db3467c76445",
+            "6b2ce1cc8aae"
+          ]
+        },
+        "frontend": {
+          "peak_bytes": 10878976,
+          "max_current_bytes": 8880128,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "e6ade7a16197",
+            "66389b0ad17a"
+          ]
+        },
+        "llm": {
+          "peak_bytes": 80084992,
+          "max_current_bytes": 73351168,
+          "oom_killed": false,
+          "max_restart_count": 0,
+          "memory_events_max": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "container_ids": [
+            "841f96ce03ee",
+            "8efa1d2d4d57"
+          ]
+        }
+      },
+      "assistant_requests": [
+        {
+          "first_token_seconds": 38.21652970899595,
+          "total_seconds": 43.186,
+          "delta_count": 7,
+          "errors": [],
+          "completed": true,
+          "question": "Quantos equipamentos tenho?",
+          "text": "Você tem 1 equipamento."
+        },
+        {
+          "first_token_seconds": 29.840735125006177,
+          "total_seconds": 32.476,
+          "delta_count": 7,
+          "errors": [],
+          "completed": true,
+          "question": "Quantos equipamentos tenho?",
+          "text": "Você tem 1 equipamento."
+        },
+        {
+          "first_token_seconds": 35.7238105419965,
+          "total_seconds": 40.833,
+          "delta_count": 7,
+          "errors": [],
+          "completed": true,
+          "question": "Quantos equipamentos tenho?",
+          "text": "Você tem 1 equipamento."
+        },
+        {
+          "first_token_seconds": 31.598429917008616,
+          "total_seconds": 34.292,
+          "delta_count": 7,
+          "errors": [],
+          "completed": true,
+          "question": "Quantos equipamentos tenho?",
+          "text": "Você tem 1 equipamento."
+        }
+      ]
+    }
+  ],
+  "training_coordination_observations": [
+    {
+      "round": "R3",
+      "running_jobs": 1,
+      "llm_state": "paused",
+      "loaded_models": 0
+    },
+    {
+      "round": "R5",
+      "project": "coldsafe-b233-d316f097",
+      "at": "2026-10-23T05:26:35.839599+00:00",
+      "running_jobs": 1,
+      "llm_state": "paused",
+      "loaded_models": 0
+    }
+  ],
+  "preparation_failures": [
+    "R1: CLI permissions are strings, not API dictionaries. Fixed exact-scope parsing and tests. Harness cleanup initially lacked bootstrap token placeholder; removed only own project by labels.",
+    "R2: Compose build output preceded the UUID on stdout. Harness now parses and validates last line as UUID. No runtime defect; own project cleaned automatically."
+  ],
+  "limitations": [
+    "R3 and R4 remain failed rounds; no approval by mixing their successful stages.",
+    "R4 confirmed LLM_TIMEOUT at 92.013s after training for accepted free-form input about environments. This is a real unresolved latency/capacity failure, without isolated root cause or OOM. R3 terminal error code was not captured. The summary has equipment counts but no environment count; the general fallback deliberately includes more context. This does not make the input invalid.",
+    "R5 is a narrower recovery smoke with a supported equipment fact. It does not revalidate B2-32 corpus or establish an SLA or universal response quality.",
+    "Training can reach 1GiB with memory limit events but no OOM in measured rounds. No long-duration soak test or physical calibration. Probes show loop/transport activity, not completion of every calculation.",
+    "Runtime and personal volumes/configuration were not activated or modified. Test images/build cache retained."
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "sqlite_version": "3.50.4",
+  "before": {
+    "ingress": [
+      [
+        4,
+        0,
+        216,
+        "SCAN ingress"
+      ]
+    ],
+    "errors": [
+      [
+        4,
+        0,
+        216,
+        "SCAN errors"
+      ]
+    ]
+  },
+  "after": {
+    "ingress": [
+      [
+        5,
+        0,
+        61,
+        "SEARCH ingress USING INDEX ingress_pending_idx (sent=?)"
+      ]
+    ],
+    "errors": [
+      [
+        5,
+        0,
+        61,
+        "SEARCH errors USING INDEX errors_pending_idx (sent=?)"
+      ]
+    ]
+  }
+}

@@ -1,7 +1,10 @@
 import { computed, onMounted, onUnmounted, ref, watch, type Ref } from 'vue'
+import { clearSession, sessionToken } from '../account/session'
 
 import { resolveMonitoringState, STALE_AFTER_SECONDS, type SummaryState } from './monitoring-state'
 import { fetchMonitoringSummary, type MonitoringSummary } from './monitoring-summary'
+import { parseAiotEvent, predictionMatchesReading, type AiotEvent } from './aiot-api'
+import { aiotEnabled } from './monitoring-version'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
@@ -15,7 +18,7 @@ export function formatFreshness(ageSeconds: number | undefined) {
   return `Há ${days} ${days === 1 ? 'dia' : 'dias'}`
 }
 
-export type MonitoringEvent = Readonly<{
+type LegacyMonitoringEvent = Readonly<{
   schema_version: 2
   type: 'reading' | 'command_status' | 'alert'
   device_id: string
@@ -23,8 +26,9 @@ export type MonitoringEvent = Readonly<{
   occurred_at: string
   data: unknown
 }>
+export type MonitoringEvent = LegacyMonitoringEvent | AiotEvent
 
-function isMonitoringEvent(value: unknown, deviceId: string): value is MonitoringEvent {
+function isMonitoringEvent(value: unknown, deviceId: string): value is LegacyMonitoringEvent {
   if (typeof value !== 'object' || value === null) return false
   const event = value as Record<string, unknown>
   return event.schema_version === 2 &&
@@ -50,6 +54,15 @@ export function useMonitoringSummary(
   let selectionRevision = 0
   let latestSummaryRequest = 0
   let disposed = false
+  const recentEvents = new Set<string>()
+  const recentReadings = new Map<string, NonNullable<MonitoringSummary['reading']>>()
+
+  function rememberReading(reading: NonNullable<MonitoringSummary['reading']>) {
+    if (!reading.event_id) return
+    recentReadings.set(reading.event_id, reading)
+    // shortcut: retain 256 verified sources; older predictions need a fresh source after reconnect.
+    if (recentReadings.size > 256) recentReadings.delete(recentReadings.keys().next().value!)
+  }
 
   const ageSeconds = computed(() => !summary.value?.freshness
     ? null
@@ -77,15 +90,16 @@ export function useMonitoringSummary(
         token: currentToken,
         deviceId: currentDevice,
       })
-      if (requestId !== latestSummaryRequest || token.value !== currentToken || deviceId.value !== currentDevice) return
+      if (disposed || requestId !== latestSummaryRequest || token.value !== currentToken || deviceId.value !== currentDevice) return
       if (result.device.id !== currentDevice) throw new Error('Dispositivo inesperado no resumo.')
+      if (aiotEnabled && result.reading) rememberReading(result.reading)
       clock.value = Math.max(clock.value, Date.now())
       summaryRequestedAt.value = requestedAt
       summary.value = result
       summaryState.value = { phase: 'ready', status: result.status }
       refreshRevision.value += 1
     } catch {
-      if (requestId !== latestSummaryRequest || token.value !== currentToken || deviceId.value !== currentDevice) return
+      if (disposed || requestId !== latestSummaryRequest || token.value !== currentToken || deviceId.value !== currentDevice) return
       summary.value = null
       summaryState.value = { phase: 'error' }
     }
@@ -105,29 +119,77 @@ export function useMonitoringSummary(
     }
   }
 
-  function connect(revision: number) {
+  async function connect(revision: number) {
     const currentToken = token.value
     const currentDevice = deviceId.value
     if (!currentToken || !currentDevice || disposed || revision !== selectionRevision) return
     connectionState.value = 'connecting'
-    const url = new URL(`${apiBaseUrl.replace(/\/+$/, '')}/api/v1/events`)
+    let ticket: string
+    try {
+      const response = await fetch(`${apiBaseUrl.replace(/\/+$/, '')}/api/v1/auth/ws-ticket`, {
+        method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${currentToken}` },
+        body: JSON.stringify({ device_id: currentDevice }),
+      })
+      if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
+      if (response.status === 401) {
+        connectionState.value = 'unauthorized'
+        if (sessionToken.value === currentToken) clearSession()
+        token.value = null
+        return
+      }
+      if (response.status === 403) { connectionState.value = 'forbidden'; return }
+      const payload = await response.json()
+      if (!response.ok || payload?.success !== true || typeof payload.data?.ticket !== 'string' ||
+        !payload.data.ticket || !(Date.parse(payload.data.expires_at) > Date.now())) {
+        throw new Error('Ticket inválido.')
+      }
+      ticket = payload.data.ticket
+    } catch {
+      if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
+      connectionState.value = 'offline'
+      reconnectTimer = setTimeout(() => { void connect(revision) }, 2000)
+      return
+    }
+    if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
+    const url = new URL(`${apiBaseUrl.replace(/\/+$/, '')}/api/${aiotEnabled ? 'v3' : 'v1'}/events`, window.location.origin)
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
     url.searchParams.set('device_id', currentDevice)
     const nextSocket = new WebSocket(url)
     socket = nextSocket
 
     nextSocket.onopen = () => {
-      if (revision !== selectionRevision) return
-      nextSocket.send(JSON.stringify({ token: currentToken }))
+      if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
+      nextSocket.send(JSON.stringify({ ticket }))
       connectionState.value = 'connected'
       void loadSummary()
     }
     nextSocket.onmessage = (message) => {
-      if (revision !== selectionRevision) return
+      if (disposed || revision !== selectionRevision || token.value !== currentToken || deviceId.value !== currentDevice) return
       try {
         const value: unknown = JSON.parse(String(message.data))
-        if (!isMonitoringEvent(value, currentDevice)) return
-        onEvent?.(value)
+        if (aiotEnabled) {
+          const event = parseAiotEvent(value, currentDevice, summary.value?.environment.id)
+          if (event === null || recentEvents.has(event.event_id)) return
+          let deliverEvent = true
+          if (event.type === 'prediction') {
+            const reading = summary.value?.reading
+            if (reading && (event.device_record_id !== reading.device_record_id || event.data.equipment_id !== reading.equipment_id)) return
+            const source = recentReadings.get(event.data.source_event_id)
+            if (source) {
+              if (!predictionMatchesReading(event, source)) return
+            } else {
+              if (reading && Date.parse(event.data.input_received_at) <= Date.parse(reading.received_at)) return
+              deliverEvent = false
+            }
+          } else if (event.type === 'telemetry') rememberReading(event.data.reading)
+          recentEvents.add(event.event_id)
+          // shortcut: bounded live dedup; REST recovers authoritative state after reconnect.
+          if (recentEvents.size > 256) recentEvents.delete(recentEvents.values().next().value!)
+          if (deliverEvent) onEvent?.(event)
+        } else {
+          if (!isMonitoringEvent(value, currentDevice)) return
+          onEvent?.(value)
+        }
         void loadSummary()
       } catch {
         // A malformed event cannot replace the last REST-verified state.
@@ -137,7 +199,10 @@ export function useMonitoringSummary(
       if (revision !== selectionRevision || disposed) return
       socket = null
       connectionState.value = event.code === 4401 ? 'unauthorized' : event.code === 4403 ? 'forbidden' : 'offline'
-      if (event.code !== 4401 && event.code !== 4403) reconnectTimer = setTimeout(() => connect(revision), 2000)
+      if (event.code === 4401) {
+        if (sessionToken.value === currentToken) clearSession()
+        token.value = null
+      } else if (event.code !== 4403) reconnectTimer = setTimeout(() => { void connect(revision) }, 2000)
     }
     nextSocket.onerror = () => nextSocket.close()
   }
@@ -147,13 +212,15 @@ export function useMonitoringSummary(
     watch([token, deviceId], () => {
       selectionRevision += 1
       latestSummaryRequest += 1
+      recentEvents.clear()
+      recentReadings.clear()
       disconnect()
       summary.value = null
       summaryState.value = { phase: 'loading' }
       connectionState.value = 'offline'
       if (token.value && deviceId.value) {
         void loadSummary()
-        connect(selectionRevision)
+        void connect(selectionRevision)
       }
     }, { immediate: true })
   })

@@ -1,0 +1,175 @@
+{
+  "task": "B2-07",
+  "date_local": "2026-10-13",
+  "timezone": "America/Sao_Paulo",
+  "status": "Concluída",
+  "scope": "RabbitMQ infrastructure; no v3 business services implemented",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "9a837c2b0255c35c93dd222a2d82f9b4fe23d551",
+    "committed": false,
+    "pushed": false,
+    "staged": false,
+    "initial_status": "timed out; selected files matched index before edits",
+    "final_status": "completed with expected B2-07 changes",
+    "diff_check": "exit 0; completed after initial delay"
+  },
+  "dependencies": {
+    "new_dev": "pika==1.4.4",
+    "existing_dependency_lock_repair": "websockets==17.1 already in production manifest/lock, missing in dev lock",
+    "new_services": [
+      "rabbitmq:4.3.6-management-alpine",
+      "python:3.13.15-slim bootstrap"
+    ],
+    "previous_locked_versions_updated": false
+  },
+  "tests": {
+    "red": "unit collection failed before infra.rabbitmq existed",
+    "unit": {
+      "passed": 9,
+      "duration_seconds": 0.07
+    },
+    "regression": {
+      "passed": 93,
+      "duration_seconds": 1.48,
+      "new_unit_tests": 9,
+      "existing_infra_tests": 22,
+      "existing_contract_tests": 62
+    },
+    "integration": {
+      "passed": 21,
+      "duration_seconds": 31.62,
+      "real_broker": true,
+      "manual_ack": true,
+      "publisher_confirms": true,
+      "persisted_after_restart": true,
+      "permanent_rejection_preserves_original": true,
+      "failed_delivery_counts": [
+        0,
+        1,
+        2
+      ],
+      "backoff_seconds": [
+        1,
+        2
+      ],
+      "dlq_exhaustion_reason": "delivery_limit",
+      "access_denied_tests": 15
+    },
+    "coverage": {
+      "scope": "infra.rabbitmq.bootstrap",
+      "branches": true,
+      "percent": 83.64,
+      "passed": 9,
+      "duration_seconds": 0.19
+    },
+    "compose_config": {
+      "exit_code": 0,
+      "environment": "temporary random credentials; personal .env not used"
+    },
+    "outputs": {
+      "integration": ".....................                                                    [100%]\n21 passed in 31.62s\n",
+      "regression": "........................................................................ [ 77%]\n.....................                                                    [100%]\n93 passed in 1.48s\n",
+      "coverage": ".........                                                                [100%]\n================================ tests coverage ================================\n______________ coverage: platform darwin, python 3.13.15-final-0 _______________\n\nName                          Stmts   Miss Branch BrPart  Cover   Missing\n-------------------------------------------------------------------------\ninfra/rabbitmq/bootstrap.py      47      8      8      1    84%   103-110, 114\n-------------------------------------------------------------------------\nTOTAL                            47      8      8      1    84%\nRequired test coverage of 80% reached. Total coverage: 83.64%\n9 passed in 0.19s\n"
+    },
+    "environment": {
+      "python": "3.13.15",
+      "pytest": "9.1.1",
+      "pika": "1.4.4",
+      "docker_server": "29.3.0"
+    },
+    "independent_review": {
+      "kind": "static",
+      "blocking_findings": 0,
+      "independent_tests_executed": false,
+      "note": "reviewer pytest attempt stalled; final isolation function also reviewed"
+    }
+  },
+  "cleanup": {
+    "remaining_test_containers": [],
+    "remaining_test_volumes": [],
+    "original_containers": [
+      "coldsafe-postgres-1 Exited (0) 2 weeks ago",
+      "coldsafe-influxdb-1 Exited (2) 2 weeks ago",
+      "coldsafe-backend-1 Exited (0) 2 weeks ago",
+      "coldsafe-frontend-1 Exited (143) 2 weeks ago",
+      "coldsafe-mosquitto-1 Exited (0) 2 weeks ago",
+      "coldsafe-mosquitto-init-1 Exited (0) 2 weeks ago"
+    ],
+    "existing_volume_count_after": 67,
+    "personal_env_changed": false,
+    "personal_volumes_mounted": false,
+    "images_kept_as_cache": true
+  },
+  "whitespace_check": {
+    "files": 17,
+    "trailing_whitespace": [],
+    "missing_final_newlines": []
+  },
+  "baseline_selected_files": {
+    "compose.yaml": {
+      "sha256": "cc78c919d2a2c294d09a68d985136db2a77862a0cebc786d6fcbcca3066786c6",
+      "matches_index": true
+    },
+    ".env.example": {
+      "sha256": "8b5d29f807d2cccae4f45db90500f54ba6c35df7378e619e1bba1ba6ac5d7211",
+      "matches_index": true
+    },
+    "docs/aiot/README.md": {
+      "sha256": "6ef2967e7ba21b887f1b97d503c7197b7b4d53b322b79f786d152b29694080ff",
+      "matches_index": true
+    },
+    "docs/aiot/tasks/README.md": {
+      "sha256": "49ada2e3dbfb0aec4206fc73fea8245187a3265a1c0f0655a5f4a80a33f8833b",
+      "matches_index": true
+    },
+    "docs/aiot/tasks/B2-07.md": {
+      "sha256": "5aad44e107de0d2e33e07a0a5a3d9ea2ef87dd31a833aebd0d3ec4d06efa5e97",
+      "matches_index": true
+    },
+    "docs/configuration.md": {
+      "sha256": "771913f6e9b7df25a0520955afb34d81befd29415e975fc1cb84d2f691c2509c",
+      "matches_index": true
+    },
+    "docs/version-matrix.md": {
+      "sha256": "2b3b52c80fee989a004a88054a2d8d1d0ce8a0ecc56aff38102afe404e3b3c65",
+      "matches_index": true
+    },
+    "infra/README.md": {
+      "sha256": "8009036744133441d538e481eae35a04f76b22af3a1a927996ee997b46c8851f",
+      "matches_index": true
+    },
+    "contracts/aiot.md": {
+      "sha256": "f9222a0dc56f11f0cf8f62e52c44abd3302e95b47481f4c97f9ffbc8ba72d36d",
+      "matches_index": true
+    }
+  },
+  "source_sha256": {
+    ".env.example": "605677dc00f199ec27bfe37acd3a09e61ce7eb4f02318a23f8f981dc2a5dcfd2",
+    "compose.yaml": "d29bae15dad68d4bb1c420f8a9e76336d5f56c4f6b08f2deb862ca07fcf3f66a",
+    "backend/requirements-dev.txt": "a9226030f44f75d7ac39912966f899f227fa41d260523b9472b800aa843ad1c3",
+    "backend/requirements-dev.lock.txt": "8f08c159140cfb501ee5a130a2635d1f3dfa335bc3b4d66f4dcb6ca292c5a169",
+    "backend/tests/infra/test_compose_contract.py": "b49e2978590f43a5cf6cbaf27ac0a015eb7bc7ddd6fa6d524deaa4ba4f825440",
+    "backend/tests/infra/test_rabbitmq_bootstrap.py": "1cdbb14f13562dc59aa3d5c749df7bde78f089cde44a11f05682744061c02c12",
+    "backend/tests/infra/test_rabbitmq_integration.py": "d75660f977530d1730d306aa4e153d8001dffae90ec51fa97592129e4bf00462",
+    "infra/rabbitmq/bootstrap.py": "8de68d91293c58395539c5507a0b29aa3e17da844cf510907e69ff526b110ce2",
+    "infra/rabbitmq/rabbitmq.conf": "927660a60128d1af15df9e2618210fd216e6b20e8961114f4462fef612fa6be8",
+    "infra/rabbitmq/README.md": "dfca8800db9e59bf96c465417a6dc1c0ab8b4f914b484edff71a0585d56ff829",
+    "contracts/aiot.md": "d25d85a7307dd2a99055c8d0766ba070feb29fc19c19e7f5adc2a39880b0e2f3",
+    "infra/README.md": "dc07323d20c4bccb022452b355f0e0011799cb4805e03edc6685603fdbf53c01",
+    "docs/configuration.md": "347c96577631df81458deef9e2ebf3d06e710c6a585cc11babbb4fccb9f48a00",
+    "docs/version-matrix.md": "71fb3cc04198fc63f0df478f94b5a7b8e003a6eef94829016d826ac101388488",
+    "docs/aiot/tasks/B2-07.md": "7906af152dbf5f232e8bec9677d8eeed4fd35ba67ea527212c51f2e55c157672",
+    "docs/aiot/tasks/README.md": "2faa7ac29337f857f89d71ffc95546d217e48d0e73705c99f1ff040a43049947",
+    "docs/aiot/README.md": "322af81cbd1685cf8052140da0000717a3b3d1a0e065fc15393c316326aefcbe"
+  },
+  "limits": [
+    "No full application coverage or backend/frontend E2E suite executed",
+    "No business consumer, JSON/catalog/owner validation, idempotent effect or sanitized processing_error implemented",
+    "No personal stack start, hardware/Wokwi, long load or final B2-33 capacity test",
+    "Single RabbitMQ node; at-least-once can duplicate messages",
+    "Personal RabbitMQ passwords must still be configured",
+    "Management/monitoring privileges for B2-15 are not implemented"
+  ],
+  "checkpoint": "B2-07 complete; await user choice for B2-08; no further task started"
+}

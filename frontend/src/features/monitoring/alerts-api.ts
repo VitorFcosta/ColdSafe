@@ -1,3 +1,6 @@
+import { isDeviceId, isRecord, isUtcTime, isUuid } from './aiot-api'
+import { aiotEnabled } from './monitoring-version'
+
 export type AlertRecord = Readonly<{
   alert_id: string
   device_id: string
@@ -19,7 +22,7 @@ export async function fetchAlerts(options: {
 }): Promise<readonly AlertRecord[]> {
   const { baseUrl, deviceId, start, end, auth, fetcher } = options
   const query = new URLSearchParams({ device_id: deviceId, start, end, limit: '300' })
-  const response = await fetcher(`${baseUrl.replace(/\/+$/, '')}/api/v1/alerts?${query}`, {
+  const response = await fetcher(`${baseUrl.replace(/\/+$/, '')}/api/${aiotEnabled ? 'v3' : 'v1'}/alerts?${query}`, {
     headers: { accept: 'application/json', authorization: `Bearer ${auth}` },
   })
   if (!response.ok) throw new Error('Não foi possível consultar os alertas.')
@@ -43,11 +46,9 @@ function isAlert(value: unknown): value is AlertRecord {
     isDate(value.opened_at) &&
     (value.closed_at === null || isDate(value.closed_at)) &&
     (value.status === 'open' || value.status === 'closed') &&
-    (value.status === 'open' ? value.closed_at === null : value.closed_at !== null)
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
+    (value.status === 'open' ? value.closed_at === null : value.closed_at !== null) &&
+    (!aiotEnabled || (isUuid(value.alert_id) && isDeviceId(value.device_id) && isUtcTime(value.opened_at) &&
+      (value.closed_at === null || (isUtcTime(value.closed_at) && Date.parse(value.closed_at) >= Date.parse(value.opened_at)))))
 }
 
 function isDate(value: unknown): value is string {

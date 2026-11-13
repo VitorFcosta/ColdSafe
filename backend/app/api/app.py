@@ -8,7 +8,8 @@ from uuid import uuid4
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from backend.app.api.schemas import (
     DeviceResponse,
@@ -30,6 +31,7 @@ from backend.app.api.schemas import (
 from backend.app.api.auth import AuthService
 from backend.app.api.catalog import CatalogService, create_catalog_router
 from backend.app.api.commands import create_command_router
+from backend.app.api.roles import create_roles_router
 from backend.app.domain.reading_classification import TemperatureThresholds
 from backend.app.errors import DependencyUnavailableError, DeviceNotFoundError
 from backend.app.services.monitoring import (
@@ -52,17 +54,32 @@ ERRORS: dict[str, str] = {
     "ENVIRONMENT_NOT_FOUND": "O ambiente informado não foi encontrado.",
     "DEVICE_ID_EXISTS": "O identificador do dispositivo já está cadastrado.",
     "UNAUTHORIZED": "Autenticação necessária ou sessão inválida.",
+    "FORBIDDEN": "Seu papel não permite esta operação.",
+    "RATE_LIMITED": "Muitas tentativas. Aguarde antes de tentar novamente.",
+    "LLM_DISABLED": "O assistente local não está habilitado.",
+    "LLM_BUSY": "O assistente está ocupado ou aguarda recuperação segura da memória.",
+    "LLM_NOT_READY": "O modelo local ainda não está pronto. Consulte seu estado e tente novamente.",
+    "LLM_UNAVAILABLE": "Não foi possível consultar o assistente local agora.",
+    "USER_NOT_FOUND": "O usuário informado não foi encontrado.",
+    "JOB_NOT_FOUND": "O job informado não foi encontrado.",
+    "DATASET_NOT_FOUND": "O dataset informado não foi encontrado.",
+    "TRAINING_NOT_READY": "O resultado do treinamento ainda não está disponível.",
+    "TRAINING_RESULT_UNAVAILABLE": "Não foi possível consultar o resultado do treinamento agora.",
+    "MODEL_NOT_FOUND": "O modelo informado não foi encontrado.",
+    "MODEL_NOT_ELIGIBLE": "O modelo informado não foi aprovado para ativação.",
+    "ACTIVATION_PENDING": "Já existe uma ativação pendente para este proprietário.",
+    "MODEL_ACTIVATION_NOT_FOUND": "A ativação informada não foi encontrada.",
     "DEPENDENCY_UNAVAILABLE": "Não foi possível consultar as leituras agora.",
     "INTERNAL_ERROR": "Ocorreu um erro interno.",
 }
 
 
-def _error_response(*, status_code: int, code: str) -> JSONResponse:
+def _error_response(*, status_code: int, code: str, headers: dict | None = None) -> JSONResponse:
     response = ErrorResponse(
         error=ErrorDetail(code=code, message=ERRORS[code]),
         meta=ErrorMeta(request_id=str(uuid4())),
     )
-    return JSONResponse(status_code=status_code, content=response.model_dump())
+    return JSONResponse(status_code=status_code, content=response.model_dump(), headers=headers)
 
 
 def create_app(
@@ -86,7 +103,24 @@ def create_app(
             "para uso médico, sanitário ou regulatório."
         ),
         lifespan=lifespan,
+        docs_url=None,
+        redoc_url=None,
     )
+    @app.get("/docs", include_in_schema=False)
+    def local_documentation() -> HTMLResponse:
+        return get_swagger_ui_html(
+            openapi_url="/openapi.json",
+            title=app.title + " - Swagger UI",
+            swagger_js_url="/docs-assets/swagger-ui-bundle.js",
+            swagger_css_url="/docs-assets/swagger-ui.css",
+            swagger_favicon_url="/docs-assets/favicon-32x32.png",
+            swagger_ui_parameters={"validatorUrl": None},
+        )
+
+    @app.get("/redoc", include_in_schema=False)
+    def documentation_alias() -> RedirectResponse:
+        return RedirectResponse("/docs", status_code=307)
+
     if cors_origins:
         app.add_middleware(
             CORSMiddleware,
@@ -100,8 +134,9 @@ def create_app(
         raise ValueError("auth and catalog must be configured together")
     if auth is not None and catalog is not None:
         app.include_router(auth.router)
-        app.include_router(create_catalog_router(catalog, auth.require_user))
-        app.include_router(create_command_router(catalog, commands, auth.require_user))
+        app.include_router(create_catalog_router(catalog, auth.require_user, require_operator=auth.require_operator))
+        app.include_router(create_command_router(catalog, commands, auth.require_user, require_operator=auth.require_operator))
+        app.include_router(create_roles_router(auth))
         auth.install_exception_handlers(app)
         if events is not None:
             install_events(app, events, auth, catalog)
@@ -151,7 +186,7 @@ def create_app(
     @app.exception_handler(HTTPException)
     def http_error_handler(_request: Request, exc: HTTPException) -> JSONResponse:
         code = exc.detail if isinstance(exc.detail, str) and exc.detail in ERRORS else "INTERNAL_ERROR"
-        return _error_response(status_code=exc.status_code, code=code)
+        return _error_response(status_code=exc.status_code, code=code, headers=exc.headers)
 
     @app.exception_handler(Exception)
     def internal_error_handler(_request: Request, _exc: Exception) -> JSONResponse:

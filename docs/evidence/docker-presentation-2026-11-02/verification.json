@@ -1,0 +1,296 @@
+{
+  "status": "core_operational_presentation_incomplete_assistant_rejected",
+  "date": "2026-11-02",
+  "origin": "http://localhost:5173",
+  "compose_files": [
+    "compose.yaml",
+    "compose.aiot.yaml",
+    "compose.jobs.yaml",
+    "compose.inference.yaml",
+    "compose.ollama.yaml"
+  ],
+  "profiles": [
+    "aiot",
+    "simulator"
+  ],
+  "new_project_dependencies": [],
+  "credentials_changed": false,
+  "volumes_deleted": false,
+  "data_preserved": {
+    "users": 2,
+    "datasets": 1,
+    "completed_jobs": 2,
+    "active_models": 1
+  },
+  "changes": {
+    "gateway": [
+      "ingress_pending_idx(sent)",
+      "errors_pending_idx(sent)"
+    ],
+    "private_env": {
+      "SIMULATOR_INTERVAL_SECONDS": {
+        "before": 1,
+        "after": 5
+      },
+      "SIMULATOR_STEP_SECONDS": 60
+    },
+    "runtime_experiment_only": {
+      "ollama_memory_before": 3489660928,
+      "ollama_memory_trial": 4294967296,
+      "compose_memory_changed": false
+    },
+    "api_consumer": "Catch Pika AMQPConnectorStackTimeout in existing cleanup/backoff/reconnect loop"
+  },
+  "tests": {
+    "gateway": {
+      "passed": 40,
+      "python": "3.13.15",
+      "coverage_scope": "gateway.bridge",
+      "branch_inclusive_coverage_percent": 95.24,
+      "new_red_cases": 3
+    },
+    "config": {
+      "passed": 31,
+      "method": "existing fixture-free test functions executed directly with Python asserts; not full pytest coverage"
+    },
+    "docker_build": {
+      "frontend_typecheck_and_vite": true,
+      "aiot_build_flag": true
+    },
+    "browser": {
+      "mocked_requests": false,
+      "auth": "existing user login; no session fabrication",
+      "three_d": "real WebGL2, nine components, keyboard selection matched ID/data",
+      "desktop_width": 1440,
+      "mobile_width": 390,
+      "public_video_seconds": 81.44,
+      "public_images_loaded": 3
+    },
+    "api_consumer": {
+      "passed": 40,
+      "python": "3.13.15",
+      "coverage_scope": "backend.app.amqp.consumer",
+      "branch_inclusive_coverage_percent": 89.77,
+      "new_red_failures": 2,
+      "transport": "controlled exception tests using the real pinned Pika AMQPConnectorStackTimeout class"
+    },
+    "real_led_api": {
+      "request_status": "pending",
+      "on": {
+        "id": "a1882d30-1e66-4313-a0f6-6028686aa37d",
+        "status": "confirmed",
+        "confirmed_state": true,
+        "observed_state": true
+      },
+      "off": {
+        "id": "2258fe7c-e6f7-4bc4-a508-5d5b361c925d",
+        "status": "confirmed",
+        "confirmed_state": false,
+        "observed_state": false
+      },
+      "final_state": "off; restored initial observed state",
+      "mocked": false
+    },
+    "llm_coordination": {
+      "passed": 90,
+      "python": "3.13.15",
+      "platform": "Linux one-off Docker client",
+      "coverage_scope": "backend.app.services.llm",
+      "branch_inclusive_coverage_percent": 97.09,
+      "postgres": "real; own temporary b205_<uuid> databases",
+      "ollama": "protocol doubles, not real text generation",
+      "model_identifier_in_this_suite": "llama3.2:3b-instruct-q4_K_M"
+    }
+  },
+  "observed_failures": {
+    "assistant_busy": 2,
+    "assistant_timeout_no_first_delta": 3,
+    "preload_timeout": 1,
+    "amqp_handshake_timeouts": true,
+    "oom_events_observed": 0,
+    "api_command_thread_terminated_on_pika_handshake_timeout": true,
+    "led_command_during_backlog": {
+      "command_id": "03551928-910c-4c95-896a-4e4c95015bff",
+      "desired_state": false,
+      "outcome": "unconfirmed",
+      "observed_led": false,
+      "claim": "No success inferred from request or observed state"
+    }
+  },
+  "resource_conditions": {
+    "hardware": "Apple M1 8GB",
+    "docker_vm_bytes": 6212268032,
+    "power_initial": "battery",
+    "power_final": "AC",
+    "apps_must_remain_open": true,
+    "host_swap_sample": {
+      "start_utc": "22:51:11.234",
+      "end_utc": "22:51:21.919",
+      "swap_in_MiB_per_second": 205.06,
+      "swap_out_MiB_per_second": 204.97
+    },
+    "slow_prefill": {
+      "tokens": 128,
+      "seconds": 51.63,
+      "tokens_per_second": 2.48
+    },
+    "four_gib_cold_trial": {
+      "memory_events_max": 0,
+      "oom": 0,
+      "memory_current_bytes": 3541282816,
+      "swap_current_bytes": 0,
+      "host_swap_sample": {
+        "start": "2026-11-02T23:02:10.280546+00:00",
+        "end": "2026-11-02T23:02:20.298225+00:00",
+        "seconds": 10.017729874991346,
+        "swap_in_MiB_s": 238.3305678824827,
+        "swap_out_MiB_s": 240.59218306703264
+      },
+      "assistant_result": {
+        "state": "failed",
+        "http": 200,
+        "sse_events": [
+          "error"
+        ],
+        "code": "LLM_TIMEOUT",
+        "first_delta_seconds": null,
+        "text_bytes": 0,
+        "total_seconds": 96.58
+      },
+      "memory_limit_rolled_back_to_bytes": 3489660928
+    }
+  },
+  "pending": [
+    "Qualify an assistant execution profile with correct complete responses under the required open-app workload; 3B CPU timed out, 1B and Qwen rejected",
+    "After user chooses next architecture/profile, validate load/unload memory coordination and new generation/training jobs with full stack",
+    "Repeat complete personal presentation rehearsal; retain RD18 accessibility limitations"
+  ],
+  "rd18_limitations_preserved": [
+    "automatic visible data updates controls absent",
+    "current screen-reader verification not demonstrated"
+  ],
+  "llm_1b_trial": {
+    "date": "2026-11-03",
+    "model": "llama3.2:1b-instruct-q4_K_M",
+    "status": "rejected_factual_quality",
+    "real_ollama_cpu": true,
+    "fixture_postgres": true,
+    "personal_data_used": false,
+    "cases": 14,
+    "commands_created": 0,
+    "memory_guard_rows_after": 0,
+    "critical_failures": [
+      "RUL 5h invented instead of authorized 10h",
+      "Stale readings presented as current with invented health50% and RUL20h"
+    ],
+    "report": "quality-1b-2026-11-03.json",
+    "review": "quality-1b-independent-review-2026-11-03.json",
+    "python_dependencies_added": [],
+    "isolated_database_removed": true,
+    "runtime_profile_restored": true
+  },
+  "updated_date": "2026-11-03",
+  "final_state": {
+    "running_continuous_services": 12,
+    "all_running_services_healthy": true,
+    "health_ready_http": 200,
+    "monitoring_summary_http": 200,
+    "freshness": "fresh",
+    "sample_age_seconds": 3.751206,
+    "persistence": "persisted",
+    "predictive_model_version": "training-612e4d17-2bad-427c-bc42-29cf372a068f",
+    "assistant_profile_in_source": "llama3.2:3b-instruct-q4_K_M",
+    "assistant_profile_in_backend_image": "llama3.2:3b-instruct-q4_K_M",
+    "ollama": "stopped; rejected trial not exposed as approved",
+    "llm_coordinator": "stopped",
+    "ollama_limit_bytes": 3489660928,
+    "presentation_complete": false,
+    "checked_at": "2026-11-03T05:46:37.679Z",
+    "measurements_count": 6,
+    "prediction_status": "available",
+    "assistant_status": "unavailable",
+    "running_jobs": 0,
+    "memory_guard_rows": 0,
+    "runtime_evidence": "final-runtime-check-2026-11-03.json",
+    "backend_images_rebuilt_after_rollback": true
+  },
+  "qwen_trial": {
+    "date": "2026-11-03",
+    "authorized_by_user": true,
+    "model": "qwen2.5:1.5b-instruct-q4_K_M",
+    "model_weights_downloaded": true,
+    "old_weights_preserved": true,
+    "source_change": "Seven model identifiers plus one bounded SYSTEM revision and its two existing assertions; all nine files restored byte-for-byte",
+    "tests": {
+      "backend_passed": 90,
+      "coverage_scope": "backend.app.services.llm",
+      "branch_inclusive_coverage_percent": 97.09,
+      "frontend_state_passed": 12,
+      "postgres_coordination": "real; own b205_<uuid> databases",
+      "ollama_protocol_in_tests": "doubles",
+      "backend_final_passed": 90,
+      "coverage_scopes": [
+        "backend.app.services.llm",
+        "backend.app.services.assistant_transport"
+      ],
+      "combined_branch_inclusive_coverage_percent": 96.49,
+      "backend_final_log": "profile-qwen-tests-2026-11-03.log",
+      "frontend_log": "profile-qwen-frontend-2026-11-03.log",
+      "acceptance_inferred_from_protocol_tests": false
+    },
+    "quality_evaluation": "Two isolated real CPU Ollama/PostgreSQL rounds; each records all 14 cases, but only 2 then 5 completed answers. Incomplete streams do not establish a timeout cause in the preserved reports.",
+    "personal_backend_profile_during_evaluation": "previous 3B image; candidate not released to personal account",
+    "acceptance_claimed": false,
+    "initial_round": {
+      "report": "quality-qwen-initial-2026-11-03.json",
+      "completed": 2,
+      "not_ready_after_unload": 11,
+      "factual_issue": "Minimum health answer mixed health20points with RUL10hours",
+      "accepted": false,
+      "incomplete_sse": 1
+    },
+    "additional_round": {
+      "bounded_to_one_prompt_revision": true,
+      "system_language": "English concise instructions; Portuguese output preserved",
+      "instruction_source": "Only names/facts/values/units from authorized summary",
+      "security_review": "Source-of-facts wording clarified; all original constraints retained",
+      "system_sha256": "7219e03e90305a714e714e350d07f2d6d777591345d21d5b4ad48e80264926e5",
+      "same14_cases": true,
+      "new_disposable_db": "coldsafe_b232_20261103_6b2e8a41",
+      "status": "rejected",
+      "report": "quality-qwen-short-prompt-2026-11-03.json",
+      "completed": 5,
+      "not_ready_after_unload": 8,
+      "factual_issue": "Estimated RUL10h mislabelled as limitation10h; requested metric limitation omitted",
+      "unassessable_cases": "No-data, stale-data and all holdouts had no complete answers; not factual hallucination findings",
+      "prompt_provenance": "qwen-system-prompts-2026-11-03.json",
+      "accepted": false,
+      "incomplete_sse": 1
+    },
+    "status": "rejected_quality_and_availability",
+    "runtime_profile_restored": true,
+    "prompt_restored": true,
+    "temporary_databases_removed": [
+      "coldsafe_b232_20261103_9c18b3d2",
+      "coldsafe_b232_20261103_6b2e8a41"
+    ],
+    "commands_created": 0,
+    "memory_guard_rows_after": 0,
+    "independent_review": "quality-qwen-independent-review-2026-11-03.json",
+    "model_weights_bytes_approx": 986000000,
+    "weights_retained_unused": true
+  },
+  "next_action_recommendation": {
+    "action": "Assess GPU-aware execution of existing 3B profile before further small-model substitutions",
+    "option": "Docker Model Runner llama.cpp Metal on Apple Silicon",
+    "official_reference": "https://docs.docker.com/ai/model-runner/inference-engines/",
+    "implemented": false,
+    "local_performance_verified": false,
+    "requires_user_choice": true,
+    "scope": "Provider/API and memory load/unload coordination adaptation; full quality and security requalification"
+  },
+  "experimental_infrastructure_artifacts": [
+    "Unused Llama1B weights ~808MB",
+    "Unused Qwen1.5B Q4 weights ~986MB"
+  ]
+}

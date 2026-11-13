@@ -1,0 +1,117 @@
+{
+  "scope": "Docker preparation 2026-11-02–03; isolated real-model fixtures, protocol doubles and authenticated personal runtime checks explicitly separated",
+  "files": [
+    {
+      "path": "api-reconnect-red.log",
+      "sha256": "4903189507b719f48808782a00e50af6ef49e236c74861a41a0b16e509b476a4",
+      "bytes": 5469
+    },
+    {
+      "path": "api-reconnect-tests.log",
+      "sha256": "1fc216ae24ed2d3930eb02a55a710c54ce5bc07d5f3f5db431904bcce3676b39",
+      "bytes": 739
+    },
+    {
+      "path": "config-tests.json",
+      "sha256": "1f4b266b8d21389ad2203a04f4c32ee1ae67e306f4fb7e8953b6cd7b180d5f4f",
+      "bytes": 3716
+    },
+    {
+      "path": "final-runtime-check-2026-11-03.json",
+      "sha256": "7968ffef5fc05a67337525dce32f713068c2e2659db18dad3d191c233cabeeec",
+      "bytes": 599
+    },
+    {
+      "path": "gateway-query-plan.json",
+      "sha256": "72d815e6b704d3f7ada57a016124dbc794517e6f7586d6aeac0f480279190e13",
+      "bytes": 538
+    },
+    {
+      "path": "gateway-red.log",
+      "sha256": "9a355174fecaa643042fefb4f491ff678fdba3d7785760d8dc96c548435ff4ee",
+      "bytes": 4132
+    },
+    {
+      "path": "gateway-tests.log",
+      "sha256": "07e88f31499e4b7ab34495b5fd8c3f546e5641bf6b35d6091d033342e504dd37",
+      "bytes": 643
+    },
+    {
+      "path": "landing-390px.jpg",
+      "sha256": "64dbbb0be8ac6dcfa1c376122057ec8082755e1616c91bc95ba61f005f3a07fc",
+      "bytes": 31082
+    },
+    {
+      "path": "llm-coordination-tests-2026-11-03.log",
+      "sha256": "b5d5f8bcff8643df4f65dc9feeea13cf05bad5a45cc430ce6e5d220509f27ab0",
+      "bytes": 1704
+    },
+    {
+      "path": "profile-1b-frontend-2026-11-03.log",
+      "sha256": "5547167b53f3996afbfc0d41a7525480b6bd7efbcbaa6f0ad2c2aeea9766bb91",
+      "bytes": 335
+    },
+    {
+      "path": "profile-1b-unit-2026-11-03.log",
+      "sha256": "a7cb9645929da5c2d2892429fa225173997d1006296ef6eb32795ba5c61135d5",
+      "bytes": 1086
+    },
+    {
+      "path": "profile-qwen-frontend-2026-11-03.log",
+      "sha256": "75dcd41d756ef7618a718533455532c821ab76656d9325ec12872a58649b28e2",
+      "bytes": 336
+    },
+    {
+      "path": "profile-qwen-tests-2026-11-03.log",
+      "sha256": "90c346638cf03647dc43011c0acaf9c455b92743b29a51c044f3a9e521f88188",
+      "bytes": 1893
+    },
+    {
+      "path": "quality-1b-2026-11-03.json",
+      "sha256": "9b2c31eb14725833cacf123bf133a706048f9cc60d58bdc65832548961f0fa31",
+      "bytes": 77448
+    },
+    {
+      "path": "quality-1b-independent-review-2026-11-03.json",
+      "sha256": "7e18d93e23f67bf7efed7f51ecf182ffe4aa548af054a10b18fa70e91bab4845",
+      "bytes": 8572
+    },
+    {
+      "path": "quality-qwen-independent-review-2026-11-03.json",
+      "sha256": "1790e69f8653144140dbe24696f590de4f8bc0ffb1ea2f9b1d73a5afdead27ce",
+      "bytes": 7516
+    },
+    {
+      "path": "quality-qwen-initial-2026-11-03.json",
+      "sha256": "313d4ccc2fd335bc0f745dfd70ca3799b189c26c2ab8ee9b1c6e2bd7b6954ceb",
+      "bytes": 75513
+    },
+    {
+      "path": "quality-qwen-short-prompt-2026-11-03.json",
+      "sha256": "fc94d343775d1b5c265107b24d966edd2260e7567751f399993ae54946b5a383",
+      "bytes": 75877
+    },
+    {
+      "path": "qwen-system-prompts-2026-11-03.json",
+      "sha256": "d00efebd34c2465ffc5c7cea0efc927da9caa783c903db795bd321b5eb0ee931",
+      "bytes": 1969
+    },
+    {
+      "path": "twin-390px.jpg",
+      "sha256": "4fbacbb2d7e7fac9e638215843644c5fe1184037ccc0ac98622c0209edafb79d",
+      "bytes": 36885
+    },
+    {
+      "path": "twin-desktop.jpg",
+      "sha256": "774a5d8c8ef036a7512847035114f875d53df75ad492d2a77629ad0cc1cbdf2f",
+      "bytes": 94348,
+      "versioned": false,
+      "retention": "local_only: original capture contains a personal account email; preserved unchanged and excluded by .gitignore"
+    },
+    {
+      "path": "verification.json",
+      "sha256": "94e460d5cb9a5413295f678ddade4f507f15637c2e309ce3f3aaf932c73a8121",
+      "bytes": 10931
+    }
+  ]
+}

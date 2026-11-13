@@ -1,4 +1,9 @@
-from pydantic import Field, SecretStr
+from pathlib import Path
+from typing import Self
+from uuid import UUID
+from urllib.parse import urlsplit
+
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,6 +24,7 @@ class RuntimeSettings(BaseSettings):
     mqtt_backend_password: SecretStr = Field(min_length=1)
 
     cors_origins: str = ""
+    auth_jwt_secret: SecretStr = Field(min_length=32)
 
     influxdb_url: str = Field(min_length=1)
     influxdb_org: str = Field(min_length=1)
@@ -30,6 +36,45 @@ class RuntimeSettings(BaseSettings):
     postgres_db: str = Field(min_length=1)
     postgres_user: str = Field(min_length=1)
     postgres_password: SecretStr = Field(min_length=1)
+
+    aiot_enabled: bool = False
+    aiot_catalog_path: Path | None = None
+    aiot_owner_user_id: UUID | None = None
+    rabbitmq_host: str = Field(default="rabbitmq", min_length=1)
+    rabbitmq_port: int = Field(default=5672, ge=1, le=65_535)
+    rabbitmq_management_port: int = Field(default=15672, ge=1, le=65_535)
+    rabbitmq_monitor_password: SecretStr | None = Field(default=None, min_length=1)
+    rabbitmq_observability_password: SecretStr | None = Field(default=None, min_length=1)
+    rabbitmq_commands_password: SecretStr | None = Field(default=None, min_length=1)
+    rabbitmq_delivery_password: SecretStr | None = Field(default=None, min_length=1)
+    rabbitmq_api_password: SecretStr | None = Field(default=None, min_length=1)
+    rabbitmq_generation_password: SecretStr | None = Field(default=None, min_length=1)
+    rabbitmq_training_password: SecretStr | None = Field(default=None, min_length=1)
+    rabbitmq_inference_password: SecretStr | None = Field(default=None, min_length=1)
+    ollama_url: str | None = None
+    job_artifact_root: Path = Path('/app/artifacts')
+    training_artifact_root: Path = Path('/app/training-artifacts')
+
+    @field_validator("ollama_url")
+    @classmethod
+    def local_ollama_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        url = urlsplit(value)
+        if (url.scheme != "http" or url.hostname not in {"ollama", "localhost", "127.0.0.1", "::1"}
+                or (url.port is not None and not 1 <= url.port <= 65_535)
+                or url.username or url.password or url.path not in ("", "/") or url.query or url.fragment):
+            raise ValueError("Ollama must use HTTP on the private ollama service or loopback")
+        return value.rstrip("/")
+
+    @model_validator(mode="after")
+    def require_aiot_configuration(self) -> Self:
+        if self.aiot_enabled and any(value is None for value in (
+            self.aiot_catalog_path, self.aiot_owner_user_id,
+            self.rabbitmq_commands_password, self.rabbitmq_delivery_password,
+        )):
+            raise ValueError("AIoT requires catalog, owner and private AMQP credentials")
+        return self
 
     @property
     def allowed_cors_origins(self) -> tuple[str, ...]:

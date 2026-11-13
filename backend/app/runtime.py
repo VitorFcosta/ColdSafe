@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from threading import Event, Thread
 from uuid import UUID
 
 from fastapi import FastAPI
@@ -127,13 +128,68 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         ack_handler=commands.handle_ack,
     )
 
+    aiot = consumer = None
+    aiot_events = EventHub()
+    if settings.aiot_enabled:
+        from backend.app.amqp.consumer import ApiAmqpConsumer
+        from backend.app.services.aiot_events import AiotEventService
+        from gateway.bridge import PostgresScope
+        from simulator.model import strict_json
+
+        aiot_catalog = strict_json(settings.aiot_catalog_path.read_bytes())
+        owner = str(settings.aiot_owner_user_id)
+        aiot = AiotEventService(settings, aiot_catalog, owner)
+        scope = PostgresScope({
+            'host': settings.postgres_host, 'port': settings.postgres_port,
+            'dbname': settings.postgres_db, 'user': settings.postgres_user,
+            'password': settings.postgres_password.get_secret_value(),
+        }, owner)
+        consumer = ApiAmqpConsumer(
+            aiot, aiot_catalog, scope,
+            lambda event: aiot_events.publish(event['device_id'], event),
+            amqp_host=settings.rabbitmq_host, amqp_port=settings.rabbitmq_port,
+            password_commands=settings.rabbitmq_commands_password.get_secret_value(),
+            password_delivery=settings.rabbitmq_delivery_password.get_secret_value(),
+        )
+
+    samples = observer = None
+    if settings.rabbitmq_observability_password is not None:
+        from backend.app.amqp.observation import MessageObserver
+        from backend.app.services.message_samples import MessageSamples
+
+        samples = MessageSamples(settings)
+        observer = MessageObserver(
+            samples, host=settings.rabbitmq_host, port=settings.rabbitmq_port,
+            password=settings.rabbitmq_observability_password.get_secret_value(),
+        )
+
+    jobs = job_publisher = models = model_publisher = None
+    if settings.rabbitmq_api_password is not None:
+        from backend.app.amqp.jobs import JobPublisher
+        from backend.app.amqp.models import ModelPublisher
+        from backend.app.services.jobs import JobService
+        from backend.app.services.models import ModelService
+
+        jobs = JobService(settings, artifact_root=settings.job_artifact_root,
+                          training_artifact_root=settings.training_artifact_root)
+        job_publisher = JobPublisher(jobs, host=settings.rabbitmq_host, port=settings.rabbitmq_port,
+                                     password=settings.rabbitmq_api_password.get_secret_value())
+        models = ModelService(settings, artifact_root=settings.training_artifact_root)
+        model_publisher = ModelPublisher(
+            models, host=settings.rabbitmq_host, port=settings.rabbitmq_port,
+            password=settings.rabbitmq_api_password.get_secret_value(), role='api',
+        )
+
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        shutdown, workers = Event(), []
         async def expire_commands() -> None:
             while True:
                 await asyncio.sleep(1)
                 try:
                     await asyncio.to_thread(commands.expire_pending)
+                    if aiot is not None:
+                        await asyncio.to_thread(aiot.expire_pending)
                 except Exception as error:  # noqa: BLE001 - keep live events running
                     LOGGER.error("Command expiry failed: error_type=%s", type(error).__name__)
 
@@ -141,6 +197,11 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             initialize_schema(settings)
             commands.expire_pending()
             subscriber.start()
+            for worker in (consumer, observer, job_publisher, model_publisher):
+                if worker is not None:
+                    thread = Thread(target=worker.run, args=(shutdown,), daemon=True)
+                    thread.start()
+                    workers.append((worker, thread))
         except Exception:
             resources.close()
             raise
@@ -154,15 +215,22 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
             except asyncio.CancelledError:
                 pass
             try:
+                shutdown.set()
+                for worker, thread in workers:
+                    worker.close()
+                    await asyncio.to_thread(thread.join, 10)
+                    if thread.is_alive():
+                        LOGGER.error('AMQP consumer did not stop within 10 seconds')
                 subscriber.stop()
             finally:
                 resources.close()
 
-    return create_app(
+    app = create_app(
         repository=resources.repository,
         readiness_check=lambda: resources.is_ready()
         and postgres_is_ready(settings)
-        and subscriber.is_connected(),
+        and subscriber.is_connected()
+        and (consumer is None or consumer.is_connected),
         lifespan=lifespan,
         cors_origins=settings.allowed_cors_origins,
         auth=auth,
@@ -171,3 +239,25 @@ def build_runtime_app(settings: RuntimeSettings) -> FastAPI:
         alerts=alerts,
         events=events,
     )
+    if settings.rabbitmq_monitor_password is not None or samples is not None:
+        from backend.app.api.messaging import create_messaging_router
+        from backend.app.services.messaging import MessagingService
+        monitoring = MessagingService(
+            settings.rabbitmq_host, settings.rabbitmq_management_port,
+            settings.rabbitmq_monitor_password.get_secret_value(),
+        ) if settings.rabbitmq_monitor_password is not None else None
+        app.include_router(create_messaging_router(auth, monitoring, samples))
+    if aiot is not None:
+        from backend.app.api.aiot import install_aiot
+        install_aiot(app, aiot, aiot_events, auth, catalog)
+    if jobs is not None:
+        from backend.app.api.jobs import create_jobs_router
+        app.include_router(create_jobs_router(auth, jobs))
+    if models is not None:
+        from backend.app.api.models import create_models_router
+        app.include_router(create_models_router(auth, models))
+    from backend.app.api.llm import create_llm_router
+    from backend.app.services.llm import LlmService
+    from backend.app.services.assistant import AssistantService
+    app.include_router(create_llm_router(auth, LlmService(settings), AssistantService(settings)))
+    return app

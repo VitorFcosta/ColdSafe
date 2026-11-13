@@ -281,7 +281,10 @@ class CatalogService:
         return _found(row, "ENVIRONMENT_NOT_FOUND")
 
 
-def create_catalog_router(catalog: CatalogService, require_user: Callable[..., UUID]) -> APIRouter:
+def create_catalog_router(
+    catalog: CatalogService, require_user: Callable[..., UUID],
+    *, require_operator: Callable[..., UUID],
+) -> APIRouter:
     router = APIRouter(
         prefix="/api/v1", tags=["Catalog"],
         responses={
@@ -294,8 +297,8 @@ def create_catalog_router(catalog: CatalogService, require_user: Callable[..., U
     def ok(data: Any) -> dict[str, Any]:
         return {"success": True, "data": data, "meta": {"schema_version": 1}}
 
-    @router.post("/environments", status_code=201)
-    def create_environment(body: NamedInput, user_id: UUID = Depends(require_user)) -> dict[str, Any]:
+    @router.post("/environments", status_code=201, responses={403: {"model": ErrorResponse}})
+    def create_environment(body: NamedInput, user_id: UUID = Depends(require_operator)) -> dict[str, Any]:
         return ok(catalog.create_environment(user_id, body.name))
 
     @router.get("/environments")
@@ -306,18 +309,18 @@ def create_catalog_router(catalog: CatalogService, require_user: Callable[..., U
     def get_environment(environment_id: UUID, user_id: UUID = Depends(require_user)) -> dict[str, Any]:
         return ok(catalog.get_environment(user_id, environment_id))
 
-    @router.patch("/environments/{environment_id}")
+    @router.patch("/environments/{environment_id}", responses={403: {"model": ErrorResponse}})
     def update_environment(
-        environment_id: UUID, body: NamedInput, user_id: UUID = Depends(require_user)
+        environment_id: UUID, body: NamedInput, user_id: UUID = Depends(require_operator)
     ) -> dict[str, Any]:
         return ok(catalog.update_environment(user_id, environment_id, body.name))
 
     @router.post(
         "/environments/{environment_id}/devices", status_code=201,
-        responses={409: {"model": ErrorResponse}},
+        responses={403: {"model": ErrorResponse}, 409: {"model": ErrorResponse}},
     )
     def create_device(
-        environment_id: UUID, body: DeviceInput, user_id: UUID = Depends(require_user)
+        environment_id: UUID, body: DeviceInput, user_id: UUID = Depends(require_operator)
     ) -> dict[str, Any]:
         return ok(catalog.create_device(user_id, environment_id, body.name, body.mqtt_device_id))
 
@@ -329,23 +332,23 @@ def create_catalog_router(catalog: CatalogService, require_user: Callable[..., U
     def get_device(device_id: UUID, user_id: UUID = Depends(require_user)) -> dict[str, Any]:
         return ok(catalog.get_device(user_id, device_id))
 
-    @router.patch("/devices/{device_id}")
+    @router.patch("/devices/{device_id}", responses={403: {"model": ErrorResponse}})
     def update_device(
-        device_id: UUID, body: NamedInput, user_id: UUID = Depends(require_user)
+        device_id: UUID, body: NamedInput, user_id: UUID = Depends(require_operator)
     ) -> dict[str, Any]:
         return ok(catalog.update_device(user_id, device_id, body.name))
 
-    @router.delete("/devices/{device_id}")
-    def deactivate_device(device_id: UUID, user_id: UUID = Depends(require_user)) -> dict[str, Any]:
+    @router.delete("/devices/{device_id}", responses={403: {"model": ErrorResponse}})
+    def deactivate_device(device_id: UUID, user_id: UUID = Depends(require_operator)) -> dict[str, Any]:
         return ok(catalog.deactivate_device(user_id, device_id))
 
     @router.get("/environments/{environment_id}/rules")
     def get_rules(environment_id: UUID, user_id: UUID = Depends(require_user)) -> dict[str, Any]:
         return ok(catalog.get_rules(user_id, environment_id))
 
-    @router.put("/environments/{environment_id}/rules")
+    @router.put("/environments/{environment_id}/rules", responses={403: {"model": ErrorResponse}})
     def update_rules(
-        environment_id: UUID, body: ThresholdInput, user_id: UUID = Depends(require_user)
+        environment_id: UUID, body: ThresholdInput, user_id: UUID = Depends(require_operator)
     ) -> dict[str, Any]:
         return ok(catalog.update_rules(user_id, environment_id, body))
 

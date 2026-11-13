@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from backend.app.api.app import create_app
 from backend.app.api.auth import AuthService
 from backend.app.api.catalog import CatalogService
+from backend.app.security.tokens import SessionPrincipal
 from backend.tests.api.test_events_api import settings
 
 
@@ -15,6 +16,11 @@ def make_client():
     owner, stranger, device_id = uuid4(), uuid4(), uuid4()
     auth, catalog = AuthService(settings()), CatalogService(settings())
     auth.current_user = lambda token: {"owner": owner, "stranger": stranger}.get(token)
+    auth.session_for_token = lambda token: (
+        SessionPrincipal(uuid4(), {"owner": owner, "stranger": stranger}[token],
+                         "unit@example.invalid", "operator", datetime.now(UTC) + timedelta(hours=1))
+        if token in {"owner", "stranger"} else None
+    )
     catalog.device_for_user = lambda user, mqtt: (
         {"id": str(device_id), "environment_id": str(uuid4()),
          "environment_name": "Lab", "is_active": True}

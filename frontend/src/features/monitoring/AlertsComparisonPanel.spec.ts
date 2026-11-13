@@ -4,6 +4,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import AlertsComparisonPanel from './AlertsComparisonPanel.vue'
+import { monitoringPollingIntervalMs } from './monitoring-polling'
 
 vi.mock('vue-chartjs', async () => {
   const { defineComponent } = await import('vue')
@@ -17,6 +18,7 @@ const reading = {
 }
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
@@ -46,6 +48,29 @@ function installFetch(empty = false) {
 }
 
 describe('AlertsComparisonPanel', () => {
+  it('interrompe lacunas sem suavizar e oferece os valores de ambos os períodos em tabela', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(end)
+    const original = installFetch()
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+      const response = await original(input)
+      if (String(input).includes('/alerts?')) return response
+      const body = await response.json()
+      const first = body.data.readings[0]
+      body.data.readings = [{ ...first, received_at: new Date(Date.parse(first.received_at) + 60_000).toISOString(), temperature_c: 0 }, first]
+      body.meta.count = 2
+      return new Response(JSON.stringify(body))
+    })
+    const wrapper = mount(AlertsComparisonPanel, { props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h' } })
+    await flushPromises()
+    const datasets = wrapper.getComponent({ name: 'Line' }).props('data').datasets
+    expect(datasets[0]).toMatchObject({ tension: 0, spanGaps: false, data: [{ x: 30, y: 5 }, { x: 30.5, y: null }, { x: 31, y: 0 }] })
+    expect(datasets[1]).toMatchObject({ tension: 0, spanGaps: false, borderDash: [6, 4] })
+    expect(wrapper.text()).toContain('1 lacuna')
+    expect(wrapper.findAll('table')).toHaveLength(2)
+    expect(wrapper.findAll('tbody tr')).toHaveLength(4)
+    expect(wrapper.findAll('tbody tr').filter((row) => row.text().includes('0 °C'))).toHaveLength(2)
+    wrapper.unmount()
+  })
   it('filtra alertas e alinha duas janelas contíguas de mesma duração', async () => {
     vi.spyOn(Date, 'now').mockReturnValue(end)
     const fetcher = installFetch()
@@ -89,8 +114,44 @@ describe('AlertsComparisonPanel', () => {
     wrapper.unmount()
   })
 
-  it('preserva a comparação se a consulta de alertas falhar e recarrega ao mudar a revisão', async () => {
+  it.each([
+    { available: 'selecionado', missing: 'anterior', count: 300 },
+    { available: 'anterior', missing: 'selecionado', count: 1 },
+  ])('mostra só o período $available quando falta o $missing', async ({ available, missing, count }) => {
     vi.spyOn(Date, 'now').mockReturnValue(end)
+    const emptyResponse = installFetch(true)
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+      const url = new URL(String(input))
+      const response = await emptyResponse(input)
+      const isPrevious = url.searchParams.get('start') === '2026-09-24T10:00:00.000Z'
+      if (url.pathname.endsWith('/alerts') || isPrevious !== (available === 'anterior')) return response
+      const body = await response.json()
+      body.data.readings = Array.from({ length: count }, (_, index) => ({
+        ...reading, received_at: new Date(Date.parse(body.meta.end) - (count - index) * 5_000).toISOString(),
+      }))
+      body.meta.count = count
+      return new Response(JSON.stringify(body))
+    })
+    const wrapper = mount(AlertsComparisonPanel, {
+      props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h' },
+    })
+    try {
+      await flushPromises()
+      expect(wrapper.text()).toContain(`Sem leituras no período ${missing} para comparar.`)
+      expect(wrapper.get('[role="img"]').attributes('aria-label')).toBe(`Gráfico de temperatura do período ${available}`)
+      expect(wrapper.getComponent({ name: 'Line' }).props('data').datasets.map(
+        (dataset: { label: string }) => dataset.label,
+      )).toEqual([`Período ${available}`])
+      expect(wrapper.findAll('table')).toHaveLength(1)
+      expect(wrapper.get('tbody').findAll('tr')).toHaveLength(count)
+      expect(wrapper.text()).not.toContain('0 lacuna')
+      if (count === 300) expect(wrapper.text()).toContain('Limite de 300 atingido')
+    } finally { wrapper.unmount() }
+  })
+
+  it('preserva a comparação se a consulta de alertas falhar e recarrega ao mudar a revisão', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    vi.setSystemTime(end)
     const successfulFetch = installFetch()
     const fetcher = vi.fn((input: RequestInfo | URL, init?: RequestInit) =>
       String(input).includes('/alerts?')
@@ -106,9 +167,38 @@ describe('AlertsComparisonPanel', () => {
     expect(wrapper.text()).toContain('Não foi possível carregar os alertas')
     expect(wrapper.findComponent({ name: 'Line' }).exists()).toBe(true)
     await wrapper.setProps({ revision: 1 })
+    await vi.advanceTimersByTimeAsync(monitoringPollingIntervalMs)
     await flushPromises()
     expect(fetcher).toHaveBeenCalledTimes(6)
     wrapper.unmount()
+  })
+
+  it('mantém o foco no resumo de alertas quando uma atualização esvazia a lista', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    vi.setSystemTime(end)
+    const populated = installFetch()
+    const empty = installFetch(true)
+    let showAlert = true
+    vi.stubGlobal('fetch', (input: RequestInfo | URL) => showAlert ? populated(input) : empty(input))
+    const wrapper = mount(AlertsComparisonPanel, {
+      attachTo: document.body,
+      props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h', revision: 0 },
+    })
+    try {
+      await flushPromises()
+      const summary = wrapper.get('[aria-labelledby="device-alerts-title"] summary')
+      expect(wrapper.get('[aria-labelledby="device-alerts-title"]').text()).toContain('1 em aberto')
+      const focused = summary.element as HTMLElement
+      focused.focus()
+      expect(document.activeElement).toBe(summary.element)
+      showAlert = false
+      await wrapper.setProps({ revision: 1 })
+      await vi.advanceTimersByTimeAsync(monitoringPollingIntervalMs)
+      await flushPromises()
+      expect(wrapper.get('[aria-labelledby="device-alerts-title"]').text()).toContain('Nenhum alerta neste período.')
+      expect(wrapper.get('[aria-labelledby="device-alerts-title"] summary').element).toBe(summary.element)
+      expect(document.activeElement).toBe(summary.element)
+    } finally { wrapper.unmount() }
   })
 
   it('distingue 55 leituras de uma consulta que chegou ao limite de 300', async () => {
@@ -158,9 +248,143 @@ describe('AlertsComparisonPanel', () => {
     expect(wrapper.text()).toContain('Temperatura acima do limite')
     expect(wrapper.text()).toContain('Não foi possível comparar as leituras')
     failPrevious = false
-    await wrapper.get('article:nth-child(2) button').trigger('click')
+    await wrapper.get('[aria-labelledby="temperature-comparison-title"] button').trigger('click')
     await flushPromises()
     expect(wrapper.text()).toContain('média de 4 °C')
     wrapper.unmount()
   })
+
+  it('agrupa revisões, mantém o gráfico durante consulta lenta e não sobrepõe pedidos', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    vi.setSystemTime(end)
+    const successfulFetch = installFetch()
+    const waiting: (() => void)[] = []
+    const fetcher = vi.fn((input: RequestInfo | URL): Promise<Response> => fetcher.mock.calls.length <= 3
+      ? successfulFetch(input)
+      : new Promise<Response>((resolve) => waiting.push(() => { void successfulFetch(input).then(resolve) })))
+    vi.stubGlobal('fetch', fetcher)
+    const wrapper = mount(AlertsComparisonPanel, {
+      props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h', revision: 0 },
+    })
+    await flushPromises()
+    const chart = wrapper.getComponent({ name: 'Line' }).vm
+    const oldData = wrapper.getComponent({ name: 'Line' }).props('data')
+    for (let revision = 1; revision <= 4; revision++) {
+      await wrapper.setProps({ revision })
+      await vi.advanceTimersByTimeAsync(1_000)
+    }
+    expect(fetcher).toHaveBeenCalledTimes(3)
+    await vi.advanceTimersByTimeAsync(1_000)
+    expect(fetcher).toHaveBeenCalledTimes(6)
+    for (let revision = 5; revision <= 10; revision++) {
+      await wrapper.setProps({ revision })
+      await vi.advanceTimersByTimeAsync(1_000)
+    }
+    expect(fetcher).toHaveBeenCalledTimes(6)
+    expect(wrapper.getComponent({ name: 'Line' }).vm).toBe(chart)
+    expect(wrapper.getComponent({ name: 'Line' }).props('data')).toEqual(oldData)
+    expect(wrapper.text()).toContain('Temperatura acima do limite')
+    expect(wrapper.text()).not.toContain('Carregando')
+    waiting.splice(0).forEach((resolve) => resolve())
+    await flushPromises()
+    await vi.advanceTimersByTimeAsync(0)
+    expect(fetcher).toHaveBeenCalledTimes(9)
+    expect(wrapper.getComponent({ name: 'Line' }).vm).toBe(chart)
+    wrapper.unmount()
+    await vi.advanceTimersByTimeAsync(monitoringPollingIntervalMs * 2)
+    expect(fetcher).toHaveBeenCalledTimes(9)
+  })
+
+  it('mantém dados ao falhar a atualização e permite tentar novamente imediatamente', async () => {
+    const successfulFetch = installFetch()
+    let failing = false
+    const fetcher = vi.fn((input: RequestInfo | URL): Promise<Response> => failing
+      ? Promise.resolve(new Response('{}', { status: 503 })) : successfulFetch(input))
+    vi.stubGlobal('fetch', fetcher)
+    const wrapper = mount(AlertsComparisonPanel, {
+      props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h' },
+    })
+    await flushPromises()
+    const chart = wrapper.getComponent({ name: 'Line' }).vm
+    const oldData = wrapper.getComponent({ name: 'Line' }).props('data')
+    failing = true
+    await wrapper.get('[aria-labelledby="temperature-comparison-title"] button').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('Não foi possível atualizar os alertas')
+    expect(wrapper.text()).toContain('Não foi possível atualizar a comparação')
+    expect(wrapper.text()).toContain('Temperatura acima do limite')
+    expect(wrapper.getComponent({ name: 'Line' }).vm).toBe(chart)
+    expect(wrapper.getComponent({ name: 'Line' }).props('data')).toEqual(oldData)
+    failing = false
+    await wrapper.get('[aria-labelledby="temperature-comparison-title"] button').trigger('click')
+    await flushPromises()
+    expect(fetcher).toHaveBeenCalledTimes(9)
+    expect(wrapper.text()).not.toContain('Não foi possível atualizar')
+    wrapper.unmount()
+  })
+
+  it.each([{ auth: 'other-session' }, { deviceId: 'esp32-2' }, { period: '15m' as const }])(
+    'limpa os resultados e cancela a consulta ao trocar a seleção %o', async (selection) => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+      vi.setSystemTime(end)
+      const successfulFetch = installFetch()
+      const signals: AbortSignal[] = []
+      const fetcher = vi.fn((input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+        signals.push(init!.signal as AbortSignal)
+        return fetcher.mock.calls.length <= 3 ? successfulFetch(input) : new Promise<Response>(() => {})
+      })
+      vi.stubGlobal('fetch', fetcher)
+      const wrapper = mount(AlertsComparisonPanel, {
+        props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h', revision: 0 },
+      })
+      await flushPromises()
+      await wrapper.get('[aria-labelledby="temperature-comparison-title"] button').trigger('click')
+      await wrapper.setProps({ revision: 1 })
+      await wrapper.setProps(selection)
+      expect(signals[3]!.aborted).toBe(true)
+      expect(wrapper.text()).not.toContain('Temperatura acima do limite')
+      expect(wrapper.findComponent({ name: 'Line' }).exists()).toBe(false)
+      expect(wrapper.text()).toContain('Carregando comparação')
+      await vi.advanceTimersByTimeAsync(monitoringPollingIntervalMs * 2)
+      expect(fetcher).toHaveBeenCalledTimes(9)
+      wrapper.unmount()
+      expect(signals[6]!.aborted).toBe(true)
+    },
+  )
+
+
+  it('descarta respostas da conta anterior após sair e cancela atualização agendada ao desmontar', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    vi.setSystemTime(end)
+    const successfulFetch = installFetch()
+    const waiting: (() => void)[] = []
+    const fetcher = vi.fn((input: RequestInfo | URL): Promise<Response> => fetcher.mock.calls.length <= 3
+      ? successfulFetch(input)
+      : new Promise<Response>((resolve) => waiting.push(() => { void successfulFetch(input).then(resolve) })))
+    vi.stubGlobal('fetch', fetcher)
+    const wrapper = mount(AlertsComparisonPanel, {
+      props: { auth: 'test-session', deviceId: 'esp32-1', period: '1h', revision: 0 },
+    })
+    await flushPromises()
+    await wrapper.get('[aria-labelledby="temperature-comparison-title"] button').trigger('click')
+    await wrapper.setProps({ auth: null })
+    waiting.forEach((resolve) => resolve())
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('Temperatura acima do limite')
+    expect(wrapper.findComponent({ name: 'Line' }).exists()).toBe(false)
+    expect(wrapper.text()).toContain('entre na conta')
+    wrapper.unmount()
+
+    vi.stubGlobal('fetch', successfulFetch)
+    const next = mount(AlertsComparisonPanel, {
+      props: { auth: 'new-session', deviceId: 'esp32-1', period: '1h', revision: 0 },
+    })
+    await flushPromises()
+    await next.setProps({ revision: 1 })
+    const calls = successfulFetch.mock.calls.length
+    next.unmount()
+    await vi.advanceTimersByTimeAsync(monitoringPollingIntervalMs * 2)
+    expect(successfulFetch).toHaveBeenCalledTimes(calls)
+  })
+
 })

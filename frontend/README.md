@@ -1,21 +1,234 @@
 # Frontend ColdSafe
 
+## Interface atual
+
+Visão geral, Saúde e previsões, Gêmeo digital e Filas e mensagens oferecem
+“Ocultar dados ao vivo”. A coleta e os pedidos continuam em andamento e, ao
+mostrar os dados novamente, a interface apresenta os valores mais recentes.
+No Gêmeo, ocultar também suspende a animação. Os tokens de cor, espaço e
+tipografia estão em [tokens.css](src/styles/tokens.css).
+
 Apresentação de portfólio em `/` e dashboard operacional em `/dashboard`,
-com a direção **tecnologia de precisão**. A apresentação funciona sem backend.
+com a direção **Precisão operacional** e apresentação pública escura.
+A apresentação funciona sem backend.
 No dashboard, cadastro/login, ambientes, dispositivos e limites usam REST
 autenticado. A leitura atual, os alertas e o estado do LED acompanham o
 dispositivo selecionado. Eventos WebSocket atualizam a tela; após reconexão,
 REST recupera o estado atual e o histórico.
 
-- [Definição do produto](PRODUCT.md).
-- [Figma editável](https://www.figma.com/design/EIn6llJ5Fc3uIFlIDdokZu).
-- [Relatório: arquivos, decisões, mídia e validação](../docs/testing/redesign-portfolio.md).
+A B2-32 acrescenta `/assistant` (**Assistente**) à navegação autenticada. A página
+consulta o estado do modelo e recebe SSE por `fetch` com Bearer, exibindo cada
+fragmento como texto simples. As seis sugestões preenchem o campo; o envio é
+sempre uma ação do usuário. Cancelamento, erro e interrupção conservam o texto
+parcial identificado como incompleto. Há até oito perguntas em memória na página;
+navegação, saída ou troca de sessão apagam a conversa. Perguntas anteriores não
+são enviadas ao modelo; a auditoria do backend permanece persistente.
+O cliente limita a chamada completa a 130 s; a geração no backend tem 90 s e
+limpeza de até 12 s. O proxy admite 120 s de inatividade para receber o terminal.
 
-A direção anterior, Caderno de bancada, foi aprovada na CS-26 em 09/09/2026.
-O redesign atual foi autorizado no plano de portfólio e mantém suas regras
-operacionais: atualidade explícita, estados com texto e falhas parciais.
+O assistente usa o [Ollama da pilha completa](../docs/configuration.md#ollama-local-e-memória-b2-30)
+e a API B2-31. Prepare os pesos conforme o [runbook](../docs/runbook.md).
+A página distingue carregamento, pausa,
+indisponibilidade e limite de cinco perguntas/minuto. São até 256 bytes UTF-8,
+incluindo acentos; nenhum conteúdo do modelo é interpretado como HTML/Markdown.
+
+Testes rápidos, com Node 24 e dependências do lock, na pasta `frontend`:
+
+```sh
+npm run test:unit:run -- src/features/assistant src/views/AssistantView.spec.ts src/features/account/account.spec.ts
+npm run test:e2e -- assistant.spec.ts --workers=1
+```
+
+Os cinco cenários acima usam HTTP simulado. O [harness de navegador real e a
+avaliação factual](../backend/README.md#página-e-avaliação-do-assistente-b2-32)
+separam integração HTTP/SQL/SSE da qualidade das respostas do modelo.
+
+Na B2-14, `VITE_AIOT_ENABLED=true` seleciona explicitamente HTTP/WS v3. O
+dashboard mostra as seis medições, equipamento e estados observados dos atuadores;
+o seletor de grandeza reutiliza gráfico, tooltip e tabela. Zero é valor válido;
+ausência de sensor em histórico legado é indisponibilidade. Estado observado
+na telemetria e confirmação de comando são informações separadas. Só ACK válido
+confirma o pedido; timeout/rejeição permanecem explícitos. Nenhuma biblioteca nova.
+
+A B2-15 acrescenta `/messaging`, acessível pela navegação como **Mensageria**.
+O painel administrativo mostra as dez filas atuais, contagens, taxas por segundo e
+consumidores; consulta apenas a API ColdSafe com a sessão existente, nunca o
+RabbitMQ diretamente. Atualiza a cada cinco segundos e informa a idade da coleta.
+Falha conserva o último snapshot somente com aviso explícito; taxa ausente não
+vira zero. As métricas são agregadas da infraestrutura e restritas a admin.
+Não há acesso a corpos de mensagens ou credenciais do broker.
+Para habilitar apenas essa página, use `compose.messaging.yaml` junto do Compose
+base e reconstrua backend/frontend. Esse overlay conserva o modo do dashboard;
+não exige a ativação do percurso AIoT completo. Procedimento em
+[configuração de Mensageria](../docs/configuration.md#mensageria-b2-15).
+
+A B2-16 mostra também últimas mensagens e cópias da DLQ, por resumos privados
+de até 100 itens por lista. Somente mensagens de dispositivos/ambientes atualmente
+pertencentes ao admin entram na resposta; corpos brutos e credenciais não chegam
+ao navegador. A tela informa conexão/atualidade do observador e falha de consulta.
+O controle de parada/retomada do gravador continua no terminal, conforme
+[runbook](../docs/runbook.md#mensageria-b2-16-parar-e-retomar-o-gravador).
+
+A B2-19 acrescenta `/laboratory`, acessível como **Laboratório** na navegação.
+Admin configura todos os parâmetros do gerador, confere a estimativa antes de
+enfileirar e acompanha o estado durável por HTTP autenticado. O ID fica em
+`?job=UUID` para recarregar/retomar sem repetir o POST. O resumo mostra configuração,
+seed, autor, contagem e qualidade observada; a amostra de dez linhas é solicitada
+separadamente. Dados sintéticos e labels não entram no monitoramento live.
+As limitações da simulação, censura de RUL e taxa configurada de outliers ficam
+explícitas na página. O backend precisa do [overlay de jobs](../docs/configuration.md#jobs-assíncronos-b2-17)
+e da montagem de artefatos RO; reconstruir o frontend disponibiliza a rota.
+
+Teste Web real, da raiz e com PostgreSQL descartável configurado por
+`POSTGRES_TEST_HOST/PORT/DB/USER/PASSWORD`, Docker e Chromium instalados:
+
+```sh
+COLDSAFE_LAB_INTEGRATION=1 COLDSAFE_RABBITMQ_INTEGRATION=1 python -m pytest backend/tests/integration/test_laboratory_integration.py -q -s --no-cov -o addopts=''
+```
+
+O harness cria/remove um banco isolado, um broker e arquivos temporários próprios;
+não o aponte para credenciais pessoais. Usa Node 24/dependências do lock e aceita
+`COLDSAFE_NODE_BINARY`/`COLDSAFE_FRONTEND_NODE_MODULES`. Exercita geração real de
+um milhão, recarga sem reenvio, resumo/amostra privados, teto e falha após um
+bloco durável. Login HTTP é real; a sessão obtida é colocada no navegador pelo
+harness para limitar o teste ao Laboratório. Não simula respostas HTTP/AMQP.
+
+A B2-23 acrescenta `/training` (**Treinamento**), com seleção de dataset próprio
+concluído e link direto a partir do Laboratório. Admin envia um job real,
+acompanha duas etapas e recupera o estado por `?job=UUID` sem repetir o POST.
+Saúde e RUL mostram MAE/RMSE/R², baseline, gate de validação, previsto × real,
+tabela de erros e importância por permutação com sinal. Métricas completas e
+amostra reservada são identificadas separadamente. Versões, seeds, split e
+limitações sintéticas/censura ficam visíveis; nenhum resultado ativa o pacote.
+Falha de consulta permite repetir GET; envio incerto não é repetido automaticamente.
+
+Reutiliza Vue/Chart.js e sessão existente, sem dependências novas. A página segue
+o acesso administrativo do Laboratório; o backend protege POST por papel atual
+e GET por dono. Requer worker `training` e montagem RO dos resultados na API,
+conforme [configuração de jobs](../docs/configuration.md#jobs-assíncronos-b2-17).
+Teste simulado específico: `npm run test:e2e -- training.spec.ts`.
+Teste real completo pelo [harness B2-23](../backend/README.md#treinamento-integrado-e-resultados-b2-23),
+que também confere os valores contra relatórios e captura desktop/mobile.
+
+A B2-25 acrescenta **Previsão do equipamento** no dashboard AIoT: saúde em pontos
+0–100, RUL em horas (zero é válido), versão do pacote/features e horários da entrada
+e cálculo. Falta de modelo/histórico, features inválidas, modelo indisponível e
+leitura vencida têm mensagens distintas. A API/parser só aceitam novos resultados
+vinculados à leitura correspondente. No dashboard, o cartão conserva o último
+resultado recebido durante a espera entre telemetria e inferência, identificado
+pelo horário da própria entrada; não o atribui à leitura nova. Troca de ambiente,
+dispositivo ou equipamento limpa esse estado. A idade considera a diferença
+entre a entrada da previsão e a leitura atual, somada à idade dos sensores;
+novas leituras não renovam uma previsão antiga, cujos números somem após 30 s.
+O WS entrega ao cartão previsões vinculadas a uma das últimas 256 leituras
+verificadas por REST ou telemetria, mesmo se a leitura seguinte já chegou;
+também dispara recuperação REST. Eventos atrasados não substituem resultados
+mais novos, inclusive após falha e recuperação do resumo. Fontes desconhecidas
+não entram no cartão, e a troca de conta/dispositivo limpa as fontes guardadas.
+A troca de versão aparece sem recarga da página; ativação continua na API administrativa.
+
+Sem dependência nova. `PredictionPanel.vue` reutiliza tokens e texto semântico;
+o modo legado conserva seu contrato. Teste simulado: `npm run test:e2e -- inference.spec.ts`.
+O [harness real](../backend/README.md#inferência-ao-vivo-b2-25) verifica worker,
+RabbitMQ, PostgreSQL, HTTP/WS e Chromium, com fixtures explícitas na fonte/recibo.
+Janelas de produção continuam 15 min/1 h; o warm-up pode exigir uma hora de coleta.
+Configuração do worker está no [guia](../docs/configuration.md#inferência-ao-vivo-b2-25).
+
+A B2-26 acrescenta `/insights`: equipamento privado, saúde/RUL, tendência entre
+previsões, versão/idade e alertas persistidos. Consulta HTTP a cada 2 s recupera
+o estado após recarga; ausência/erro/stale são explícitos e conservam os alertas
+conhecidos. Exibe o último resultado com fonte e recibo confirmados, mesmo quando
+a telemetria seguinte aguarda inferência; sua idade conserva a entrada de origem
+e vence após 30 s. Regras do proprietário são editáveis por operador/admin. Limiares
+iniciais são de protótipo, sem calibração física; não acionam o buzzer térmico.
+Testes rápidos: `npm run test:unit:run -- src/features/insights src/views/InsightsView.spec.ts`.
+O ensaio real está no [backend](../backend/README.md#alertas-preditivos-e-insights-b2-26).
+Nenhuma dependência nova.
+
+Na B2-27, `/digital-twin` (**Gêmeo digital**) representa o ventilador, os seis
+sensores, LED e buzzer com Three.js direto no Vue. Requer o mesmo build
+`VITE_AIOT_ENABLED=true` do dashboard v3. O inventário do resumo autenticado
+preserva os nove IDs mesmo antes da primeira leitura; as posições são somente
+ilustrativas e locais ao frontend. Clique na peça ou use os botões da lista pelo
+teclado para consultar o mesmo ID, valor e estado. Falha WebGL mantém a lista.
+
+O composable do dashboard recupera REST a partir do WebSocket e faz expirar a
+leitura localmente após 30 s. Sem dados atuais, os valores ficam indisponíveis.
+A temperatura ambiente segue os limites cadastrados; os demais sensores ainda
+não têm faixas operacionais. A cor do ventilador combina alerta persistente e
+faixas preditivas recebidas; não atesta segurança física. Atuadores mostram a
+telemetria observada. A cena libera os recursos ao sair.
+
+Na B2-28, o mesmo snapshot alimenta giro por `running`, tremor proporcional à
+vibração (ganho ilustrativo limitado a 10 mm/s), brilho do LED e pulso suave de
+1 Hz do buzzer ligado, sem áudio. Iluminação acompanha luminosidade em **%**;
+uma barra térmica superior muda de azul a vermelho entre −20 e 60 °C. Essa escala
+visual não substitui as faixas de risco cadastradas, nem mede RPM/calibração física.
+O loop reutiliza cena/geometrias e lê o estado atual; ao vencer a leitura após
+30 s, suspende movimento e avisa **Cena congelada**, mesmo com WebSocket aberto.
+A aparência ambiental conservada pertence à última leitura. Troca de equipamento
+recria a cena para não conservar a aparência de outro escopo. Leitura nova retoma
+sem compensar o tempo parado. Aba oculta e preferência de movimento reduzido
+suspendem animações; esta última conserva atualização dos valores/estados.
+[Resultados B2-28](../docs/evidence/b2-28.json).
+
+Na B2-29, selecionar qualquer item abre leitura atual/última leitura, idade,
+horário e mini gráfico de 15 minutos. Sensores filtram o histórico pelo próprio ID,
+além do dispositivo/ambiente/equipamento. Para ventilador/atuadores, o gráfico
+contextual de temperatura ambiente é identificado como medição associada; não há
+série própria de estados disponível. Sensores/atuadores exibem saúde/RUL próprias
+**não aplicáveis**, separadas da previsão do equipamento identificado.
+
+O painel do LED e o dashboard usam `useActuators`/`LedControl` compartilhados:
+envio, ACK e estado observado permanecem distintos, com bloqueio de reenvio,
+rejeição/sem confirmação e permissões atuais. Buzzer continua automático.
+Histórico consulta a cada 5 s, com prazo de 8 s e limpeza ao trocar escopo/sair;
+consulta lenta não é cancelada por eventos live de 1 Hz. Sem dependências novas.
+[Resultados B2-29](../docs/evidence/b2-29.json).
+
+Dependências adicionadas e fixadas: `three 0.186.1` para renderização e
+`@types/three 0.186.0` para TypeScript, com seis transitivas de desenvolvimento
+registradas no lock. As versões anteriores permanecem iguais. Após atualizar os
+fontes, execute `npm ci` com Node 24.20.0. Não há wrapper Vue, modelos 3D externos
+ou simulador embarcado na página.
+
+```sh
+npm run test:unit:run -- src/features/digital-twin src/views/DigitalTwinView.spec.ts src/features/monitoring/aiot-api.spec.ts
+VITE_AIOT_ENABLED=true npm run test:e2e -- digital-twin.spec.ts --workers=1
+VITE_AIOT_ENABLED=true npm run build
+```
+
+O E2E usa Chromium/WebGL reais com respostas HTTP/WS simuladas e declaradas;
+não representa novo ensaio de MQTT/AMQP, bancos ou sensores físicos.
+[Resultados B2-27](../docs/evidence/b2-27.json).
+
+Na ativação pessoal de 20/10/2026, o build Docker passou a receber `contracts`
+como contexto adicional do Compose. O estágio de build copia seus exemplos para
+`/contracts/examples`, preservando a resolução relativa dos imports das specs e
+a verificação de tipos completa. O contexto principal continua `frontend`; a
+raiz com `.env` não é enviada para esse build. Para construir fora do Compose:
+`docker build --build-context contracts=./contracts -f frontend/Dockerfile ./frontend`,
+a partir da raiz. Acrescente `--build-arg VITE_AIOT_ENABLED=true` para AIoT v3.
+
+Para o dashboard v3 no Compose, use `compose.aiot.yaml`: ele habilita o backend e passa o argumento
+de build do frontend. É necessário reconstruir `frontend` ao alterar esse modo.
+No Vite local, defina a variável antes de iniciar o processo e configure
+`VITE_API_BASE_URL` para o backend v3. Sem a flag, preserva-se o fluxo v1/v2;
+falhas/403/404 não causam fallback silencioso entre versões. Login e catálogo
+continuam nas rotas v1 em ambos os modos.
+
+O painel mantém a idade da leitura, os estados por texto e a sinalização de
+falhas parciais. A apresentação pública usa tema escuro.
 
 ## Como executar
+
+No Compose normal, a B2-08 serve o build estático com Nginx sem root na porta
+`5173`; REST, `/docs`, `/openapi.json` e WebSocket passam pelo mesmo endereço.
+Não há Vite, npm ou fontes montados no container final. O build usa base REST
+relativa e resolve WebSocket pela origem da página. `compose.debug.yaml` habilita
+portas locais de diagnóstico e um link RabbitMQ no dashboard; `/docs` tem link
+permanente. Preparação e segredos estão no [runbook](../docs/runbook.md).
+As instruções a seguir são para o desenvolvimento local com Vite.
 
 - Referência de runtime: Node.js `24.20.0`.
 - Instalar dependências fixadas: `npm ci`.
@@ -23,11 +236,64 @@ operacionais: atualidade explícita, estados com texto e falhas parciais.
 - Validar tipos e gerar a build: `npm run build`.
 - Executar os testes unitários do frontend: `npm run test:unit:run`.
 - Instalar o Chromium usado pelos testes E2E: `npx playwright install chromium`.
-- Executar os cenários E2E das duas interfaces: `npm run test:e2e`.
+- Executar os cenários E2E com a seleção de modo abaixo.
 
-Os testes E2E sobem o Vite automaticamente e simulam as fronteiras HTTP e
-WebSocket da API. Assim, estados normais, alertas, reconexão e falhas são
+Os testes E2E comuns sobem o Vite automaticamente e simulam HTTP e WebSocket
+na origem de teste (`127.0.0.1:4173`) quando `VITE_API_BASE_URL=''` está definido.
+Assim, estados normais, alertas, reconexão e falhas são
 reproduzíveis sem depender do InfluxDB ou do MQTT.
+
+Para conferir os dois contratos, execute a suíte com a flag explícita antes de
+iniciar o Vite: `VITE_AIOT_ENABLED=false` seleciona o modo legado v1/v2;
+`VITE_AIOT_ENABLED=true`, o modo AIoT v3. A flag é de build/inicialização, não
+um alternador visual. A suíte ampla usa o modo legado para os cenários de
+`dashboard.spec.ts`, `dashboard-selection.spec.ts` e parte de `landing.spec.ts`,
+cujos mocks de monitoramento atendem a API v1/v2. Execute os cenários v3
+selecionados em uma segunda rodada.
+
+```sh
+VITE_API_BASE_URL='' VITE_AIOT_ENABLED=true npm run build
+VITE_API_BASE_URL='' VITE_AIOT_ENABLED=false npm run test:e2e -- --workers=1
+VITE_API_BASE_URL='' VITE_AIOT_ENABLED=true npm run test:e2e -- \
+  dashboard-redesign.spec.ts digital-twin.spec.ts inference.spec.ts \
+  live-data-visibility.spec.ts monitoring-context.spec.ts
+```
+
+Os specs `*-real.spec.ts` são integração externa opt-in, controlada pelos
+harnesses correspondentes e suas variáveis privadas; ficam pulados sem esse
+ambiente. Não habilite essas variáveis nem inicie a pilha pessoal por reflexo
+para verificar o redesign. E2E com APIs controladas não comprova serviço real.
+
+A suíte real opt-in `backend/tests/infra/test_dashboard_integration.py` sobe
+brokers/bancos/gateway/writer/simulador descartáveis, backend Uvicorn e Vite
+locais, e executa `e2e/aiot-real.spec.ts`. Não usa mocks de HTTP/WS. Requer Docker,
+Python/lock dev, Node 24.20.0, dependências frontend e Chromium instalados:
+
+```sh
+COLDSAFE_WRITER_INTEGRATION=1 .venv/bin/python -m pytest backend/tests/infra/test_dashboard_integration.py -q --no-cov -o addopts=''
+```
+
+Execute da raiz do projeto. `COLDSAFE_NODE_BINARY` pode indicar o executável Node;
+`COLDSAFE_FRONTEND_NODE_MODULES`, uma instalação temporária feita com o mesmo lock.
+O teste copia fontes/configuração e usa credenciais/volumes próprios, removidos
+ao terminar. Fora do harness, os seis casos reais ficam explicitamente pulados.
+O quinto exercita o gêmeo digital: para só o simulador, conserva o WebSocket
+conectado, espera freshness vencer, compara quadros congelados e confere a retomada.
+O sexto inspeciona os nove IDs, comanda LED e verifica recusa do servidor após
+revogar o papel, visualização sem comando após recarga e isolamento de outra conta.
+
+A B2-15 tem um harness separado, que compara contagens/taxas/consumidores com
+RabbitMQ real, verifica permissões e pausa o broker para exercitar timeout e
+recuperação; também executa os quatro cenários Chromium de Mensageria:
+
+```sh
+COLDSAFE_WRITER_INTEGRATION=1 .venv/bin/python -m pytest backend/tests/infra/test_messaging_integration.py -q -s --no-cov -o addopts=''
+```
+
+Requer os mesmos runtimes/dependências e aceita `COLDSAFE_NODE_BINARY` e
+`COLDSAFE_FRONTEND_NODE_MODULES`. Use somente via harness: ele cria contas admin,
+operator e viewer temporárias, sem alterar usuários/credenciais da pilha pessoal.
+O spec `messaging-real.spec.ts` fica pulado sem as variáveis privadas do harness.
 
 ### Compatibilidade de versões
 
@@ -42,8 +308,8 @@ exemplo, tela, superfície, texto, foco e estados normal, atenção, crítico e
 desatualizado — em vez de amarrar cores a componentes específicos. Isso permite
 que desktop e mobile conservem os mesmos significados visuais.
 
-Contraste, navegação por teclado e responsividade foram validados no dashboard
-implementado; os mockups foram usados apenas como direção visual.
+Os testes de navegador cobrem cenários de contraste, teclado e
+responsividade. A validação com leitor de tela ficou fora dessa rodada.
 
 ## Demonstração reproduzível
 
@@ -59,6 +325,8 @@ npm run capture:demo
 
 O script usa Playwright e os mesmos mocks HTTP dos E2E. Gera quatro PNGs,
 um WebM de cerca de 81 segundos e legendas VTT em `public/media/`.
+A captura `dashboard-mobile.png` serve para conferência local e fica fora do
+Git e da imagem Docker.
 Não precisa de backend. A faixa “DEMONSTRAÇÃO SIMULADA” existe somente na
 captura. O vídeo também explica por texto cada cenário, incluindo a confirmação
 simulada de um comando. Para conferir arquivos antes de substituir a mídia,
@@ -67,8 +335,11 @@ defina `CAPTURE_OUTPUT_DIR` com uma pasta temporária.
 ## Motion e tipagem
 
 Foram adicionados `motion-v@2.4.2` e `@vueuse/core@14.4.0`, fixados no lock.
-O Motion fica no chunk da apresentação. `skipLibCheck` evita conflitos nas
-declarações de terceiros (tipos HTML/VueUse/React/Bluetooth); `strict` e
+Em `LandingView.vue`, a entrada breve usa CSS, o conteúdo nasce visível e
+`prefers-reduced-motion` remove o movimento. Os pacotes continuam instalados;
+esta atualização documental não remove dependências.
+`skipLibCheck` evita conflitos nas declarações de terceiros
+(tipos HTML/VueUse/React/Bluetooth); `strict` e
 a checagem dos arquivos da aplicação continuam ativos. Reavaliar essa opção
 quando as declarações dessas dependências forem compatíveis entre si.
 Inter é servido localmente, com licença OFL em `public/fonts/OFL.txt`.

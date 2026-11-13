@@ -1,0 +1,11 @@
+........................................                                 [100%]
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.13.15-final-0 _______________
+
+Name                Stmts   Miss Branch BrPart  Cover   Missing
+---------------------------------------------------------------
+gateway/bridge.py     122      4     46      4    95%   30, 48, 74, 125
+---------------------------------------------------------------
+TOTAL                 122      4     46      4    95%
+Required test coverage of 80% reached. Total coverage: 95.24%
+40 passed in 31.18s

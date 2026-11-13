@@ -8,6 +8,11 @@ Esta pasta é a fonte técnica de verdade para as fronteiras do ColdSafe.
   dispositivos, limites, monitoramento e saúde; deve acompanhar `/openapi.json`.
 - `evolution.schema.json`: telemetria, comandos, confirmações, resposta REST v2
   e eventos WebSocket implementados.
+- `aiot.schema.json` e [aiot.md](aiot.md): contrato AIoT v3 implementado,
+  com seis sensores, eventos internos, comandos, recibos, previsões e labels
+  offline separados. O [mapa de arquitetura](../docs/aiot/architecture.md)
+  mostra os produtores, consumidores e a recuperação Web. Use os tópicos e
+  streams próprios de cada versão.
 - `examples/`: mensagens válidas e inválidas verificadas pelos testes de contrato.
 
 Uma mudança de formato deve começar aqui e nos testes de contrato antes de chegar aos produtores ou consumidores.
@@ -37,6 +42,12 @@ Usar QoS 1, mensagens não retidas e `device_id` igual no tópico e no payload. 
 Resposta REST em `POST /api/v1/devices/{device_id}/led/commands`: envelope `{ "success": true, "data": <command_response>, "meta": { "schema_version": 2 } }`. `GET /api/v1/commands/{command_id}` consulta o estado autorizado: `pending`, `confirmed`, `rejected` ou `unconfirmed`. A resposta de publicação não significa atuação confirmada; o dashboard acompanha esses estados.
 
 ## WebSocket autenticado
+
+A B2-06 mantém os formatos dos eventos v2 e altera a autenticação: obter ticket
+por `POST /api/v1/auth/ws-ticket`, usando Bearer e corpo `{device_id}`. Conectar
+em `/api/v1/events?device_id=...` e enviar somente `{ticket}` no primeiro frame.
+Ticket dura no máximo 60 segundos, está vinculado a sessão/dispositivo e é
+consumido uma vez. Não enviar JWT na URL nem no frame WebSocket.
 
 O backend envia eventos `reading`, `alert` e `command_status` conforme `ws_event` em `evolution.schema.json`. Cada evento informa `environment_id`, `device_id`, `occurred_at` em UTC e o dado tipado. O backend envia uma leitura somente **após** validá-la e persistí-la. WebSocket serve para atualização em tempo real; ao conectar ou reconectar, o cliente usa REST autenticado para recuperar estado e histórico, pois pode ter perdido eventos. Não confiar em um ID vindo do cliente para autorizar a assinatura.
 

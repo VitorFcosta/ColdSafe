@@ -3,9 +3,16 @@
 .env.*
 .venv
 .pytest_cache
-.coverage
+.coverage*
+htmlcov
+.impeccable
+.codebase-memory
+**/.DS_Store
 **/__pycache__
 *.pyc
 frontend
 firmware
 docs
+
+simulator/local
+backend/tests

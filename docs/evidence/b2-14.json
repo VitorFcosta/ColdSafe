@@ -1,0 +1,743 @@
+{
+  "task": "B2-14",
+  "status": "Concluída",
+  "date": "2026-10-15",
+  "timezone": "America/Sao_Paulo",
+  "recorded_at_utc": "2026-10-15T17:21:49.330205+00:00",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "e97afc70913ecc3152fb810984fb11c2bdd12d02",
+    "head": "e97afc70913ecc3152fb810984fb11c2bdd12d02",
+    "initial_worktree": "B2-13 changes already uncommitted; frontend initially clean",
+    "changes": "uncommitted",
+    "commit_or_push": false,
+    "inventory_scope": "B2-14 delta relative to initial worktree, not entire git diff"
+  },
+  "parent_evidence": {
+    "path": "docs/evidence/b2-13.json",
+    "sha256": "a74f7668d389016441799d8bbaa8b6947f87ac987369c4f86484a22e7eed5dd7",
+    "note": "Historical B2-13 evidence preserved; its source hashes were not regenerated after B2-14 extensions"
+  },
+  "acceptance": {
+    "six_sensor_readings_and_chart": "passed: real Chromium test 1",
+    "led_pending_timeout_ack_and_observed_state": "passed: real Chromium test 1",
+    "automatic_buzzer": "passed: real Chromium test 1",
+    "mobile_keyboard_reconnect": "passed: real Chromium test 2",
+    "foreign_viewer_scope_denied": "passed: real Chromium test 3",
+    "commissioned_device_viewer_reads_but_cannot_command": "passed: real Chromium test 4"
+  },
+  "environment": {
+    "python": "3.13.15",
+    "node": "24.20.0",
+    "browser": "Playwright Chromium",
+    "simulation_interval_seconds": 1,
+    "infra": "Disposable Docker MQTT/RabbitMQ/PostgreSQL/InfluxDB/gateway/writer/simulator; actual Uvicorn/Vite subprocesses",
+    "network_mocking": false,
+    "physical_hardware": false,
+    "temporary_dependencies_reason": "Imports in Documents stalled; isolated venv/npm ci use unchanged lock files",
+    "frontend_source_integrity": {
+      "snapshot": "/private/tmp/coldsafe-b214-final/frontend",
+      "verified_paths": [
+        "frontend/e2e/aiot-real.spec.ts",
+        "frontend/playwright.aiot.config.ts",
+        "frontend/src/features/monitoring/TemperatureHistoryChart.spec.ts",
+        "frontend/src/features/monitoring/TemperatureHistoryChart.vue",
+        "frontend/src/features/monitoring/actuators.spec.ts",
+        "frontend/src/features/monitoring/actuators.ts",
+        "frontend/src/features/monitoring/aiot-api.spec.ts",
+        "frontend/src/features/monitoring/aiot-api.ts",
+        "frontend/src/features/monitoring/alerts-api.spec.ts",
+        "frontend/src/features/monitoring/alerts-api.ts",
+        "frontend/src/features/monitoring/monitoring-history.spec.ts",
+        "frontend/src/features/monitoring/monitoring-history.ts",
+        "frontend/src/features/monitoring/monitoring-summary.spec.ts",
+        "frontend/src/features/monitoring/monitoring-summary.ts",
+        "frontend/src/features/monitoring/monitoring-version.ts",
+        "frontend/src/features/monitoring/sensor-metrics.ts",
+        "frontend/src/features/monitoring/temperature-chart.spec.ts",
+        "frontend/src/features/monitoring/temperature-chart.ts",
+        "frontend/src/features/monitoring/use-monitoring-summary-aiot.spec.ts",
+        "frontend/src/features/monitoring/use-monitoring-summary.ts",
+        "frontend/src/views/FoundationView.spec.ts",
+        "frontend/src/views/FoundationView.vue"
+      ],
+      "note": "Final TS/Vue source byte equality checked. Unit coverage preceded a template CSS width-only fix; final legacy/real E2E and Docker build include that fix."
+    }
+  },
+  "dependencies": {
+    "added": [],
+    "migrations_added": [],
+    "unchanged_manifests": [
+      {
+        "path": "backend/requirements.txt",
+        "sha256": "a6424a94686c2e723d543eb90ea212948d40df3717ab402d41fca1d9729046f0"
+      },
+      {
+        "path": "backend/requirements.lock.txt",
+        "sha256": "addd3d1944717c975040ad74be40060824ecc696b634943da5ba393ed4117fbb"
+      },
+      {
+        "path": "backend/requirements-dev.txt",
+        "sha256": "158aecbf03642bde21a9d7dd108ef8daabc5d653ef31680003b49f5939ea46f5"
+      },
+      {
+        "path": "backend/requirements-dev.lock.txt",
+        "sha256": "1b258d8afb03cd625cb2c1a3736ed9785a7cce24aaeacc9d01907b45d306ceb6"
+      },
+      {
+        "path": "frontend/package.json",
+        "sha256": "0cfa306e7c69947afd0403d2730cbd9c97d079548304d47b31668777704dfabc"
+      },
+      {
+        "path": "frontend/package-lock.json",
+        "sha256": "e46a7beeabb89746c14032a66709f2c0e7994c1ee39a30d4aedc53b640035bea"
+      }
+    ]
+  },
+  "validation": {
+    "backend_regression": {
+      "passed": 670,
+      "skipped": 127,
+      "warnings": 2,
+      "seconds": 43.67,
+      "command": "<python> -m pytest backend/tests -q --no-cov -o addopts=''"
+    },
+    "backend_coverage_without_opt_in_infra": {
+      "passed": 670,
+      "skipped": 127,
+      "seconds": 47.75,
+      "coverage_percent": 76.87522868642517,
+      "gate": "failed 80%; followed by cumulative real integration run"
+    },
+    "backend_real_infra_cumulative_coverage": {
+      "passed": 10,
+      "seconds": 106.31,
+      "gate": "passed 80%",
+      "coverage_totals": {
+        "covered_lines": 1924,
+        "num_statements": 2177,
+        "percent_covered": 85.98609586534943,
+        "percent_covered_display": "86",
+        "missing_lines": 253,
+        "excluded_lines": 31,
+        "percent_statements_covered": 88.37850252641249,
+        "percent_statements_covered_display": "88",
+        "num_branches": 556,
+        "num_partial_branches": 82,
+        "covered_branches": 426,
+        "missing_branches": 130,
+        "percent_branches_covered": 76.61870503597122,
+        "percent_branches_covered_display": "77"
+      },
+      "command": "COLDSAFE_WRITER_INTEGRATION=1 <python> -m pytest backend/tests/infra/test_api_events_integration.py backend/tests/infra/test_writer_integration.py -q -o addopts='' --cov=backend/app --cov-branch --cov-append --cov-fail-under=80",
+      "note": "Coverage appended to full backend coverage run above; individual branch coverage remains 76.62% and is not claimed as 80%."
+    },
+    "postgres_dashboard": {
+      "passed": 2,
+      "seconds": 0.8,
+      "source": "backend/tests/integration/test_aiot_dashboard_integration.py",
+      "infra": "disposable PostgreSQL; rollback"
+    },
+    "frontend_unit": {
+      "test_files": 19,
+      "passed": 142,
+      "coverage": {
+        "lines": {
+          "total": 1024,
+          "covered": 961,
+          "skipped": 0,
+          "pct": 93.84
+        },
+        "statements": {
+          "total": 1228,
+          "covered": 1107,
+          "skipped": 0,
+          "pct": 90.14
+        },
+        "functions": {
+          "total": 275,
+          "covered": 248,
+          "skipped": 0,
+          "pct": 90.18
+        },
+        "branches": {
+          "total": 1502,
+          "covered": 1296,
+          "skipped": 0,
+          "pct": 86.28
+        },
+        "branchesTrue": {
+          "total": 0,
+          "covered": 0,
+          "skipped": 0,
+          "pct": 100
+        }
+      },
+      "command": "npm run test:coverage"
+    },
+    "legacy_e2e": {
+      "passed": 31,
+      "skipped": 4,
+      "seconds": 14.3,
+      "note": "Four opt-in real browser scenarios skipped here, passed separately below",
+      "command": "playwright test --config=playwright.config.ts --workers=2"
+    },
+    "real_browser": {
+      "pytest_passed": 1,
+      "browser_passed": 4,
+      "seconds": 115.96,
+      "command": "COLDSAFE_WRITER_INTEGRATION=1 COLDSAFE_NODE_BINARY=<node24> COLDSAFE_FRONTEND_NODE_MODULES=<same-lock-node_modules> <python> -m pytest backend/tests/infra/test_dashboard_integration.py -q --no-cov -o addopts=''",
+      "clock_offset_seconds_bounds": [
+        -0.0018,
+        0.0005
+      ],
+      "trace": "disabled to avoid credential/token capture"
+    },
+    "build": {
+      "typecheck": "passed",
+      "vite": "passed",
+      "frontend_docker_aiot_true": "passed",
+      "backend_docker": "passed",
+      "compose_overlay_flags": "passed render-only, not applied to personal services",
+      "lint": "No ESLint configuration or script exists",
+      "diff_check": "passed"
+    },
+    "review": {
+      "scope": "Two concrete FoundationView LED state races",
+      "initial": "BLOCK: snapshot overwrote pending; delayed polling regressed terminal state",
+      "final": "APPROVE: both fixed and regression-tested; final reviewer read-only, did not rerun suites"
+    },
+    "earlier_failures": [
+      "5 Hz attempt failed freshness check; root cause not isolated; final suite uses production 1 Hz",
+      "Offline non-retained MQTT command cannot be expected to receive ACK after clean-session restart; test now checks timeout then a new online command",
+      "LED state races reproduced RED, fixed GREEN",
+      "200% text exposed horizontal overflow; final layout corrected and legacy E2E passed"
+    ]
+  },
+  "limits": [
+    "Simulator, not physical sensors or Wokwi",
+    "1 Hz acceptance only; 5 Hz capacity not proved; full-stack capacity remains B2-33",
+    "Single commissioned equipment per runtime inherited from B2-13",
+    "Historical status classification uses current returned thresholds",
+    "Not deployed to personal stack; all backend opt-in integrations and all browsers not exercised",
+    "Two existing Starlette/httpx/AnyIO deprecation warnings; not hidden"
+  ],
+  "initial_inherited_B2_13_files": [
+    {
+      "path": "backend/Dockerfile",
+      "status": "modified",
+      "sha256": "c2d5d14d8317f12f383e4549da87c6195afde77a48ca538b0ed43c1fd66666dd"
+    },
+    {
+      "path": "backend/README.md",
+      "status": "modified",
+      "sha256": "807546ffea356be7193cf10427fcc16c1f940ec011844a67e1f80125ac332f2b"
+    },
+    {
+      "path": "backend/app/amqp/__init__.py",
+      "status": "created",
+      "sha256": "7e784af24179980621e268be6b659bbcb4bf42c8f5ed76523e2a53d07f5a5645"
+    },
+    {
+      "path": "backend/app/amqp/consumer.py",
+      "status": "created",
+      "sha256": "4ddba3b1e3b79d0d6a16dcfd92e44d18db6542df577844c661dae803db4a2660"
+    },
+    {
+      "path": "backend/app/api/aiot.py",
+      "status": "created",
+      "sha256": "8a164afcc4dc7afcdc30bc45ddfd64c8ffb20dbde9e1186246aa7d5de50f0462"
+    },
+    {
+      "path": "backend/app/api/events.py",
+      "status": "modified",
+      "sha256": "87b98de5d977a4ebc61da4e5c22268e294efe8a004f69b381b529382da1478f9"
+    },
+    {
+      "path": "backend/app/config/settings.py",
+      "status": "modified",
+      "sha256": "c5fb34e1445b7e625ae6fd389f7baa2c73f3974f8fa7115e5dc158e3af6e459e"
+    },
+    {
+      "path": "backend/app/repositories/postgres.py",
+      "status": "modified",
+      "sha256": "5e7b04ff30c67bef7e6b377f31491b56515a4d440551a57f8e0ff030aa8ba363"
+    },
+    {
+      "path": "backend/app/runtime.py",
+      "status": "modified",
+      "sha256": "55ad85e2819c5ba3356f0687cd4f90625e3c10995fb4e6358d2de62ad55b4ca5"
+    },
+    {
+      "path": "backend/app/services/aiot_events.py",
+      "status": "created",
+      "sha256": "ce8b96b37fe7cfffa1f3e73479cd853118c277a98ec1711be33502b08315a54c"
+    },
+    {
+      "path": "backend/migrations/007_aiot_events.sql",
+      "status": "created",
+      "sha256": "5c458849eb7427b5766addd41e6a4a6be9d4d8d534757461d5efe3f96c63a656"
+    },
+    {
+      "path": "backend/migrations/README.md",
+      "status": "modified",
+      "sha256": "f12d0e174dd5229a1c071b5cf0db7407cc266b859f0c42e049ae62bae8dfd8b9"
+    },
+    {
+      "path": "backend/requirements-dev.lock.txt",
+      "status": "modified",
+      "sha256": "1b258d8afb03cd625cb2c1a3736ed9785a7cce24aaeacc9d01907b45d306ceb6"
+    },
+    {
+      "path": "backend/requirements-dev.txt",
+      "status": "modified",
+      "sha256": "158aecbf03642bde21a9d7dd108ef8daabc5d653ef31680003b49f5939ea46f5"
+    },
+    {
+      "path": "backend/requirements.lock.txt",
+      "status": "modified",
+      "sha256": "addd3d1944717c975040ad74be40060824ecc696b634943da5ba393ed4117fbb"
+    },
+    {
+      "path": "backend/requirements.txt",
+      "status": "modified",
+      "sha256": "a6424a94686c2e723d543eb90ea212948d40df3717ab402d41fca1d9729046f0"
+    },
+    {
+      "path": "backend/tests/api/test_aiot_api.py",
+      "status": "created",
+      "sha256": "d2761c4e7a9b27e144ded19f87a8c6adf136ee7fcb9727af8d03b3afc7ed2c8d"
+    },
+    {
+      "path": "backend/tests/api/test_runtime_lifecycle.py",
+      "status": "modified",
+      "sha256": "f889a068c3feb237f08774d7fe43abe1c3d7f65f82fb5c1efa7e8670f439cfaf"
+    },
+    {
+      "path": "backend/tests/config/test_aiot_settings.py",
+      "status": "created",
+      "sha256": "f7a37fd1e5f952310bde78225c99ee39a214d8f102a251b007fb4f8a4685c122"
+    },
+    {
+      "path": "backend/tests/contract/test_aiot_contract.py",
+      "status": "modified",
+      "sha256": "eb8ac83aebc4ba70167ffd76716ce9b217d97f8097cf833dd757411a14069071"
+    },
+    {
+      "path": "backend/tests/infra/test_api_amqp.py",
+      "status": "created",
+      "sha256": "3ad409e8c016034b9ec09fe46db905b8f9cc1e232cb079569e424d6a87d61c28"
+    },
+    {
+      "path": "backend/tests/infra/test_api_events_integration.py",
+      "status": "created",
+      "sha256": "2f4163530e37eb469065e62bc073b5c28319945519ea3c1b89c894528db83f18"
+    },
+    {
+      "path": "backend/tests/infra/test_rabbitmq_bootstrap.py",
+      "status": "modified",
+      "sha256": "8611a2a9089394f5379d01b1ca0732f073b48aa753ad675db66abb5c685e2449"
+    },
+    {
+      "path": "backend/tests/infra/test_rabbitmq_integration.py",
+      "status": "modified",
+      "sha256": "af3134e1054c6df1d16735eb29fda250009e37d9ea5f8086fb5d1863c951f0bc"
+    },
+    {
+      "path": "backend/tests/infra/test_writer_runtime.py",
+      "status": "modified",
+      "sha256": "86bcb83f5ac1341f5dbef4bcb5dddebba12e881f438f79bfe9a3a3f54cc51d48"
+    },
+    {
+      "path": "backend/tests/integration/test_aiot_migrations_integration.py",
+      "status": "modified",
+      "sha256": "2e75657e0804556fe1ff2aba942446a6c7378be78398f15be5c2d07219970b2c"
+    },
+    {
+      "path": "backend/tests/integration/test_postgres_schema_integration.py",
+      "status": "modified",
+      "sha256": "0e262129dd9678a6b6c0d0736aab3a54a6f20a494c68f4d623c0870ca912b076"
+    },
+    {
+      "path": "backend/tests/services/test_aiot_events.py",
+      "status": "created",
+      "sha256": "baefdf6cd553cf3fed65fad763e29cc4c3ab0bd82ca6c196ebf83d03d271e445"
+    },
+    {
+      "path": "compose.aiot.yaml",
+      "status": "created",
+      "sha256": "fa7b8364bed4932dcfc4ce4fa8fc80acd97a319e3ba459a349ff839507c936be"
+    },
+    {
+      "path": "contracts/README.md",
+      "status": "modified",
+      "sha256": "648154875587f0bb8aab2fe03df5b67d8dae17bd8af82ddfc5ddfb0c7e062afc"
+    },
+    {
+      "path": "contracts/aiot.md",
+      "status": "modified",
+      "sha256": "6a6d6e27ddec595d82943c12423877e50ff4a48419ad1575ed8f224f6ef57bdc"
+    },
+    {
+      "path": "contracts/aiot.schema.json",
+      "status": "modified",
+      "sha256": "07ad99d2ef263d9c321f0851f8aed42c848a56770635bd98e3623bf85e760eaf"
+    },
+    {
+      "path": "contracts/examples/aiot.invalid.json",
+      "status": "modified",
+      "sha256": "1de6684fa3d91583fd77051c1bfad9a1ef6e72c01a4344167b48ff8299f6b1b8"
+    },
+    {
+      "path": "contracts/examples/aiot.valid.json",
+      "status": "modified",
+      "sha256": "b614defa46da6076c3235413639a0d25c03f7993ba552fbec954f70e4e13f7ed"
+    },
+    {
+      "path": "docs/aiot/README.md",
+      "status": "modified",
+      "sha256": "f58e7488ffa865689cf767bb516af0c5961680b6058cce064ebd70e1062e67b2"
+    },
+    {
+      "path": "docs/aiot/tasks/B2-13.md",
+      "status": "modified",
+      "sha256": "f02456221c21792687e0d19969d93629f446a96d3db0b57c28b39758a70cea5f"
+    },
+    {
+      "path": "docs/aiot/tasks/README.md",
+      "status": "modified",
+      "sha256": "657817a66bc7c287312d7191eb5c0205b3bd1d2e95915dbaba6450efa209cb0e"
+    },
+    {
+      "path": "docs/configuration.md",
+      "status": "modified",
+      "sha256": "2db32901a46dedaa15bd7461baf0311f32a235f0910eb21617e75f5969ee8753"
+    },
+    {
+      "path": "docs/version-matrix.md",
+      "status": "modified",
+      "sha256": "a6a916c693b19a09f2c3bcfbd9cf24aa1ac54a024168952668e1256121e5ccad"
+    },
+    {
+      "path": "infra/rabbitmq/README.md",
+      "status": "modified",
+      "sha256": "016aa600de259d58df33f1fb309ae21c54091defbbd3f4c8635f118fd812d8ba"
+    },
+    {
+      "path": "infra/rabbitmq/bootstrap.py",
+      "status": "modified",
+      "sha256": "5fb03935252dbf84d73754bfd5978f8ac7ed0b721cd436c9dca840d2e2c1d700"
+    },
+    {
+      "path": "writer/README.md",
+      "status": "modified",
+      "sha256": "5d8a019d331ba132dca3e1083a3ce426f7813907f15f0789ee6bb629ec1d2108"
+    },
+    {
+      "path": "writer/runtime.py",
+      "status": "modified",
+      "sha256": "274579e3484f18afbe7f634315ec4033cbb84731ff6842c96ff15ba9359873fc"
+    }
+  ],
+  "files": [
+    {
+      "path": "backend/README.md",
+      "change": "extended_inherited_B2_13",
+      "initial_sha256": "807546ffea356be7193cf10427fcc16c1f940ec011844a67e1f80125ac332f2b",
+      "sha256": "eb26adb4841059e2836b7a954752a96d147f511ee6a88b6aef825b940807020e"
+    },
+    {
+      "path": "backend/app/api/aiot.py",
+      "change": "extended_inherited_B2_13",
+      "initial_sha256": "8a164afcc4dc7afcdc30bc45ddfd64c8ffb20dbde9e1186246aa7d5de50f0462",
+      "sha256": "8bad75a84d1b32676898869742a255d6653b7a82b86705bcebcea50032050c5e"
+    },
+    {
+      "path": "backend/app/services/aiot_events.py",
+      "change": "extended_inherited_B2_13",
+      "initial_sha256": "ce8b96b37fe7cfffa1f3e73479cd853118c277a98ec1711be33502b08315a54c",
+      "sha256": "283c8ad7ead515f69cc5937e61268bc062d8a06bba0fca05c8ee493152f9f98a"
+    },
+    {
+      "path": "backend/tests/api/test_aiot_api.py",
+      "change": "extended_inherited_B2_13",
+      "initial_sha256": "d2761c4e7a9b27e144ded19f87a8c6adf136ee7fcb9727af8d03b3afc7ed2c8d",
+      "sha256": "af81145438ade1f2d14f59de3d0feef862e83df60636cb9e719cb394ac15cb68"
+    },
+    {
+      "path": "backend/tests/api/test_aiot_dashboard_api.py",
+      "change": "created",
+      "initial_sha256": null,
+      "sha256": "c471e3854537f997ce73699347943a34e43d231ef287c67aeeb20d7f579123d6"
+    },
+    {
+      "path": "backend/tests/infra/test_dashboard_integration.py",
+      "change": "created",
+      "initial_sha256": null,
+      "sha256": "c076d08ce034ec2a814bcac76b0492cb271cd708969696717386a5093e9b5b37"
+    },
+    {
+      "path": "backend/tests/integration/test_aiot_dashboard_integration.py",
+      "change": "created",
+      "initial_sha256": null,
+      "sha256": "3042c67b775467267cb96b4529fa070e20a0a10e0318c90a7c1467191cc03002"
+    },
+    {
+      "path": "compose.aiot.yaml",
+      "change": "extended_inherited_B2_13",
+      "initial_sha256": "fa7b8364bed4932dcfc4ce4fa8fc80acd97a319e3ba459a349ff839507c936be",
+      "sha256": "cfc6091b4eea824f4a6171034a22f8cfbdfd49b779891b54e2a90a55f894cd0f"
+    },
+    {
+      "path": "contracts/README.md",
+      "change": "extended_inherited_B2_13",
+      "initial_sha256": "648154875587f0bb8aab2fe03df5b67d8dae17bd8af82ddfc5ddfb0c7e062afc",
+      "sha256": "f060a0546b3ec14d60eccd165aa0590b3637f46aa27d1ed4e203941d0fd36f7b"
+    },
+    {
+      "path": "contracts/aiot.md",
+      "change": "extended_inherited_B2_13",
+      "initial_sha256": "6a6d6e27ddec595d82943c12423877e50ff4a48419ad1575ed8f224f6ef57bdc",
+      "sha256": "f043745346468bee929c8b059c2a7cd77b544cbfc3e0ce449cf57937fe64397d"
+    },
+    {
+      "path": "docs/aiot/README.md",
+      "change": "extended_inherited_B2_13",
+      "initial_sha256": "f58e7488ffa865689cf767bb516af0c5961680b6058cce064ebd70e1062e67b2",
+      "sha256": "06bbdfbed6997dcf48cf2629b83e54f0f5950c1f3335d5e57c13324519c19758"
+    },
+    {
+      "path": "docs/aiot/tasks/B2-14.md",
+      "change": "modified",
+      "initial_sha256": "e43dae1aae7a69c5aa31da238937ee60eacf1f698d476e44bc5e3a9864cf7257",
+      "sha256": "7dfb4ab632851d12c31fa40898a2539b93487680a84cbe9a4f8e0641e7aad354"
+    },
+    {
+      "path": "docs/aiot/tasks/README.md",
+      "change": "extended_inherited_B2_13",
+      "initial_sha256": "657817a66bc7c287312d7191eb5c0205b3bd1d2e95915dbaba6450efa209cb0e",
+      "sha256": "fd9b70c36d5cc97def98fad779ed06f1e59c3e613bea76eff6210360cf449789"
+    },
+    {
+      "path": "docs/configuration.md",
+      "change": "extended_inherited_B2_13",
+      "initial_sha256": "2db32901a46dedaa15bd7461baf0311f32a235f0910eb21617e75f5969ee8753",
+      "sha256": "4306e38db4ea77e024a85ecf39d110cd6ce839774a046406c4daade326cb7c2d"
+    },
+    {
+      "path": "frontend/Dockerfile",
+      "change": "modified",
+      "initial_sha256": "9ec87e211f1dfe507d3388d10cfe07d43ac44514f9daf6294c641fd1b24079bc",
+      "sha256": "d5bd60179293183743721c446e33f734f22f5025e723a2c6f5dfe21e6a46cd65"
+    },
+    {
+      "path": "frontend/PRODUCT.md",
+      "change": "modified",
+      "initial_sha256": "acdd1f80b33c4ee35d0d8cc76ad2502da9e997881b22718ebc835258d3a24d32",
+      "sha256": "588c08944a53a90776d98e0fdccc93ca020d22e5b88ce9fbc9634566dfde2c42"
+    },
+    {
+      "path": "frontend/README.md",
+      "change": "modified",
+      "initial_sha256": "50c2a41e1d23b0535107ae88f5e88780a499897558ec0e37db5ba15f5ab14a62",
+      "sha256": "020f893950b87533eeb3f2c15b68e9d768542402cfcdbc738279231fb418c4a4"
+    },
+    {
+      "path": "frontend/e2e/aiot-real.spec.ts",
+      "change": "created",
+      "initial_sha256": null,
+      "sha256": "43b926cb0ffcd69b57fb5ead47db25286a230e0b3d341d8f49af2403ff770908"
+    },
+    {
+      "path": "frontend/playwright.aiot.config.ts",
+      "change": "created",
+      "initial_sha256": null,
+      "sha256": "08058792031325cfac974b270395122999cd43059a4be7915901657f3b4f60ff"
+    },
+    {
+      "path": "frontend/src/features/monitoring/TemperatureHistoryChart.spec.ts",
+      "change": "modified",
+      "initial_sha256": "042dc429323c025197a12f379ee32ebf4b5cf54847a233fc8cce5d37edc69144",
+      "sha256": "46cd3ca311e8b0cd63e6948a8283b4624334c58b38d8ee2c2c9249606c9e4e49"
+    },
+    {
+      "path": "frontend/src/features/monitoring/TemperatureHistoryChart.vue",
+      "change": "modified",
+      "initial_sha256": "05a16f2c3bdb5dea622ea7a543fc94135c1387708a22b0766c58599af37bbfb9",
+      "sha256": "1ac7084f2eac670ab5e1a0750ad2d8ce981d8867cdb1ad816e176a91a07bc9a4"
+    },
+    {
+      "path": "frontend/src/features/monitoring/actuators.spec.ts",
+      "change": "modified",
+      "initial_sha256": "578f83672fcfa6dfd3f188b0f42ac3c725a59416b7bd8d7f341be8618e2e7e59",
+      "sha256": "01a21502535ec42b628193b3e4bda4922625183e347a7025ee9c6598bd484c38"
+    },
+    {
+      "path": "frontend/src/features/monitoring/actuators.ts",
+      "change": "modified",
+      "initial_sha256": "b0a06d396af73b626280064ce0cf84e916f6af0e9121cedbb13dcdfaa2eb1cca",
+      "sha256": "b5f7d34157872413c4b0180856578b0f9d402075142fabf86d3ff6b184b1ca1d"
+    },
+    {
+      "path": "frontend/src/features/monitoring/aiot-api.spec.ts",
+      "change": "created",
+      "initial_sha256": null,
+      "sha256": "2bcf1b10835368b442d804898d8fadd7ea53f213429f22afeb9bcc8d3fbce4d5"
+    },
+    {
+      "path": "frontend/src/features/monitoring/aiot-api.ts",
+      "change": "created",
+      "initial_sha256": null,
+      "sha256": "1a05ef8b05af7e03647a5635550c0a4f9e082fec14849e282d8633fe32180fb6"
+    },
+    {
+      "path": "frontend/src/features/monitoring/alerts-api.spec.ts",
+      "change": "modified",
+      "initial_sha256": "60a1d1c8fd679eabd605fbd7a0d569c42814811a7865600ea8c2d0a31dacec55",
+      "sha256": "db8b108fca2a1ff19feb807503e340f8e807ffc3488ac0cd40c27d35b45b19bf"
+    },
+    {
+      "path": "frontend/src/features/monitoring/alerts-api.ts",
+      "change": "modified",
+      "initial_sha256": "d3910a59525786bd8e6b6d7d3c5f3bc7f3416b9e8149778b30087bf9cd0480bd",
+      "sha256": "5e8f6fc496fae358c4bd2f602619546d196f46b2d0a15d5540d157e11b8f0377"
+    },
+    {
+      "path": "frontend/src/features/monitoring/monitoring-history.spec.ts",
+      "change": "modified",
+      "initial_sha256": "723e5b4950c7ca63add139ceee191e6561f16235403f7df37178094df28cd616",
+      "sha256": "cf2578750de3d7d116e1532c53a36d7f14ea54b01c7880a82b505055ed3adf26"
+    },
+    {
+      "path": "frontend/src/features/monitoring/monitoring-history.ts",
+      "change": "modified",
+      "initial_sha256": "f22717290bf35df080e9d93aed60524877d32fee51b74db5c3fe7d854bca5ab0",
+      "sha256": "274cd4d0cf572114eb6d69fbbb31e492bd01303dbd6035410b6bee6a3c3e0f84"
+    },
+    {
+      "path": "frontend/src/features/monitoring/monitoring-summary.spec.ts",
+      "change": "modified",
+      "initial_sha256": "b325d24d09ddfed1703b2b7cbe578d52b48a42f23260566487db18ac7855af9d",
+      "sha256": "89c7ea5a296c8c9e9550dd16e8a57f9a5d81963be8306a9eab4568ef2962aa7e"
+    },
+    {
+      "path": "frontend/src/features/monitoring/monitoring-summary.ts",
+      "change": "modified",
+      "initial_sha256": "140a6842cd4ecfd604495704e1db14f7d71dd81a189700afdbf12502e871dd5f",
+      "sha256": "5defc1ecdd45e5d50aaa4f4816cffbe993a4df743da40d26654d1254e3b9ae4a"
+    },
+    {
+      "path": "frontend/src/features/monitoring/monitoring-version.ts",
+      "change": "created",
+      "initial_sha256": null,
+      "sha256": "08b93d9f2007e427b5ac01c5ffdaa8c9cd1cf97b508c0494012b1c81ef049120"
+    },
+    {
+      "path": "frontend/src/features/monitoring/sensor-metrics.ts",
+      "change": "created",
+      "initial_sha256": null,
+      "sha256": "5f6e3f19d964218e2427b5652ba829c58cc4e9b89c8a85e7a0e5faa9e12bcba6"
+    },
+    {
+      "path": "frontend/src/features/monitoring/temperature-chart.spec.ts",
+      "change": "modified",
+      "initial_sha256": "0e2891fe1e25f20486bad44d1816d8c175f8792e1767423763a832ae362fdfff",
+      "sha256": "8b44d743a7797ee28af847d6038321ded5f56461516da2b3fa41582afbd46b29"
+    },
+    {
+      "path": "frontend/src/features/monitoring/temperature-chart.ts",
+      "change": "modified",
+      "initial_sha256": "e04b5c6443dc7d41b58e74dc821683a5dbf1a628af412501e9b42498dbd8106e",
+      "sha256": "931a887f5973d6849cf01c37a2c7a0d6cb4b78cec568d10ac3d7dfb748a5a0e7"
+    },
+    {
+      "path": "frontend/src/features/monitoring/use-monitoring-summary-aiot.spec.ts",
+      "change": "created",
+      "initial_sha256": null,
+      "sha256": "ff9d468b713cf6dabd2fc04d4d743a4be09562a15f1b53cb80df3b8619c1abbc"
+    },
+    {
+      "path": "frontend/src/features/monitoring/use-monitoring-summary.ts",
+      "change": "modified",
+      "initial_sha256": "b3fd8990cafca49acce061bd205f048c8f3f1f6b7d3d92c8e670277eea92ae7d",
+      "sha256": "4c1d876f1f404b1b0f6a47c4e17713ce11e112a63b8910d96613337f5fbead92"
+    },
+    {
+      "path": "frontend/src/views/FoundationView.spec.ts",
+      "change": "modified",
+      "initial_sha256": "dea5fa4f89f07df0bf2f864bec6db097bde6782fe2f0dc52d59e2ee544b08c04",
+      "sha256": "13f62476c488982541a9eb0fdc486527d48189ad2262372e8260c9c01a318ef3"
+    },
+    {
+      "path": "frontend/src/views/FoundationView.vue",
+      "change": "modified",
+      "initial_sha256": "21159a2a77722e6b315cd6e09aa1f04b089596fb5e27840d02752a763454d196",
+      "sha256": "0f29874b505c3b68e69423dc72f5731985c5a5969a0401763aaa5eaea0eafa62"
+    }
+  ],
+  "inventory_note": "This evidence JSON is created by B2-14 and excluded from its own hash inventory; file paths are relative to repository root.",
+  "local_log_fingerprints": [
+    {
+      "check": "backend_regression",
+      "path": "/private/tmp/coldsafe-b214-backend-final.log",
+      "sha256": "d812c0064132ca98b08c4e7bd6263199b1ee0952fc08a24c2b89e5341dbff1a1"
+    },
+    {
+      "check": "backend_coverage_without_infra",
+      "path": "/private/tmp/coldsafe-b214-backend-coverage.log",
+      "sha256": "97b13874888d04cdddd83b57ddb5211ac7e09a4f29dc1ac00965668bf630da41"
+    },
+    {
+      "check": "backend_infra_cumulative_coverage",
+      "path": "/private/tmp/coldsafe-b214-backend-coverage-integrated.log",
+      "sha256": "ec5a4fd6f59100f41bf50e96dda32a541b5b12900dff7b80d04d5d5131770408"
+    },
+    {
+      "check": "postgres",
+      "path": "/private/tmp/coldsafe-b214-pg-final.log",
+      "sha256": "7c3178f0eacce0030ee95f7f98a44083255d44c3206e826585cc9bcd4b8c4092"
+    },
+    {
+      "check": "frontend_unit",
+      "path": "/private/tmp/coldsafe-b214-unit-final.log",
+      "sha256": "0b572126547f8fb80f3d243f35b83e45ae937f5e932ec73f685a2b82ef154986"
+    },
+    {
+      "check": "legacy_e2e",
+      "path": "/private/tmp/coldsafe-b214-legacy-e2e.log",
+      "sha256": "cd2354190a5caf7431aa7ddd3c577124f873394417a55a499180537cfab82f62"
+    },
+    {
+      "check": "real_browser",
+      "path": "/private/tmp/coldsafe-b214-real-green4.log",
+      "sha256": "aad78fb28ccd42c2d96951001070fa6e1ba665a80b364ed6a4210205b888852b"
+    },
+    {
+      "check": "frontend_docker",
+      "path": "/private/tmp/coldsafe-b214-docker-build.log",
+      "sha256": "001f5ba2ce916a3eab520f33bb53ac6d06268ec2b2a17259eb7ce8db0fbaef19"
+    },
+    {
+      "check": "backend_docker",
+      "path": "/private/tmp/coldsafe-b214-backend-build.log",
+      "sha256": "335ae811cb1e2446ef8fef3a088ddf07866066b8ee5c00ed8bc4440b3d12c2fe"
+    },
+    {
+      "check": "race_regression_red",
+      "path": "/private/tmp/coldsafe-b214-races-red.log",
+      "sha256": "280af1c0657251187a1ced1f704be65d0c487f6e5baa637f984b32f09249fd2b"
+    },
+    {
+      "check": "race_regression_green",
+      "path": "/private/tmp/coldsafe-b214-races-green.log",
+      "sha256": "549925e7fc3498942306d06466b6b568d027bf4d25283a6bb7336320e0bc9a63"
+    }
+  ],
+  "checkpoint": {
+    "task": "B2-14 complete",
+    "pending_acceptance_work": [],
+    "next_task": "B2-15",
+    "next_task_started": false,
+    "next_action": "Wait for explicit user task choice; begin with local AIoT guide/card, do not depend on temporary test paths"
+  }
+}

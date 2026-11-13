@@ -1,0 +1,109 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, useTemplateRef } from 'vue'
+import { Chart as ChartJS, Legend, LineElement, LinearScale, PointElement, Tooltip, type ChartData, type ChartOptions } from 'chart.js'
+import { Scatter } from 'vue-chartjs'
+import { sensorChoices } from '../laboratory/laboratory-api'
+import type { TargetResult } from './training-api'
+ChartJS.register(Legend, LineElement, LinearScale, PointElement, Tooltip)
+const props = defineProps<{ result: TargetResult }>()
+const root = useTemplateRef<HTMLElement>('root')
+const colors = ref({ accent: '#0c6d65', muted: '#526c70', line: '#cbd8d6' })
+onMounted(() => { const style = getComputedStyle(root.value!); colors.value = { accent: style.getPropertyValue('--cs-color-accent').trim() || colors.value.accent,
+  muted: style.getPropertyValue('--cs-color-ink-muted').trim() || colors.value.muted, line: style.getPropertyValue('--cs-color-line').trim() || colors.value.line } })
+const name = computed(() => props.result.target === 'health_score_true' ? 'Saúde' : 'Vida útil restante (RUL)')
+const unit = computed(() => props.result.unit === 'points' ? 'pontos de saúde' : 'horas')
+const number = (v: number | null) => v === null ? 'Indefinido (alvo constante)' : new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 }).format(v)
+const validation = computed(() => props.result.metrics.validation)
+const preciseMae = computed(() => validation.value.candidate.mae !== validation.value.baseline.mae &&
+  number(validation.value.candidate.mae) === number(validation.value.baseline.mae))
+function validationError(value: number) {
+  const amount = preciseMae.value ? value.toLocaleString('pt-BR', { maximumSignificantDigits: 17 }) : number(value)
+  const label = value === 1 ? (props.result.unit === 'points' ? 'ponto de saúde' : 'hora') : unit.value
+  return `${amount} ${label}`
+}
+const partitions = [['validation', 'Validação'], ['test', 'Teste reservado']] as const
+const features = computed(() => [...props.result.diagnostics.permutation.features].sort((a, b) => b.mean - a.mean))
+const maxImportance = computed(() => Math.max(...features.value.map((f) => Math.abs(f.mean)), Number.EPSILON))
+function featureLabel(key: string) {
+  const sensor = sensorChoices.find(([id]) => key.startsWith(id))
+  return sensor ? `${sensor[1]} · ${key.slice(sensor[0].length).replace(/^_/, '') || 'valor'}` : key
+}
+const chartData = computed<ChartData<'scatter'>>(() => {
+  const points = props.result.diagnostics.scatter
+  const min = Math.min(...points.flatMap((p) => [p.actual, p.predicted]))
+  const max = Math.max(...points.flatMap((p) => [p.actual, p.predicted]))
+  return { datasets: [
+    { label: 'Candidato', data: points.map((p) => ({ x: p.actual, y: p.predicted })), backgroundColor: colors.value.accent, pointRadius: 3 },
+    { label: 'Previsão perfeita', data: [{ x: min, y: min }, { x: max, y: max }], showLine: true, pointRadius: 0, borderDash: [5, 5], borderColor: colors.value.muted, borderWidth: 1 },
+  ] }
+})
+const options = computed<ChartOptions<'scatter'>>(() => ({ responsive: true, maintainAspectRatio: false, animation: false,
+  plugins: { legend: { labels: { color: colors.value.muted } } }, scales: {
+    x: { type: 'linear', title: { display: true, text: `Real (${unit.value})`, color: colors.value.muted }, grid: { color: colors.value.line }, ticks: { color: colors.value.muted } },
+    y: { type: 'linear', title: { display: true, text: `Previsto (${unit.value})`, color: colors.value.muted }, grid: { color: colors.value.line }, ticks: { color: colors.value.muted } },
+  } }))
+</script>
+
+<template>
+  <section ref="root" class="target" :aria-label="`Resultados de ${name}`">
+    <h3>{{ name }}</h3>
+    <p class="verdict" :class="result.status">{{ result.status === 'eligible' ? 'Apto pela validação' : 'Rejeitado pela validação' }}</p>
+    <p class="metric-label">Erro médio absoluto na validação (MAE)</p>
+    <dl class="validation-summary">
+      <div><dt>Candidato</dt><dd>{{ validationError(validation.candidate.mae) }}</dd></div>
+      <div><dt>Referência</dt><dd>{{ validationError(validation.baseline.mae) }}</dd></div>
+    </dl>
+    <p v-if="result.near_failure" class="warning">O erro da estimativa pode ser alto nas últimas {{ result.near_failure.threshold_hours }} horas antes da falha.</p>
+    <details class="diagnostics">
+      <summary>Métricas e diagnósticos</summary>
+      <p>MAE e RMSE são medidos em {{ unit }}. Valores menores indicam menos erro. R² maior é melhor e pode ser negativo. A referência (baseline) prevê um valor constante aprendido no treino.</p>
+      <p :id="`table-help-${result.target}`" class="table-hint">As tabelas permitem rolagem horizontal. Foque a tabela e use as setas para acessar todas as colunas.</p>
+      <div class="table-scroll" role="region" :aria-describedby="`table-help-${result.target}`" :aria-label="`Métricas de ${name}`" tabindex="0">
+        <table><caption>Comparação no conjunto completo de cada partição</caption><thead><tr><th scope="col">Partição</th><th scope="col">Modelo</th><th scope="col">MAE</th><th scope="col">RMSE</th><th scope="col">R²</th></tr></thead>
+          <tbody><template v-for="[key, label] in partitions" :key="key"><tr v-for="model in (['baseline', 'candidate'] as const)" :key="model"><th scope="row">{{ label }}</th><td class="model-name">{{ model === 'baseline' ? 'Baseline' : 'Candidato' }}</td><td>{{ number(result.metrics[key][model].mae) }}</td><td>{{ number(result.metrics[key][model].rmse) }}</td><td>{{ number(result.metrics[key][model].r2) }}</td></tr></template></tbody>
+        </table>
+      </div>
+      <p>Linhas: treino {{ number(result.partition_rows.train) }}, validação {{ number(result.partition_rows.validation) }}, teste {{ number(result.partition_rows.test) }}.</p>
+      <h4>Previsto × real</h4>
+      <p>{{ result.diagnostics.sample_count }} de {{ number(result.diagnostics.total_rows) }} linhas do teste, sorteadas sem reposição após a escolha (seed {{ result.diagnostics.sample_seed }}; máximo 500). Pontos próximos da diagonal indicam previsões próximas do valor real. Erro = previsto − real; positivo superestima.</p>
+      <div class="chart" role="img" :aria-label="`Previsto versus real de ${name}, em ${unit}; tabela de erros disponível abaixo`"><Scatter :data="chartData" :options="options" /></div>
+      <details><summary>Inspecionar erros em tabela ({{ result.diagnostics.sample_count }} linhas)</summary>
+        <div class="table-scroll sample" role="region" :aria-describedby="`table-help-${result.target}`" :aria-label="`Erros de ${name}`" tabindex="0"><table><caption>Amostra reservada; valores em {{ unit }}</caption><thead><tr><th scope="col">Real</th><th scope="col">Previsto</th><th scope="col">Baseline</th><th scope="col">Erro</th></tr></thead><tbody><tr v-for="(point, index) in result.diagnostics.scatter" :key="index"><td>{{ number(point.actual) }}</td><td>{{ number(point.predicted) }}</td><td>{{ number(point.baseline) }}</td><td>{{ number(point.error) }}</td></tr></tbody></table></div>
+      </details>
+      <h4>Importância por permutação</h4>
+      <p>Aumento médio de MAE ao embaralhar uma variável, em {{ unit }}, com 3 repetições na mesma amostra reservada. Importância negativa indica melhora na amostra ao embaralhar; não demonstra causalidade. MAE de referência da amostra: {{ number(result.diagnostics.permutation.reference_mae) }}.</p>
+      <div class="table-scroll" role="region" :aria-describedby="`table-help-${result.target}`" :aria-label="`Importância em ${name}`" tabindex="0"><table><caption>Variáveis e variação média de erro; barras mantêm o sinal</caption><thead><tr><th scope="col">Variável</th><th scope="col">Aumento médio do MAE</th><th scope="col">Desvio padrão</th></tr></thead><tbody><tr v-for="feature in features" :key="feature.name"><th scope="row"><span>{{ featureLabel(feature.name) }}</span><small>{{ feature.name }}</small></th><td><span class="importance" aria-hidden="true"><i :class="{ negative: feature.mean < 0 }" :style="{ width: `${Math.abs(feature.mean) / maxImportance * 50}%`, left: feature.mean < 0 ? `${50 - Math.abs(feature.mean) / maxImportance * 50}%` : '50%' }"></i></span>{{ number(feature.mean) }}</td><td>{{ number(feature.std) }}</td></tr></tbody></table></div>
+      <template v-if="result.near_failure">
+        <h4>Últimas {{ result.near_failure.threshold_hours }} horas antes da falha</h4>
+        <p class="warning">Recorte de avaliação: erros ainda podem ser grandes perto da falha. R² negativo indica desempenho pior que prever a média do próprio recorte; não use esta estimativa como garantia operacional.</p>
+        <div class="table-scroll" role="region" :aria-describedby="`table-help-${result.target}`" aria-label="Métricas perto da falha" tabindex="0"><table><caption>RUL perto da falha, em horas</caption><thead><tr><th scope="col">Partição</th><th scope="col">Linhas</th><th scope="col">Modelo</th><th scope="col">MAE</th><th scope="col">RMSE</th><th scope="col">R²</th></tr></thead><tbody><template v-for="[key, label] in partitions" :key="key"><tr v-for="model in (['baseline', 'candidate'] as const)" :key="model"><th scope="row">{{ label }}</th><td>{{ number(result.near_failure[key].row_count) }}</td><td class="model-name">{{ model === 'baseline' ? 'Baseline' : 'Candidato' }}</td><td>{{ result.near_failure[key][model] ? number(result.near_failure[key][model]!.mae) : 'Sem linhas' }}</td><td>{{ result.near_failure[key][model] ? number(result.near_failure[key][model]!.rmse) : 'Sem linhas' }}</td><td>{{ result.near_failure[key][model] ? number(result.near_failure[key][model]!.r2) : 'Sem linhas' }}</td></tr></template></tbody></table></div>
+      </template>
+    </details>
+  </section>
+</template>
+
+<style scoped>
+.target { border: 1px solid var(--cs-color-line); border-radius: var(--cs-radius-8); padding: var(--cs-space-24); min-width: 0; overflow-wrap: anywhere; }
+h3 { font-size: var(--cs-type-20); font-weight: 650; } h4 { margin-top: var(--cs-space-24); font-size: var(--cs-type-16); font-weight: 600; }
+p { margin-top: var(--cs-space-12); line-height: 1.6; }
+.table-hint, .metric-label, dt { font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
+small { display: block; font-size: var(--cs-type-14); color: var(--cs-color-ink-muted); }
+.validation-summary { display: flex; flex-wrap: wrap; gap: var(--cs-space-8) var(--cs-space-24); margin-top: var(--cs-space-8); }
+dd { font-weight: 650; font-variant-numeric: tabular-nums; }
+.diagnostics { margin-top: var(--cs-space-12); }
+.verdict { display: inline-block; font-weight: 650; padding: var(--cs-space-8) var(--cs-space-12); border-radius: var(--cs-radius-4); }
+.eligible { color: var(--cs-color-status-normal); background: var(--cs-color-normal-surface); }.rejected { color: var(--cs-color-status-attention); background: var(--cs-color-attention-surface); }
+.table-scroll { overflow: auto; max-width: 100%; margin-top: var(--cs-space-16); }
+table { width: 100%; border-collapse: collapse; text-align: left; font-size: var(--cs-type-14); font-variant-numeric: tabular-nums; }
+th, td { border-bottom: 1px solid var(--cs-color-line); padding: var(--cs-space-12); white-space: nowrap; }
+th { font-weight: 600; } td { text-align: right; } td.model-name { text-align: left; }
+caption { text-align: left; color: var(--cs-color-ink-muted); padding-bottom: var(--cs-space-8); }
+.chart { height: 300px; min-width: 0; margin-top: var(--cs-space-16); }
+summary { min-height: var(--cs-control-min-height); cursor: pointer; display: list-item; align-content: center; color: var(--cs-color-accent); text-decoration: underline; text-underline-offset: .2em; }
+.sample { max-height: 320px; }
+.warning { padding: var(--cs-space-12); background: var(--cs-color-attention-surface); color: var(--cs-color-status-attention); border-radius: var(--cs-radius-8); }
+.importance { display: inline-block; position: relative; height: 10px; width: 100px; margin-right: var(--cs-space-12); background: linear-gradient(to right, transparent 49.5%, var(--cs-color-ink-muted) 49.5%, var(--cs-color-ink-muted) 50.5%, transparent 50.5%); }
+.importance i { position: absolute; height: 100%; background: var(--cs-color-accent); }.importance i.negative { background: var(--cs-color-status-attention); }
+@media (max-width: 1100px) { .target { padding: var(--cs-space-16); } }
+@media (max-width: 600px) { .chart { height: 260px; } }
+</style>

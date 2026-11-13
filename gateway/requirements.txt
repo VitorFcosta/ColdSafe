@@ -1,0 +1,4 @@
+-r ../simulator/requirements.txt
+pika==1.4.4
+psycopg[binary]==3.3.6
+typing_extensions==4.16.0

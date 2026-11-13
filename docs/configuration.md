@@ -2,27 +2,46 @@
 
 Esta página separa configuração versionável de credenciais locais.
 
+## Partida padrão da pilha completa
+
+Após o comissionamento descrito no [runbook](runbook.md), execute
+`docker compose up` ou `docker compose up -d` na raiz do checkout.
+O Compose combina automaticamente `compose.yaml` e `compose.override.yaml`:
+14 serviços persistentes e dois inicializadores, sem selecionar arquivos ou perfis.
+Conta, catálogo, tokens e pesos preparados continuam sendo pré-requisitos;
+o download dos pesos usa `ollama-prepare` com o perfil explícito `llm-setup`.
+
+Os exemplos com `-f` nas seções abaixo conservam composições explícitas para
+comissionamento, compatibilidade e testes isolados. Informar `-f` desativa a
+descoberta automática do override: para acrescentar diagnóstico à pilha completa,
+inclua também `-f compose.override.yaml`. Não é necessário reaplicar os cinco
+arquivos antigos para a operação normal. `COMPOSE_FILE`/`COMPOSE_PROFILES`
+externos também podem alterar a seleção padrão; confira `docker compose config
+--services`, sem divulgar a configuração resolvida que contém segredos.
+
 ## Versões do projeto
 
-- Python: `3.13.15`, registrado em `.python-version`.
-- Node.js: `24.20.0`, registrado em `.nvmrc`.
-- Dependências Python diretas: `backend/requirements-dev.txt`.
-- Lock Python reproduzível: `backend/requirements-dev.lock.txt`.
-
-A matriz completa, incluindo dependências ainda não instaladas e imagens Docker planejadas, está em [`docs/version-matrix.md`](version-matrix.md).
+A fonte principal é a [matriz de versões](version-matrix.md), com runtimes,
+manifestos, locks e dependências previstas. Não repetir a matriz nesta página.
 
 O computador pode ter outra versão instalada, mas desenvolvimento, Docker e CI devem convergir para as versões registradas. Não use tags `latest`, intervalos abertos ou atualizações automáticas silenciosas nos manifestos finais.
 
 ## Criar a configuração local
 
-Na raiz do projeto:
+O [runbook](runbook.md#2-criar-a-configuração-local) cria o `.env` da raiz e
+orienta o [cadastro do simulador](runbook.md#pilha-final-aiot-jobs-inferência-e-assistente)
+em `simulator/local/catalog.json`. Mantenha as credenciais no `.env`; o catálogo
+contém somente identidade e configuração da borda. Use
+`firmware/include/secrets.h` apenas para ESP32/Wokwi.
 
-```bash
-cp .env.example .env
-cp firmware/include/secrets.example.h firmware/include/secrets.h
-```
-
-Depois, preencha somente os arquivos locais `.env` e `firmware/include/secrets.h`.
+Use `python3 scripts/generate-secrets.py` para criar/completar o `.env` com
+segredos aleatórios distintos, sem imprimir valores ou sobrescrever credenciais
+existentes. O arquivo fica com `0600`; o script versionado não contém segredos.
+`INFLUXDB_TOKEN` continua dependendo da autorização restrita criada pelo banco.
+`INFLUXDB_WRITER_TOKEN` também fica vazio até criar autorização InfluxDB:
+somente escrita no bucket `telemetry_live`, exclusiva do gravador B2-12.
+O build Docker do frontend usa a mesma origem; `VITE_API_BASE_URL` é apenas uma
+opção do Vite local. Alterar uma variável no container não recompila o JavaScript.
 
 ## Valores que precisam ser definidos localmente
 
@@ -36,6 +55,23 @@ No `.env`:
 - `DOCKER_INFLUXDB_INIT_PASSWORD`
 - `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`
 - `POSTGRES_PASSWORD`
+- `AUTH_JWT_SECRET` (chave aleatória privada, no mínimo 32 caracteres)
+
+A infraestrutura exige também as onze senhas `RABBITMQ_*_PASSWORD` listadas em
+`.env.example`, aleatórias, distintas e com pelo menos 32 caracteres.
+São identidades próprias por serviço, sem `guest` ou administrador de aplicação.
+O bootstrap gera hashes num volume privado; não escreva senhas/definições
+geradas no Git. Consulte [infra RabbitMQ](../infra/rabbitmq/README.md) para
+permissões e inicialização. A entrega não alterou o `.env` pessoal; os testes
+criam credenciais exclusivamente temporárias.
+
+A chave JWT assina os novos tokens. Gere uma vez, fora do Git, e conserve o
+valor entre reinícios; não reutilize senhas dos bancos. O Compose exige esse
+campo e o backend recusa chave ausente/curta. `.env.example` contém apenas o
+campo vazio. Após a entrega B2-06, o usuário solicitou a configuração local:
+a chave JWT foi acrescentada ao `.env` privado, preservando as demais credenciais.
+Trocar a chave invalida os JWT emitidos anteriormente; revogação normal usa
+o registro de sessões no PostgreSQL, sem precisar trocar a chave.
 
 `POSTGRES_DB` e `POSTGRES_USER` têm valores locais padrão (`coldsafe`). O
 backend usa `POSTGRES_HOST=postgres` e a porta interna `5432`; no Compose,
@@ -55,22 +91,390 @@ testes em conjunto.
 O SSID `Wokwi-GUEST`, o host `host.wokwi.internal` e os identificadores
 `esp32-lab-01`/`esp32-lab-02` são configurações demonstrativas, não credenciais.
 
+## Simulador opcional B2-09/10
+
+O simulador integra a pilha completa padrão. Na base explícita
+`-f compose.yaml`, ele é opcional e fica no perfil `simulator`.
+
+O perfil `simulator` usa `MQTT_SIMULATOR_PASSWORD` e
+`MQTT_SIMULATOR_OPERATOR_PASSWORD`, geradas pelo mesmo script idempotente.
+Campos vazios não criam essas contas no broker e não impedem a pilha v1/v2.
+Para habilitar o simulador, forneça a senha do dispositivo e um `catalog.json`
+válido em `SIMULATOR_CATALOG_DIR` (padrão `simulator/local`, fora do Git/build).
+O arquivo é cadastro local de borda; use IDs reais de ambiente/dispositivo do
+PostgreSQL quando integrar ao produto. Equipamento/sensores/atuadores ainda
+são registrados localmente, sem API/tabelas. O gateway B2-11 cruza dispositivo
+ativo, ambiente e proprietário esperado no PostgreSQL; não confia só nesses IDs.
+A B2-10 usa também `MQTT_GATEWAY_PASSWORD` para a conta `coldsafe-gateway`,
+com publicação apenas dos comandos v3 do simulador e leitura de seus ACKs e
+telemetria. O gerador cria a senha quando ausente, sem rotacionar valores.
+É uma credencial distinta de `RABBITMQ_GATEWAY_PASSWORD`. O perfil `aiot` inicia o
+serviço da B2-11 e exige `GATEWAY_OWNER_USER_ID`, UUID do dono cadastrado no PostgreSQL,
+além das senhas dos dois brokers e do mesmo catálogo privado. Seu diário persistente
+fica no volume `gateway-state`; não o apague em reinícios. Operação, teste isolado
+e limite do diário estão em [`gateway/README.md`](../gateway/README.md).
+Campos MQTT vazios não provisionam a conta nem habilitam o gateway.
+Preparação, permissões, ritmo de simulação e comandos do operador estão em
+[`simulator/README.md`](../simulator/README.md). Nenhum segredo pessoal foi
+alterado na execução B2-09; integração usa credenciais descartáveis.
+
+## Ollama local e memória B2-30
+
+As definições de `compose.ollama.yaml` e `compose.jobs.yaml` são reutilizadas
+pela composição padrão. Ela passa `OLLAMA_URL=http://ollama:11434` à API, aos
+dois workers pesados e ao coordenador `llm`. A base explícita `-f compose.yaml`
+continua sem essa variável para o comissionamento inicial. Fora do Compose,
+só são aceitos HTTP em `ollama` ou loopback, sem
+credenciais, caminho ou query; não apontar para servidores de nuvem.
+
+Prepare os pesos **antes da apresentação**, com `ollama` e `llm` parados:
+
+```sh
+docker compose --profile llm-setup run --rm --no-deps ollama-prepare
+```
+
+Somente esse serviço temporário possui saída de rede, baixa pesos públicos e
+grava em `ollama-data`; não recebe credenciais da aplicação nem monta datasets.
+Não executar o preparo em paralelo ao runtime sobre o mesmo volume.
+O runtime monta os pesos somente para leitura, não publica porta e usa apenas
+a rede interna `coldsafe-llm`. `OLLAMA_NO_CLOUD=1`, ausência de API key,
+transporte sem proxy/redirecionamento e ausência de saída de rede evitam
+envio de dados a serviços externos. O primeiro download exige internet; a
+operação posterior usa o volume local, inclusive após recriar o container.
+
+Para iniciar a pilha completa depois do preparo:
+
+```sh
+docker compose config --quiet
+docker compose up -d
+```
+
+O modelo configurado na correção B2-32 é `llama3.2:3b-instruct-q4_K_M`, variante
+explícita Llama 3.2 **3B Q4**. O perfil 1B anterior reprovou a avaliação factual;
+as comparações e o aceite do perfil novo ficam no
+[registro da avaliação B2-32](evidence/b2-32-final-2026-10-22.json). Ollama `0.40.3`, CPU, contexto de 1.024
+tokens, quatro threads, uma requisição e um modelo por vez; limite de
+**3,25 GiB/4 CPUs** (`3328m`). A margem de 256 MiB sobre 3 GiB foi introduzida
+na correção após eventos de teto de memória e um timeout na rodada repetida.
+O registro inclui as medições e os limites da avaliação.
+Esses limites não certificam a capacidade da pilha completa,
+reservada à B2-33. Os registros antigos B2-03/B2-30 descrevem seus perfis originais.
+Pré-carga e chat fixam `num_batch=128` em vez do padrão 512 para medir menor
+pressão no processamento da entrada; benchmark usa o mesmo lote. O parâmetro
+é de carregamento do executor, conforme
+[o código oficial 0.40.3](https://github.com/ollama/ollama/blob/v0.40.3/api/types.go)
+e [seu encaminhamento ao executor](https://github.com/ollama/ollama/blob/v0.40.3/llm/llama_server.go).
+
+O perfil 3B tem prazo total de geração de 90 s e leitura HTTP limitada pelo mesmo
+prazo; conexão continua em 3 s e descarga/limpeza em até 12 s. O proxy admite
+120 s de inatividade para receber o terminal após a limpeza; o navegador admite
+130 s no total, incluindo rede e pré-validação. O limite anterior
+de 60 s interrompeu uma resposta com dois equipamentos no ensaio da correção.
+
+Os pesos 3B são uma dependência de infraestrutura diferente dos pesos 1B:
+repita o preparo explícito acima antes de subir este perfil. O runtime não faz
+download. O preparo acrescenta os pesos novos ao volume; não apague volumes ou
+modelos pessoais para atualizar. Modelo e quantização:
+[biblioteca oficial](https://ollama.com/library/llama3.2:3b-instruct-q4_K_M).
+
+`python -m backend.app.llm_worker` tenta pré-carregar com prompt vazio sob o
+mesmo lock PostgreSQL que serializa geração/treino. Um marcador durável de
+pré-carga impede o início do cálculo mesmo se a sessão do coordenador cair
+enquanto o Ollama ainda estiver carregando. Antes de iniciar o cálculo,
+o worker descarrega os modelos residentes e confirma `/api/ps` vazio.
+Se não confirmar, conserva o job aguardando e a entrega AMQP pendente, sem
+iniciar o handler nem gastar retries por indisponibilidade do Ollama.
+O coordenador consulta novamente a cada dois segundos e recarrega após o job,
+inclusive quando o handler falha. Jobs ainda `running` impedem a recarga mesmo
+se o lock da sessão foi perdido. Um job órfão conserva o LLM pausado: retome
+o worker/entrega original e confira seu estado; não altere status manualmente
+para forçar recarga enquanto um cálculo puder estar vivo.
+
+Se houver timeout, interrupção do coordenador ou queda da sessão **durante a pré-carga**, o registro em
+`llm_memory_guard` permanece e bloqueia jobs e novas cargas. `/api/ps` vazio
+não prova ausência de carregamento em curso nessa situação. Para recuperar,
+pare `llm`, reinicie `ollama` para encerrar qualquer loader e só então remova
+o marcador via PostgreSQL; volte a iniciar `llm`. Preserve os mesmos arquivos
+`-f` usados na instalação. Não limpe o marcador com o carregador ainda vivo.
+No shell SQL do banco, depois dessas duas ações:
+
+```sql
+DELETE FROM llm_memory_guard WHERE id = 1;
+```
+
+Esse procedimento remove apenas a trava operacional, sem apagar jobs/modelos.
+O sistema prefere aguardar intervenção a arriscar sobreposição de memória.
+
+`GET /api/v3/llm/status` exige sessão e informa somente o estado da infraestrutura,
+sem IDs ou dados de jobs de outras contas. Laboratório e Treinamento explicam
+carregamento, pausa para liberar memória, ausência dos pesos e indisponibilidade.
+Ollama indisponível não derruba a readiness geral do monitoramento.
+Para diagnóstico: `docker compose ... logs llm ollama` e `docker compose ... exec ollama ollama ps`.
+Modelo ausente exige repetir o preparo; reinício normal não baixa pesos.
+Conversa/contexto autorizado/streaming pertencem às B2-31/B2-32.
+
+Sem dependência Python/Node nova, Redis ou Celery. A migração 012 acrescenta
+somente o marcador de coordenação, sem alterar dados de usuários/telemetria.
+Dependência de
+infraestrutura adicionada: imagem Ollama e pesos públicos persistentes.
+Semântica de pré-carga/descarga: [FAQ oficial](https://docs.ollama.com/faq).
+Quantização: [biblioteca oficial](https://ollama.com/library/llama3.2/tags).
+
+## Jobs assíncronos B2-17
+
+Opt-in separado, sem modificar o ambiente pessoal automaticamente:
+
+```sh
+docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml up -d --build backend generation training
+```
+
+Antes de usar em dados importantes, seguir backup/restauração no
+[guia de migrações](../backend/migrations/README.md); o runner aplicará até a 012.
+O exemplo combina AIoT existente com jobs, mas jobs não exigem catálogo/dispositivo.
+As credenciais `RABBITMQ_API_PASSWORD`, `RABBITMQ_GENERATION_PASSWORD` e
+`RABBITMQ_TRAINING_PASSWORD` já constam de `.env.example` e da topologia B2-07.
+API publica usando somente sua identidade; cada worker recebe somente a própria
+credencial AMQP. Não compartilhar senhas entre papéis. Workers reaproveitam imagem,
+ambiente PostgreSQL, usuário sem privilégios, filesystem read-only e rede interna
+do backend. Não publicam portas. Na B2-33, o healthcheck HTTP herdado foi
+substituído por heartbeat do próprio laço AMQP, inclusive enquanto aguarda
+trabalhos longos. Ele indica atividade do laço; conclusão do cálculo e prontidão
+do assistente são estados separados. Limites e ensaio ficam no
+[ensaio B2-33](evidence/b2-33.json).
+
+API instala as rotas de jobs e de consulta privada de datasets quando a sua credencial está presente; sem ela,
+o comportamento anterior permanece. `202` significa solicitação persistida;
+broker indisponível deixa a publicação na outbox e não exige esperar no HTTP.
+Consultar o job mostra o estado durável, mesmo com worker parado.
+Readiness geral não depende do publicador de jobs: a API pode enfileirar na outbox
+durante uma indisponibilidade AMQP. As demais dependências de readiness permanecem.
+
+Workers podem ser executados com o ambiente do backend por
+`python -m backend.app.job_worker --role generation` ou `--role training`.
+Geração massiva está instalada na B2-18; B2-23 instala preparo e os dois treinos
+em filhos separados/sequenciais, sem ativar o pacote no monitoramento.
+`JOB_ARTIFACT_ROOT` define a raiz interna, padrão `/app/artifacts`. O overlay
+monta o volume persistente `job-artifacts`: RW só para geração, RO para API/treino.
+A imagem prepara proprietário/permissões para seu usuário sem privilégios.
+Se trocar a raiz, ajuste também a montagem; não aponte para buckets/volumes live.
+Geração tem limite de 512 MiB/1 CPU; não é garantia de capacidade da pilha completa.
+`TRAINING_ARTIFACT_ROOT` define a raiz de resultados, padrão
+`/app/training-artifacts`: volume separado `training-artifacts`, RW somente no
+treinamento e RO na API. O worker de treino tem limite inicial de 1 GiB/1 CPU;
+o ensaio HTTP/AMQP/browser não equivale à medição de toda a pilha nesse limite.
+Fora do Compose, forneça as duas raízes acessíveis aos respectivos processos.
+Retomada recalcula em nova tentativa e preserva o contador; pastas parciais e
+preparos completos são conservados, sem expurgo automático. Não apague arquivos
+de jobs ativos nem pacotes referenciados por `models`.
+Formato, retomada, limpeza de órfãos e benchmark estão no
+[backend](../backend/README.md#geração-offline-b2-18).
+
+O bloqueio global é de sessão PostgreSQL e vale entre geração e treino de todas
+as contas. Worker interrompido deixa checkpoint no banco e entrega sem ACK;
+reinício da geração repete deterministicamente em diretório novo e preserva o contador.
+Não reiniciar PostgreSQL enquanto houver cálculo real: a perda da sessão libera
+o lock; o executor só detecta isso no próximo checkpoint. Esta tarefa não prova
+alta disponibilidade durante falha do coordenador.
+
+Progresso HTTP/SSE e parâmetros estão no
+[contrato B2-17](../contracts/aiot.md#jobs-http-e-progresso-sse--b2-17).
+O stream lê estado privado no banco a cada segundo, revalida sessão e termina ao
+revogar acesso ou concluir. Solicitações e eventos AMQP permanecem duráveis;
+outbox não tem expurgo automático. Não remover solicitações de jobs ativos.
+
+Na B2-19, `/laboratory` no frontend permite gerar e inspecionar datasets privados.
+Reconstrua também `frontend` para disponibilizar a página. O formulário exige
+admin; consultas ao artefato usam a montagem RO já existente na API. Não é
+necessária nova variável, porta ou dependência. `?job=UUID` na URL recupera o
+estado após recarga; salve essa URL para retomar o mesmo job. Sem a configuração
+de jobs acima, a página informa erro de consulta/execução; ela não ativa workers.
+Contrato de resumo/amostra em [datasets](../contracts/aiot.md#consulta-privada-de-datasets--b2-19).
+
+Na B2-23, `/training` permite selecionar um dataset concluído da conta ou seguir
+o link do Laboratório. Apenas admin envia o treinamento; `?job=UUID` recupera
+o acompanhamento e os resultados após recarga. A API precisa das duas montagens
+RO descritas acima. Sem o worker `training`, o job permanece enfileirado.
+Métricas são de regressão offline; concluir o job ou vencer a baseline não ativa
+um modelo no monitoramento. Contrato em [B2-23](../contracts/aiot.md#resultados-e-diagnósticos-de-treinamento--b2-23).
+
+## Ativação de modelos B2-24
+
+O overlay de jobs também define `models`, com `RABBITMQ_INFERENCE_PASSWORD`
+(credencial já prevista na topologia), `TRAINING_ARTIFACT_ROOT` e volume de treino
+somente leitura. Não precisa catálogo live, MQTT, porta publicada ou biblioteca
+nova. Limite inicial: 512 MiB/1 CPU, sujeito à medição da pilha na B2-33.
+
+Antes de habilitar, reconstruir o bootstrap e atualizar RabbitMQ preservando
+volumes, conforme [infra](../infra/rabbitmq/README.md), para instalar a décima
+fila `coldsafe.model-activation` e seu ACL. Rebuild coordenado dos consumidores
+também leva a correção do schema para `features_version` com `+`. O backend
+atualizado de Mensageria espera as dez filas. Depois, no ambiente já configurado:
+
+```sh
+docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml up -d --build backend models
+```
+
+Fora do Compose: `python -m backend.app.model_worker`, com configuração PostgreSQL,
+RabbitMQ e volume RO próprios. A API usa apenas `RABBITMQ_API_PASSWORD` para
+publicar pedidos; o worker usa apenas sua identidade `inference`. As rotas ficam
+disponíveis junto do opt-in dos jobs. `202` conserva pedido mesmo com worker/broker
+parado; consulte status antes de enviar novamente, pois só uma ativação pode ficar
+pendente por dono. A [API privada](../contracts/aiot.md#ativação-implementada--b2-24)
+lista modelos, registra ativação e informa versão ativa/erros. A interface web de
+ativação não faz parte desta entrega.
+
+Retomada do mesmo pedido em `loading` recarrega o pacote. Se o broker esgotar o
+limite de redelivery, faça recuperação manual da mensagem original da DLQ, com
+mesmos IDs/propriedades; não exclua outbox/ativação para liberar outro pedido.
+Para voltar à versão anterior, envie um novo pedido usando o ID anterior; não
+edite `active_models` por SQL. Não apagar pacotes referenciados, inclusive antigos.
+Registro ativo é durável; reidratação e inferência online ficam para B2-25.
+
+## Inferência ao vivo B2-25
+
+Opt-in sobre AIoT/jobs, com o mesmo catálogo e proprietário já comissionados:
+
+```sh
+docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml -f compose.inference.yaml config --quiet
+docker compose -f compose.yaml -f compose.aiot.yaml -f compose.jobs.yaml -f compose.inference.yaml up -d --build backend models frontend
+```
+
+Esses comandos são instruções para implantação autorizada; os ensaios desta
+entrega usam infraestrutura descartável. O último overlay substitui somente o
+comando do serviço `models`: não inicie outro worker de ativação concorrente por
+engano. Preserva 512 MiB/1 CPU e artefatos RO, acrescentando catálogo RO em
+`/catalog/catalog.json` a partir de `SIMULATOR_CATALOG_DIR` e dono
+`AIOT_OWNER_USER_ID` a partir de `GATEWAY_OWNER_USER_ID`. Não publica portas nem
+precisa de nova biblioteca/credencial: usa `RABBITMQ_INFERENCE_PASSWORD` existente.
+O runner aplica migração aditiva 010; seguir backup no guia de migrações antes.
+
+Fora do Compose, `python -m backend.app.inference_worker` exige configuração
+PostgreSQL/RabbitMQ, raiz privada de treino, `AIOT_CATALOG_PATH` e
+`AIOT_OWNER_USER_ID`. Não precisa ativar consumidores da API no mesmo processo.
+O frontend deve ser reconstruído em modo AIoT para exibir previsão. Backend/writer/
+gateway precisam estar operantes para a fonte e sua prova de persistência chegarem
+ao WebSocket, conforme a integração anterior; este overlay não os comissiona.
+
+Ativação segue a API B2-24. O worker restaura o modelo ativo ao iniciar e troca
+sem reinício; pacote reprovado/incompleto não muda a versão anterior. Sem histórico
+prévio, o padrão 900/3600 s exige uma hora de coleta. Estados de indisponibilidade
+são informados, sem inventar zero. Não apagar `inference_events` para acelerar
+warm-up/retry: histórico, IDs e saída formam a deduplicação durável.
+
+Consulta é limitada à janela e até 10.000 registros incluindo âncora; excesso gera
+`invalid_features`. Disco cresce sem expurgo automático, e JSON/histórico têm custo
+de I/O por previsão. Revogar dono/desativar dispositivo fecha a publicação e pode
+encerrar/reiniciar esse runtime; corrigir o comissionamento antes de retomar.
+Perdas repetidas de conexão ainda podem esgotar redelivery e exigir recuperação
+manual da mensagem original na DLQ. Ver [contrato](../contracts/aiot.md#inferência-ao-vivo-implementada--b2-25).
+
+## API AIoT opcional B2-13
+
+A pilha completa padrão habilita a API v3 e compila o frontend para v3.
+Esta seção descreve o overlay para quem escolhe uma composição explícita.
+
+Depois de preparar catálogo, proprietário, brokers e token exclusivo do writer,
+habilite a API com o overlay explícito:
+
+```sh
+docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot --profile simulator config --quiet
+docker compose -f compose.yaml -f compose.aiot.yaml --profile aiot --profile simulator up -d --build frontend backend gateway writer simulator
+```
+
+O overlay define `AIOT_ENABLED=true`, `AIOT_CATALOG_PATH=/catalog/catalog.json`,
+`AIOT_OWNER_USER_ID` a partir de `GATEWAY_OWNER_USER_ID`, e injeta somente as
+senhas AMQP `commands`/`delivery` e a credencial HTTP `monitor` no backend. Monte o mesmo catálogo privado do
+gateway/writer; `WRITER_OWNER_USER_ID` deve ser o mesmo dono. Fora do Docker,
+informe esses campos e `RABBITMQ_HOST/PORT`. Configuração incompleta é recusada.
+Na base explícita `-f compose.yaml`, a API v3 fica desabilitada e o backend
+conserva v1/v2.
+
+Na B2-14, o overlay também passa `VITE_AIOT_ENABLED=true` ao build do frontend.
+Reconstrua `frontend` com o mesmo overlay para conectar a tela ao stream/REST v3.
+A variável não altera um JavaScript já compilado. Em desenvolvimento local,
+defina `VITE_AIOT_ENABLED=true` e `VITE_API_BASE_URL` antes de iniciar Vite.
+
+Não há token InfluxDB adicional na API: seu estado/histórico processado v3 é
+consultado no PostgreSQL; `telemetry_persisted` comprova a gravação pelo writer.
+O token legado conserva as permissões anteriores. Na instalação RabbitMQ já
+existente, as novas ACLs/bindings de recibos precisam ser importadas pelo bootstrap;
+não apague volumes. Consulte [infra RabbitMQ](../infra/rabbitmq/README.md).
+Esta entrega valida uma pilha descartável, sem modificar as credenciais pessoais.
+
+## Mensageria B2-15
+
+`RABBITMQ_MONITOR_PASSWORD` é a nova credencial exclusiva do backend para
+consultar métricas HTTP do RabbitMQ. O gerador preenche essa chave se ausente,
+sem mudar os demais segredos. O bootstrap cria `coldsafe-monitor` com tag
+`management` e sem permissão de configurar/publicar/consumir mensagens.
+Em instalações existentes, reexecute bootstrap/import preservando volumes;
+não basta inserir a chave no backend sem provisionar o usuário no broker.
+
+Para atualizar uma instalação existente já configurada, em uma janela de
+manutenção (o restart interrompe conexões brevemente):
+
+```sh
+python3 scripts/generate-secrets.py
+docker compose -f compose.yaml -f compose.messaging.yaml run --rm --no-deps --build rabbitmq-init
+docker compose -f compose.yaml -f compose.messaging.yaml restart rabbitmq
+docker compose -f compose.yaml -f compose.messaging.yaml up -d --build --no-deps backend frontend
+```
+
+Os comandos preservam volumes e valores existentes. `compose.messaging.yaml`
+habilita métricas e o observador B2-16, conservando o modo do dashboard;
+não exige catálogo nem habilita o modo AIoT completo. Não execute `down --volumes`
+na pilha pessoal.
+
+`compose.messaging.yaml` injeta a senha e `RABBITMQ_MANAGEMENT_PORT=15672` no backend;
+o host é `RABBITMQ_HOST`. Nenhuma variável `VITE_*` contém a credencial e nenhuma
+porta adicional é publicada. Fora do Compose, esses três campos habilitam a rota
+de métricas independentemente dos consumidores AIoT. Sem a senha configurada,
+a rota não é instalada (404); a página informa a falha e a operação legada continua separada.
+O overlay `compose.aiot.yaml` também inclui essas variáveis para quem já ativou
+o percurso AIoT completo. Ao atualizar a instalação, conserve o overlay escolhido.
+
+Acesse `/messaging` com conta **admin** ColdSafe. As filas são compartilhadas,
+por isso os números são agregados de infraestrutura: viewer/operator não os
+consultam e nem administradores recebem corpos de mensagens. Cadastro público
+não permite escolher admin. Não promova contas nem altere credenciais de produção
+para testar; o harness da B2-15 cria contas e infraestrutura descartáveis.
+
+### Amostras privadas B2-16
+
+Os dois overlays também fornecem `RABBITMQ_PORT=5672` e a senha já existente
+`RABBITMQ_OBSERVABILITY_PASSWORD`. O backend usa `coldsafe-observability` para
+consumir somente `coldsafe.observability`. O bootstrap atualizado precisa ser
+importado para copiar também `coldsafe.dlx` e `coldsafe.jobs.unrouted` nessa fila;
+o procedimento acima preserva os originais e os volumes.
+
+`GET /api/v3/messaging/messages` exige admin e filtra os resumos pelo proprietário
+atual do dispositivo/ambiente no PostgreSQL. O corpo bruto nunca é devolvido.
+As métricas globais e as amostras privadas podem, portanto, ter contagens diferentes.
+Sem credencial de observação, o painel informa observador desconectado.
+O observador independe de `AIOT_ENABLED`; os dois overlays continuam opcionais.
+
+São até 100 resumos recentes de eventos e 100 de mensagens mortas em memória,
+por processo, compartilhados entre proprietários antes do filtro de acesso.
+Reiniciar o backend apaga essas amostras; não apaga a DLQ. As cópias no broker
+têm teto de 8 MiB, descartando as mais antigas quando cheio, sem retorno à DLX.
+Isso é amostragem operacional, não arquivo histórico nem inventário completo da DLQ.
+Originais anteriores à instalação dos bindings não são copiados retroativamente.
+Para ensaio de parada/retomada e limites, veja o [runbook](runbook.md#mensageria-b2-16-parar-e-retomar-o-gravador).
+
 ## Permissões do token InfluxDB
 
-`INFLUXDB_TOKEN` deve ser um token exclusivo do backend, com leitura e escrita
-somente no bucket `telemetry`. Não reutilize `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`:
-ele possui privilégios administrativos e deve ficar reservado à administração.
+Use o [bootstrap do InfluxDB](runbook.md#3-inicializar-o-influxdb-e-provisionar-tokens-restritos)
+para provisionar e verificar as autorizações. Mantenha os três tokens no `.env` local.
 
-Com a CLI do container autenticada para administração, consulte o ID do bucket
-usando `docker compose exec influxdb influx bucket list --name telemetry`.
-Crie uma autorização com `influx auth create`, organização `coldsafe`, descrição
-`coldsafe-backend-telemetry` e opções `--read-bucket` e `--write-bucket` apontando
-para esse ID. Não use `--all-access` ou `--operator` para o backend.
+| Variável | Serviço ou operação | Permissão |
+| --- | --- | --- |
+| `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN` | Inicialização e administração local | Administração do InfluxDB. |
+| `INFLUXDB_TOKEN` | Backend legado | Leitura e escrita apenas no bucket legado (`telemetry` por padrão). |
+| `INFLUXDB_WRITER_TOKEN` | Writer v3 | Escrita apenas em `telemetry_live`. |
 
-Guarde o token retornado somente em `INFLUXDB_TOKEN` no `.env` local. Não copie o
-valor para documentação, commits, Notion ou mensagens. Depois execute
-`docker compose up -d --no-deps backend` para carregar a configuração alterada;
-editar o `.env` não atualiza automaticamente o ambiente do container existente.
+Defina `WRITER_OWNER_USER_ID` com o mesmo dono configurado no gateway.
+Depois de mudar uma variável de um serviço, recrie seu container na mesma
+composição. Um simples `restart` mantém o ambiente anterior.
 
 ### Revisão de segurança da CS-36 — 10 de setembro de 2026
 
@@ -99,6 +503,49 @@ A CS-36 está concluída para o escopo acadêmico local. Os scanners representam
 base de vulnerabilidades conhecida na data da execução e devem ser repetidos
 antes de futuras entregas. A troca das credenciais continua sendo uma operação
 local e não é versionada.
+
+## Correção de segurança do urllib3 — 14 de outubro de 2026
+
+Concluída localmente: `urllib3 2.7.0` foi atualizado para `2.8.0`, versão que
+corrige os avisos [GHSA-vxq7-64xx-v4gw](https://github.com/urllib3/urllib3/security/advisories/GHSA-vxq7-64xx-v4gw),
+[GHSA-gh4c-6fx4-qh6g](https://github.com/urllib3/urllib3/security/advisories/GHSA-gh4c-6fx4-qh6g)
+e [GHSA-8988-9cw3-xx77](https://github.com/urllib3/urllib3/security/advisories/GHSA-8988-9cw3-xx77).
+A dependência já era utilizada pelo `influxdb-client`; passou a ser fixada
+explicitamente no manifesto, além dos dois locks, para conservar a versão
+validada em instalações futuras. Nenhuma biblioteca nova foi adicionada;
+nenhuma outra versão dos locks mudou.
+
+Resultado desta execução (separado da evidência histórica da CS-36):
+
+- `pip-audit`: três vulnerabilidades antes; zero conhecidas depois, auditando
+  separadamente produção e desenvolvimento.
+- Suíte backend: **450 passaram, 103 ignorados, cobertura de 80,64%** com
+  medição de ramos. Os testes ignorados dependem de ambientes/serviços opcionais.
+- Integração Docker descartável: **dois testes passaram**, incluindo gravação
+  MQTT/InfluxDB, consulta histórica, autenticação, WebSocket e reinício.
+- O teste do `.env.example` tinha uma lista antiga de campos; a falha também
+  ocorreu com `urllib3 2.7.0`. A expectativa agora inclui os 16 campos existentes
+  de RabbitMQ/simulador/gateway e verifica que suas senhas e a do PostgreSQL
+  continuam vazias no exemplo. O arquivo `.env.example` não foi alterado.
+- Imagem backend reconstruída e somente seu container recriado; `urllib3 2.8.0`
+  confirmado em execução. Configuração e credenciais mantidas, volumes
+  preservados e os outros cinco containers ativos sem recriação.
+- `.venv` local atualizada somente em `urllib3`; verificação de compatibilidade
+  das dependências passou. Readiness, docs e OpenAPI pelo frontend retornaram `200`.
+
+Arquivos, comandos, versão Git de base, hashes, revisão estática por subagente,
+limitações e checkpoint estão na [evidência da correção](evidence/urllib3-security-fix.json).
+O aceite local é atualização aplicada, auditorias sem os três avisos e testes
+de compatibilidade aprovados; todos foram atendidos. O resultado não certifica
+ausência de todas as falhas da aplicação: a auditoria consulta os avisos conhecidos
+na data. Os ataques dos avisos não foram reproduzidos, e os 103 testes opcionais
+não foram habilitados em conjunto.
+
+Checkpoint da validação anterior à publicação: base
+`a7f6ea4e41c8d35699dd29855a9d037724907117`, branch
+`codex/block-5-validation`; correção local validada, com commit/push autorizados
+pelo usuário. Para retomar, consultar o histórico Git e comparar `HEAD` com a
+branch remota para confirmar a publicação. A B2-11 não foi iniciada.
 
 ## Regras obrigatórias
 

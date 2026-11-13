@@ -1,0 +1,244 @@
+{
+  "task": "B2-29",
+  "status": "completed",
+  "date": "2026-10-20",
+  "timezone": "America/Sao_Paulo",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "fd6d55c7b9916f50821a3ce96ad35ec684c3b5f7",
+    "initial_worktree": "clean",
+    "delivery": "local uncommitted changes; no push"
+  },
+  "dependencies_added": [],
+  "dependency_manifests_changed": false,
+  "backend_endpoints_changed": false,
+  "implementation": [
+    "same inspection panel for 3D click and accessible item list",
+    "current/last reading, age, received time, and 15-minute chart",
+    "history filtered by device record, environment, equipment and sensor UUID",
+    "no own health/RUL for sensor or actuator; associated equipment prediction separate",
+    "fan/actuator chart is explicitly associated ambient temperature, not a fabricated state series",
+    "dashboard and twin share useActuators and LedControl; POST/ACK/observed state remain separate",
+    "one historical request at a time; 5-second interval and 8-second deadline; stale responses invalidated",
+    "viewer/unknown role cannot command; backend remains authority for current role and ownership"
+  ],
+  "acceptance": {
+    "inspection_and_command_without_duplicate_rules": true,
+    "no_false_health_for_unmodeled_items": true
+  },
+  "tests": {
+    "coverage": {
+      "passed": 408,
+      "files": 38,
+      "seconds": 6.51,
+      "statements": 92.52,
+      "branches": 89.12,
+      "functions": 90.5,
+      "lines": 95.83,
+      "panel_lines": 93.87,
+      "panel_branches": 85.29,
+      "controller_lines": 98.75,
+      "controller_branches": 84.26,
+      "scope": "full functional implementation; before final UI wording-only change"
+    },
+    "panel_final": {
+      "passed": 6,
+      "seconds": 1.25,
+      "scope": "final source after UI wording-only change"
+    },
+    "typecheck_aiot_build_final": {
+      "result": "passed",
+      "node": "24.20.0",
+      "route_minified_kb": 552.2,
+      "route_gzip_kb": 140.24,
+      "warning": "route chunk exceeds 500 kB"
+    },
+    "browser_fixture_boundary_final": {
+      "passed": 6,
+      "seconds": 23.1,
+      "real": "Chromium/WebGL",
+      "simulated": "HTTP/WS responses and controlled command status",
+      "assertions": [
+        "nine items selected by raycast/list",
+        "mini chart and separate associated prediction",
+        "pending POST never confirms observed LED",
+        "ACK then observed telemetry separate",
+        "rejected/unconfirmed outcomes",
+        "viewer keyboard and 320px no overflow",
+        "B2-28 stale freeze, scope and resource regressions"
+      ]
+    },
+    "real_harness_final": {
+      "python_passed": 1,
+      "python_seconds": 147.91,
+      "chromium_passed": 6,
+      "chromium_minutes": 1.9,
+      "b229_seconds": 5.5,
+      "real": [
+        "simulator Python at 1Hz",
+        "MQTT",
+        "gateway",
+        "RabbitMQ",
+        "API/writer",
+        "PostgreSQL",
+        "InfluxDB",
+        "HTTP/WS",
+        "Chromium/WebGL"
+      ],
+      "http_ws_response_fixtures": false,
+      "assertions": [
+        "inspect all nine registered IDs",
+        "historical charts receive real persisted telemetry",
+        "no item health numbers without a model",
+        "LED command confirmed by ACK and observed in new telemetry",
+        "server rejects POST after database role revoked while browser still caches operator",
+        "reload reflects viewer role and disables command",
+        "another account device returns 404",
+        "previous five dashboard/permission/stale/reconnect scenarios pass"
+      ],
+      "disposable_stack_cleaned": true
+    },
+    "tdd_and_regressions": [
+      "panel absent RED then six tests GREEN",
+      "delayed polling error ignored after scope change",
+      "legacy ACK vs token/device reset two RED cases then flush sync GREEN"
+    ],
+    "failed_attempts": [
+      {
+        "scope": "first fixture browser command case",
+        "cause": "fixture command UUID changed without matching correlation UUID; parser correctly rejected",
+        "resolution": "fixed fixture; final six pass"
+      },
+      {
+        "scope": "first real harness",
+        "python_seconds": 183.07,
+        "chromium_passed": 5,
+        "chromium_failed": 1,
+        "cause": "test counted wrapper and canvas as two accessible images",
+        "resolution": "use named chart locator; complete real rerun six pass"
+      }
+    ],
+    "reviews": "Vue, security and final code approved; legacy watcher ordering regression fixed and retested",
+    "git_diff_check": "passed"
+  },
+  "files_modified": [
+    "docs/aiot/README.md",
+    "docs/aiot/tasks/B2-29.md",
+    "docs/aiot/tasks/README.md",
+    "frontend/PRODUCT.md",
+    "frontend/README.md",
+    "frontend/e2e/aiot-real.spec.ts",
+    "frontend/e2e/digital-twin.spec.ts",
+    "frontend/src/views/DigitalTwinView.spec.ts",
+    "frontend/src/views/DigitalTwinView.vue",
+    "frontend/src/views/FoundationView.spec.ts",
+    "frontend/src/views/FoundationView.vue"
+  ],
+  "files_created": [
+    "docs/evidence/b2-29.json",
+    "frontend/src/features/digital-twin/TwinItemPanel.spec.ts",
+    "frontend/src/features/digital-twin/TwinItemPanel.vue",
+    "frontend/src/features/monitoring/LedControl.spec.ts",
+    "frontend/src/features/monitoring/LedControl.vue",
+    "frontend/src/features/monitoring/use-actuators.spec.ts",
+    "frontend/src/features/monitoring/use-actuators.ts"
+  ],
+  "validated_source_sha256": {
+    "frontend/e2e/aiot-real.spec.ts": "8f68602870c4c2a7c1c642467951e063e3e7e311ac35cad7bef893c394eedbc4",
+    "frontend/e2e/digital-twin.spec.ts": "e12b140a7415c8056d2300701088703ff1aabd14e99d641c2821f4e44c49c55f",
+    "frontend/src/features/digital-twin/TwinItemPanel.spec.ts": "638f5b1b9834fcc5db43c2ac801ebb3f93616b61eaf94c90d1b1a9ed2cc8eff0",
+    "frontend/src/features/digital-twin/TwinItemPanel.vue": "176b06dbc6c152a1b0e4887485cf9913adb167f9157af4368b754f7fecf703f9",
+    "frontend/src/features/monitoring/LedControl.spec.ts": "9acdedc710555351f5339d99762502c0dfb43776437914a3ca7e788fbd061269",
+    "frontend/src/features/monitoring/LedControl.vue": "9557a6433751a721792a121ce60d754f800c8e607b3a643081e553742024f181",
+    "frontend/src/features/monitoring/use-actuators.spec.ts": "9e30d328f4cb50f071cac0ea841cb64735dcdc2437428ec842fe8f342b0a8bb0",
+    "frontend/src/features/monitoring/use-actuators.ts": "77ca7a528fc12b00cd3064620b6cd7bda39cbdf330f34d1eeb001bc8e482d69a",
+    "frontend/src/views/DigitalTwinView.spec.ts": "4dd54e96b71cec95462037002005092a1821e7358a08cb1e7a1afb484a250ff7",
+    "frontend/src/views/DigitalTwinView.vue": "30b5ecbda650633cda9e9bbd9ecbe7aef16c2a6478ba29ca7d1bf60d4a18cf65",
+    "frontend/src/views/FoundationView.spec.ts": "0ce0293332549aa1fd73f7e6130b225cdb95530ddef5a5a49e59e2b21673a7b7",
+    "frontend/src/views/FoundationView.vue": "953724e5877acc1d78b144564b32bbef27d9ea9129be363f2c5a83cd760a91db"
+  },
+  "temporary_artifacts_sha256": {
+    "/tmp/coldsafe-b229-coverage.log": "68228749ec518c99e2591b67278b25ef0d34f748bdfe4c21863b08f1345287ac",
+    "/tmp/coldsafe-b229-build.log": "fe0eb7221648ae58bae3bcb62892dff83d7cbdca82e6e0f05a371b61321c3177",
+    "/tmp/coldsafe-b229-e2e.log": "38dc6f2c30ffe461c895ab63b9f4c5df2898beeb5c805f5efd9bc5bfcf23aa38",
+    "/tmp/coldsafe-b229-panel-final.log": "03b2549af9b15334f0feb5c3acea0a223f6d4887e397b7e46b9174e298128c68",
+    "/tmp/coldsafe-b229-real.log": "b63deb16b715ba113657589e0bf0c5cb735d40ec30f3085c6de61543cd2216d8",
+    "/tmp/coldsafe-b229/twin-item-desktop.png": "58a6a5a7d65491b378fb68c9f3a2cabdcb343599d94a1f132f117f267e9785ac",
+    "/tmp/coldsafe-b229/twin-item-mobile-320.png": "e9e36e1142f778c4d10b703d4f435b0f6c9886fa07b6ecee8a79defcebbd2180",
+    "/tmp/coldsafe-b229/twin-real-led.png": "a977fbeea1a95c1106edbb9f9433c59f1193c1c771c1c8ad22fb551e6d73d7a5"
+  },
+  "limitations": [
+    "no own historical actuator/running state series; explicitly labeled associated temperature chart",
+    "no physical sensors, calibration, mobile hardware/GPU or final stack capacity test",
+    "health/RUL remain model estimates with previous synthetic-data limitations",
+    "Chromium only",
+    "temporary images/logs may disappear; results and hashes retained",
+    "no personal deployment, credential changes, commit or push"
+  ],
+  "next_checkpoint": "B2-29 complete on stated base, local changes only; B2-30 requires user choice and has not started.",
+  "publication_validation": {
+    "date": "2026-10-20",
+    "authorization": "user requested commit and push",
+    "base_head": "fd6d55c7b9916f50821a3ce96ad35ec684c3b5f7",
+    "commit": "commit containing this record",
+    "source_hashes_unchanged": true,
+    "functional_tests_repeated": false,
+    "previous_functional_tests": "408 frontend tests, typecheck/build, six fixture Chromium cases and six real Chromium cases retained with original scope",
+    "new_dependencies": [],
+    "dependency_versions_changed": false,
+    "audits": {
+      "backend": {
+        "packages": 45,
+        "known_vulnerabilities": 0
+      },
+      "writer": {
+        "packages": 10,
+        "known_vulnerabilities": 0
+      },
+      "npm": {
+        "metadata": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 1,
+          "critical": 0,
+          "total": 1
+        },
+        "affected_package": "vite",
+        "version": "8.2.2",
+        "preexisting": true,
+        "advisories": [
+          {
+            "id": "GHSA-698v-4r3x-3vcv",
+            "severity": "moderate",
+            "url": "https://github.com/advisories/GHSA-698v-4r3x-3vcv"
+          },
+          {
+            "id": "GHSA-r825-w8mm-5pxw",
+            "severity": "moderate",
+            "url": "https://github.com/advisories/GHSA-r825-w8mm-5pxw"
+          },
+          {
+            "id": "GHSA-587h-7wmj-h5pm",
+            "severity": "high",
+            "url": "https://github.com/advisories/GHSA-587h-7wmj-h5pm"
+          }
+        ],
+        "assessment": "No publication blocker for current macOS/static Nginx scope; Windows-only HIGH and Windows/WSL Vite integration conditions do not apply to this runtime. Direct launch-editor consumers can have broader editor-specific conditions.",
+        "followup": "Update Vite and lock to 8.2.4 or later patched release with regression before affected Windows/WSL scenarios; audit is not clean"
+      }
+    },
+    "reviews": "commit framing/scope and focused precommit security approved; no private files or literal credentials included",
+    "temporary_audit_sha256": {
+      "/tmp/coldsafe-b229-precommit-npm-audit.json": "dddfb1beb7870c32fcfc29e743c8211bb93c0f8e292baa37f8760ffd853452ce",
+      "/tmp/coldsafe-b229-precommit-pip-audit.json": "41ef2f6654061388465b7f9c5bdf170a9233fcda2e0b59cef35bfbf977786f04",
+      "/tmp/coldsafe-b229-precommit-writer-audit.json": "7106a6d9420dc58b54a8166f547524d65f10071dfb7c06777500e6f5d6f767d3"
+    },
+    "limitations": [
+      "No personal deployment or credential changes",
+      "Functional tests retained from delivery; sources/test hashes unchanged",
+      "Known Vite security followup explicitly recorded; no Vite version update in this publication",
+      "B2-30 not started"
+    ]
+  }
+}

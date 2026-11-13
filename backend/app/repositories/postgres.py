@@ -9,6 +9,15 @@ MIGRATIONS = (
     (1, Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"),
     (2, Path(__file__).resolve().parents[2] / "migrations" / "002_command_status.sql"),
     (3, Path(__file__).resolve().parents[2] / "migrations" / "003_environment_rules.sql"),
+    (4, Path(__file__).resolve().parents[2] / "migrations" / "004_user_roles.sql"),
+    (5, Path(__file__).resolve().parents[2] / "migrations" / "005_aiot_records.sql"),
+    (6, Path(__file__).resolve().parents[2] / "migrations" / "006_auth_security.sql"),
+    (7, Path(__file__).resolve().parents[2] / "migrations" / "007_aiot_events.sql"),
+    (8, Path(__file__).resolve().parents[2] / "migrations" / "008_job_outbox.sql"),
+    (9, Path(__file__).resolve().parents[2] / "migrations" / "009_model_activation_outbox.sql"),
+    (10, Path(__file__).resolve().parents[2] / "migrations" / "010_inference_events.sql"),
+    (11, Path(__file__).resolve().parents[2] / "migrations" / "011_predictive_alerts.sql"),
+    (12, Path(__file__).resolve().parents[2] / "migrations" / "012_llm_memory_guard.sql"),
 )
 
 

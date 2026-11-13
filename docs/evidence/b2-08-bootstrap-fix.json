@@ -1,0 +1,277 @@
+{
+  "task": "B2-08",
+  "scope": "Corrective follow-up: broker bootstrap shared-file read errors",
+  "local_date": "2026-10-14",
+  "timezone": "America/Sao_Paulo",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "head": "9a837c2b0255c35c93dd222a2d82f9b4fe23d551",
+    "commit": false,
+    "push": false,
+    "staged": false,
+    "diff_check": "exit 0",
+    "preserved_existing_delta": "B2-07 and B2-08"
+  },
+  "observed_errors": [
+    "mosquitto-init: install: read error: Resource deadlock would occur",
+    "rabbitmq: edeadlk reading /etc/rabbitmq/rabbitmq.conf"
+  ],
+  "diagnosis": "Runtime reads of host bind-mounted files failed. Specific host filesystem provider not established. Original snapshot-based tests masked this condition.",
+  "resolution": "Bake static broker configuration, ACL and bootstrap into local images. Keep generated private credentials and data in existing named volumes. Integration builds use real project paths and isolated image tags.",
+  "created": [
+    "infra/mosquitto/Dockerfile",
+    "infra/mosquitto/.dockerignore",
+    "infra/rabbitmq/Dockerfile",
+    "infra/rabbitmq/Bootstrap.Dockerfile",
+    "infra/rabbitmq/.dockerignore",
+    "backend/tests/infra/test_broker_images.py",
+    "docs/evidence/b2-08-bootstrap-fix.json"
+  ],
+  "changed": [
+    "compose.yaml",
+    "backend/tests/infra/test_compose_contract.py",
+    "backend/tests/infra/test_rabbitmq_bootstrap.py",
+    "backend/tests/infra/test_rabbitmq_integration.py",
+    "backend/tests/infra/test_proxy_integration.py",
+    "docs/runbook.md",
+    "infra/README.md",
+    "infra/rabbitmq/README.md",
+    "docs/aiot/tasks/B2-08.md"
+  ],
+  "new_library_dependencies": [],
+  "unchanged_base_images": [
+    "eclipse-mosquitto:2.0.22",
+    "rabbitmq:4.3.6-management-alpine",
+    "python:3.13.15-slim"
+  ],
+  "tests": {
+    "new_regressions_red": 3,
+    "regression_passed": 100,
+    "new_in_regression": 3,
+    "existing_reexecuted": 97,
+    "rabbitmq_real_passed": 21,
+    "proxy_final_real_passed": 2,
+    "proxy_final_seconds": 52.32,
+    "build_source": "/Users/vitorhugofernandescosta/Documents/ColdSafe",
+    "logs": {
+      "regression": "........................................................................ [ 72%]\n............................                                             [100%]\n100 passed in 26.38s\n",
+      "proxy_final": "..                                                                       [100%]\n2 passed in 52.32s\n",
+      "proxy_previous": "..                                                                       [100%]\n2 passed in 77.05s (0:01:17)\n",
+      "rabbitmq_previous": ".....................                                                    [100%]\n21 passed in 27.27s\n",
+      "joint_round": "EE.....................                                                  [100%]\n==================================== ERRORS ====================================\n_ ERROR at setup of test_static_spa_docs_openapi_and_health_are_available_via_frontend _\nbackend/tests/infra/test_proxy_integration.py:77: in stack\n    command(base, \"up\", \"-d\", \"--wait\", \"--wait-timeout\", \"120\", \"influxdb\")\nbackend/tests/infra/test_proxy_integration.py:31: in command\n    assert result.returncode == 0, result.stderr + \"\\n\" + result.stdout\nE   AssertionError:  Network coldsafe-b208-f94c7388_coldsafe-internal Creating \nE      Network coldsafe-b208-f94c7388_coldsafe-internal Created \nE      Volume coldsafe-b208-f94c7388_influxdb-data Creating \nE      Volume coldsafe-b208-f94c7388_influxdb-data Created \nE      Volume coldsafe-b208-f94c7388_influxdb-config Creating \nE      Volume coldsafe-b208-f94c7388_influxdb-config Created \nE      Container coldsafe-b208-f94c7388-influxdb-1 Creating \nE      Container coldsafe-b208-f94c7388-influxdb-1 Created \nE      Container coldsafe-b208-f94c7388-influxdb-1 Starting \nE      Container coldsafe-b208-f94c7388-influxdb-1 Started \nE      Container coldsafe-b208-f94c7388-influxdb-1 Waiting \nE     container coldsafe-b208-f94c7388-influxdb-1 is unhealthy\nE     \nE     \nE   assert 1 == 0\nE    +  where 1 = CompletedProcess(args=['docker', 'compose', '-p', 'coldsafe-b208-f94c7388', '--env-file', '/var/folders/mh/8_tw2w997_q...d \\n Container coldsafe-b208-f94c7388-influxdb-1 Waiting \\ncontainer coldsafe-b208-f94c7388-influxdb-1 is unhealthy\\n').returncode\n_ ERROR at setup of test_rest_ticket_websocket_and_second_start_preserve_data_and_secrets _\nbackend/tests/infra/test_proxy_integration.py:77: in stack\n    command(base, \"up\", \"-d\", \"--wait\", \"--wait-timeout\", \"120\", \"influxdb\")\nbackend/tests/infra/test_proxy_integration.py:31: in command\n    assert result.returncode == 0, result.stderr + \"\\n\" + result.stdout\nE   AssertionError:  Network coldsafe-b208-f94c7388_coldsafe-internal Creating \nE      Network coldsafe-b208-f94c7388_coldsafe-internal Created \nE      Volume coldsafe-b208-f94c7388_influxdb-data Creating \nE      Volume coldsafe-b208-f94c7388_influxdb-data Created \nE      Volume coldsafe-b208-f94c7388_influxdb-config Creating \nE      Volume coldsafe-b208-f94c7388_influxdb-config Created \nE      Container coldsafe-b208-f94c7388-influxdb-1 Creating \nE      Container coldsafe-b208-f94c7388-influxdb-1 Created \nE      Container coldsafe-b208-f94c7388-influxdb-1 Starting \nE      Container coldsafe-b208-f94c7388-influxdb-1 Started \nE      Container coldsafe-b208-f94c7388-influxdb-1 Waiting \nE     container coldsafe-b208-f94c7388-influxdb-1 is unhealthy\nE     \nE     \nE   assert 1 == 0\nE    +  where 1 = CompletedProcess(args=['docker', 'compose', '-p', 'coldsafe-b208-f94c7388', '--env-file', '/var/folders/mh/8_tw2w997_q...d \\n Container coldsafe-b208-f94c7388-influxdb-1 Waiting \\ncontainer coldsafe-b208-f94c7388-influxdb-1 is unhealthy\\n').returncode\n=========================== short test summary info ============================\nERROR backend/tests/infra/test_proxy_integration.py::test_static_spa_docs_openapi_and_health_are_available_via_frontend\nERROR backend/tests/infra/test_proxy_integration.py::test_rest_ticket_websocket_and_second_start_preserve_data_and_secrets\n21 passed, 2 errors in 35.93s\n"
+    },
+    "commands": [
+      "/tmp/coldsafe-b204-venv/bin/python -m pytest backend/tests/infra/test_broker_images.py backend/tests/infra/test_compose_contract.py backend/tests/infra/test_rabbitmq_bootstrap.py backend/tests/infra/test_proxy_contract.py backend/tests/contract -q --no-cov -o addopts=''",
+      "COLDSAFE_PROXY_INTEGRATION=1 /tmp/coldsafe-b204-venv/bin/python -m pytest backend/tests/infra/test_proxy_integration.py -q --no-cov -o addopts='' --tb=short",
+      "COLDSAFE_PROXY_INTEGRATION=1 COLDSAFE_RABBITMQ_INTEGRATION=1 COLDSAFE_PROXY_BUILD_CONTEXT=/Users/vitorhugofernandescosta/Documents/ColdSafe /tmp/coldsafe-b204-venv/bin/python -m pytest backend/tests/infra/test_proxy_integration.py backend/tests/infra/test_rabbitmq_integration.py -q --no-cov -o addopts='' --tb=short"
+    ],
+    "joint_round_failure": "21 RabbitMQ passed; 2 proxy setup errors because disposable InfluxDB was unhealthy; specific cause not established. Subsequent isolated proxy rounds passed. No generic retries added.",
+    "source_change_after_rabbitmq_run": "Removed unused shutil import only.",
+    "frontend_unit_and_playwright": "Not rerun in corrective follow-up; initial B2-08 evidence is historical."
+  },
+  "personal_stack": {
+    "command": "docker compose up -d --build --wait --wait-timeout 180",
+    "exit_code": 0,
+    "http": {
+      "/": 200,
+      "/dashboard": 200,
+      "/docs": 200,
+      "/openapi.json": 200,
+      "/health/live": 200,
+      "/health/ready": 200
+    },
+    "containers": [
+      {
+        "name": "/coldsafe-backend-1",
+        "status": "running",
+        "exit_code": 0,
+        "health": "healthy",
+        "mounts": [],
+        "ports": {},
+        "read_only": true
+      },
+      {
+        "name": "/coldsafe-frontend-1",
+        "status": "running",
+        "exit_code": 0,
+        "health": "healthy",
+        "mounts": [],
+        "ports": {
+          "8080/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "5173"
+            }
+          ]
+        },
+        "read_only": true
+      },
+      {
+        "name": "/coldsafe-influxdb-1",
+        "status": "running",
+        "exit_code": 0,
+        "health": "healthy",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_influxdb-data",
+            "Destination": "/var/lib/influxdb2",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_influxdb-config",
+            "Destination": "/etc/influxdb2",
+            "RW": true
+          }
+        ],
+        "ports": {},
+        "read_only": false
+      },
+      {
+        "name": "/coldsafe-mosquitto-1",
+        "status": "running",
+        "exit_code": 0,
+        "health": "healthy",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-auth",
+            "Destination": "/mosquitto/auth",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-data",
+            "Destination": "/mosquitto/data",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "e14297b3a8a02579be3b6a9d221ea63ecf348bc878ed55453d7d57fb14d5fe3c",
+            "Destination": "/mosquitto/log",
+            "RW": true
+          }
+        ],
+        "ports": {},
+        "read_only": true
+      },
+      {
+        "name": "/coldsafe-mosquitto-init-1",
+        "status": "exited",
+        "exit_code": 0,
+        "health": null,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-auth",
+            "Destination": "/mosquitto/auth",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "519aca16e00d3f20ecb2d70ebf4d84fff4df97792afd3bd3c21c379178bf28fc",
+            "Destination": "/mosquitto/data",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "854a81b6121547c524b3c4f692027e587aa9540846fef525334a68f903541465",
+            "Destination": "/mosquitto/log",
+            "RW": true
+          }
+        ],
+        "ports": {},
+        "read_only": true
+      },
+      {
+        "name": "/coldsafe-postgres-1",
+        "status": "running",
+        "exit_code": 0,
+        "health": "healthy",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_postgres-data",
+            "Destination": "/var/lib/postgresql/data",
+            "RW": true
+          }
+        ],
+        "ports": {},
+        "read_only": false
+      },
+      {
+        "name": "/coldsafe-rabbitmq-1",
+        "status": "running",
+        "exit_code": 0,
+        "health": "healthy",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-definitions",
+            "Destination": "/etc/rabbitmq/bootstrap",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-data",
+            "Destination": "/var/lib/rabbitmq",
+            "RW": true
+          }
+        ],
+        "ports": {},
+        "read_only": false
+      },
+      {
+        "name": "/coldsafe-rabbitmq-init-1",
+        "status": "exited",
+        "exit_code": 0,
+        "health": null,
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-definitions",
+            "Destination": "/output",
+            "RW": true
+          }
+        ],
+        "ports": {},
+        "read_only": true
+      }
+    ],
+    "all_mounted_volumes_existed_before_correction": true,
+    "personal_volumes_deleted": false,
+    "personal_env_edited": false,
+    "compose_consumed_personal_env": true
+  },
+  "cleanup": {
+    "remaining_test_containers": [],
+    "only_test_projects_removed_with_volumes": true,
+    "images_kept_as_cache": true
+  },
+  "sha256": {
+    "infra/mosquitto/Dockerfile": "9f43524cc93db21510f2ae2645f1f8f23f7e43752fb50b1dce3d1d82c00f3e5e",
+    "infra/mosquitto/.dockerignore": "2d27d26fe631a49dfb8207430ed4a91b7d03bde9e274b88ae39d178c724b5a6d",
+    "infra/rabbitmq/Dockerfile": "73637689cbe375851c051d22340cd69f2185f85c6d00f1ca13bf1af17063a4ca",
+    "infra/rabbitmq/Bootstrap.Dockerfile": "c54cba7503d5380cbb9ff32745d64cd5284f2ec125054c81166768109d7b8173",
+    "infra/rabbitmq/.dockerignore": "84679c107d73bc8285e9ce370a48e66801427811cf7960af3f7a325495c99d2c",
+    "backend/tests/infra/test_broker_images.py": "740f560f461d455837760c083b7e09ddf732d8a6907ffd391d76097860f5727a",
+    "compose.yaml": "440607d342f8c8fb911a9dc7be6230892ec6c04d183b6cc7bcf97e9b6a73c188",
+    "backend/tests/infra/test_compose_contract.py": "90879f88bd900070d631886546628a5d5a43c9981a2f9f196c33c7cdcb2a532f",
+    "backend/tests/infra/test_rabbitmq_bootstrap.py": "50c1a08ff46044033a91d56cefeb95640f8d5391ea46ed144d1ef832fc3b9991",
+    "backend/tests/infra/test_rabbitmq_integration.py": "37d26c23793932f01f8daae9a0301e7315cd44c96b660d6a104eeef8f4525aa5",
+    "backend/tests/infra/test_proxy_integration.py": "f47971b4befed11df05c8961b77bf7a15ce203efb00e687974deee1c1925bf8b",
+    "docs/runbook.md": "36681609ee0ac19fc191a790d0e75956525a6e4b5dcca9eee595a4578e374192",
+    "infra/README.md": "e5442b374246e097aa29f13cd6caea46708cb4fc2e329612f9e3b387eea08b70",
+    "infra/rabbitmq/README.md": "432e669dabb75b4baefbedba1b609d29d6bdf400c8b8bbdac0123f86c717a61b",
+    "docs/aiot/tasks/B2-08.md": "a1fbca54d1c21398d4e2d9191bbfcbe6f7c0eb07c9061e2a46efe8823c2dc29d"
+  },
+  "whitespace_files_checked": 15,
+  "limits": [
+    "One unexplained disposable InfluxDB setup failure preserved in evidence",
+    "No hardware, long-load or final AIoT capacity test",
+    "No personal-account authenticated UI flow tested; REST/WS persistence verified on disposable stack",
+    "Future v3 business services remain planned"
+  ],
+  "checkpoint": "B2-08 corrected and complete for current base; personal stack healthy at localhost:5173; no next task started."
+}

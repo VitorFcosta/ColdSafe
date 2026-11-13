@@ -1,0 +1,3625 @@
+{
+  "schema_version": 1,
+  "status": "completed_images_and_containers_updated_stopped",
+  "date": "2026-11-05",
+  "source_commit": "62cb4cca651a00d74e8b1d627607013637e5ba30",
+  "before": {
+    "captured_at_utc": "2026-11-05T05:12:08.993902+00:00",
+    "battery": "Now drawing from 'Battery Power'\n -InternalBattery-0 (id=23134307)\t41%; discharging; 3:48 remaining present: true",
+    "memory_pressure_level": 2,
+    "swap": "vm.swapusage: total = 5120.00M  used = 3654.38M  free = 1465.62M  (encrypted)",
+    "free_space": "Filesystem   1024-blocks      Used Available Capacity iused     ifree %iused  Mounted on\n/dev/disk3s5   239362496 188128344  20366468    91% 1766101 203664680    1%   /System/Volumes/Data",
+    "docker_engine_capacity": {
+      "vm_memory_capacity_bytes": 6212268032,
+      "logical_cpus": 8
+    },
+    "containers": [
+      {
+        "service": "frontend",
+        "id": "fccb655f6a7ed4a4307154a094504710e547619e93599782614156fe1f7b83f3",
+        "image_id": "sha256:742737ab36e68f4efefca546a0ad226aac8550166866aa0128aecf92580d3f8e",
+        "state": "exited",
+        "started_at": "2026-11-03T14:18:49.941927009Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "aafe929e59c401219ef1b342dc86ded886e20f70c6e24ee0823be1af13d8fdd0",
+        "mounts": []
+      },
+      {
+        "service": "backend",
+        "id": "1e0fba1598d8adf08ac3f39ba6692137fa8a28afeb6ad162b0add0f3740e98c1",
+        "image_id": "sha256:6b5a2fedf1c523bd0635014b8b6e2f02bb989d1c65eeb91c902c8cc843de7120",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:54.910851386Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "70ac6384bdf13b5e91c2850a2c757775d9e28b2422549e55fc6142da9a1f63b2",
+        "mounts": [
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_job-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_job-artifacts/_data",
+            "Destination": "/app/artifacts",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_training-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_training-artifacts/_data",
+            "Destination": "/app/training-artifacts",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "models",
+        "id": "b22ad080790d87da2e59805da087e8b34eb1176dfa1bcb89f2be319c0aaf80a8",
+        "image_id": "sha256:35d0dec58038fddd2980fc0eb3fa54c6e9b4f300e92205a7f263b70be2d62959",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:54.886935386Z",
+        "memory_limit": 536870912,
+        "nano_cpus": 1000000000,
+        "config_hash": "48d8d83228cb11626f0fab561a457f698de0b003536eb88cfb8191c56cad84f6",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_training-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_training-artifacts/_data",
+            "Destination": "/app/training-artifacts",
+            "RW": false
+          },
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "training",
+        "id": "070f2dec1939dd929bc02f54903fe5296a313cc5ed18b0d31d2d71084951719f",
+        "image_id": "sha256:5f9671749a9b276085e5687d07cbdb32c501312ef6687174c33fd7c0a0b22f97",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:54.890975928Z",
+        "memory_limit": 1073741824,
+        "nano_cpus": 1000000000,
+        "config_hash": "9763025e7b506b34f172fcbc16eafd6534522f2997c7cd0cb706d633a823f59a",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_job-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_job-artifacts/_data",
+            "Destination": "/app/artifacts",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_training-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_training-artifacts/_data",
+            "Destination": "/app/training-artifacts",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "generation",
+        "id": "3a81ec36c66ff79dca0cf04c120fc7ad54ea4393caf7813397c0afe90ba17378",
+        "image_id": "sha256:76c3c6483ebf25002169af47e8157e6187c1edb7013671daf5901e5e50284f0b",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:54.889235344Z",
+        "memory_limit": 536870912,
+        "nano_cpus": 1000000000,
+        "config_hash": "f3afeb2b877504652ce250c4233b24ee2f80b4ac29181461b2041e2121980dba",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_job-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_job-artifacts/_data",
+            "Destination": "/app/artifacts",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "gateway",
+        "id": "cf5ec8eeec6bbc7b3737bc18594fb85a8c9d1912d3fbb18967d2f2f3f9178420",
+        "image_id": "sha256:c086973e114f1bee8213e047364e6bcbf998c92c8967a9967a097a18764c829f",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:54.928671553Z",
+        "memory_limit": 134217728,
+        "nano_cpus": 250000000,
+        "config_hash": "8f60277b6b1dede630803971ad84d6fc6674e9287e6dfc4bc68ea5d0f6b956a2",
+        "mounts": [
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_gateway-state",
+            "Source": "/var/lib/docker/volumes/coldsafe_gateway-state/_data",
+            "Destination": "/state",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "simulator",
+        "id": "a087130cbb5d6bd1a9a4f73f01b7395e735590a693c39b4f7836bfd8fcc84654",
+        "image_id": "sha256:8db74ca0580ddb2a3baa5fbfe5fd075e5f09449828de2ea9b68deb4d8a486d67",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:40.042014212Z",
+        "memory_limit": 67108864,
+        "nano_cpus": 250000000,
+        "config_hash": "a9f194b62045837eea7c8d0e109006aec6a1a66d46934c5df7b9c999e2c3ee88",
+        "mounts": [
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "mosquitto",
+        "id": "1cb2a269d2b5843be407b086475888686c08a6f8e061d93294ca93ff1cc3e712",
+        "image_id": "sha256:6a458a7d642350bff8c4d9cce8b088940ec7c881163b10d20c9da42589b4d5a7",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:33.652836376Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "1ff2137cd317f3ac95352866378f03bebe9136d91f87d9be00497f561d5151b7",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-auth",
+            "Source": "/var/lib/docker/volumes/coldsafe_mosquitto-auth/_data",
+            "Destination": "/mosquitto/auth",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_mosquitto-data/_data",
+            "Destination": "/mosquitto/data",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "5d7cfcd9b0b9a9c689fb319b298a7068c4a948de0fadd91a677174888b7ffbe6",
+            "Source": "/var/lib/docker/volumes/5d7cfcd9b0b9a9c689fb319b298a7068c4a948de0fadd91a677174888b7ffbe6/_data",
+            "Destination": "/mosquitto/log",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "mosquitto-init",
+        "id": "46fa4db745dca9ee4c5d2a06be84d48c147633e2ca737703a4bc2d6ee05045be",
+        "image_id": "sha256:6a458a7d642350bff8c4d9cce8b088940ec7c881163b10d20c9da42589b4d5a7",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:32.968902542Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "2db3349e9076d9d234a7c4babf63e5f332ba4f9c996a438a13e549168448fe51",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-auth",
+            "Source": "/var/lib/docker/volumes/coldsafe_mosquitto-auth/_data",
+            "Destination": "/mosquitto/auth",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "0882470cd2544d83c1667dfbfafc06d07f1b62656a55bde828e88d14496e9858",
+            "Source": "/var/lib/docker/volumes/0882470cd2544d83c1667dfbfafc06d07f1b62656a55bde828e88d14496e9858/_data",
+            "Destination": "/mosquitto/data",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "bad7a05248915dcfde9dae86227d26e276071e6b9809c5c5dc4d17711dc4a364",
+            "Source": "/var/lib/docker/volumes/bad7a05248915dcfde9dae86227d26e276071e6b9809c5c5dc4d17711dc4a364/_data",
+            "Destination": "/mosquitto/log",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "writer",
+        "id": "23a9177cc1587fd2cbb3629e7bdc2aca7ff064512c3006589743b0472fc0b673",
+        "image_id": "sha256:65e4c5778015699e2037a378780284951473ed3bfcf2cf5a731c2fe2203d022e",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:54.923971761Z",
+        "memory_limit": 134217728,
+        "nano_cpus": 250000000,
+        "config_hash": "94abd7818dbe3dea63b51fec8d8369842e62b70894bbad3e88b1904382b89866",
+        "mounts": [
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "rabbitmq",
+        "id": "4f7c9e3b08bae6193b588bc7789eb0f9d3891e1c50b8500d03fef66df080c77c",
+        "image_id": "sha256:818d5f898a5b2d0978214736bd961d2d53701bc4a76dcf8a81b67af12cab94c4",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:34.210912293Z",
+        "memory_limit": 536870912,
+        "nano_cpus": 1000000000,
+        "config_hash": "c2d142a6c57be1da5bff179fa971dcc47014b0e35f1a3350f4ce57f579dabd18",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-definitions",
+            "Source": "/var/lib/docker/volumes/coldsafe_rabbitmq-definitions/_data",
+            "Destination": "/etc/rabbitmq/bootstrap",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_rabbitmq-data/_data",
+            "Destination": "/var/lib/rabbitmq",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "postgres",
+        "id": "0fa77b130d38562f7bf163d6c132f6ca98f8280f92db4b713ff00ae72f45d8fd",
+        "image_id": "sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:32.974064959Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "c9558c2423430bce46c03a5e227b32f106a73c52f936fa960c730e91de7fabce",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_postgres-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_postgres-data/_data",
+            "Destination": "/var/lib/postgresql/data",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "rabbitmq-init",
+        "id": "14dcec193f9bca034a58df24de29e0e2bfe196d99322f0a5e33c6f02932ef3da",
+        "image_id": "sha256:6433d4a776e29e9a3569e05526bbbd4d8359f89da5e374947977bd20f9686f49",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:32.974628084Z",
+        "memory_limit": 67108864,
+        "nano_cpus": 0,
+        "config_hash": "b0cc15d38e299d5355e20ce864ea5ae85a4920593bf22c1ce989e8986c994338",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-definitions",
+            "Source": "/var/lib/docker/volumes/coldsafe_rabbitmq-definitions/_data",
+            "Destination": "/output",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "llm",
+        "id": "3af5a8bf090e4f55780327336d3bd40d9fef56e3d45b3ce9f053f0aa97d25f62",
+        "image_id": "sha256:57492ad879660d3b0008e37a873dedd60906f7d97bb5ef87860b8b23a78a4f0e",
+        "state": "exited",
+        "started_at": "2026-11-02T23:00:03.90628692Z",
+        "memory_limit": 134217728,
+        "nano_cpus": 250000000,
+        "config_hash": "56d545c67b9e0dc00be92ab855107b76e782b6bec308c5ed382fdc75fc076915",
+        "mounts": []
+      },
+      {
+        "service": "ollama",
+        "id": "cc9726b5e11fd39dd19c2dc161d3790def55a6dff75c40e7f1c843822ec864f5",
+        "image_id": "sha256:adca95a12c2b386a8f9a995e7fa0600e187e3323b5e5522f5a6c3b1ec73eff99",
+        "state": "exited",
+        "started_at": "2026-11-03T05:19:43.454543678Z",
+        "memory_limit": 3489660928,
+        "nano_cpus": 4000000000,
+        "config_hash": "f9817db926cd2b61a2f21502fa1f4959dcaa93d1ecdaecda2629af15b8906dae",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_ollama-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_ollama-data/_data",
+            "Destination": "/models",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "influxdb",
+        "id": "6082312c6613a4574f9f3aa7c47f8fd17fcfb84592eb5c5cd652ec6eecdf2fe3",
+        "image_id": "sha256:991673dc2d237bd79b15d6627410d72de111387e7dac673dbb92cf3333ffcc8c",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:32.975579251Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "88256d467cf560d9a5a16a462c854a3df6a0e8251d3d92d5f7b07ffead4f5452",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_influxdb-config",
+            "Source": "/var/lib/docker/volumes/coldsafe_influxdb-config/_data",
+            "Destination": "/etc/influxdb2",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_influxdb-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_influxdb-data/_data",
+            "Destination": "/var/lib/influxdb2",
+            "RW": true
+          }
+        ]
+      }
+    ],
+    "volumes": [
+      {
+        "Name": "0aa1abe7eea38d107ddf2f9ca044ba876824f79dbc34d862109b88f75ceb4b79",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:12:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0ae5888554a2aba805bea3f1207e2e57bfecb3bc7c2a17d34013de517975e336",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:39:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0b41c9f3720183adf3e2fed966230e2b78b6e47614ea35cb0720460aaf5b8432",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:11:38Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0bc59c848ada05e198d3a14d2275b8239233416ded4c37bf8ed6e617f9e00e00",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:19:13Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0de3fa54f157cb2a75a0f0a3da88d15d21157df014e8363e9dc308346725ae57",
+        "Driver": "local",
+        "CreatedAt": "2026-10-19T04:31:15Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0f1f3cfb47455a864c30df4bbdcd25c2015661506675a498f26c7a08ba472012",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:00:29Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "1bb25d67383a90ac4268ba1d8cad9a288f14c1f3e26551e127cf0e69dfe329f4",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:45:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "1caa692fccafe492c1928f2952e7da8b5230407e7a02eb62604448c434ea81f6",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:02:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "1dbbba510581d63caeb77b444cd5bbc656764f271b298832aa8966eab9e04c09",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:21:58Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "2b574d165679163500660cbe5ed9ac27af4706efd3ee9bc771cf13941f5b254e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:30:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "2be082501d5a918e15debc90ed3f8ebd099db6c2e6dede5f91b8e6052a4fdae9",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:35:52Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "2cbe6b4c9618209ad2aa3ed49ca078969bf701979e5047cdb79bc3176c8dec7e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:12:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4a576758c347b086484ee2a8247c11ae05efce1ecf89825951ab92775629d40f",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:11:38Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4b9673ba3d8f5bc8205b242b8f080234390d79eaf12037d2e6b218cbc1d4e98f",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:40:27Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4f0400debb66b79c98bf844e2011926a0f4b404da60e8c9dd431130a9dade10f",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:08:47Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5ba8b60a6cf4cd1dca35cbcace1786f28318c4210480f8d955d0748ae6ddc84f",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T21:31:47Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5c19f77f1ce4d3709226a4012a684d3e8bd717664e857111f3783863b93923ec",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:00Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5ccdc10cfa68e1d3da0a3b0758e48b834adaf60aeac7ec7178b9383c5da79238",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:33:38Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5d7cfcd9b0b9a9c689fb319b298a7068c4a948de0fadd91a677174888b7ffbe6",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5d937fe6323a0301eb8d338d140bd196f61ddeb25c7516236d566fc384ad2d79",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:31:16Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5ea77b4ff9b74ef804db7a9e6804e136e5b159bcce1b698066532406aaac0476",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T19:38:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5fee78095409664b15fdf16741ab7c791fed00e9b0a9afce7bfaa3cbf61f1ed7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:42:57Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "6bc970b1e8bf515e0c9c7982a58cd8134caf81e4a730035e3278b36dca856cf5",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T20:42:10Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "6bd068b97f9c2c91490febf06c0fcd0591a40cbc1b7984ad8e1c3f732d1be320",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:24:52Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "6f13bedff4d45ebdfb367ef6186e68de9058bc69e83c91b5d64dbacf9609eb37",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:44:03Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "7b6abd068d60c7da283c74fe814aaaea6077dbec3dac248a21908714326c88ff",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:17:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "7d0e65f98775765dca6ec4c3d46025798af2ce805a1574187c16515e695d314d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:00:35Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "7d3b85f596c9be4eaa0a32953b94b8c2ca50b3fc48e9b7696d9e8eee0e98b6e0",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:03:02Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "7d4d460635942d1d96d466da89f682599f710b59d26b3ed42bdd33b84e6b1128",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:40:45Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "8b6be14a11a634298299704eaf2f6e8afee647113b40c15782fe0b7d91fb6462",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:37:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "08b402929f2ef491d48f61c98be0a5d6b1073ac3a348925bdecbe80133721ac0",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:57:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "08d3ad5561334db45693386edf10bc053113369f1b6ddffeede09167665feac9",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:44:02Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "08e98070f9cd0057b95c49470c769477fe3333529daf3751cfdb35da33230e14",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:45:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "9b3f788d2a8cd3b50222a9e33e9b4d5bfd26d21ea3e982873911d8533ad30eb1",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:57:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "9c0b2d7c33ddfdafcbecb2aef3f05351249684292bf2e054e43674e2b47d2f44",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:17:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "09c90e9eecfa340016933abd901e773a2ee47dbb99cebce374857b65c3e116d4",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T19:38:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "11a4a28338d99a1cc0519eb00c01b84487c7f326cd76a2ea4d95d7c4acdc43d2",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:42:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "11f37064a46244ec4c1d7a915d9c734dab03baf096d08b75b34a7c8d02aa26d8",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:19:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "15c2c52518b808b52d64ef75d26c110f9336daa2d8d708491dfbb5a732b6f140",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:02:28Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "15dfc367b93811c3cf52249ad766f54a5acb8e95ea868ec05bb2909dfac3718b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:40:45Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "20a90bd83d030e6ba863cd69c102e773734e8d5752e35637b70eb283473cee65",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T20:42:10Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "21b3a7dd9db00dd109a3f9d4233002f42d22949ceb4823ef77c4033584a53f01",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:04:23Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "23a57be71719609d09b6123ecea76096d6780fbec3af5b5cff9d2482d4125c1d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:00:29Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "26b4be92b9e9d797042dc546801bd04595c49ff2bda01b497dc0e0e3ca456ba1",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T20:17:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "26dd0fe7f8ce7b35cbdde1319090f8ac30445dad35c90e8e1b262f458731fd5b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:27:33Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "30e41318f7b717c11658171a66ffa14aa781e83df52b96856fb92202a92741fa",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T20:17:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "30f0b4de3be8dafe53700a5c78379ecacd8dba70442c214c85f99c78a0dc15eb",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:15:26Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "32d23ce0b176b3c0cadacb19d0686bc13ece120fa29689ddf29237013899f0c8",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:40:27Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "43db873d47f3bf5785277d5c30aee2c8ad92f23f350c5aa81c55cf0aafec4928",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:42:57Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "48cf37ae4197db404933775658caa9787ae8bcf8e9652419aedeeabcd801769a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:17:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "50ab092be1339bac688603f5c5d0d3232e6271db3c1e607a60ce0427c377d60f",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T05:09:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "58f881d8751c2f41444e259313cda60763611a0735033a00e0b0bf3c06b2ae6d",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:28:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "64bfb9bc579156c4b5eb2e069208ca3113a89b42cf72ebbd4fade0654dcb6c19",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:10:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "66a788f18ef78dd5098e2431eaf8d9b297cec8fb32e338b2f21f6d1e2c898e42",
+        "Driver": "local",
+        "CreatedAt": "2026-09-06T21:29:25Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "71e02f6c690dd60695130e9428f0b9c138e469492fbf5842c32a868a301aefc9",
+        "Driver": "local",
+        "CreatedAt": "2026-09-06T21:29:25Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "72b973232192531d586bd0c3a0e962297612543c6f473ab9dd6706bf91f74809",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:38:48Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "76b7900a14c9e26efc411b6d61b315f9dcd9b1973273ccc961222520033fa93e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:19:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "79d5ecda0e3b7e097f68569b51e7e421f86db753784e17f7838a3c347d28d6e8",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:12:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "88ff19272d8bcd7ffebd38685238c115f6f2161b30c404590f46ef52747e73a9",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:10:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "89ded4c5f4341409a6abc08fb14babab021a5dbd06aac48df39e190249242ce7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:27:13Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "93bd6c8a27d6d035768a1b4a66e670863179afe28397b46e45f1c32198dbc730",
+        "Driver": "local",
+        "CreatedAt": "2026-09-06T21:29:25Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "95d1cf634aff9d6df7793f9239f80456ab022188746bcbe476c8ae7ac2430069",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T17:33:54Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "96f173e5f4ec101b02c22c9730faddf8356b650d5c78eb65bae357b0fc400116",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:42:57Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "98eb14f80652825f7749f8c0314f06be04b800ad2d6646292c736baebb3d0dbe",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:03:41Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "150f1f58738d2f1fcbadecc56a75d293d30c3057288c51e5a0d734a03116c54e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:07:36Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "174d08f34d095000292a4157fde9c4aedb55cf6ab78af81b5bc10cc722f28f88",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:04:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0186ddf584b3b64fd836c48f97f0cbcef7c310dc8708f6e81dde4dd89df9bc59",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:04:39Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "228b8a4341fd97aca200b5ec742afd9fd8b48b220d2d1f029281fa68f79cf4cd",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:28:40Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "256d6ed34bb8c98348a9c17b6fae5183959882c42389749c0bc88a738ee79c8b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:03:41Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "358ed779c044401ab7f5dabca45201fca7a8e7e1100679e25a0b921206efac57",
+        "Driver": "local",
+        "CreatedAt": "2026-09-07T06:12:22Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0414aa843ab0ed0edf55afd2136595bd4b59cb34517c8f878695df5b21ae39c4",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:00:36Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "451ff53fcd889d1678f114b506386c527e6a2ae670d939302ddeae6f37b4c336",
+        "Driver": "local",
+        "CreatedAt": "2026-10-18T22:17:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "464adc6d84fd0e3ba9ea72bc7020b189d1c222edd94fbd4b23e5a3238a506244",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:40:27Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "497ff409c72d8604155c81dc359998debd1185a2063c7368584f149ce225401d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:43:49Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "519aca16e00d3f20ecb2d70ebf4d84fff4df97792afd3bd3c21c379178bf28fc",
+        "Driver": "local",
+        "CreatedAt": "2026-09-11T20:29:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "639cc039280f4a1f71ca15869f15835d437da216c59593bc183cb0ccb29af31d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:40:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "654f2a1dd12764881a06a73247a4af82d96e26e07c218bb1255c4931c712eb17",
+        "Driver": "local",
+        "CreatedAt": "2026-08-28T17:08:23Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "660f1aa4fc9dc4274ff61ff677c7b243c412e630684dbc4a21e51c0f9c2bd912",
+        "Driver": "local",
+        "CreatedAt": "2026-10-18T22:45:41Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "674c89c5eccc16e617bfedf8b1753486101f3fb1c8f8bb99fef0f01ec777e413",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:03:02Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0767dc420bfc9d0379222cbebc9c9ef45b0c4d4239835aee0233bf614974fd96",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:23:08Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "776db3778f329c4bbc78d6b0384ce52a3f8faeb29237629901cf0e43735c7e9c",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:15:26Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "805b20b795f36d7610b4e8f037776414711609e03f6239b8050ae06e113076cb",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:37:10Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "854a81b6121547c524b3c4f692027e587aa9540846fef525334a68f903541465",
+        "Driver": "local",
+        "CreatedAt": "2026-09-11T20:29:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "897a431078af798c2883ff72bef9c3f05d4308cddcfe8b8a1c836549d7a3bceb",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:03:41Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "917e020d4cafe047aa01047919e876bc52a8da504146cee60618136740813f8a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:31:15Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "919acd3e890e056ca042088b83f4b46706eaabb2d55319140e44c921c1d45326",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:31:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "2680a92269f37f55d9c737bfa76b8bdd7a6eff8fe5b88c3ffcc44dde83dffd0d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:07:36Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "2823d05cf6634466b21f855024ce3dbcd7b4edd4920de5dd7884350efd7f0fcc",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:44:02Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "3786e6c1506dcb9d9768fc6bb5622eabb3ae5f9cd6b13fcc4394ca72f25e4b1d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-24T02:56:05Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4030bdb3b3f2423c191f27b3d6962c30999ca516518bfe8f138d4490a69fb542",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T05:09:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4644b9ef2668f58a15dc7d6231f7f3f80d6061ce415570dbeebd31d2cde9f2e7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:46Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5593dee11bdba32eacfa1a960a58c63116d1c79ef423f00854c6136133dcc294",
+        "Driver": "local",
+        "CreatedAt": "2026-10-18T22:13:20Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5763ef5f0ec216f1b69083c0cdf10fdd000bb28185cf79ba5129d2c61be7ca0a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:46Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "6676d1ba14b337ff6e3a439d15129582d931b4897b3feb5d2a833e94b7b506d5",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:27:33Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "7088b867306171f1880ea15226117eedc817d729436a2791a1b5451a4cd58d56",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:08:47Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "009253a38daf6c4ae35fff91a8ebef23bdacf264195f218f455f564382bfb94b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:08:47Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "60277c06a69d3ba1ededb9c39b3e5b998b38d91ed1734dfc3c8a3c43fba062ac",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:00Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "84116c1bc6d77ff379206b9280f3d622de79a16a0844e4cb00dc9f6105afb769",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:39:05Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "98183ff5f2c47d121f8b2e8bac1d013378c11862d99bd0dc2ae857cb025a0e7b",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T21:42:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "451375b52368d48a409317ef1a4c8a5dba38b50f9d4f3b84a6c3f74c48fe1b0a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:06:32Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "690811acd0ca9e6fc4d76341a2298c2f2fcff460980ebbcbd42bd057c6b2bf16",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:37:10Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "738652e303f5911b3e429cbaf1050bdea6a1ce397b62f62fb8f127e3591444d6",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:38:48Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0882470cd2544d83c1667dfbfafc06d07f1b62656a55bde828e88d14496e9858",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "962522cb8f7656d5a580476a7a78cc1a57b36787a7a3288c455233e60c36e230",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:25:52Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "1356509dfc442a6bcc6971c64cadd2ce6ead9f0b1a3eae0c8394f19eca173e51",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:57:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "3995452f5f3a2e642356192be4e2cf4a4ff70a1b9839c718e726fbef9eaee453",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:39:07Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4622799ef3481d5152033de9f3878bdce9408eb08313f5b44010a00800eac8ab",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:40:37Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "8037357cd90f08b310f0bf6348da5d976068aa7d2feebf4415f6a83e30c990bb",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:27:13Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "9800957f0e6e496119998cfaab5fb66a34b8405f500e767708cec3f66ea1b1fc",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:11:39Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "49642494e6be2eaccdadaf116fb28435530a9d5196a48514fe7a36aaa84bff43",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:28:40Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "275782394bad331203d8aa5cb68bf4bd1cea7941f7c949c3bd4e4522b3e7ef20",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:31:15Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "597507326ca107ec605ca48c44f1621f00557ee214cbaa3a4200256828ca6578",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:04:07Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "627962506eb1156ea9d2f4aa28b0c02c2a469fe118a0ac8bf452502d9b6987e3",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:33:38Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "24300595296e435b2b4f058cf402d883a39fe28235be033841e02ccfab7260cc",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:02:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a6db24a8b52d15b70a19cd3c9e025d96028248323cdea8c7ecfb542fe83a547b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T19:38:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a8b982ba5277bc586ac1a34a0d6459b25e9df04f12fdc16f166b7361c59f60a9",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T17:33:54Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a8d10fb3a39cf7ae56026556d05e1819a2f2ddf8e26f7f2272cb5e6a4d45edec",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:40:43Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a9b3ed099ddde802381ced3e8934875d95b84285a6a1e24c8a24482638df38e1",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:03:02Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a9e3dc11f5a8e5206ff6a8c6fd1fed49865f2ca981c7f7d13e2d83e52225b8e6",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:23:08Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a41c8c37ce3821c8c47f655341ce3e36df6006e6290c711252e0de09490dd124",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:00:29Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a56e7069b9a926686dcad52f592eb91a5c6f7bc14f74e4cf7634228e98619b77",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:34:16Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a78de10ef04867669de4679800321d137ed24978b8b4353fb87bea72c732edb9",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:27:58Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a91f1669b86e61cbc9d9cf3d35a30c6eef5046adfab4049fce575c32bcd9b1c7",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:26:28Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a1491fa3ca04348dba4388f027768c5e75164d9f5e97abd540927f9755f2279b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:57:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a25551e598bf6c4be512adfbb552893e1c92a22829b2d3c02cafe1e456877834",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:27:33Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a54640cb8ff16da6e8821f26bf225adf3dda86c268a3db51bf5d8d7585451b5a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:27:13Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a58787c439fa270ef136a062d89081f6638b95c1bac482e1ab98fcfca858907c",
+        "Driver": "local",
+        "CreatedAt": "2026-09-03T21:14:27Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a67034c3a769a5cec94448389cb755dcd24d41d03f3e49db4c375bff08d2f152",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:41:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a664933e3d4dbaa1872690cf473367ea034e728f84e6c6289dee78fac8b559b5",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:31:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "aa13778895bc280154baf35648fccd42b96e32203624ee9b38f2e935c2e3762b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:00:35Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "abd09f36288172bf1608b0e68643e4f50ac02a7bf29c15fd248be1257e854cf1",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:38:48Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "aed7c866473f891d4542f06f1b11aaff86af4962e15f26dec56fbd0df4f22689",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:57:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "api_roguelike_grafana-data",
+        "Driver": "local",
+        "CreatedAt": "2026-06-03T22:57:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "api_roguelike_mongodb-data",
+        "Driver": "local",
+        "CreatedAt": "2026-06-03T22:57:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "api_roguelike_prometheus-data",
+        "Driver": "local",
+        "CreatedAt": "2026-06-03T22:57:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b02be00c1a1890913272f5a70aa410951310662de24849a7c1b1162895e50dfb",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:04:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b3a3704719623cd1366316b7773d36e0cffc5e4b6fd4d4a18b4807b4b818e7f9",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:10:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b03f9114e4fb363888b4cd651af43b08cfa9ceb16cd13958c90aed3891562896",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:40:35Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b4af2a0fea158202f6271198b4c04e864d24f0666bfc461a8e99c06abe14980a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:06:32Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b7b6fe748d652ba495947351f570a4420cab00a3eaa2f809a3190efa24fe428e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:41:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b9cafdbbc966ba6d60ef0fc742ff8335d77b2c47e2f6aa791f68c821aa9e2e55",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:40:35Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b9e81b2ba979df8bd435f57fc1324e74e08fdfa3730121a4b83e0a3d6bb4dc5e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:39:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b32c14ba8d2d62fe5fc3b7266bbbb5892b62931f82bc6b419c9fd13f74c12774",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:24:51Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b39d1000ae8177e45f2ef6fce9fbcc762502cd0b039be213ecd3bf13758006f9",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T17:33:55Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b47e04c18f2885a9c33fe62573d3adf2f0f9204ed31057a560e7620ea0b388e7",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:29:19Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b84a6a9c3a799d0607fcdc196a4d8bd6c93440be42c26df1a42296a187d4e385",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:02:28Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bad7a05248915dcfde9dae86227d26e276071e6b9809c5c5dc4d17711dc4a364",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bc90f14fc0432db1a8c25646681cce19a2af02ad2bdd36d06118cf69e63a04ec",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T20:42:11Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bd8146aba0b2a36763b0f27232050d9ea43e68339d590c6734ffb8f3827513a8",
+        "Driver": "local",
+        "CreatedAt": "2026-09-07T06:12:22Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bdebd6ab4fd0c607b8158c6b847bade209b39b9bf4ffa1acbf8e97b0b187183b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:42:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bf2e9cea14bba0b1791e8d44b344a64529e7ebb21d6f5ef701852d5675737286",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:39:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bfd64b3f9d01dd734d0f42f9c9c09638afa7ba9a6a2d6c3978a076432144d7a9",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T21:42:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c7d70d6d7f26536cd8e9664d09598529a057c0333d7ce3a8dde8edb73109c04e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:30:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c49bddd5ad35ab7c072d05a6b20d78269adf0c4df00e81b8b49a4e72ebd46652",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:46Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c193d447df0544832a37db653d06b65d03834b8d27132b1346fd06722b54c0f1",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:42:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c213d4589a3d998ae81af3e3327587135010f5f9a6c496e315bb1f2cc10f4db7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:04:40Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c259a649cd3e606c1c8c57ec9d4a5531b6ec0caf03364c8a0bb6d854840cdd52",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T20:17:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c596821813c827f583164279dbfbf2b134e25b60f292c9472e134c0fd2b0acd7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:02:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c4580248122fdba2869dfe1b6eda6e0ca6bc995b978db762a466fb4647c8651f",
+        "Driver": "local",
+        "CreatedAt": "2026-10-24T02:56:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "ca5d25fb9bf5734afd476eb28af7d8bf646509a1dc8092be555fccbeeb53e512",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:29:19Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "cdd2ce6a9ca45a0e9f3074e9e6f991268d473d7fb903845e94eca1005bfa4548",
+        "Driver": "local",
+        "CreatedAt": "2026-10-16T21:26:50Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "ceb2e06d988e6960d2bd0f43e15ccaf28c0d9cc87b80a72e8f4d1ff955173aa7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:57:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_gateway-state",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:28:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_influxdb-config",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:07:39Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_influxdb-data",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:07:39Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_job-artifacts",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:28:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_mosquitto-auth",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_mosquitto-data",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_ollama-data",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:25:25Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_postgres-data",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_rabbitmq-data",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_rabbitmq-definitions",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_training-artifacts",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:28:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d0a08562a991dabd17b7e17ac5565eacf7b600f00c146cf2e04280ddf248c67c",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:24:51Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d7fa2ad7180b5e81dc34a20c87c5daaf46239955a0ccd5864a2a47fb202b77d0",
+        "Driver": "local",
+        "CreatedAt": "2026-10-18T22:44:19Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d56a8b4fcf5b97a98648ac7ce1c89c3ed42b9cdd94a604aab5755f559639f007",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T05:09:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d57e41e813ed2135c7efc6c3064c794b3b01a43178d431a7e7e8c5448dc8153e",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:34:16Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d061b9d4684679f50355781cb3fac143cab63f2352937b7309b3e1ed8460d5bc",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:41:32Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d62b46c177e78813f5b21491dc40380d85e158c45df494c5e7677d0b8409c64d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:31:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d90c128ffde0e4a45e5ebb1237dcd983a58d8fb419a883f4ad8301ac06e3df2b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:15:26Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d526ab4926934e149bc19c978ef451b60710b369d916eabfb6f7afa14cb4125a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-16T21:26:50Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d763c004aec3b5cfa7bcf701498f448f98e0749b2cbb5417f72f00a9b87a0900",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:40:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d9848fa4433836a5e009b9910d967d4fa3d2fc7c205bf53f05191b858428c805",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T21:31:47Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d164920a5bcf9f40015385036b2867130aac2dd468a7681815f8d31a433548dc",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:25:51Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "da1f164a1aab253eae15556fbacb8e73db2ee5ef8e81079e1e2b09a09d097025",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:02:28Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "daa233cbc9545dedeb73dc824434ceb1630b39b37848505c88f6d89161dd23ea",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:45:32Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "db1c8852b866059638735035c96a5300b6470bc3f55c0d28def64fc26cda09db",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:21:58Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "db7be0c6a5a0f561adc08a76e30560386ddada3af7a04f7f70105561baea4f8e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:39:05Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "dc30303ac8d01766276bca2401158091d52bbbd4ef0198b2f3799701ab01c121",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:26:28Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e2fa6f54390bda984ee2131770cb01962dfcdeb41eb8caa058cbeb77fef1523c",
+        "Driver": "local",
+        "CreatedAt": "2026-09-07T06:12:22Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e9e1381c0f0ac7d835d2fb6c02de7c7e77abe4c18eb6d58328349cf8f9470849",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:37:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e50aacb8ac1897bd16314700ca11bea5cddede994ddfefd86d69ef99d5241d45",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:43:49Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e79c7a92f68eb18e7279f5cfb9de683adced914468a85630ff153dc66e0da00e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:40:45Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e7953f8c543122c6c5289a06c0b20c217ed210181a682bec0ece299f71bbedd5",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:33:38Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e13162d707296a5a58206afe43391e163c58545788e1b22a6b91a0427b7ff5d8",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:35:52Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e14297b3a8a02579be3b6a9d221ea63ecf348bc878ed55453d7d57fb14d5fe3c",
+        "Driver": "local",
+        "CreatedAt": "2026-09-11T20:29:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e84238d653db3dbaaecdcbd7a212d8e9e333ecff2e6f69d86dad9160e5750400",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:57:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "ebe7939811e12aced4cc6b35b48b16933424e33b60a0586de60c87dde9dfaaf0",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:04:39Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "eda6fd109e50dfef26e22773ab2335a7d223fc9dc0f0064186bd27ebd243211f",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:06:32Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "ef7b6608794d0410bacb9f8ef846f4b9d023efe2417fc0077eded8ed404ad9c3",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:43:49Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f2e841dab4a3875e749c91f7d361db25372bf3037bb9e1ca307090466ee845c0",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:25:51Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f7ad56c0e6608528824858d21617091a6a57ceb399492c3fc645a8236d4b0d70",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:00Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f08f7025872dd15abb340fdec70f4cbfd0f4aa9454c9f8e394509e961f4a7363",
+        "Driver": "local",
+        "CreatedAt": "2026-10-24T02:56:05Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f31b0bff1a9691ed7c3ef635bab1387824548d2380283febd9298d7da3090151",
+        "Driver": "local",
+        "CreatedAt": "2026-10-16T21:26:50Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f94df1b9c3069b924cc3b8292abf364ad6f79547643c1d05dd4e1a8e5d1a0f8d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:57:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f947fd817fc889c87c9d2d97c32538cae1be48fa9ab15cf91858653bbee0e0fe",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:27:58Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "faea6d484e7bf8a4ca7da1068d1f4698b1d6d207b175f89237c02c779c9dcfd7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:30:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "fbfe231e7cb08045929f69c97447188c656113bc5e576f65ab817574dfae7e32",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:37:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "fc0a4fea58140d34428c177e49e86fd7ba7f8b9c7f97b8d6e278d7fbe6490ebe",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:57:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "fe112f6ff7df910813b218996e93b5d0087e8ba68671e0176e79caf97c6a407b",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:28:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "ffeb0670a6545fe814831e7af97002c6219ee9c8ebb824d5b4777c7a524ae68b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:07:36Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "omnithread_postgres_data",
+        "Driver": "local",
+        "CreatedAt": "2026-07-04T06:36:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "omnithread_rabbitmq_data",
+        "Driver": "local",
+        "CreatedAt": "2026-07-04T06:36:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "replay-iot_influxdb_config",
+        "Driver": "local",
+        "CreatedAt": "2026-08-24T16:51:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "replay-iot_influxdb_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-24T16:51:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "replay-iot_mosquitto_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-24T16:51:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "replay-iot_postgres_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-24T16:51:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "rewind-edge_clips_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T04:12:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "rewind-edge_influxdb_config",
+        "Driver": "local",
+        "CreatedAt": "2026-08-28T00:50:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "rewind-edge_influxdb_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-28T00:50:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "rewind-edge_mosquitto_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-28T17:08:23Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "rewind-edge_postgres_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-28T00:42:06Z",
+        "Scope": "local"
+      }
+    ],
+    "protected_local_sha256": {
+      ".env": "1a27f5382e241029fa7e08757dfa703727ceece00d2a433a143ba124abd06d9f",
+      "simulator/local/catalog.before-reset-20261025T021514086625Z.json": "6b8c1b99806a8450bd0359f51174655dce6e03329931c6694c45e5463e5ef874",
+      "simulator/local/catalog.json": "17fa6910887f035636484e933a521505cb21f8637904cd583c117f799d007a3e"
+    }
+  },
+  "builds": [
+    {
+      "service": "backend",
+      "exit_code": 0,
+      "elapsed_seconds": 1.407,
+      "finished_at_utc": "2026-11-05T05:12:45.688370+00:00"
+    },
+    {
+      "service": "gateway",
+      "exit_code": 0,
+      "elapsed_seconds": 0.613,
+      "finished_at_utc": "2026-11-05T05:12:46.308185+00:00"
+    },
+    {
+      "service": "writer",
+      "exit_code": 0,
+      "elapsed_seconds": 0.987,
+      "finished_at_utc": "2026-11-05T05:12:47.299685+00:00"
+    },
+    {
+      "service": "simulator",
+      "exit_code": 0,
+      "elapsed_seconds": 0.638,
+      "finished_at_utc": "2026-11-05T05:12:47.942064+00:00"
+    },
+    {
+      "service": "frontend",
+      "exit_code": 0,
+      "elapsed_seconds": 12.879,
+      "finished_at_utc": "2026-11-05T05:13:00.827132+00:00"
+    },
+    {
+      "service": "generation",
+      "exit_code": 0,
+      "elapsed_seconds": 0.714,
+      "finished_at_utc": "2026-11-05T05:13:01.551048+00:00"
+    },
+    {
+      "service": "training",
+      "exit_code": 0,
+      "elapsed_seconds": 0.751,
+      "finished_at_utc": "2026-11-05T05:13:02.307244+00:00"
+    },
+    {
+      "service": "models",
+      "exit_code": 0,
+      "elapsed_seconds": 0.667,
+      "finished_at_utc": "2026-11-05T05:13:02.980695+00:00"
+    },
+    {
+      "service": "llm",
+      "exit_code": 0,
+      "elapsed_seconds": 0.583,
+      "finished_at_utc": "2026-11-05T05:13:03.570321+00:00"
+    }
+  ],
+  "limits": [
+    "Docker settings file not readable due to macOS protection; no setting changed.",
+    "Engine MemTotal is VM capacity, not current RAM usage.",
+    "No application services, models, inference, generation or training will be started.",
+    "Volume identities and mounts are checked; database and artifact contents are not read or revalidated.",
+    "No measured per-service RAM consumption is available while containers are stopped."
+  ],
+  "container_refresh": {
+    "command": [
+      "docker",
+      "compose",
+      "--parallel",
+      "1",
+      "-p",
+      "coldsafe",
+      "-f",
+      "compose.yaml",
+      "-f",
+      "compose.aiot.yaml",
+      "-f",
+      "compose.jobs.yaml",
+      "-f",
+      "compose.inference.yaml",
+      "-f",
+      "compose.ollama.yaml",
+      "--profile",
+      "aiot",
+      "--profile",
+      "simulator",
+      "create",
+      "--no-build",
+      "--pull",
+      "never",
+      "backend",
+      "frontend",
+      "gateway",
+      "writer",
+      "simulator",
+      "generation",
+      "training",
+      "models",
+      "llm"
+    ],
+    "exit_code": 0,
+    "finished_at_utc": "2026-11-05T05:13:35.652740+00:00"
+  },
+  "after": {
+    "captured_at_utc": "2026-11-05T05:15:20.570685+00:00",
+    "battery": "Now drawing from 'Battery Power'\n -InternalBattery-0 (id=23134307)\t40%; discharging; 3:28 remaining present: true",
+    "memory_pressure_level": 2,
+    "swap": "vm.swapusage: total = 5120.00M  used = 4566.12M  free = 553.88M  (encrypted)",
+    "free_space": "Filesystem   1024-blocks      Used Available Capacity iused     ifree %iused  Mounted on\n/dev/disk3s5   239362496 188173716  20321096    91% 1766135 203210960    1%   /System/Volumes/Data",
+    "containers": [
+      {
+        "service": "frontend",
+        "id": "c7b4b12e8b8392dbc8fb823fa96c6721ec5a15cc03e759711e6d28ccd0fcfc28",
+        "image_id": "sha256:c0fcb199cd73ad26e0b59ef6cd734a838fa67928958a975236dc33a287fe78b4",
+        "state": "created",
+        "started_at": "0001-01-01T00:00:00Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "aafe929e59c401219ef1b342dc86ded886e20f70c6e24ee0823be1af13d8fdd0",
+        "mounts": []
+      },
+      {
+        "service": "llm",
+        "id": "56adedbe5f4a220105c8ce352631bfaaf65152ae99b87a3d3ae95cd77f8f5821",
+        "image_id": "sha256:bdb3dbdb51fd92fdfcebd3ccbf5c155edec6b671323441f99fb65a0d92968da2",
+        "state": "created",
+        "started_at": "0001-01-01T00:00:00Z",
+        "memory_limit": 134217728,
+        "nano_cpus": 250000000,
+        "config_hash": "56d545c67b9e0dc00be92ab855107b76e782b6bec308c5ed382fdc75fc076915",
+        "mounts": []
+      },
+      {
+        "service": "backend",
+        "id": "79a548ed7627a18322079bf826960e01265767eef6211fe1f3281841b08bbfe3",
+        "image_id": "sha256:de9fef23d76cf3741f50b0f44086b1e80e6b457b9111e0de88c9fefd22471209",
+        "state": "created",
+        "started_at": "0001-01-01T00:00:00Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "70ac6384bdf13b5e91c2850a2c757775d9e28b2422549e55fc6142da9a1f63b2",
+        "mounts": [
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_job-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_job-artifacts/_data",
+            "Destination": "/app/artifacts",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_training-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_training-artifacts/_data",
+            "Destination": "/app/training-artifacts",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "models",
+        "id": "dd40cc680bf46421035b2464802294a5ddb8359e4df5a7c424740adffbafc996",
+        "image_id": "sha256:f48dc09b156923094960df4996c992421edfb70b2ca321a5eca96e7f9b6b460f",
+        "state": "created",
+        "started_at": "0001-01-01T00:00:00Z",
+        "memory_limit": 536870912,
+        "nano_cpus": 1000000000,
+        "config_hash": "48d8d83228cb11626f0fab561a457f698de0b003536eb88cfb8191c56cad84f6",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_training-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_training-artifacts/_data",
+            "Destination": "/app/training-artifacts",
+            "RW": false
+          },
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "training",
+        "id": "612a5877c337ab4ee6e4a616b121ee56957c25dee2065567c2e2d198337798ba",
+        "image_id": "sha256:445b487934b73971bc7f7947c9f3c194ec4de01217dfb58184ac6236cfce3087",
+        "state": "created",
+        "started_at": "0001-01-01T00:00:00Z",
+        "memory_limit": 1073741824,
+        "nano_cpus": 1000000000,
+        "config_hash": "9763025e7b506b34f172fcbc16eafd6534522f2997c7cd0cb706d633a823f59a",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_job-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_job-artifacts/_data",
+            "Destination": "/app/artifacts",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_training-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_training-artifacts/_data",
+            "Destination": "/app/training-artifacts",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "gateway",
+        "id": "e7d7b03f11199e7fdb35369456ed0f12156257432eded739207b0218d50aa640",
+        "image_id": "sha256:6e750dd41ae6fb645579323877cac5a8023f847c69e21a241e54f0f6c92f33c3",
+        "state": "created",
+        "started_at": "0001-01-01T00:00:00Z",
+        "memory_limit": 134217728,
+        "nano_cpus": 250000000,
+        "config_hash": "8f60277b6b1dede630803971ad84d6fc6674e9287e6dfc4bc68ea5d0f6b956a2",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_gateway-state",
+            "Source": "/var/lib/docker/volumes/coldsafe_gateway-state/_data",
+            "Destination": "/state",
+            "RW": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "writer",
+        "id": "1a822cf9b10a074fc6fcc5e29bb536f51319c79aa3fabdc0630a80c859129cf6",
+        "image_id": "sha256:abb6f77202e98e0bf968ecdfb4f16f7ce5a3a09bb9384a19a1250b03160e4812",
+        "state": "created",
+        "started_at": "0001-01-01T00:00:00Z",
+        "memory_limit": 134217728,
+        "nano_cpus": 250000000,
+        "config_hash": "94abd7818dbe3dea63b51fec8d8369842e62b70894bbad3e88b1904382b89866",
+        "mounts": [
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "generation",
+        "id": "d77074a2fadb9ed9c81705eaf1ff9deafbe4c1c9bf9db1019742b319d1dc0a9d",
+        "image_id": "sha256:a9e7de99a1c57c9918f35eb07fbb3c8158186282fdc74fa41c62fe8e944869ca",
+        "state": "created",
+        "started_at": "0001-01-01T00:00:00Z",
+        "memory_limit": 536870912,
+        "nano_cpus": 1000000000,
+        "config_hash": "f3afeb2b877504652ce250c4233b24ee2f80b4ac29181461b2041e2121980dba",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_job-artifacts",
+            "Source": "/var/lib/docker/volumes/coldsafe_job-artifacts/_data",
+            "Destination": "/app/artifacts",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "simulator",
+        "id": "e7c2ace4989cf5dbf466e872179b7b787609188425076c30ddaa0cb60e436baa",
+        "image_id": "sha256:2bd14896f9a04c868d8f811de8146a3170c293739b060d882d31d0d3c09d8458",
+        "state": "created",
+        "started_at": "0001-01-01T00:00:00Z",
+        "memory_limit": 67108864,
+        "nano_cpus": 250000000,
+        "config_hash": "a9f194b62045837eea7c8d0e109006aec6a1a66d46934c5df7b9c999e2c3ee88",
+        "mounts": [
+          {
+            "Type": "bind",
+            "Source": "/Users/vitorhugofernandescosta/Documents/ColdSafe/simulator/local",
+            "Destination": "/catalog",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "mosquitto",
+        "id": "1cb2a269d2b5843be407b086475888686c08a6f8e061d93294ca93ff1cc3e712",
+        "image_id": "sha256:6a458a7d642350bff8c4d9cce8b088940ec7c881163b10d20c9da42589b4d5a7",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:33.652836376Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "1ff2137cd317f3ac95352866378f03bebe9136d91f87d9be00497f561d5151b7",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_mosquitto-data/_data",
+            "Destination": "/mosquitto/data",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "5d7cfcd9b0b9a9c689fb319b298a7068c4a948de0fadd91a677174888b7ffbe6",
+            "Source": "/var/lib/docker/volumes/5d7cfcd9b0b9a9c689fb319b298a7068c4a948de0fadd91a677174888b7ffbe6/_data",
+            "Destination": "/mosquitto/log",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-auth",
+            "Source": "/var/lib/docker/volumes/coldsafe_mosquitto-auth/_data",
+            "Destination": "/mosquitto/auth",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "mosquitto-init",
+        "id": "46fa4db745dca9ee4c5d2a06be84d48c147633e2ca737703a4bc2d6ee05045be",
+        "image_id": "sha256:6a458a7d642350bff8c4d9cce8b088940ec7c881163b10d20c9da42589b4d5a7",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:32.968902542Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "2db3349e9076d9d234a7c4babf63e5f332ba4f9c996a438a13e549168448fe51",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_mosquitto-auth",
+            "Source": "/var/lib/docker/volumes/coldsafe_mosquitto-auth/_data",
+            "Destination": "/mosquitto/auth",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "0882470cd2544d83c1667dfbfafc06d07f1b62656a55bde828e88d14496e9858",
+            "Source": "/var/lib/docker/volumes/0882470cd2544d83c1667dfbfafc06d07f1b62656a55bde828e88d14496e9858/_data",
+            "Destination": "/mosquitto/data",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "bad7a05248915dcfde9dae86227d26e276071e6b9809c5c5dc4d17711dc4a364",
+            "Source": "/var/lib/docker/volumes/bad7a05248915dcfde9dae86227d26e276071e6b9809c5c5dc4d17711dc4a364/_data",
+            "Destination": "/mosquitto/log",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "rabbitmq",
+        "id": "4f7c9e3b08bae6193b588bc7789eb0f9d3891e1c50b8500d03fef66df080c77c",
+        "image_id": "sha256:818d5f898a5b2d0978214736bd961d2d53701bc4a76dcf8a81b67af12cab94c4",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:34.210912293Z",
+        "memory_limit": 536870912,
+        "nano_cpus": 1000000000,
+        "config_hash": "c2d142a6c57be1da5bff179fa971dcc47014b0e35f1a3350f4ce57f579dabd18",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-definitions",
+            "Source": "/var/lib/docker/volumes/coldsafe_rabbitmq-definitions/_data",
+            "Destination": "/etc/rabbitmq/bootstrap",
+            "RW": false
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_rabbitmq-data/_data",
+            "Destination": "/var/lib/rabbitmq",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "postgres",
+        "id": "0fa77b130d38562f7bf163d6c132f6ca98f8280f92db4b713ff00ae72f45d8fd",
+        "image_id": "sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:32.974064959Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "c9558c2423430bce46c03a5e227b32f106a73c52f936fa960c730e91de7fabce",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_postgres-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_postgres-data/_data",
+            "Destination": "/var/lib/postgresql/data",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "rabbitmq-init",
+        "id": "14dcec193f9bca034a58df24de29e0e2bfe196d99322f0a5e33c6f02932ef3da",
+        "image_id": "sha256:6433d4a776e29e9a3569e05526bbbd4d8359f89da5e374947977bd20f9686f49",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:32.974628084Z",
+        "memory_limit": 67108864,
+        "nano_cpus": 0,
+        "config_hash": "b0cc15d38e299d5355e20ce864ea5ae85a4920593bf22c1ce989e8986c994338",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_rabbitmq-definitions",
+            "Source": "/var/lib/docker/volumes/coldsafe_rabbitmq-definitions/_data",
+            "Destination": "/output",
+            "RW": true
+          }
+        ]
+      },
+      {
+        "service": "ollama",
+        "id": "cc9726b5e11fd39dd19c2dc161d3790def55a6dff75c40e7f1c843822ec864f5",
+        "image_id": "sha256:adca95a12c2b386a8f9a995e7fa0600e187e3323b5e5522f5a6c3b1ec73eff99",
+        "state": "exited",
+        "started_at": "2026-11-03T05:19:43.454543678Z",
+        "memory_limit": 3489660928,
+        "nano_cpus": 4000000000,
+        "config_hash": "f9817db926cd2b61a2f21502fa1f4959dcaa93d1ecdaecda2629af15b8906dae",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_ollama-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_ollama-data/_data",
+            "Destination": "/models",
+            "RW": false
+          }
+        ]
+      },
+      {
+        "service": "influxdb",
+        "id": "6082312c6613a4574f9f3aa7c47f8fd17fcfb84592eb5c5cd652ec6eecdf2fe3",
+        "image_id": "sha256:991673dc2d237bd79b15d6627410d72de111387e7dac673dbb92cf3333ffcc8c",
+        "state": "exited",
+        "started_at": "2026-11-03T14:20:32.975579251Z",
+        "memory_limit": 0,
+        "nano_cpus": 0,
+        "config_hash": "88256d467cf560d9a5a16a462c854a3df6a0e8251d3d92d5f7b07ffead4f5452",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "coldsafe_influxdb-config",
+            "Source": "/var/lib/docker/volumes/coldsafe_influxdb-config/_data",
+            "Destination": "/etc/influxdb2",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "coldsafe_influxdb-data",
+            "Source": "/var/lib/docker/volumes/coldsafe_influxdb-data/_data",
+            "Destination": "/var/lib/influxdb2",
+            "RW": true
+          }
+        ]
+      }
+    ],
+    "docker_engine_capacity": {
+      "vm_memory_capacity_bytes": 6212268032,
+      "logical_cpus": 8
+    },
+    "volumes": [
+      {
+        "Name": "0aa1abe7eea38d107ddf2f9ca044ba876824f79dbc34d862109b88f75ceb4b79",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:12:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0ae5888554a2aba805bea3f1207e2e57bfecb3bc7c2a17d34013de517975e336",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:39:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0b41c9f3720183adf3e2fed966230e2b78b6e47614ea35cb0720460aaf5b8432",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:11:38Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0bc59c848ada05e198d3a14d2275b8239233416ded4c37bf8ed6e617f9e00e00",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:19:13Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0de3fa54f157cb2a75a0f0a3da88d15d21157df014e8363e9dc308346725ae57",
+        "Driver": "local",
+        "CreatedAt": "2026-10-19T04:31:15Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0f1f3cfb47455a864c30df4bbdcd25c2015661506675a498f26c7a08ba472012",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:00:29Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "1bb25d67383a90ac4268ba1d8cad9a288f14c1f3e26551e127cf0e69dfe329f4",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:45:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "1caa692fccafe492c1928f2952e7da8b5230407e7a02eb62604448c434ea81f6",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:02:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "1dbbba510581d63caeb77b444cd5bbc656764f271b298832aa8966eab9e04c09",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:21:58Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "2b574d165679163500660cbe5ed9ac27af4706efd3ee9bc771cf13941f5b254e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:30:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "2be082501d5a918e15debc90ed3f8ebd099db6c2e6dede5f91b8e6052a4fdae9",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:35:52Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "2cbe6b4c9618209ad2aa3ed49ca078969bf701979e5047cdb79bc3176c8dec7e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:12:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4a576758c347b086484ee2a8247c11ae05efce1ecf89825951ab92775629d40f",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:11:38Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4b9673ba3d8f5bc8205b242b8f080234390d79eaf12037d2e6b218cbc1d4e98f",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:40:27Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4f0400debb66b79c98bf844e2011926a0f4b404da60e8c9dd431130a9dade10f",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:08:47Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5ba8b60a6cf4cd1dca35cbcace1786f28318c4210480f8d955d0748ae6ddc84f",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T21:31:47Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5c19f77f1ce4d3709226a4012a684d3e8bd717664e857111f3783863b93923ec",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:00Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5ccdc10cfa68e1d3da0a3b0758e48b834adaf60aeac7ec7178b9383c5da79238",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:33:38Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5d7cfcd9b0b9a9c689fb319b298a7068c4a948de0fadd91a677174888b7ffbe6",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5d937fe6323a0301eb8d338d140bd196f61ddeb25c7516236d566fc384ad2d79",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:31:16Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5ea77b4ff9b74ef804db7a9e6804e136e5b159bcce1b698066532406aaac0476",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T19:38:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5fee78095409664b15fdf16741ab7c791fed00e9b0a9afce7bfaa3cbf61f1ed7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:42:57Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "6bc970b1e8bf515e0c9c7982a58cd8134caf81e4a730035e3278b36dca856cf5",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T20:42:10Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "6bd068b97f9c2c91490febf06c0fcd0591a40cbc1b7984ad8e1c3f732d1be320",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:24:52Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "6f13bedff4d45ebdfb367ef6186e68de9058bc69e83c91b5d64dbacf9609eb37",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:44:03Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "7b6abd068d60c7da283c74fe814aaaea6077dbec3dac248a21908714326c88ff",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:17:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "7d0e65f98775765dca6ec4c3d46025798af2ce805a1574187c16515e695d314d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:00:35Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "7d3b85f596c9be4eaa0a32953b94b8c2ca50b3fc48e9b7696d9e8eee0e98b6e0",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:03:02Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "7d4d460635942d1d96d466da89f682599f710b59d26b3ed42bdd33b84e6b1128",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:40:45Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "8b6be14a11a634298299704eaf2f6e8afee647113b40c15782fe0b7d91fb6462",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:37:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "08b402929f2ef491d48f61c98be0a5d6b1073ac3a348925bdecbe80133721ac0",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:57:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "08d3ad5561334db45693386edf10bc053113369f1b6ddffeede09167665feac9",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:44:02Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "08e98070f9cd0057b95c49470c769477fe3333529daf3751cfdb35da33230e14",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:45:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "9b3f788d2a8cd3b50222a9e33e9b4d5bfd26d21ea3e982873911d8533ad30eb1",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:57:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "9c0b2d7c33ddfdafcbecb2aef3f05351249684292bf2e054e43674e2b47d2f44",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:17:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "09c90e9eecfa340016933abd901e773a2ee47dbb99cebce374857b65c3e116d4",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T19:38:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "11a4a28338d99a1cc0519eb00c01b84487c7f326cd76a2ea4d95d7c4acdc43d2",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:42:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "11f37064a46244ec4c1d7a915d9c734dab03baf096d08b75b34a7c8d02aa26d8",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:19:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "15c2c52518b808b52d64ef75d26c110f9336daa2d8d708491dfbb5a732b6f140",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:02:28Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "15dfc367b93811c3cf52249ad766f54a5acb8e95ea868ec05bb2909dfac3718b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:40:45Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "20a90bd83d030e6ba863cd69c102e773734e8d5752e35637b70eb283473cee65",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T20:42:10Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "21b3a7dd9db00dd109a3f9d4233002f42d22949ceb4823ef77c4033584a53f01",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:04:23Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "23a57be71719609d09b6123ecea76096d6780fbec3af5b5cff9d2482d4125c1d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:00:29Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "26b4be92b9e9d797042dc546801bd04595c49ff2bda01b497dc0e0e3ca456ba1",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T20:17:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "26dd0fe7f8ce7b35cbdde1319090f8ac30445dad35c90e8e1b262f458731fd5b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:27:33Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "30e41318f7b717c11658171a66ffa14aa781e83df52b96856fb92202a92741fa",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T20:17:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "30f0b4de3be8dafe53700a5c78379ecacd8dba70442c214c85f99c78a0dc15eb",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:15:26Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "32d23ce0b176b3c0cadacb19d0686bc13ece120fa29689ddf29237013899f0c8",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:40:27Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "43db873d47f3bf5785277d5c30aee2c8ad92f23f350c5aa81c55cf0aafec4928",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:42:57Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "48cf37ae4197db404933775658caa9787ae8bcf8e9652419aedeeabcd801769a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:17:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "50ab092be1339bac688603f5c5d0d3232e6271db3c1e607a60ce0427c377d60f",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T05:09:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "58f881d8751c2f41444e259313cda60763611a0735033a00e0b0bf3c06b2ae6d",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:28:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "64bfb9bc579156c4b5eb2e069208ca3113a89b42cf72ebbd4fade0654dcb6c19",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:10:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "66a788f18ef78dd5098e2431eaf8d9b297cec8fb32e338b2f21f6d1e2c898e42",
+        "Driver": "local",
+        "CreatedAt": "2026-09-06T21:29:25Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "71e02f6c690dd60695130e9428f0b9c138e469492fbf5842c32a868a301aefc9",
+        "Driver": "local",
+        "CreatedAt": "2026-09-06T21:29:25Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "72b973232192531d586bd0c3a0e962297612543c6f473ab9dd6706bf91f74809",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:38:48Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "76b7900a14c9e26efc411b6d61b315f9dcd9b1973273ccc961222520033fa93e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:19:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "79d5ecda0e3b7e097f68569b51e7e421f86db753784e17f7838a3c347d28d6e8",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:12:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "88ff19272d8bcd7ffebd38685238c115f6f2161b30c404590f46ef52747e73a9",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:10:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "89ded4c5f4341409a6abc08fb14babab021a5dbd06aac48df39e190249242ce7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:27:13Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "93bd6c8a27d6d035768a1b4a66e670863179afe28397b46e45f1c32198dbc730",
+        "Driver": "local",
+        "CreatedAt": "2026-09-06T21:29:25Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "95d1cf634aff9d6df7793f9239f80456ab022188746bcbe476c8ae7ac2430069",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T17:33:54Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "96f173e5f4ec101b02c22c9730faddf8356b650d5c78eb65bae357b0fc400116",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:42:57Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "98eb14f80652825f7749f8c0314f06be04b800ad2d6646292c736baebb3d0dbe",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:03:41Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "150f1f58738d2f1fcbadecc56a75d293d30c3057288c51e5a0d734a03116c54e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:07:36Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "174d08f34d095000292a4157fde9c4aedb55cf6ab78af81b5bc10cc722f28f88",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:04:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0186ddf584b3b64fd836c48f97f0cbcef7c310dc8708f6e81dde4dd89df9bc59",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:04:39Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "228b8a4341fd97aca200b5ec742afd9fd8b48b220d2d1f029281fa68f79cf4cd",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:28:40Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "256d6ed34bb8c98348a9c17b6fae5183959882c42389749c0bc88a738ee79c8b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:03:41Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "358ed779c044401ab7f5dabca45201fca7a8e7e1100679e25a0b921206efac57",
+        "Driver": "local",
+        "CreatedAt": "2026-09-07T06:12:22Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0414aa843ab0ed0edf55afd2136595bd4b59cb34517c8f878695df5b21ae39c4",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:00:36Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "451ff53fcd889d1678f114b506386c527e6a2ae670d939302ddeae6f37b4c336",
+        "Driver": "local",
+        "CreatedAt": "2026-10-18T22:17:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "464adc6d84fd0e3ba9ea72bc7020b189d1c222edd94fbd4b23e5a3238a506244",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:40:27Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "497ff409c72d8604155c81dc359998debd1185a2063c7368584f149ce225401d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:43:49Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "519aca16e00d3f20ecb2d70ebf4d84fff4df97792afd3bd3c21c379178bf28fc",
+        "Driver": "local",
+        "CreatedAt": "2026-09-11T20:29:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "639cc039280f4a1f71ca15869f15835d437da216c59593bc183cb0ccb29af31d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:40:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "654f2a1dd12764881a06a73247a4af82d96e26e07c218bb1255c4931c712eb17",
+        "Driver": "local",
+        "CreatedAt": "2026-08-28T17:08:23Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "660f1aa4fc9dc4274ff61ff677c7b243c412e630684dbc4a21e51c0f9c2bd912",
+        "Driver": "local",
+        "CreatedAt": "2026-10-18T22:45:41Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "674c89c5eccc16e617bfedf8b1753486101f3fb1c8f8bb99fef0f01ec777e413",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:03:02Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0767dc420bfc9d0379222cbebc9c9ef45b0c4d4239835aee0233bf614974fd96",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:23:08Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "776db3778f329c4bbc78d6b0384ce52a3f8faeb29237629901cf0e43735c7e9c",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:15:26Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "805b20b795f36d7610b4e8f037776414711609e03f6239b8050ae06e113076cb",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:37:10Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "854a81b6121547c524b3c4f692027e587aa9540846fef525334a68f903541465",
+        "Driver": "local",
+        "CreatedAt": "2026-09-11T20:29:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "897a431078af798c2883ff72bef9c3f05d4308cddcfe8b8a1c836549d7a3bceb",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:03:41Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "917e020d4cafe047aa01047919e876bc52a8da504146cee60618136740813f8a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:31:15Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "919acd3e890e056ca042088b83f4b46706eaabb2d55319140e44c921c1d45326",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:31:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "2680a92269f37f55d9c737bfa76b8bdd7a6eff8fe5b88c3ffcc44dde83dffd0d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:07:36Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "2823d05cf6634466b21f855024ce3dbcd7b4edd4920de5dd7884350efd7f0fcc",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:44:02Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "3786e6c1506dcb9d9768fc6bb5622eabb3ae5f9cd6b13fcc4394ca72f25e4b1d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-24T02:56:05Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4030bdb3b3f2423c191f27b3d6962c30999ca516518bfe8f138d4490a69fb542",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T05:09:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4644b9ef2668f58a15dc7d6231f7f3f80d6061ce415570dbeebd31d2cde9f2e7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:46Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5593dee11bdba32eacfa1a960a58c63116d1c79ef423f00854c6136133dcc294",
+        "Driver": "local",
+        "CreatedAt": "2026-10-18T22:13:20Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "5763ef5f0ec216f1b69083c0cdf10fdd000bb28185cf79ba5129d2c61be7ca0a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:46Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "6676d1ba14b337ff6e3a439d15129582d931b4897b3feb5d2a833e94b7b506d5",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:27:33Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "7088b867306171f1880ea15226117eedc817d729436a2791a1b5451a4cd58d56",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:08:47Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "009253a38daf6c4ae35fff91a8ebef23bdacf264195f218f455f564382bfb94b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:08:47Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "60277c06a69d3ba1ededb9c39b3e5b998b38d91ed1734dfc3c8a3c43fba062ac",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:00Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "84116c1bc6d77ff379206b9280f3d622de79a16a0844e4cb00dc9f6105afb769",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:39:05Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "98183ff5f2c47d121f8b2e8bac1d013378c11862d99bd0dc2ae857cb025a0e7b",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T21:42:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "451375b52368d48a409317ef1a4c8a5dba38b50f9d4f3b84a6c3f74c48fe1b0a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:06:32Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "690811acd0ca9e6fc4d76341a2298c2f2fcff460980ebbcbd42bd057c6b2bf16",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:37:10Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "738652e303f5911b3e429cbaf1050bdea6a1ce397b62f62fb8f127e3591444d6",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:38:48Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "0882470cd2544d83c1667dfbfafc06d07f1b62656a55bde828e88d14496e9858",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "962522cb8f7656d5a580476a7a78cc1a57b36787a7a3288c455233e60c36e230",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:25:52Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "1356509dfc442a6bcc6971c64cadd2ce6ead9f0b1a3eae0c8394f19eca173e51",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:57:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "3995452f5f3a2e642356192be4e2cf4a4ff70a1b9839c718e726fbef9eaee453",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:39:07Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "4622799ef3481d5152033de9f3878bdce9408eb08313f5b44010a00800eac8ab",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:40:37Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "8037357cd90f08b310f0bf6348da5d976068aa7d2feebf4415f6a83e30c990bb",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:27:13Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "9800957f0e6e496119998cfaab5fb66a34b8405f500e767708cec3f66ea1b1fc",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:11:39Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "49642494e6be2eaccdadaf116fb28435530a9d5196a48514fe7a36aaa84bff43",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:28:40Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "275782394bad331203d8aa5cb68bf4bd1cea7941f7c949c3bd4e4522b3e7ef20",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:31:15Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "597507326ca107ec605ca48c44f1621f00557ee214cbaa3a4200256828ca6578",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:04:07Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "627962506eb1156ea9d2f4aa28b0c02c2a469fe118a0ac8bf452502d9b6987e3",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:33:38Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "24300595296e435b2b4f058cf402d883a39fe28235be033841e02ccfab7260cc",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:02:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a6db24a8b52d15b70a19cd3c9e025d96028248323cdea8c7ecfb542fe83a547b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T19:38:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a8b982ba5277bc586ac1a34a0d6459b25e9df04f12fdc16f166b7361c59f60a9",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T17:33:54Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a8d10fb3a39cf7ae56026556d05e1819a2f2ddf8e26f7f2272cb5e6a4d45edec",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:40:43Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a9b3ed099ddde802381ced3e8934875d95b84285a6a1e24c8a24482638df38e1",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:03:02Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a9e3dc11f5a8e5206ff6a8c6fd1fed49865f2ca981c7f7d13e2d83e52225b8e6",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:23:08Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a41c8c37ce3821c8c47f655341ce3e36df6006e6290c711252e0de09490dd124",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:00:29Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a56e7069b9a926686dcad52f592eb91a5c6f7bc14f74e4cf7634228e98619b77",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:34:16Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a78de10ef04867669de4679800321d137ed24978b8b4353fb87bea72c732edb9",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:27:58Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a91f1669b86e61cbc9d9cf3d35a30c6eef5046adfab4049fce575c32bcd9b1c7",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:26:28Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a1491fa3ca04348dba4388f027768c5e75164d9f5e97abd540927f9755f2279b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:57:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a25551e598bf6c4be512adfbb552893e1c92a22829b2d3c02cafe1e456877834",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:27:33Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a54640cb8ff16da6e8821f26bf225adf3dda86c268a3db51bf5d8d7585451b5a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:27:13Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a58787c439fa270ef136a062d89081f6638b95c1bac482e1ab98fcfca858907c",
+        "Driver": "local",
+        "CreatedAt": "2026-09-03T21:14:27Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a67034c3a769a5cec94448389cb755dcd24d41d03f3e49db4c375bff08d2f152",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:41:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "a664933e3d4dbaa1872690cf473367ea034e728f84e6c6289dee78fac8b559b5",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:31:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "aa13778895bc280154baf35648fccd42b96e32203624ee9b38f2e935c2e3762b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:00:35Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "abd09f36288172bf1608b0e68643e4f50ac02a7bf29c15fd248be1257e854cf1",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:38:48Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "aed7c866473f891d4542f06f1b11aaff86af4962e15f26dec56fbd0df4f22689",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:57:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "api_roguelike_grafana-data",
+        "Driver": "local",
+        "CreatedAt": "2026-06-03T22:57:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "api_roguelike_mongodb-data",
+        "Driver": "local",
+        "CreatedAt": "2026-06-03T22:57:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "api_roguelike_prometheus-data",
+        "Driver": "local",
+        "CreatedAt": "2026-06-03T22:57:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b02be00c1a1890913272f5a70aa410951310662de24849a7c1b1162895e50dfb",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:04:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b3a3704719623cd1366316b7773d36e0cffc5e4b6fd4d4a18b4807b4b818e7f9",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:10:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b03f9114e4fb363888b4cd651af43b08cfa9ceb16cd13958c90aed3891562896",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:40:35Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b4af2a0fea158202f6271198b4c04e864d24f0666bfc461a8e99c06abe14980a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:06:32Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b7b6fe748d652ba495947351f570a4420cab00a3eaa2f809a3190efa24fe428e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:41:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b9cafdbbc966ba6d60ef0fc742ff8335d77b2c47e2f6aa791f68c821aa9e2e55",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:40:35Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b9e81b2ba979df8bd435f57fc1324e74e08fdfa3730121a4b83e0a3d6bb4dc5e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:39:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b32c14ba8d2d62fe5fc3b7266bbbb5892b62931f82bc6b419c9fd13f74c12774",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:24:51Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b39d1000ae8177e45f2ef6fce9fbcc762502cd0b039be213ecd3bf13758006f9",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T17:33:55Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b47e04c18f2885a9c33fe62573d3adf2f0f9204ed31057a560e7620ea0b388e7",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:29:19Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "b84a6a9c3a799d0607fcdc196a4d8bd6c93440be42c26df1a42296a187d4e385",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:02:28Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bad7a05248915dcfde9dae86227d26e276071e6b9809c5c5dc4d17711dc4a364",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bc90f14fc0432db1a8c25646681cce19a2af02ad2bdd36d06118cf69e63a04ec",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T20:42:11Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bd8146aba0b2a36763b0f27232050d9ea43e68339d590c6734ffb8f3827513a8",
+        "Driver": "local",
+        "CreatedAt": "2026-09-07T06:12:22Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bdebd6ab4fd0c607b8158c6b847bade209b39b9bf4ffa1acbf8e97b0b187183b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:42:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bf2e9cea14bba0b1791e8d44b344a64529e7ebb21d6f5ef701852d5675737286",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:39:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "bfd64b3f9d01dd734d0f42f9c9c09638afa7ba9a6a2d6c3978a076432144d7a9",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T21:42:53Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c7d70d6d7f26536cd8e9664d09598529a057c0333d7ce3a8dde8edb73109c04e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:30:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c49bddd5ad35ab7c072d05a6b20d78269adf0c4df00e81b8b49a4e72ebd46652",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:46Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c193d447df0544832a37db653d06b65d03834b8d27132b1346fd06722b54c0f1",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:42:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c213d4589a3d998ae81af3e3327587135010f5f9a6c496e315bb1f2cc10f4db7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:04:40Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c259a649cd3e606c1c8c57ec9d4a5531b6ec0caf03364c8a0bb6d854840cdd52",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T20:17:14Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c596821813c827f583164279dbfbf2b134e25b60f292c9472e134c0fd2b0acd7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T06:02:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "c4580248122fdba2869dfe1b6eda6e0ca6bc995b978db762a466fb4647c8651f",
+        "Driver": "local",
+        "CreatedAt": "2026-10-24T02:56:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "ca5d25fb9bf5734afd476eb28af7d8bf646509a1dc8092be555fccbeeb53e512",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:29:19Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "cdd2ce6a9ca45a0e9f3074e9e6f991268d473d7fb903845e94eca1005bfa4548",
+        "Driver": "local",
+        "CreatedAt": "2026-10-16T21:26:50Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "ceb2e06d988e6960d2bd0f43e15ccaf28c0d9cc87b80a72e8f4d1ff955173aa7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:57:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_gateway-state",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:28:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_influxdb-config",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:07:39Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_influxdb-data",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:07:39Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_job-artifacts",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:28:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_mosquitto-auth",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_mosquitto-data",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_ollama-data",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:25:25Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_postgres-data",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_rabbitmq-data",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_rabbitmq-definitions",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:10:01Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "coldsafe_training-artifacts",
+        "Driver": "local",
+        "CreatedAt": "2026-10-25T02:28:30Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d0a08562a991dabd17b7e17ac5565eacf7b600f00c146cf2e04280ddf248c67c",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:24:51Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d7fa2ad7180b5e81dc34a20c87c5daaf46239955a0ccd5864a2a47fb202b77d0",
+        "Driver": "local",
+        "CreatedAt": "2026-10-18T22:44:19Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d56a8b4fcf5b97a98648ac7ce1c89c3ed42b9cdd94a604aab5755f559639f007",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T05:09:17Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d57e41e813ed2135c7efc6c3064c794b3b01a43178d431a7e7e8c5448dc8153e",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:34:16Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d061b9d4684679f50355781cb3fac143cab63f2352937b7309b3e1ed8460d5bc",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:41:32Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d62b46c177e78813f5b21491dc40380d85e158c45df494c5e7677d0b8409c64d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-20T21:31:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d90c128ffde0e4a45e5ebb1237dcd983a58d8fb419a883f4ad8301ac06e3df2b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:15:26Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d526ab4926934e149bc19c978ef451b60710b369d916eabfb6f7afa14cb4125a",
+        "Driver": "local",
+        "CreatedAt": "2026-10-16T21:26:50Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d763c004aec3b5cfa7bcf701498f448f98e0749b2cbb5417f72f00a9b87a0900",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:40:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d9848fa4433836a5e009b9910d967d4fa3d2fc7c205bf53f05191b858428c805",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T21:31:47Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "d164920a5bcf9f40015385036b2867130aac2dd468a7681815f8d31a433548dc",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:25:51Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "da1f164a1aab253eae15556fbacb8e73db2ee5ef8e81079e1e2b09a09d097025",
+        "Driver": "local",
+        "CreatedAt": "2026-10-14T04:02:28Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "daa233cbc9545dedeb73dc824434ceb1630b39b37848505c88f6d89161dd23ea",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:45:32Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "db1c8852b866059638735035c96a5300b6470bc3f55c0d28def64fc26cda09db",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:21:58Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "db7be0c6a5a0f561adc08a76e30560386ddada3af7a04f7f70105561baea4f8e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T17:39:05Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "dc30303ac8d01766276bca2401158091d52bbbd4ef0198b2f3799701ab01c121",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:26:28Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e2fa6f54390bda984ee2131770cb01962dfcdeb41eb8caa058cbeb77fef1523c",
+        "Driver": "local",
+        "CreatedAt": "2026-09-07T06:12:22Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e9e1381c0f0ac7d835d2fb6c02de7c7e77abe4c18eb6d58328349cf8f9470849",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:37:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e50aacb8ac1897bd16314700ca11bea5cddede994ddfefd86d69ef99d5241d45",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:43:49Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e79c7a92f68eb18e7279f5cfb9de683adced914468a85630ff153dc66e0da00e",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:40:45Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e7953f8c543122c6c5289a06c0b20c217ed210181a682bec0ece299f71bbedd5",
+        "Driver": "local",
+        "CreatedAt": "2026-09-10T23:33:38Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e13162d707296a5a58206afe43391e163c58545788e1b22a6b91a0427b7ff5d8",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:35:52Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e14297b3a8a02579be3b6a9d221ea63ecf348bc878ed55453d7d57fb14d5fe3c",
+        "Driver": "local",
+        "CreatedAt": "2026-09-11T20:29:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "e84238d653db3dbaaecdcbd7a212d8e9e333ecff2e6f69d86dad9160e5750400",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:57:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "ebe7939811e12aced4cc6b35b48b16933424e33b60a0586de60c87dde9dfaaf0",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:04:39Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "eda6fd109e50dfef26e22773ab2335a7d223fc9dc0f0064186bd27ebd243211f",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:06:32Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "ef7b6608794d0410bacb9f8ef846f4b9d023efe2417fc0077eded8ed404ad9c3",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:43:49Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f2e841dab4a3875e749c91f7d361db25372bf3037bb9e1ca307090466ee845c0",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:25:51Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f7ad56c0e6608528824858d21617091a6a57ceb399492c3fc645a8236d4b0d70",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T17:19:00Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f08f7025872dd15abb340fdec70f4cbfd0f4aa9454c9f8e394509e961f4a7363",
+        "Driver": "local",
+        "CreatedAt": "2026-10-24T02:56:05Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f31b0bff1a9691ed7c3ef635bab1387824548d2380283febd9298d7da3090151",
+        "Driver": "local",
+        "CreatedAt": "2026-10-16T21:26:50Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f94df1b9c3069b924cc3b8292abf364ad6f79547643c1d05dd4e1a8e5d1a0f8d",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T04:57:42Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "f947fd817fc889c87c9d2d97c32538cae1be48fa9ab15cf91858653bbee0e0fe",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:27:58Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "faea6d484e7bf8a4ca7da1068d1f4698b1d6d207b175f89237c02c779c9dcfd7",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T05:30:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "fbfe231e7cb08045929f69c97447188c656113bc5e576f65ab817574dfae7e32",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T00:37:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "fc0a4fea58140d34428c177e49e86fd7ba7f8b9c7f97b8d6e278d7fbe6490ebe",
+        "Driver": "local",
+        "CreatedAt": "2026-10-23T18:57:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "fe112f6ff7df910813b218996e93b5d0087e8ba68671e0176e79caf97c6a407b",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T20:28:31Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "ffeb0670a6545fe814831e7af97002c6219ee9c8ebb824d5b4777c7a524ae68b",
+        "Driver": "local",
+        "CreatedAt": "2026-10-15T20:07:36Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "omnithread_postgres_data",
+        "Driver": "local",
+        "CreatedAt": "2026-07-04T06:36:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "omnithread_rabbitmq_data",
+        "Driver": "local",
+        "CreatedAt": "2026-07-04T06:36:34Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "replay-iot_influxdb_config",
+        "Driver": "local",
+        "CreatedAt": "2026-08-24T16:51:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "replay-iot_influxdb_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-24T16:51:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "replay-iot_mosquitto_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-24T16:51:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "replay-iot_postgres_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-24T16:51:12Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "rewind-edge_clips_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-30T04:12:06Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "rewind-edge_influxdb_config",
+        "Driver": "local",
+        "CreatedAt": "2026-08-28T00:50:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "rewind-edge_influxdb_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-28T00:50:24Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "rewind-edge_mosquitto_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-28T17:08:23Z",
+        "Scope": "local"
+      },
+      {
+        "Name": "rewind-edge_postgres_data",
+        "Driver": "local",
+        "CreatedAt": "2026-08-28T00:42:06Z",
+        "Scope": "local"
+      }
+    ]
+  },
+  "verification": {
+    "same_service_set": true,
+    "same_volume_set_and_creation_metadata": true,
+    "all_mounts_and_container_resource_limits_unchanged": true,
+    "all_application_containers_use_current_image_tags": true,
+    "protected_local_files_unchanged": true,
+    "application_start_events": 0,
+    "source_comparisons": [
+      {
+        "service": "backend",
+        "files_compared": 98,
+        "different_files": []
+      },
+      {
+        "service": "models",
+        "files_compared": 72,
+        "different_files": []
+      },
+      {
+        "service": "training",
+        "files_compared": 72,
+        "different_files": []
+      },
+      {
+        "service": "generation",
+        "files_compared": 72,
+        "different_files": []
+      },
+      {
+        "service": "llm",
+        "files_compared": 72,
+        "different_files": []
+      },
+      {
+        "service": "writer",
+        "files_compared": 82,
+        "different_files": []
+      },
+      {
+        "service": "gateway",
+        "files_compared": 9,
+        "different_files": []
+      },
+      {
+        "service": "simulator",
+        "files_compared": 6,
+        "different_files": []
+      }
+    ],
+    "compared_files_total": 483,
+    "frontend_typecheck_and_production_build_passed": true,
+    "frontend_packaging": {
+      "index_assets_exist_and_match_current_build_names": true,
+      "nginx_config_matches_source": true,
+      "assets_checked": [
+        {
+          "path": "/assets/index-BgYCSdCW.js",
+          "bytes": 54647,
+          "sha256": "4e20ebca87143bf61e1d89ad72d1e1a8e2e6ea1ad2739aad5040f61a3bc957cf"
+        },
+        {
+          "path": "/assets/_plugin-vue_export-helper-DJ3nX9Sp.js",
+          "bytes": 62052,
+          "sha256": "bc867134eadfbb07885a0488c8e1ddb559783537c40ef571d43241b9de02f94d"
+        },
+        {
+          "path": "/assets/session-yTQTtOXb.js",
+          "bytes": 15130,
+          "sha256": "d96c6b770aa6ea4b70ecfee6443a4927e6f0c858fe8c17b7b97bcaa9bd01012f"
+        },
+        {
+          "path": "/assets/index-C0cZOrMG.css",
+          "bytes": 25903,
+          "sha256": "61cee276c46393c426e275d22664df13aededc87e4affdb1323c7c9f72a673b6"
+        },
+        {
+          "path": "/docs-assets/swagger-ui-bundle.js",
+          "bytes": 1684244,
+          "sha256": "3f6abf70480db7e07914df4c98a77385f22ea585eaf457a3e6415ba0eae2d167"
+        },
+        {
+          "path": "/docs-assets/swagger-ui.css",
+          "bytes": 187576,
+          "sha256": "c3cfe8248c4b0b89673600fb829924eafbac6de4bc4b2b06f5f5243483074d0a"
+        },
+        {
+          "path": "/docs-assets/favicon-32x32.png",
+          "bytes": 628,
+          "sha256": "3ed612f41e050ca5e7000cad6f1cbe7e7da39f65fca99c02e99e6591056e5837"
+        },
+        {
+          "path": "/docs-assets/LICENSE",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        }
+      ]
+    }
+  }
+}

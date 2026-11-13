@@ -1,0 +1,205 @@
+{
+  "task": "B2-19",
+  "status": "completed",
+  "recorded_at_utc": "2026-10-17T04:32:16.432634+00:00",
+  "user_facing_date": "2026-10-17",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "2e80613a4f7507fe01e651f7d7369c3f14bc6436",
+    "initial_worktree_clean": true,
+    "committed": false,
+    "version_scope": "base HEAD plus working tree; source hashes below"
+  },
+  "runtime": {
+    "python": "3.13.15",
+    "numpy": "2.5.4",
+    "node": "24.20.0",
+    "python_test_environment": "/tmp/coldsafe-b213-venv",
+    "frontend_test_copy": "/tmp/coldsafe-b219-frontend",
+    "frontend_dependencies": "/tmp/coldsafe-b215-frontend/node_modules",
+    "new_project_dependencies": []
+  },
+  "tests": [
+    {
+      "scope": "backend dataset reader/API, jobs API and generation unit",
+      "passed": 109,
+      "skipped": 0,
+      "seconds": 29.87,
+      "coverage_scope": "backend/app/services/datasets.py",
+      "coverage": {
+        "covered_lines": 81,
+        "num_statements": 84,
+        "percent_covered": 95.08196721311475,
+        "percent_covered_display": "95",
+        "missing_lines": 3,
+        "excluded_lines": 0,
+        "percent_statements_covered": 96.42857142857143,
+        "percent_statements_covered_display": "96",
+        "num_branches": 38,
+        "num_partial_branches": 3,
+        "covered_branches": 35,
+        "missing_branches": 3,
+        "percent_branches_covered": 92.10526315789474,
+        "percent_branches_covered_display": "92"
+      },
+      "execution": "delegated dataset_backend, result reviewed"
+    },
+    {
+      "scope": "real PostgreSQL/RabbitMQ jobs and generation regression",
+      "passed": 21,
+      "skipped": 0,
+      "seconds": 43.86,
+      "command": "python -m pytest backend/tests/integration/test_jobs_integration.py backend/tests/integration/test_generation_integration.py --no-cov -o addopts= -q -s",
+      "environment_names": [
+        "POSTGRES_TEST_PASSWORD",
+        "POSTGRES_TEST_PORT",
+        "COLDSAFE_RABBITMQ_INTEGRATION"
+      ]
+    },
+    {
+      "scope": "final real laboratory Web acceptance",
+      "pytest_passed": 1,
+      "chromium_passed": 1,
+      "pytest_seconds": 36.76,
+      "chromium_scenario_seconds": 7.3,
+      "generated_rows": 1000000,
+      "failed_job_durable_rows": 50000,
+      "failed_job_registered_datasets": 0,
+      "observed_rul_rows": 600000,
+      "censored_rul_rows": 400000,
+      "command": "COLDSAFE_LAB_INTEGRATION=1 COLDSAFE_RABBITMQ_INTEGRATION=1 python -m pytest backend/tests/integration/test_laboratory_integration.py --no-cov -o addopts= -q -s",
+      "checks": [
+        "authenticated admin POST 202 from browser",
+        "reload during durable first block without repost",
+        "actual AMQP generation worker and NPY artifacts",
+        "configuration seed 42 and owner/job/dataset SQL linkage",
+        "full dataset quality and separate ten-row sample",
+        "foreign admin 404 summary and sample",
+        "browser and API volume ceiling rejection",
+        "no live monitoring API calls",
+        "390px no document overflow",
+        "controlled OSError after durable block, terminal failed without dataset"
+      ],
+      "limits": [
+        "login HTTP is real, authenticated session is injected in browser",
+        "failure is intentionally injected after a real block",
+        "minimal production routers/components assembled by test, not final full stack B2-33"
+      ]
+    },
+    {
+      "scope": "full frontend unit suite",
+      "passed": 234,
+      "test_files": 23,
+      "command": "npm run test:coverage",
+      "coverage_percent": {
+        "lines": 94.15,
+        "branches": 86.73,
+        "functions": 88.83,
+        "statements": 90.27
+      }
+    },
+    {
+      "scope": "focused laboratory frontend",
+      "passed": 39,
+      "coverage_percent": {
+        "lines": 96.38,
+        "branches": 84.76,
+        "functions": 82.6
+      }
+    },
+    {
+      "scope": "frontend typecheck and production build",
+      "passed": true,
+      "command": "npm run build"
+    },
+    {
+      "scope": "legacy navigation Chromium, 320px and zoom2x/focus",
+      "passed": 1,
+      "seconds": 11.6,
+      "command": "npm run test:e2e -- e2e/navigation.spec.ts"
+    },
+    {
+      "scope": "final diff whitespace and Python syntax",
+      "passed": true,
+      "commands": [
+        "git diff --check",
+        "python -m py_compile backend/app/services/datasets.py backend/tests/integration/test_laboratory_integration.py"
+      ]
+    }
+  ],
+  "review": {
+    "independent_backend_security_review": "resolved ZIP/NPZ parser escape via NPY magic validation, regression covered; no pending scoped finding",
+    "principal_frontend_review": "fixed overlapping refresh, late requests on unmount and unknown job submission; visual screenshot inspected"
+  },
+  "warnings": [
+    "Existing Starlette HTTPX/AnyIO deprecations",
+    "Personal .venv import and local frontend happy-dom import stalled; incomplete attempts not counted as pass, completed runs used existing temporary environments"
+  ],
+  "limitations": [
+    "summary and sample inspect all blocks per request; O(dataset bytes) IO and bounded block memory",
+    "sample first ten rows is deterministic and not representative",
+    "outlier rate configured, not observed detection",
+    "synthetic model not physically calibrated",
+    "unknown POST response without UUID requires manual job verification; confirmed jobs resume from URL",
+    "no personal deployment, complete stack capacity validation or ML training"
+  ],
+  "cleanup": {
+    "disposable_postgres_removed": true,
+    "disposable_brokers_removed": true,
+    "personal_containers_preserved": 6,
+    "personal_volumes_untouched": true
+  },
+  "changed_files": [
+    "backend/README.md",
+    "backend/app/api/jobs.py",
+    "backend/app/services/datasets.py",
+    "backend/app/services/jobs.py",
+    "backend/tests/api/test_datasets_api.py",
+    "backend/tests/api/test_jobs_api.py",
+    "backend/tests/integration/test_laboratory_integration.py",
+    "backend/tests/services/test_datasets.py",
+    "contracts/aiot.md",
+    "docs/aiot/README.md",
+    "docs/aiot/tasks/B2-19.md",
+    "docs/aiot/tasks/README.md",
+    "docs/configuration.md",
+    "docs/evidence/b2-19.json",
+    "frontend/README.md",
+    "frontend/e2e/laboratory-real.spec.ts",
+    "frontend/playwright.laboratory.config.ts",
+    "frontend/src/features/laboratory/laboratory-api.spec.ts",
+    "frontend/src/features/laboratory/laboratory-api.ts",
+    "frontend/src/router/index.ts",
+    "frontend/src/views/FoundationView.vue",
+    "frontend/src/views/LaboratoryView.spec.ts",
+    "frontend/src/views/LaboratoryView.vue",
+    "frontend/src/views/ManageView.vue",
+    "frontend/src/views/MessagingView.vue"
+  ],
+  "source_sha256": {
+    "backend/app/api/jobs.py": "87b3035beb03a2404d9db7e08487f4844a11d7a480fdaefc32349d87294f4f37",
+    "backend/app/services/datasets.py": "79ac7d3d1363138e598a6db90a357117cf47b0f47489b56de8e2ce8b4ea31a6e",
+    "backend/app/services/jobs.py": "cee6d065f54987b21d6719d2c7a9d16f0dab7959f3531eb1a3c9bb3d0e1fd741",
+    "backend/tests/api/test_datasets_api.py": "05026d0ce623a30f511cd0999b155090c3cd33a7548710a61148d220851536a2",
+    "backend/tests/api/test_jobs_api.py": "76dc32dd2fc49291e3eb1edb6e52e5c8e743d3b62ccf3d502eb842ddf56f33be",
+    "backend/tests/integration/test_laboratory_integration.py": "21fcc63276385c32169ccf6f82699395b5a43d462016776223adc05e4b06066e",
+    "backend/tests/services/test_datasets.py": "a8cb0af403d3fa131e83fed0cb614b39630538b607b19a2bb67d286cb5eec59e",
+    "frontend/e2e/laboratory-real.spec.ts": "f2cf3a5ea180f80424fe7ed29a63ca12e67b9879910ecaa325635d18df34b74b",
+    "frontend/playwright.laboratory.config.ts": "3ad4252ddccfcf404671cac555c177025bae7c5396cc2ff78c55ff1084e91543",
+    "frontend/src/features/laboratory/laboratory-api.spec.ts": "a3e08955505f33a6f5c2a070aefd15900d405c0d5f6e1b354039200a61100693",
+    "frontend/src/features/laboratory/laboratory-api.ts": "d51615d7a68d32549466320eda71b867b65e7f41dc9174faf9e18773cf219e7f",
+    "frontend/src/router/index.ts": "07441260951940db4a76f7424d2ebcdc3eb821258cad3f69cb64ce3720af6c1b",
+    "frontend/src/views/FoundationView.vue": "9b97932fbf079ebca9f5d8b216ae1a9d95d3d799bb1f976fde04e3759e9782c9",
+    "frontend/src/views/LaboratoryView.spec.ts": "ce886eda9952fe0c14f05c015a0efeb029fce7cf16a2752bcb477a7819e4fa0a",
+    "frontend/src/views/LaboratoryView.vue": "ac9676c54b8d9996471ba90f7d0b4c59123cb00d10740d8461e96ab6c3d4329a",
+    "frontend/src/views/ManageView.vue": "9bbf47980ac49979b5d3e726dbc05ae2b3e2773bb1569245c0bca05c12a3e9ea",
+    "frontend/src/views/MessagingView.vue": "72fca5f7c6c47e181cd00386ccf7e331cb0e1214950ef3234d418c335c1429e6"
+  },
+  "local_log_sha256": {
+    "/tmp/coldsafe-b219-real-final.log": "e011351c3da341bd02dc0b41a09cc8fd666d654faa602587f147e0f76556244b",
+    "/tmp/coldsafe-b219-integration-regression.log": "a81fba516a92a285a9ba94ff431cfead53f4b5f78885b3a0b8c312b382fa868a",
+    "/tmp/coldsafe-b219-frontend-unit-coverage.log": "bd634e45dc0fefad064aa5efabf7b71e348bf13cfd266eb56f6cac5222882885",
+    "/tmp/coldsafe-b219-frontend-build.log": "74fca305c611da9897df17949047604ec5afa5c6e2588abcb1f0ac0ad52912b5",
+    "/tmp/coldsafe-b219-navigation-e2e.log": "d681ed4edbd76c356528abbace95d61ebc6c87378e76111c5cd5812501ce5285"
+  }
+}

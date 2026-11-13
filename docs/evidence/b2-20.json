@@ -1,0 +1,400 @@
+{
+  "task": "B2-20",
+  "status": "completed",
+  "recorded_at_utc": "2026-10-17T04:56:42.541105+00:00",
+  "user_facing_date": "2026-10-17",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_head": "fc4a6e7fec5a628033a5b00e610252b35e8151c6",
+    "initial_worktree_clean": true,
+    "committed": false,
+    "version_scope": "base HEAD plus local diff; source hashes below"
+  },
+  "runtime": {
+    "python": "3.13.15",
+    "numpy": "2.5.4",
+    "test_python": "/tmp/coldsafe-b213-venv/bin/python",
+    "new_project_dependencies": []
+  },
+  "contract": {
+    "windows_seconds": [
+      900,
+      3600
+    ],
+    "interval": "[cutoff-window,cutoff)",
+    "offline_time": "observed_at milliseconds",
+    "online_time": "accepted received_at truncated to milliseconds UTC",
+    "stats": [
+      "mean",
+      "population std",
+      "centered OLS trend per hour",
+      "max"
+    ],
+    "default_features": 48,
+    "default_version": "rolling-v1-a4225e172810a0ab+median-clip-v1",
+    "transform": "median-clip-v1: median imputation then exact train 0.01/0.99 quantile clipping",
+    "split": "canonical equipment UUID order, seed permutation, 70/15/15 with at least one per partition",
+    "minimum_equipment": 3,
+    "labels": "separate NPY targets; health keeps censoring, RUL uses observed mask and preserves zero"
+  },
+  "tests": {
+    "passed": 225,
+    "skipped": 0,
+    "seconds": 6.35,
+    "command": "python -m pytest backend/tests/domain backend/tests/services/test_training_data.py backend/tests/services/test_generation.py backend/tests/services/test_datasets.py -o addopts= --cov=backend.app.domain.features --cov=backend.app.domain.feature_preprocessing --cov=backend.app.services.feature_inputs --cov=backend.app.services.training_data --cov-branch --cov-report=term-missing --cov-report=json:/tmp/coldsafe-b220-coverage-final.json --cov-fail-under=80 -q",
+    "coverage_scope": "four new source modules, not entire backend",
+    "coverage_totals": {
+      "covered_lines": 334,
+      "num_statements": 341,
+      "percent_covered": 97.32739420935413,
+      "percent_covered_display": "97",
+      "missing_lines": 7,
+      "excluded_lines": 0,
+      "percent_statements_covered": 97.94721407624634,
+      "percent_statements_covered_display": "98",
+      "num_branches": 108,
+      "num_partial_branches": 5,
+      "covered_branches": 103,
+      "missing_branches": 5,
+      "percent_branches_covered": 95.37037037037037,
+      "percent_branches_covered_display": "95"
+    },
+    "coverage_by_file": {
+      "backend/app/domain/feature_preprocessing.py": {
+        "covered_lines": 65,
+        "num_statements": 68,
+        "percent_covered": 95.74468085106383,
+        "percent_covered_display": "96",
+        "missing_lines": 3,
+        "excluded_lines": 0,
+        "percent_statements_covered": 95.58823529411765,
+        "percent_statements_covered_display": "96",
+        "num_branches": 26,
+        "num_partial_branches": 1,
+        "covered_branches": 25,
+        "missing_branches": 1,
+        "percent_branches_covered": 96.15384615384616,
+        "percent_branches_covered_display": "96"
+      },
+      "backend/app/domain/features.py": {
+        "covered_lines": 89,
+        "num_statements": 90,
+        "percent_covered": 98.21428571428571,
+        "percent_covered_display": "98",
+        "missing_lines": 1,
+        "excluded_lines": 0,
+        "percent_statements_covered": 98.88888888888889,
+        "percent_statements_covered_display": "99",
+        "num_branches": 22,
+        "num_partial_branches": 1,
+        "covered_branches": 21,
+        "missing_branches": 1,
+        "percent_branches_covered": 95.45454545454545,
+        "percent_branches_covered_display": "95"
+      },
+      "backend/app/services/feature_inputs.py": {
+        "covered_lines": 47,
+        "num_statements": 47,
+        "percent_covered": 100.0,
+        "percent_covered_display": "100",
+        "missing_lines": 0,
+        "excluded_lines": 0,
+        "percent_statements_covered": 100.0,
+        "percent_statements_covered_display": "100",
+        "num_branches": 20,
+        "num_partial_branches": 0,
+        "covered_branches": 20,
+        "missing_branches": 0,
+        "percent_branches_covered": 100.0,
+        "percent_branches_covered_display": "100"
+      },
+      "backend/app/services/training_data.py": {
+        "covered_lines": 133,
+        "num_statements": 136,
+        "percent_covered": 96.5909090909091,
+        "percent_covered_display": "97",
+        "missing_lines": 3,
+        "excluded_lines": 0,
+        "percent_statements_covered": 97.79411764705883,
+        "percent_statements_covered_display": "98",
+        "num_branches": 40,
+        "num_partial_branches": 3,
+        "covered_branches": 37,
+        "missing_branches": 3,
+        "percent_branches_covered": 92.5,
+        "percent_branches_covered_display": "92"
+      }
+    },
+    "checks": [
+      "future sentinels and exact window boundaries",
+      "same raw history and saved state offline/online",
+      "multiple blocks retain per-equipment history",
+      "disjoint deterministic groups before fitting",
+      "reserved-partition extremes cannot influence learned state",
+      "all labels changed without X/state changes",
+      "censored rows stay in health with null RUL; observed zero kept",
+      "NaN/insufficient history/overflow explicit",
+      "source row counts and files preserved",
+      "output directory exclusive; failed preparation has no success manifest"
+    ]
+  },
+  "benchmarks": {
+    "configuration": {
+      "equipment_count": 100,
+      "days": 30,
+      "seed": 42,
+      "sensors": 6
+    },
+    "initial_1m": {
+      "total_units": 1000000,
+      "seed": 42,
+      "generation_seconds": 0.49775924999266863,
+      "preparation_seconds": 74.98847695800941,
+      "peak_rss_bytes": 351322112,
+      "disk_bytes": 497330921,
+      "prepared_rows": 998280,
+      "dropped_insufficient_history": 1720,
+      "features_version": "rolling-v1-a4225e172810a0ab+median-clip-v1",
+      "features_count": 48,
+      "partitions": {
+        "train": {
+          "features": "train/features.npy",
+          "targets": "train/targets.npy",
+          "row_count": 698777,
+          "rul_observed_rows": 429155,
+          "rul_censored_rows": 269622
+        },
+        "validation": {
+          "features": "validation/features.npy",
+          "targets": "validation/targets.npy",
+          "row_count": 149754,
+          "rul_observed_rows": 89838,
+          "rul_censored_rows": 59916
+        },
+        "test": {
+          "features": "test/features.npy",
+          "targets": "test/targets.npy",
+          "row_count": 149749,
+          "rul_observed_rows": 79847,
+          "rul_censored_rows": 69902
+        }
+      },
+      "equipment_counts": {
+        "train": 70,
+        "validation": 15,
+        "test": 15
+      },
+      "offline_online_max_difference": 0.0,
+      "source_unchanged": true,
+      "numpy_version": "2.5.4",
+      "python_version": "3.13.15"
+    },
+    "initial_2m": {
+      "total_units": 2000000,
+      "seed": 42,
+      "generation_seconds": 1.064045665989397,
+      "preparation_seconds": 151.18632716700085,
+      "peak_rss_bytes": 611762176,
+      "disk_bytes": 994644985,
+      "prepared_rows": 1996590,
+      "dropped_insufficient_history": 3410,
+      "features_version": "rolling-v1-a4225e172810a0ab+median-clip-v1",
+      "features_count": 48,
+      "partitions": {
+        "train": {
+          "features": "train/features.npy",
+          "targets": "train/targets.npy",
+          "row_count": 1397558,
+          "rul_observed_rows": 958174,
+          "rul_censored_rows": 439384
+        },
+        "validation": {
+          "features": "validation/features.npy",
+          "targets": "validation/targets.npy",
+          "row_count": 299545,
+          "rul_observed_rows": 99825,
+          "rul_censored_rows": 199720
+        },
+        "test": {
+          "features": "test/features.npy",
+          "targets": "test/targets.npy",
+          "row_count": 299487,
+          "rul_observed_rows": 139711,
+          "rul_censored_rows": 159776
+        }
+      },
+      "equipment_counts": {
+        "train": 70,
+        "validation": 15,
+        "test": 15
+      },
+      "offline_online_max_difference": 0.0,
+      "source_unchanged": true,
+      "numpy_version": "2.5.4",
+      "python_version": "3.13.15"
+    },
+    "final_1m_reusing_same_source": {
+      "total_units": 1000000,
+      "seed": 42,
+      "preparation_seconds": 83.23207529098727,
+      "peak_rss_bytes": 193265664,
+      "prepared_rows": 998280,
+      "dropped_insufficient_history": 1720,
+      "features_version": "rolling-v1-a4225e172810a0ab+median-clip-v1",
+      "features_count": 48,
+      "equipment_counts": {
+        "train": 70,
+        "validation": 15,
+        "test": 15
+      },
+      "partitions": {
+        "train": {
+          "features": "train/features.npy",
+          "targets": "train/targets.npy",
+          "row_count": 698777,
+          "rul_observed_rows": 429155,
+          "rul_censored_rows": 269622
+        },
+        "validation": {
+          "features": "validation/features.npy",
+          "targets": "validation/targets.npy",
+          "row_count": 149754,
+          "rul_observed_rows": 89838,
+          "rul_censored_rows": 59916
+        },
+        "test": {
+          "features": "test/features.npy",
+          "targets": "test/targets.npy",
+          "row_count": 149749,
+          "rul_observed_rows": 79847,
+          "rul_censored_rows": 69902
+        }
+      },
+      "before_after_artifact_hashes_equal": true,
+      "artifact_sha256": {
+        "train/features.npy": "17e60a22605da912060d508a151f8d9083a9533127aeee58811fe5e930eaa76c",
+        "train/targets.npy": "d48b12029c627cf9dbdf9a3ba551aac1c38c5f230832e875cd9c169acbb31cbb",
+        "validation/features.npy": "5f051ffcd1124cbe2a00f9d50b748f8b9c9f1ca1fcc30a20f369baa2060fb5ab",
+        "validation/targets.npy": "d437a7b9ed358210261c6a2f890981abfda0756d6318a597c84532daece263e5",
+        "test/features.npy": "bf9890dddd21533da0a3db74af931784643824d4a3a78b2196869478dc399ed3",
+        "test/targets.npy": "215e6f1303eaf0628c67fbf746b0f50628febbcc119d72aee03d606ac838fa15"
+      },
+      "source_unchanged": true
+    },
+    "final_2m_new_source": {
+      "total_units": 2000000,
+      "seed": 42,
+      "generation_seconds": 0.9599611659941729,
+      "preparation_seconds": 166.92701412501629,
+      "peak_rss_bytes": 290881536,
+      "preparation_peak_rss_bytes": 290881536,
+      "disk_bytes": 994644986,
+      "prepared_rows": 1996590,
+      "dropped_insufficient_history": 3410,
+      "features_version": "rolling-v1-a4225e172810a0ab+median-clip-v1",
+      "features_count": 48,
+      "partitions": {
+        "train": {
+          "features": "train/features.npy",
+          "targets": "train/targets.npy",
+          "row_count": 1397609,
+          "rul_observed_rows": 778477,
+          "rul_censored_rows": 619132
+        },
+        "validation": {
+          "features": "validation/features.npy",
+          "targets": "validation/targets.npy",
+          "row_count": 299491,
+          "rul_observed_rows": 199631,
+          "rul_censored_rows": 99860
+        },
+        "test": {
+          "features": "test/features.npy",
+          "targets": "test/targets.npy",
+          "row_count": 299490,
+          "rul_observed_rows": 219602,
+          "rul_censored_rows": 79888
+        }
+      },
+      "equipment_counts": {
+        "train": 70,
+        "validation": 15,
+        "test": 15
+      },
+      "offline_online_max_difference": 0.0,
+      "source_unchanged": true,
+      "numpy_version": "2.5.4",
+      "python_version": "3.13.15"
+    },
+    "memory_fix": "Fit each train column from chunks using the same fitter; map/write/flush/release output per chunk; verifier also releases maps. 1m six output NPY hashes unchanged.",
+    "measurement_scope": "new macOS processes, no CPU/cgroup isolation; final 1m and 2m ran concurrently. Individual process RSS, not complete stack. 1m reruns preparation and hashes; 2m includes generation, preparation, verification.",
+    "final_guard_note": "Early reject for entire equipment span shorter than max window added while final measurements ran; default 30-day histories do not enter it. Final tests and independent delta review cover guard.",
+    "disk_scope": "reported final bytes are source plus one prepared result; excludes peak staging and duplicate comparison result"
+  },
+  "review": {
+    "python_review": "No pending P1/P2 in initial, memory delta and insufficient-span guard reviews",
+    "source_validation": "reuses B2-19 full validation before mapping immutable completed source blocks",
+    "syntax_check": true,
+    "git_diff_check": true,
+    "linters": "Ruff/mypy/Black unavailable; not installed for this task"
+  },
+  "not_executed": [
+    "model training or registration",
+    "online broker inference and freshness runtime",
+    "frontend tests/build",
+    "PostgreSQL/RabbitMQ integration",
+    "Docker build or container memory test",
+    "personal deployment"
+  ],
+  "limitations": [
+    "window choices not physically calibrated",
+    "cost grows with samples inside windows; sparse/short history is rejected rather than invented",
+    "same UUID catalog plus seed required to reproduce split; separate generation has new UUIDs",
+    "failed new output keeps private partial directory with no final manifest; retry in new directory, manual cleanup",
+    "training source remains immutable and read-only; later worker integration requires separate writable destination",
+    "512 MiB verified only for measured local preparation defaults, not models/LLM/whole services",
+    "clipping can remove useful signal and needs evaluation in later model tasks without tuning on reserved test"
+  ],
+  "cleanup": {
+    "benchmark_datasets_disposable": true,
+    "personal_infrastructure_unchanged": true,
+    "new_database_records": false,
+    "benchmark_directories_removed": true
+  },
+  "changed_files": [
+    "backend/README.md",
+    "backend/app/domain/feature_preprocessing.py",
+    "backend/app/domain/features.py",
+    "backend/app/services/feature_inputs.py",
+    "backend/app/services/training_data.py",
+    "backend/tests/domain/test_feature_preprocessing.py",
+    "backend/tests/domain/test_features.py",
+    "backend/tests/services/test_training_data.py",
+    "contracts/aiot.md",
+    "docs/aiot/README.md",
+    "docs/aiot/tasks/B2-20.md",
+    "docs/aiot/tasks/README.md",
+    "docs/evidence/b2-20.json",
+    "scripts/benchmark_features.py"
+  ],
+  "source_sha256": {
+    "backend/app/domain/feature_preprocessing.py": "2083b6dac5c5abcd1605a60e1bb3df7e5f3f478fd5988612e85a37029ccd42d0",
+    "backend/app/domain/features.py": "89c2ac9e655caafee2a33124947aaede1ca958c08b1e5b883411627f1a13ae06",
+    "backend/app/services/feature_inputs.py": "40c9b2b57439152de93f2f1a60aca8f48ba171d5522dbc44bcdab741d202ca81",
+    "backend/app/services/training_data.py": "d90101e4b93d70d02f8011df24c5531f8c039a95c7fa643f971de0df6536bb2a",
+    "backend/tests/domain/test_feature_preprocessing.py": "ed1c44000ceb66b7e37e78f6379859c989db7a8b18850d477447f1bc54e3e120",
+    "backend/tests/domain/test_features.py": "6930ce66cb09b173d48a99c5da33efd01a830ac57f3b2d0eec1c2e1b318e49ab",
+    "backend/tests/services/test_training_data.py": "60fff489d24a8bc97b6c1755709b01ccc30b9e390ef85bca7f16829f176a0741",
+    "scripts/benchmark_features.py": "0d49612dce02a3e8fc8a3bc1d8f6cc5c65a236086c9a93de6a9c5c25dea78025"
+  },
+  "local_log_sha256": {
+    "/tmp/coldsafe-b220-preparation-red.log": "fb1334f9002190b1a3a9956b42784dbb99801d27a75b91f30d5deae297f15fa0",
+    "/tmp/coldsafe-b220-regression-final.log": "03ce599d6bdeef3c6bbcbeea4d76c2a38eb131dfa691fc637be49b8ae9003a30",
+    "/tmp/coldsafe-b220-final-1m.log": "c5abc2846d1a99891cc8297e0d8ae52fd6df7e9e2796ed82e8914671fd30085e",
+    "/tmp/coldsafe-b220-final-2m.log": "a40db1f1ea8f13531eddba7282f33cfe50303cc61340835ed0a4fcebde8284e7"
+  },
+  "primary_references": [
+    "https://scikit-learn.org/stable/common_pitfalls",
+    "https://numpy.org/doc/stable/reference/generated/numpy.nanstd.html"
+  ]
+}

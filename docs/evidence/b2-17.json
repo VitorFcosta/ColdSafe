@@ -1,0 +1,188 @@
+{
+  "task": "B2-17",
+  "date": "2026-10-16",
+  "timezone": "America/Sao_Paulo",
+  "status": "completed",
+  "scope": "Private asynchronous job orchestration, not mass generation or machine learning",
+  "git": {
+    "branch": "codex/block-5-validation",
+    "base_commit": "2258ba9c7965a2ff0936dda515b8d0e1f4f05bbd",
+    "initial_worktree": "clean",
+    "commit_created": false,
+    "push_performed": false
+  },
+  "dependencies_added": [],
+  "test_environment": {
+    "python": "3.13.15",
+    "pytest": "9.1.1",
+    "psycopg": "3.3.6",
+    "pika": "1.4.4",
+    "fastapi": "0.141.1",
+    "pydantic": "2.13.5",
+    "postgres": "17.11-alpine3.24 disposable container, tmpfs, random loopback port",
+    "rabbitmq": "4.3.6-management-alpine, disposable Compose fixture and volumes"
+  },
+  "tests": [
+    {
+      "name": "Initial RED",
+      "result": "ModuleNotFoundError for new service, expected before implementation"
+    },
+    {
+      "name": "Focused initial with real PostgreSQL and RabbitMQ",
+      "passed": 101,
+      "skipped": 0,
+      "seconds": 36.96,
+      "branch_coverage_percent": 95.78
+    },
+    {
+      "name": "Abrupt process exit and restart",
+      "passed": 1,
+      "seconds": 3.56,
+      "process_exit_code": 17
+    },
+    {
+      "name": "Backend regression with real PostgreSQL",
+      "passed": 890,
+      "skipped": 81,
+      "seconds": 109.2,
+      "branch_coverage_percent": 89.67,
+      "skips": "Existing opt-in MQTT/InfluxDB/proxy/gateway/simulator/writer/RabbitMQ/full-stack tests; B2-17 AMQP cases passed in focused run",
+      "coverage_modules": "backend/app",
+      "note": "Two final tests (process crash, SSE keepalive) added after regression collection; production code identical"
+    },
+    {
+      "name": "Focused final, real PostgreSQL and RabbitMQ",
+      "passed": 106,
+      "skipped": 0,
+      "seconds": 32.1,
+      "branch_coverage_percent": 95.47,
+      "modules": [
+        "backend.app.services.jobs",
+        "backend.app.api.jobs",
+        "backend.app.domain.jobs",
+        "backend.app.amqp.jobs",
+        "backend.app.job_worker"
+      ],
+      "command": "COLDSAFE_RABBITMQ_INTEGRATION=1 python -m pytest backend/tests/integration/test_jobs_integration.py backend/tests/api/test_jobs_api.py backend/tests/infra/test_job_worker.py backend/tests/infra/test_job_worker_cli.py backend/tests/api/test_runtime_lifecycle.py -o addopts= --cov=backend.app.services.jobs --cov=backend.app.api.jobs --cov=backend.app.domain.jobs --cov=backend.app.amqp.jobs --cov=backend.app.job_worker --cov-branch --cov-fail-under=80 -q"
+    },
+    {
+      "name": "Compose config",
+      "result": "passed",
+      "checks": [
+        "Separate AMQP credentials",
+        "Worker commands",
+        "Read-only filesystem",
+        "cap_drop ALL"
+      ],
+      "personal_env_read": false
+    },
+    {
+      "name": "CLI help",
+      "result": "passed"
+    },
+    {
+      "name": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "reviews": {
+    "architecture": "nominal infrastructure acceptance met; read-only review",
+    "security": "coordination-session loss limitation identified and documented; read-only review"
+  },
+  "verification": [
+    "HTTP 202 returns queued state without calculation/broker wait",
+    "Current role checked, owner-scoped REST and SSE, session revocation and cross-account 404",
+    "Generation/training and two owners use a single PostgreSQL session advisory lock",
+    "Atomic job/outbox creation rolls back together",
+    "Publication confirmation persistence failure can duplicate transport, but only one handler/result",
+    "Unacked AMQP delivery resumes persisted checkpoint in a new worker",
+    "Abrupt subprocess death preserves checkpoint and releases session lock",
+    "Missing executor, invalid artifact, empty file, symlink or wrong result origin persist explicit failure"
+  ],
+  "limitations": [
+    "No production generation/training executor; default persists GENERATION_FAILED or TRAINING_FAILED",
+    "Mutual exclusion depends on live PostgreSQL coordinator session; loss between checkpoints can permit overlap of future live calculations",
+    "Future real executors must implement durable blocks and cancellation/fencing on coordinator loss",
+    "Repeated interruptions can exhaust broker redelivery policy; DLQ requires controlled operator recovery",
+    "SSE polls current durable state, may coalesce checkpoints, and does not replay all events",
+    "No outbox automatic purge, no dataset volume provisioned in jobs overlay",
+    "No frontend/browser/full-stack/mass-load/hardware/ML-quality validation in this task"
+  ],
+  "cleanup": {
+    "disposable_postgres_removed": true,
+    "disposable_rabbitmq_and_volumes_removed_by_fixture": true,
+    "temporary_credential_files_removed": true,
+    "personal_services_healthy_at_end": [
+      "frontend",
+      "backend",
+      "mosquitto",
+      "rabbitmq",
+      "influxdb",
+      "postgres"
+    ],
+    "personal_volumes_migrated": false,
+    "personal_overlay_activated": false
+  },
+  "changed_files": {
+    "modified": [
+      "backend/README.md",
+      "backend/app/api/app.py",
+      "backend/app/api/schemas.py",
+      "backend/app/config/settings.py",
+      "backend/app/repositories/postgres.py",
+      "backend/app/runtime.py",
+      "backend/migrations/README.md",
+      "backend/tests/api/test_runtime_lifecycle.py",
+      "backend/tests/integration/test_aiot_migrations_integration.py",
+      "backend/tests/integration/test_postgres_schema_integration.py",
+      "contracts/aiot.md",
+      "docs/aiot/README.md",
+      "docs/aiot/tasks/B2-17.md",
+      "docs/aiot/tasks/README.md",
+      "docs/configuration.md"
+    ],
+    "created": [
+      "backend/app/amqp/jobs.py",
+      "backend/app/api/jobs.py",
+      "backend/app/domain/jobs.py",
+      "backend/app/job_worker.py",
+      "backend/app/services/jobs.py",
+      "backend/migrations/008_job_outbox.sql",
+      "backend/tests/api/test_jobs_api.py",
+      "backend/tests/infra/test_job_worker.py",
+      "backend/tests/infra/test_job_worker_cli.py",
+      "backend/tests/integration/test_jobs_integration.py",
+      "compose.jobs.yaml",
+      "docs/evidence/b2-17.json"
+    ]
+  },
+  "sha256": {
+    "backend/README.md": "6fda244fdd1e9d7ace0da027070ce0cc91aa0ff7bb0143151cac9bf465535807",
+    "backend/app/amqp/jobs.py": "87cf762e6f613149e618cc69a69855f637fcd90ab6b471556d9dd4aa62c87067",
+    "backend/app/api/app.py": "7cf790acfd8387b2e02e6512e14140ba6da9cddd6cc9bd9747c72eccf3808636",
+    "backend/app/api/jobs.py": "0d7fa739222d390815ee9f6d849c3dab8789e8c71fdf1c83d94e399d38a5dcfe",
+    "backend/app/api/schemas.py": "e355e8bcd33bc448f38ba649036a59f231c39e0cd7e953f87500122ac1ad26bd",
+    "backend/app/config/settings.py": "baeb1247c25fad6a855f7cd8922edb7dc4db5ed7e2316ba54c2bec24cb3cbcea",
+    "backend/app/domain/jobs.py": "3cbfcb65504851fbddf06fcc228424366c40557b791ff0ec9b02cad0b5366903",
+    "backend/app/job_worker.py": "246766b0fed17c51725a7f8266319f82152f0a738d3dd88f75dd6baa341def5e",
+    "backend/app/repositories/postgres.py": "33a540bcd54d5ba406ae84c47d4be1402c0acc0b2d8b53586b93a3a4ca953b2f",
+    "backend/app/runtime.py": "c563146d6d9100ef3a1b2cda3c667b339a5f6e2cdf1feb6b4a789b35e3b28f6f",
+    "backend/app/services/jobs.py": "fde7e46dee016bb02d9f09748fb3f5ca9631e584cbde88bedf0237821843bf9e",
+    "backend/migrations/008_job_outbox.sql": "876fe548a586ee806584f83182f2e193a77e6d9ecb4deffca19b1a5daf220dd5",
+    "backend/migrations/README.md": "2344bb0e1f5655165d835bf87412119b79be51fcfd0d3b1c9f4cdd1fe530dd1e",
+    "backend/tests/api/test_jobs_api.py": "711bbd115772ec9199353772dc3a20863e31ca123c6cd7c68d256d99709cda8f",
+    "backend/tests/api/test_runtime_lifecycle.py": "69947938f766a3f02bf1030e6eac1f15f8dcf0426b98ebef92b0b33170f99cf4",
+    "backend/tests/infra/test_job_worker.py": "231f76b8f0b2cf6c26ad2b1d4ad3968334b1ba1c525cc61d23fe8b47ffed83d6",
+    "backend/tests/infra/test_job_worker_cli.py": "626b6f5a582c395eb55901864f1005382b10d64d17e53e4957ded9a2b64e57f9",
+    "backend/tests/integration/test_aiot_migrations_integration.py": "d3736315f539c240f0427fc73f940afc1bd35b57d2e72bf6ea6c60a3827bccc1",
+    "backend/tests/integration/test_jobs_integration.py": "53f16515d1b98bdaa8a84b7b82e9acf760db52b8bf349617b31cca32d12328f4",
+    "backend/tests/integration/test_postgres_schema_integration.py": "7c611a8a1f6315c63abd5f44d90e7e7e3f4f1c6f8eb2418043eac5d95ee7c53a",
+    "compose.jobs.yaml": "32f0022ded961e2ba7a533a2ef052cad9b37e3814a246ac0386aa43e25f65e7a",
+    "contracts/aiot.md": "ebb55a1688fecf07b8934fea739fa8e9ccf89adfc72cb69142191a59d3c87c70",
+    "docs/aiot/README.md": "2479f04db7bf7e0932c9bd6a57511b1df869de08fb87e2502cc6ceccd1a1bb0c",
+    "docs/aiot/tasks/B2-17.md": "8fa35c3702c648f4f3d54b16375c5d65d48ca053c1605bb7951d091698261f06",
+    "docs/aiot/tasks/README.md": "57f7f1582b477c362f413d2d4988f0f6d0797db082d6e2e423065b9d992f069d",
+    "docs/configuration.md": "822632c9e7f9c3252fcef4b4805aba808bfc277d982d07cf88ca59d131bfe58f"
+  },
+  "next_task": "B2-18, not started; requires user selection"
+}

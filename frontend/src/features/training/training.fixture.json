@@ -1,0 +1,203 @@
+{
+  "job_id": "0d4f2e34-f5c7-4125-8fb0-800b0ebdcf6c",
+  "dataset_id": "0d4f2e34-f5c7-4125-8fb0-800b0ebdcf6d",
+  "model_id": "0d4f2e34-f5c7-4125-8fb0-800b0ebdcf6e",
+  "model_version": "offline-42",
+  "eligible": false,
+  "features_version": "equipment-window-v1",
+  "seed": 42,
+  "split_seed": 42,
+  "equipment_counts": {
+    "train": 70,
+    "validation": 20,
+    "test": 10
+  },
+  "versions": {
+    "numpy": "2.4.0"
+  },
+  "health": {
+    "target": "health_score_true",
+    "unit": "points",
+    "status": "eligible",
+    "metrics": {
+      "validation": {
+        "baseline": {
+          "mae": 23,
+          "rmse": 27,
+          "r2": -0.1
+        },
+        "candidate": {
+          "mae": 2.46,
+          "rmse": 3.11,
+          "r2": 0.9857
+        }
+      },
+      "test": {
+        "baseline": {
+          "mae": 23,
+          "rmse": 27,
+          "r2": -0.1
+        },
+        "candidate": {
+          "mae": 2.46,
+          "rmse": 3.11,
+          "r2": 0.9857
+        }
+      }
+    },
+    "partition_rows": {
+      "train": 7000,
+      "validation": 2000,
+      "test": 1000
+    },
+    "diagnostics": {
+      "partition": "test",
+      "total_rows": 1000,
+      "sample_count": 2,
+      "sample_seed": 42,
+      "sample_max": 500,
+      "sampling": "seeded_without_replacement",
+      "scatter": [
+        {
+          "actual": 30,
+          "predicted": 32,
+          "baseline": 50,
+          "error": 2
+        },
+        {
+          "actual": 90,
+          "predicted": 88,
+          "baseline": 50,
+          "error": -2
+        }
+      ],
+      "permutation": {
+        "scoring": "mae_increase",
+        "repeats": 3,
+        "sample_count": 2,
+        "reference_mae": 2,
+        "features": [
+          {
+            "name": "humidity_percent_mean",
+            "mean": -0.02,
+            "std": 0.01
+          },
+          {
+            "name": "vibration_rms_mm_s_mean",
+            "mean": 4,
+            "std": 0.1
+          }
+        ]
+      }
+    },
+    "near_failure": null
+  },
+  "rul": {
+    "target": "rul_hours_true",
+    "unit": "hours",
+    "status": "rejected",
+    "metrics": {
+      "validation": {
+        "baseline": {
+          "mae": 23,
+          "rmse": 27,
+          "r2": -0.1
+        },
+        "candidate": {
+          "mae": 30,
+          "rmse": 35,
+          "r2": -0.4
+        }
+      },
+      "test": {
+        "baseline": {
+          "mae": 23,
+          "rmse": 27,
+          "r2": -0.1
+        },
+        "candidate": {
+          "mae": 2.46,
+          "rmse": 3.11,
+          "r2": 0.9857
+        }
+      }
+    },
+    "partition_rows": {
+      "train": 7000,
+      "validation": 2000,
+      "test": 1000
+    },
+    "diagnostics": {
+      "partition": "test",
+      "total_rows": 1000,
+      "sample_count": 2,
+      "sample_seed": 42,
+      "sample_max": 500,
+      "sampling": "seeded_without_replacement",
+      "scatter": [
+        {
+          "actual": 30,
+          "predicted": 32,
+          "baseline": 50,
+          "error": 2
+        },
+        {
+          "actual": 90,
+          "predicted": 88,
+          "baseline": 50,
+          "error": -2
+        }
+      ],
+      "permutation": {
+        "scoring": "mae_increase",
+        "repeats": 3,
+        "sample_count": 2,
+        "reference_mae": 2,
+        "features": [
+          {
+            "name": "humidity_percent_mean",
+            "mean": -0.02,
+            "std": 0.01
+          },
+          {
+            "name": "vibration_rms_mm_s_mean",
+            "mean": 4,
+            "std": 0.1
+          }
+        ]
+      }
+    },
+    "near_failure": {
+      "threshold_hours": 24,
+      "validation": {
+        "row_count": 10,
+        "baseline": {
+          "mae": 2.46,
+          "rmse": 3.11,
+          "r2": 0.9857
+        },
+        "candidate": {
+          "mae": 14,
+          "rmse": 18,
+          "r2": -1.2
+        }
+      },
+      "test": {
+        "row_count": 10,
+        "baseline": {
+          "mae": 2.46,
+          "rmse": 3.11,
+          "r2": 0.9857
+        },
+        "candidate": {
+          "mae": 14,
+          "rmse": 18,
+          "r2": -1.2
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Dados sint\u00e9ticos; sem valida\u00e7\u00e3o f\u00edsica."
+  ]
+}

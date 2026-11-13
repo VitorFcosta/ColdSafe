@@ -47,15 +47,17 @@ def create_command_router(
     catalog: CatalogService,
     commands: CommandService | None,
     require_user: Callable[..., UUID],
+    *, require_operator: Callable[..., UUID],
 ) -> APIRouter:
     router = APIRouter(
         prefix="/api/v1", tags=["Commands"],
         responses={code: {"model": ErrorResponse} for code in (401, 404, 422, 503)},
     )
 
-    @router.post("/devices/{device_id}/led/commands", response_model=CommandApiResponse)
+    @router.post("/devices/{device_id}/led/commands", response_model=CommandApiResponse,
+                 responses={403: {"model": ErrorResponse}})
     def request_led(
-        device_id: UUID, body: LedCommandInput, user_id: UUID = Depends(require_user)
+        device_id: UUID, body: LedCommandInput, user_id: UUID = Depends(require_operator)
     ) -> CommandApiResponse:
         if commands is None:
             raise HTTPException(status_code=503, detail="DEPENDENCY_UNAVAILABLE")

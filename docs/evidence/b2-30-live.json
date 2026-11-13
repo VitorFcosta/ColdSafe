@@ -1,0 +1,525 @@
+{
+  "task": "B2-30",
+  "date": "2026-10-21",
+  "timezone": "America/Sao_Paulo",
+  "git_base": "c8d52ed87d8f73f07e2a875495904f38a4a2abab",
+  "project": "coldsafe-b230-bfd86ac5",
+  "download": {
+    "image": "ollama/ollama:0.40.3",
+    "model": "llama3.2:1b-instruct-q4_K_M",
+    "started_at": "2026-10-21T04:55:03.629119796Z",
+    "finished_at": "2026-10-21T04:55:30.430387253Z",
+    "exit_code": 0,
+    "operational_data_or_credentials_sent": false
+  },
+  "scope": {
+    "postgresql": "real disposable database",
+    "ollama": "real CPU model in internal Compose network, no published port",
+    "jobs": "real JobService + GenerationHandler + TrainingHandler; direct invocation, no AMQP in this measurement",
+    "source_mounts": "current backend/app, backend/migrations, contracts and benchmark script, read-only; image contains installed locked runtime dependencies",
+    "private_application_volumes_mounted": false
+  },
+  "profile": {
+    "ollama_memory_limit_bytes": 2147483648,
+    "ollama_cpus": 2,
+    "client_memory_limit_bytes": 1073741824,
+    "client_cpus": 1,
+    "postgres_memory_limit_bytes": 268435456,
+    "context_length": 1024,
+    "num_parallel": 1,
+    "max_loaded_models": 1,
+    "cpu_only": true,
+    "runtime_network_internal": true,
+    "runtime_weights_read_only": true,
+    "cloud_disabled": true
+  },
+  "network_probe": {
+    "destination": "1.1.1.1:443",
+    "blocked": true,
+    "observed_error": "OSError",
+    "client_shares_ollama_internal_network": true
+  },
+  "limitations": [
+    "Single short prompt; no statistical latency SLA or semantic/operational quality evaluation.",
+    "No full AIoT stack, telemetry/command continuity, browser interaction or hardware measurement in this run.",
+    "The live measurement did not inject PostgreSQL session loss. Dedicated PostgreSQL integration tests cover durable guard preservation during a blocked preload and orphan-running-job refusal. General fencing between surviving heavy executors remains outside scope.",
+    "Training client hit the 1GiB cgroup limit and recorded reclaim/max events without OOM; this does not prove capacity/margin for the complete AIoT stack."
+  ],
+  "pre_hardening_phases": {
+    "initial": {
+      "preload_seconds": 4.005907,
+      "loading_observed": true,
+      "model": "llama3.2:1b-instruct-q4_K_M",
+      "digest": "22bc6b92eb0160c4629782fca05a9032c59d306ab2058b7dacc8a4644fbafa02",
+      "weights_bytes": 807709787,
+      "ps_size_bytes": 1117572299,
+      "size_vram": 0,
+      "context_length": 1024,
+      "response": {
+        "first_token_seconds": 1.367727,
+        "total_seconds": 1.75627,
+        "text": "Pronto.",
+        "eval_count": 4,
+        "load_duration_ns": 75413958,
+        "prompt_is_fixed_public_fixture": true
+      }
+    },
+    "workloads": {
+      "generation": {
+        "job_id": "0e75f2bb-6574-472b-9249-2b74d8aa4d2a",
+        "result_id": "b69c2be5-6b4e-5d3f-a998-3244e7a9ff4d",
+        "seconds": 1.004265,
+        "unloaded_checks": 21,
+        "reload_seconds": 4.570894,
+        "status": "completed"
+      },
+      "training": {
+        "job_id": "c5d4e09c-26c6-43e5-b1a4-d5acbd0d1f3f",
+        "result_id": "58173ae1-bef6-5fd5-9da9-0f3ed9d0edcf",
+        "seconds": 161.671281,
+        "unloaded_checks": 83,
+        "reload_seconds": 5.466125,
+        "status": "completed"
+      },
+      "executor_failure_recovers": true,
+      "self_peak_rss_bytes": 178147328,
+      "child_peak_rss_bytes": 633733120
+    }
+  },
+  "phases": {
+    "initial": {
+      "preload_seconds": 2.673028,
+      "loading_observed": true,
+      "ps": [
+        {
+          "name": "llama3.2:1b-instruct-q4_K_M",
+          "model": "llama3.2:1b-instruct-q4_K_M",
+          "size": 1117572299,
+          "digest": "22bc6b92eb0160c4629782fca05a9032c59d306ab2058b7dacc8a4644fbafa02",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "llama",
+            "families": [
+              "llama"
+            ],
+            "parameter_size": "1.2B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2319-01-31T04:48:00.733086233Z",
+          "size_vram": 0,
+          "context_length": 1024,
+          "runner": "llamacpp"
+        }
+      ],
+      "tags": {
+        "models": [
+          {
+            "name": "llama3.2:1b-instruct-q4_K_M",
+            "model": "llama3.2:1b-instruct-q4_K_M",
+            "modified_at": "2026-10-21T04:55:30.410502003Z",
+            "size": 807709787,
+            "digest": "22bc6b92eb0160c4629782fca05a9032c59d306ab2058b7dacc8a4644fbafa02",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "1.2B",
+              "quantization_level": "Q4_K_M",
+              "context_length": 131072,
+              "embedding_length": 2048,
+              "runner": "ggml"
+            },
+            "capabilities": [
+              "completion",
+              "tools"
+            ]
+          }
+        ]
+      },
+      "response": {
+        "first_token_seconds": 1.279211,
+        "total_seconds": 1.593431,
+        "text": "Pronto.",
+        "eval_count": 4,
+        "load_duration_ns": 74903084,
+        "prompt_is_fixed_public_fixture": true
+      }
+    },
+    "workloads": {
+      "generation": {
+        "job_id": "57064365-bf15-401e-a81e-71f72f8da1da",
+        "result_id": "f2f4a936-babc-5207-810f-c8f71c37663d",
+        "seconds": 1.38203,
+        "unloaded_checks": 21,
+        "reload_seconds": 5.043827,
+        "status": "completed"
+      },
+      "training": {
+        "job_id": "87010865-c9d2-4613-98f0-dde7405b74c7",
+        "result_id": "86a06503-035e-5b1d-bec6-39e3577d1aff",
+        "seconds": 153.99991,
+        "unloaded_checks": 80,
+        "reload_seconds": 4.717213,
+        "status": "completed"
+      },
+      "executor_failure_recovers": true,
+      "self_peak_rss_bytes": 177696768,
+      "child_peak_rss_bytes": 633737216
+    },
+    "unavailable": {
+      "state": "unavailable",
+      "attempts": 2,
+      "job_still_queued": true,
+      "handler_never_entered": true
+    },
+    "recovered": {
+      "pending_job_completed": true,
+      "preload_seconds": 4.318276
+    },
+    "restarted": {
+      "preload_seconds": 2.972807,
+      "weights_survived_restart": true,
+      "ps": [
+        {
+          "name": "llama3.2:1b-instruct-q4_K_M",
+          "model": "llama3.2:1b-instruct-q4_K_M",
+          "size": 1117572299,
+          "digest": "22bc6b92eb0160c4629782fca05a9032c59d306ab2058b7dacc8a4644fbafa02",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "llama",
+            "families": [
+              "llama"
+            ],
+            "parameter_size": "1.2B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2319-01-31T04:51:38.116589195Z",
+          "size_vram": 0,
+          "context_length": 1024,
+          "runner": "llamacpp"
+        }
+      ],
+      "response": {
+        "first_token_seconds": 1.284547,
+        "total_seconds": 1.59396,
+        "text": "Pronto.",
+        "eval_count": 4,
+        "load_duration_ns": 106272000,
+        "prompt_is_fixed_public_fixture": true
+      }
+    },
+    "automatic": {
+      "real_llm_worker_process_running": true,
+      "no_manual_tick": true,
+      "job_completed": true,
+      "automatic_reload_seconds": 6.217059
+    },
+    "model_missing": {
+      "state": "model_missing",
+      "no_automatic_download": true,
+      "empty_volume_setup": "New volume contains empty blobs/, manifests/ and manifests-v2/ directories only; offline Alpine mkdir bootstrap, no weights downloaded."
+    }
+  },
+  "reproduction": {
+    "client_image": "coldsafe-backend:latest",
+    "source": "scripts/benchmark_llm.py contains assert-based phase checks; requires current application and migrations mounted read-only at /app/backend and PYTHONPATH=/app",
+    "setup": "Copy services ollama and ollama-prepare plus private/download networks from compose.ollama.yaml to a new disposable Compose project. Resolve prepare.sh mount to an absolute path. Add isolated PostgreSQL17 and backend-image client on the same private internal network with no ports. Use a new POSTGRES_DB beginning coldsafe_b230_ and new credentials. Allocate writable artifact volumes for the client.",
+    "download_command": "docker compose -f <disposable-compose> --profile llm-setup up -d ollama-prepare; wait for exit0",
+    "normal_phase_commands": [
+      "docker exec -e PYTHONPATH=/app <client> python /benchmark_llm.py initial",
+      "docker exec -e PYTHONPATH=/app <client> python /benchmark_llm.py workloads"
+    ],
+    "transition_commands": [
+      "Stop Ollama, execute unavailable; start Ollama, wait for health and execute recovered.",
+      "Restart Ollama preserving the weight volume; execute restarted.",
+      "Run python -m backend.app.llm_worker in a separate client process; execute automatic and stop that process afterwards.",
+      "Recreate Ollama with a new empty test weight volume containing only empty blobs/, manifests/ and manifests-v2/ directories; execute model_missing."
+    ],
+    "collection": "Read each /tmp/coldsafe-b230-<phase>.json in the client; collect /sys/fs/cgroup/memory.peak and memory.events plus docker inspect State/RestartCount.",
+    "cleanup": "docker compose -f <disposable-compose> --profile llm-setup down --volumes; remove only resources belonging to this new project."
+  },
+  "personal_container_snapshot": {
+    "coldsafe-frontend-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:50.210777709Z",
+      "FinishedAt": "2026-10-20T15:36:39.924415546Z",
+      "ExitCode": 0
+    },
+    "coldsafe-writer-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:38.873743551Z",
+      "FinishedAt": "2026-10-20T15:36:40.920651713Z",
+      "ExitCode": 137
+    },
+    "coldsafe-models-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:38.872895718Z",
+      "FinishedAt": "2026-10-20T15:36:40.821564047Z",
+      "ExitCode": 137
+    },
+    "coldsafe-generation-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:38.85896776Z",
+      "FinishedAt": "2026-10-20T15:36:40.786789922Z",
+      "ExitCode": 137
+    },
+    "coldsafe-backend-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:38.870784926Z",
+      "FinishedAt": "2026-10-20T15:36:41.999709297Z",
+      "ExitCode": 137
+    },
+    "coldsafe-training-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:38.871834176Z",
+      "FinishedAt": "2026-10-20T15:36:40.847355088Z",
+      "ExitCode": 137
+    },
+    "coldsafe-gateway-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:38.86897501Z",
+      "FinishedAt": "2026-10-20T15:36:40.848927338Z",
+      "ExitCode": 137
+    },
+    "coldsafe-simulator-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:38.851158093Z",
+      "FinishedAt": "2026-10-20T15:36:40.830225713Z",
+      "ExitCode": 137
+    },
+    "coldsafe-rabbitmq-init-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:37.490623967Z",
+      "FinishedAt": "2026-10-20T05:24:37.778312676Z",
+      "ExitCode": 0
+    },
+    "coldsafe-mosquitto-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:23.572703377Z",
+      "FinishedAt": "2026-10-20T15:36:42.775792464Z",
+      "ExitCode": 0
+    },
+    "coldsafe-mosquitto-init-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:24:37.491181176Z",
+      "FinishedAt": "2026-10-20T05:24:37.630863717Z",
+      "ExitCode": 0
+    },
+    "coldsafe-rabbitmq-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:15:19.107057793Z",
+      "FinishedAt": "2026-10-20T15:36:43.798567006Z",
+      "ExitCode": 137
+    },
+    "coldsafe-influxdb-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:15:17.379241292Z",
+      "FinishedAt": "2026-10-20T15:36:42.856772881Z",
+      "ExitCode": 2
+    },
+    "coldsafe-postgres-1": {
+      "Status": "exited",
+      "StartedAt": "2026-10-20T05:15:17.378692417Z",
+      "FinishedAt": "2026-10-20T15:36:43.281062673Z",
+      "ExitCode": 0
+    }
+  },
+  "personal_snapshot_note": "Original project containers were observed stopped by the parent before this task. This state snapshot was captured during isolated testing and compared again after cleanup; every mutation command targeted only the disposable project.",
+  "resources_after_final_workloads": {
+    "ollama": {
+      "memory_peak_bytes": 1795923968,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "oom_killed": false,
+      "restart_count": 0,
+      "image_id": "sha256:adca95a12c2b386a8f9a995e7fa0600e187e3323b5e5522f5a6c3b1ec73eff99"
+    },
+    "postgres": {
+      "memory_peak_bytes": 86716416,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "oom_killed": false,
+      "restart_count": 0,
+      "image_id": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+    },
+    "client": {
+      "memory_peak_bytes": 1073754112,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 1733,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "oom_killed": false,
+      "restart_count": 0,
+      "image_id": "sha256:058963d26cd7fdf48280af85678469370697d7bb74191fde74235aa36e1267b5"
+    }
+  },
+  "resources_after_restart_and_automatic": {
+    "ollama": {
+      "memory_peak_bytes": 1166290944,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "oom_killed": false,
+      "restart_count": 0,
+      "image_id": "sha256:adca95a12c2b386a8f9a995e7fa0600e187e3323b5e5522f5a6c3b1ec73eff99"
+    },
+    "postgres": {
+      "memory_peak_bytes": 86716416,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "oom_killed": false,
+      "restart_count": 0,
+      "image_id": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+    },
+    "client": {
+      "memory_peak_bytes": 1073754112,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 1733,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "oom_killed": false,
+      "restart_count": 0,
+      "image_id": "sha256:058963d26cd7fdf48280af85678469370697d7bb74191fde74235aa36e1267b5"
+    }
+  },
+  "model_missing_bootstrap_attempt": {
+    "initial_directories": [
+      "blobs",
+      "manifests"
+    ],
+    "observed": "HTTP500 from /api/tags: mkdir /models/manifests-v2: read-only file system",
+    "cause": "Ollama0.40.3 inventory expects manifests-v2 directory, absent from initial empty test bootstrap",
+    "resolution": "Created only empty manifests-v2 using offline Alpine against the disposable empty volume; no product source change",
+    "retest": "ollama list exit0, model_missing assertion phase passed"
+  },
+  "schema_versions": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "versions": {
+    "python": "3.13.15",
+    "numpy": "2.5.4",
+    "scikit_learn": "1.9.1",
+    "platform": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.41"
+  },
+  "host": {
+    "ServerVersion": "29.3.0",
+    "Architecture": "aarch64",
+    "MemTotal": 4108828672,
+    "physical_memory_bytes": 8589934592
+  },
+  "source_sha256": {
+    "scripts/benchmark_llm.py": "a97537e78f3c1555a83129c5ec6d1f749b4f3cbde6bc273b763bc1c713c79177",
+    "compose.ollama.yaml": "0e98d09e8537a6e470f44341729f1b730f0a1bb5a76ea2f61fbc1a8bd725b048",
+    "infra/ollama/prepare.sh": "a46e443f531f6cfbdf794f34a7cfe2cc3011b120afed7a444bc9fa4fc4a0ef4a",
+    "backend/app/services/llm.py": "bf7bfc6463545a576c4ddf841f7a7ddfd0cd25758539bce7ef0d213f0cb1bcc9",
+    "backend/app/services/jobs.py": "7d1691f092780688a675c68724da566d91d523462cff33c8b4b5f46257b1b95d",
+    "backend/app/config/settings.py": "26044f67072a50c2f2aad5c6c1e9d2a8d804402a583a64f8b26f0c9630db628d",
+    "backend/app/llm_worker.py": "5887377b629188441009cb258626a9592780a99a179ef6eede1a71f647c8b7d8",
+    "backend/app/repositories/postgres.py": "03a9d185dcf4b4ec34741c820b7a07b702b5701ac83a4122c5b055b51fea9830",
+    "backend/migrations/012_llm_memory_guard.sql": "2cd85450f2adedc015cd2d1742d17db77bbb85872ddae7b1438a511ff3449391"
+  },
+  "guard_hardening": "All final phases ran after schema012; first nominal phase is retained separately as pre_hardening_phases. No real PostgreSQL-loss/fencing failure was injected in this benchmark; dedicated integration tests cover that separately.",
+  "resource_method": "memory.peak and memory.events read from cgroup v2 inside each container. Peaks after workloads are cumulative across both initial and final nominal rounds, never summed as simultaneous physical usage. Restart resets the Ollama cgroup; later snapshot is separate. memory.events max reflects limit/reclaim events, not OOM kills.",
+  "planned_lifecycle_changes": {
+    "ollama_stop_start_for_outage": 1,
+    "ollama_restart_preserving_weights": 1,
+    "ollama_recreation_with_empty_weights": 1,
+    "llm_cli_process_start_stop": 1
+  },
+  "benchmark_self_checks": {
+    "help": "passed",
+    "py_compile": "passed",
+    "all_phase_assertions": "passed"
+  },
+  "cleanup": {
+    "removed_resource_ids": {
+      "containers": [
+        "6d23742f6dd5",
+        "9a6ec3181065",
+        "18530785a9bd",
+        "cda02cc39f3f"
+      ],
+      "volumes": [
+        "coldsafe-b230-bfd86ac5_job-artifacts",
+        "coldsafe-b230-bfd86ac5_ollama-data",
+        "coldsafe-b230-bfd86ac5_ollama-empty",
+        "coldsafe-b230-bfd86ac5_training-artifacts"
+      ],
+      "networks": [
+        "15d580919ffe",
+        "7e0a5c0c2bca"
+      ]
+    },
+    "remaining_resources": {
+      "containers": [],
+      "volumes": [],
+      "networks": []
+    },
+    "personal_container_state_preserved": true,
+    "personal_containers_compared": 14,
+    "private_temporary_compose_credentials_deleted": true,
+    "only_disposable_project_targeted": true
+  },
+  "completed_at_utc": "2026-10-21T05:07:18.116725+00:00",
+  "result": "passed within the declared isolated B2-30 lifecycle/capacity scope",
+  "post_benchmark_changes": [
+    {
+      "files": [
+        "backend/app/services/llm.py",
+        "backend/tests/integration/test_llm_coordination_integration.py"
+      ],
+      "change": "Release status probe HEAVY_JOB_LOCK before HTTP reads; job/preload execution unchanged.",
+      "validation": "147 focused tests passed, 2 RabbitMQ opt-in skipped; real PostgreSQL regression and security review approved.",
+      "live_rerun": false,
+      "measured_source_hashes_preserved": true
+    }
+  ]
+}

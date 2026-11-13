@@ -1,0 +1,7 @@
+# Optional local access to the InfluxDB Data Explorer for the presentation.
+services:
+  influxdb:
+    ports:
+      - "127.0.0.1:8086:8086"
+    networks:
+      - coldsafe-edge

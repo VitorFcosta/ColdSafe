@@ -6,17 +6,18 @@ test('gestão mostra listas primeiro e mantém contexto e foco no celular e desk
   await mockDashboardAccount(page)
   const longName = 'Câmara de conservação de vacinas do laboratório central'.repeat(2)
   const writes: string[] = []
+  let deactivated = false
   await page.route('**/api/v1/environments', (route) => route.fulfill({
     status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: [
-      { id: 'lab-refrigerado', name: longName }, { id: 'estoque', name: 'Estoque' },
+      { id: '00000000-0000-4000-8000-000000000001', name: longName }, { id: 'estoque', name: 'Estoque' },
     ] }),
   }))
   await page.route('**/api/v1/environments/*/devices', (route) => {
     if (route.request().method() !== 'GET') writes.push(route.request().method())
     const isStock = route.request().url().includes('/estoque/')
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: isStock ? [] : [
-      { id: 'sensor-1', environment_id: 'lab-refrigerado', name: 'Sensor reserva', mqtt_device_id: 'esp32-1', is_active: false },
-      { id: 'sensor-2', environment_id: 'lab-refrigerado', name: 'Sensor principal', mqtt_device_id: 'esp32-2', is_active: true },
+      { id: 'sensor-1', environment_id: '00000000-0000-4000-8000-000000000001', name: 'Sensor reserva', mqtt_device_id: 'esp32-1', is_active: false },
+      { id: 'sensor-2', environment_id: '00000000-0000-4000-8000-000000000001', name: 'Sensor principal', mqtt_device_id: 'esp32-2', is_active: !deactivated },
     ] }) })
   })
   await page.route('**/api/v1/environments/*/rules', (route) => route.fulfill({
@@ -25,6 +26,7 @@ test('gestão mostra listas primeiro e mantém contexto e foco no celular e desk
   }))
   await page.route('**/api/v1/devices/*', (route) => {
     if (route.request().method() !== 'GET') writes.push(route.request().method())
+    if (route.request().method() === 'DELETE') deactivated = true
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: {} }) })
   })
 
@@ -33,16 +35,20 @@ test('gestão mostra listas primeiro e mantém contexto e foco no celular e desk
   await expect(page.getByRole('heading', { name: `Dispositivos de ${longName}` })).toBeVisible()
   await expect(page.getByRole('heading', { name: `Limites de temperatura de ${longName}` })).toBeVisible()
   await expect(page.getByText('Sensor reserva')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Desativar dispositivo Sensor reserva' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Desativar cadastro de Sensor reserva' })).toHaveCount(0)
   await expect(page.getByLabel('Nome do novo ambiente')).toHaveCount(0)
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
 
-  await page.getByRole('button', { name: `Editar ambiente ${longName}` }).click()
+  await page.getByRole('button', { name: `Renomear ambiente ${longName}` }).click()
   await page.getByRole('textbox', { name: `Nome do ambiente ${longName}` }).fill('Rascunho')
   await page.getByRole('button', { name: `Cancelar edição do ambiente ${longName}` }).click()
-  await page.getByRole('button', { name: 'Editar dispositivo Sensor principal' }).click()
+  await page.getByRole('dialog', { name: 'Descartar alterações?', exact: true }).getByRole('button', { name: 'Descartar alterações', exact: true }).click()
+  await expect(page.getByRole('button', { name: `Renomear ambiente ${longName}` })).toBeFocused()
+  await page.getByRole('button', { name: 'Renomear dispositivo Sensor principal' }).click()
   await page.getByRole('textbox', { name: 'Nome do dispositivo Sensor principal' }).fill('Rascunho')
   await page.getByRole('button', { name: 'Cancelar edição do dispositivo Sensor principal' }).click()
+  await page.getByRole('dialog', { name: 'Descartar alterações?', exact: true }).getByRole('button', { name: 'Descartar alterações', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Renomear dispositivo Sensor principal' })).toBeFocused()
   expect(writes).toEqual([])
 
   const openEnvironment = page.getByRole('button', { name: 'Adicionar ambiente' })
@@ -51,9 +57,10 @@ test('gestão mostra listas primeiro e mantém contexto e foco no celular e desk
   await expect(page.getByLabel('Nome do novo ambiente')).toBeFocused()
   await page.getByLabel('Nome do novo ambiente').fill('Rascunho')
   await page.getByRole('button', { name: 'Cancelar inclusão de ambiente' }).click()
+  await page.getByRole('dialog', { name: 'Descartar alterações?', exact: true }).getByRole('button', { name: 'Descartar alterações', exact: true }).click()
   await expect(openEnvironment).toBeFocused()
 
-  await page.getByRole('button', { name: 'Estoque', exact: true }).click()
+  await page.getByLabel('Ambiente', { exact: true }).selectOption('estoque')
   await expect(page.getByRole('heading', { name: 'Dispositivos de Estoque' })).toBeVisible()
   await expect(page.getByText('Nenhum dispositivo cadastrado neste ambiente')).toBeVisible()
   const openDevice = page.getByRole('button', { name: 'Adicionar dispositivo' })
@@ -63,18 +70,24 @@ test('gestão mostra listas primeiro e mantém contexto e foco no celular e desk
   await expect(page.getByRole('heading', { name: 'Adicionar dispositivo em Estoque' })).toBeVisible()
   await page.getByLabel('Nome do dispositivo').fill('Rascunho')
   await page.getByRole('button', { name: 'Cancelar inclusão de dispositivo' }).click()
+  await page.getByRole('dialog', { name: 'Descartar alterações?', exact: true }).getByRole('button', { name: 'Descartar alterações', exact: true }).click()
   await expect(openDevice).toBeFocused()
 
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.getByRole('button', { name: longName, exact: true }).click()
   await expect(page.getByRole('heading', { name: `Limites de temperatura de ${longName}` })).toBeVisible()
-  page.once('dialog', (dialog) => dialog.dismiss())
-  await page.getByRole('button', { name: 'Desativar dispositivo Sensor principal' }).click()
+  await page.getByRole('button', { name: 'Desativar cadastro de Sensor principal' }).click()
+  const confirmation = page.getByRole('dialog', { name: 'Desativar cadastro de Sensor principal?', exact: true })
+  await expect(confirmation.getByRole('button', { name: 'Cancelar', exact: true })).toBeFocused()
+  await confirmation.getByRole('button', { name: 'Cancelar', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Desativar cadastro de Sensor principal' })).toBeFocused()
   expect(writes).toEqual([])
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByRole('button', { name: 'Desativar dispositivo Sensor principal' }).focus()
+  await page.getByRole('button', { name: 'Desativar cadastro de Sensor principal' }).focus()
   await page.keyboard.press('Enter')
+  await confirmation.getByRole('button', { name: 'Desativar cadastro', exact: true }).click()
   await expect.poll(() => writes).toEqual(['DELETE'])
+  await expect(page.getByRole('button', { name: 'Desativar cadastro de Sensor principal' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: `Dispositivos de ${longName}`, exact: true })).toBeFocused()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1280)
 })
 
@@ -83,14 +96,14 @@ test('limites mostram erros no campo, preservam rascunho e salvam apenas no ambi
   const writes: { environment: string; margin: number }[] = []
   await page.route('**/api/v1/environments', (route) => route.fulfill({
     status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: [
-      { id: 'lab-refrigerado', name: 'Laboratório Refrigerado' }, { id: 'estoque', name: 'Estoque' },
+      { id: '00000000-0000-4000-8000-000000000001', name: 'Laboratório Refrigerado' }, { id: 'estoque', name: 'Estoque' },
     ] }),
   }))
   await page.route('**/api/v1/environments/estoque/devices', (route) => route.fulfill({
     status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: [] }),
   }))
   await page.route('**/api/v1/environments/*/rules', (route) => {
-    const environment = route.request().url().includes('/estoque/') ? 'estoque' : 'lab-refrigerado'
+    const environment = route.request().url().includes('/estoque/') ? 'estoque' : '00000000-0000-4000-8000-000000000001'
     if (route.request().method() === 'PUT') {
       const body = route.request().postDataJSON() as { min_c: number; max_c: number; attention_margin_c: number }
       writes.push({ environment, margin: body.attention_margin_c })
@@ -135,9 +148,9 @@ test('limites mostram erros no campo, preservam rascunho e salvam apenas no ambi
   await expect(page.getByText('Limites de Laboratório Refrigerado salvos.')).toHaveCount(0)
   await save.click()
   await expect(page.getByText('Limites de Laboratório Refrigerado salvos.')).toBeVisible()
-  expect(writes).toEqual([{ environment: 'lab-refrigerado', margin: 1 }, { environment: 'lab-refrigerado', margin: 1 }])
+  expect(writes).toEqual([{ environment: '00000000-0000-4000-8000-000000000001', margin: 1 }, { environment: '00000000-0000-4000-8000-000000000001', margin: 1 }])
 
-  await page.getByRole('button', { name: 'Estoque', exact: true }).click()
+  await page.getByLabel('Ambiente', { exact: true }).selectOption('estoque')
   await expect(page.getByRole('heading', { name: 'Limites de temperatura de Estoque' })).toBeVisible()
   await expect(minimum).toHaveValue('0')
   await margin.fill('2')

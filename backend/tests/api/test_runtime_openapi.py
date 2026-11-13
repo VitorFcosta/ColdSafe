@@ -1,5 +1,8 @@
 from datetime import UTC, datetime
 from unittest.mock import Mock
+import secrets
+
+from pydantic import SecretStr
 
 import yaml
 from pathlib import Path
@@ -7,6 +10,7 @@ from pathlib import Path
 from backend.app.api.app import create_app
 from backend.app.api.auth import AuthService
 from backend.app.api.catalog import CatalogService
+from backend.app.api.events import EventHub
 from backend.app.config.settings import RuntimeSettings
 from backend.tests.contract.test_openapi_contract import EXPECTED_GET_PATHS
 
@@ -51,10 +55,11 @@ def test_runtime_status_codes_match_the_canonical_contract() -> None:
 
 
 def test_static_contract_includes_every_runtime_path() -> None:
-    settings = RuntimeSettings.model_construct()
+    settings = RuntimeSettings.model_construct(auth_jwt_secret=SecretStr(secrets.token_urlsafe(48)))
     application = create_app(
         repository=Mock(), readiness_check=lambda: True,
         auth=AuthService(settings), catalog=CatalogService(settings),
+        events=EventHub(),
     )
     static = yaml.safe_load(
         (Path(__file__).resolve().parents[3] / "contracts" / "openapi.yaml").read_text()

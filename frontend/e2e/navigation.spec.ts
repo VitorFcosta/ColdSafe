@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test'
 
 test('orienta o foco na navegação e preserva acesso e histórico', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 })
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ json: {
+    success: true, data: { user_id: 'test-user', email: 'teste@example.com', role: 'operator' },
+  } }))
   await page.route('**/api/v1/auth/login', (route) => route.fulfill({
     status: 200, contentType: 'application/json',
     body: JSON.stringify({ success: true, data: { token: 'test-token', expires_at: '2099-01-01T00:00:00Z' } }),
@@ -20,7 +23,7 @@ test('orienta o foco na navegação e preserva acesso e histórico', async ({ pa
   }))
 
   await page.goto('/')
-  await page.getByRole('link', { name: 'Entrar no painel' }).focus()
+  await page.getByRole('link', { name: 'Acessar painel' }).focus()
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/\/login\?redirect=/)
   await expect(page).toHaveTitle('Entrar · ColdSafe')
@@ -29,11 +32,13 @@ test('orienta o foco na navegação e preserva acesso e histórico', async ({ pa
   await page.getByLabel('Email').fill('teste@example.com')
   await page.getByLabel('Senha').fill('senha-segura')
   await page.getByLabel('Senha').press('Enter')
-  const dashboardTitle = page.getByRole('heading', { name: 'Diagnóstico do ambiente' })
+  const dashboardTitle = page.getByRole('heading', { name: 'Visão geral' })
+  const manageLink = page.getByRole('dialog', { name: 'Menu de navegação' })
+    .getByRole('link', { name: 'Ambientes e dispositivos', exact: true })
   await expect(page).toHaveURL('/dashboard')
   await expect(dashboardTitle).toBeFocused()
-  await expect(page).toHaveTitle('Monitoramento · ColdSafe')
-  await expect(page.getByRole('link', { name: 'Monitoramento' })).toHaveAttribute('aria-current', 'page')
+  await expect(page).toHaveTitle('Visão geral · ColdSafe')
+  await expect(page.getByRole('navigation', { name: 'Navegação da área' }).getByRole('link', { name: 'Visão geral', exact: true })).toHaveAttribute('aria-current', 'page')
 
   await page.reload()
   const skip = page.getByRole('link', { name: 'Ir para o conteúdo' })
@@ -42,13 +47,17 @@ test('orienta o foco na navegação e preserva acesso e histórico', async ({ pa
   await page.keyboard.press('Enter')
   await expect(dashboardTitle).toBeFocused()
 
-  await page.getByRole('link', { name: 'Ambientes e dispositivos' }).focus()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
+  await manageLink.focus()
   await page.keyboard.press('Enter')
   const manageTitle = page.getByRole('heading', { name: 'Ambientes e dispositivos' })
   await expect(page).toHaveURL('/manage')
   await expect(manageTitle).toBeFocused()
   await expect(page).toHaveTitle('Ambientes e dispositivos · ColdSafe')
-  await expect(page.getByRole('link', { name: 'Ambientes e dispositivos' })).toHaveAttribute('aria-current', 'page')
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
+  await expect(manageLink).toHaveAttribute('aria-current', 'page')
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('button', { name: 'Menu', exact: true })).toBeFocused()
   await page.getByRole('link', { name: 'Ir para o conteúdo' }).focus()
   await page.keyboard.press('Enter')
   await expect(manageTitle).toBeFocused()
