@@ -1,53 +1,53 @@
 # ColdSafe
 
-Protótipo acadêmico local de monitoramento de ambientes refrigerados e manutenção
-preditiva de um ventilador simulado. A versão AIoT v3 integra seis sensores,
-LED manual, buzzer por regra, mensageria, geração de dados, regressões de saúde e
-vida útil restante (RUL), cena 3D e assistente com LLM local. Cada conta conserva
-seus ambientes privados; papel administrativo não concede acesso aos de outra conta.
+O ColdSafe é um protótipo acadêmico para monitorar um ambiente refrigerado
+simulado, acompanhar alertas de temperatura e estimar a saúde e a vida útil
+restante de um ventilador.
 
-> O ColdSafe não é certificado para uso médico, sanitário ou regulatório.
-> Medições, falhas, saúde e RUL são sintéticas, sem calibração em equipamento real.
+[Como rodar](#como-rodar) · [Arquitetura](#arquitetura-implementada) ·
+[Documentação](docs/README.md)
 
-## Arquitetura implementada
+![Painel do ColdSafe com seis medições, alertas do dispositivo e estado da luz e do buzzer](frontend/public/media/dashboard-overview.png)
 
-```mermaid
-flowchart LR
-  S[Simulador Python: seis sensores, LED e buzzer] <-->|MQTT v3| M[Mosquitto]
-  M <--> G[Gateway + diário SQLite]
-  G <-->|AMQP| R[RabbitMQ]
-  R --> W[Writer]
-  W --> I[(InfluxDB: telemetria live)]
-  W -->|recibo de persistência| R
-  R <--> A[FastAPI]
-  A <--> P[(PostgreSQL: contas, eventos, regras, jobs e modelos)]
-  R <--> J[Geração, treino e inferência]
-  J <--> V[Volumes: datasets e pacotes de modelos]
-  A <-->|HTTP local| O[Ollama]
-  L[Coordenador de memória] --> O
-  U[Vue 3 + Three.js via Nginx] <-->|REST, WebSocket e SSE| A
-```
+*Visão geral do painel com dados simulados.*
 
-O writer publica recibo depois de gravar no InfluxDB; a API só libera a leitura
-Web após correlacionar fonte e recibo. A recuperação HTTP v3 lê a projeção SQL.
-Comandos exigem autorização e ACK da aplicação; a próxima telemetria comprova o
-estado observado. Geração/treino são jobs persistentes, com progresso HTTP/SSE,
-e ativação troca o pacote completo de saúde/RUL no worker de inferência.
-O assistente consulta um resumo privado somente leitura, sem ferramentas de atuação.
+- Acompanhe seis sensores em tempo real, consulte o histórico e inspecione o
+  equipamento no gêmeo digital 3D.
+- Controle a luz pelo painel e acompanhe o buzzer automático quando a
+  temperatura sair da faixa configurada.
+- Gere dados sintéticos, treine modelos de saúde e vida útil e consulte o
+  estado do equipamento com o assistente local.
 
-Os [diagramas detalhados](docs/aiot/architecture.md) explicam esses fluxos e suas
-falhas. Os [contratos](contracts/README.md) fixam formatos/unidades. ESP32/Wokwi e
-MQTT v1/v2 continuam como caminho legado opcional, com [guia próprio](firmware/README.md).
+As medições e falhas são simuladas e servem para estudo. As estimativas de
+saúde e vida útil carecem de calibração em equipamento real.
 
 ## Como rodar
 
-**Primeira instalação.** Abra o [runbook](docs/runbook.md#1-pré-requisitos) e siga
-o comissionamento. Você vai gerar o `.env`, provisionar os tokens do InfluxDB,
-subir a base, cadastrar a conta e o dispositivo `sim-lab-01`, vincular o catálogo
-e preparar os pesos do assistente. Use Docker com Compose, Python 3 para os
-scripts e a porta `5173` livre. No Windows, execute o guia pelo WSL 2.
+### Primeira instalação
 
-**Instalação já comissionada.** Da raiz do projeto, use a composição padrão:
+Tenha Git, Python 3, `curl` e Docker com Compose, com a porta local `5173`
+livre. O primeiro build e o download dos pesos exigem internet. No Windows,
+use WSL 2 com a integração do Docker Desktop. O build Docker já instala o Node
+e as dependências da aplicação.
+
+```sh
+git clone --branch main https://github.com/VitorFcosta/ColdSafe.git
+cd ColdSafe
+```
+
+1. Siga as [seções 2 a 5 do runbook](docs/runbook.md#2-criar-a-configuração-local)
+   para gerar a configuração local, provisionar os tokens do InfluxDB e subir a
+   base de cadastro.
+2. Siga o [comissionamento da pilha completa](docs/runbook.md#pilha-final-aiot-jobs-inferência-e-assistente)
+   para vincular `sim-lab-01` à sua conta, preparar o catálogo e os pesos do
+   assistente e iniciar a aplicação.
+3. Abra o [ColdSafe](http://localhost:5173/) e entre com a conta proprietária do
+   simulador. Em **Monitoramento → Visão geral**, selecione o ambiente de
+   `sim-lab-01` e confira se os seis sensores exibem leituras recentes.
+
+### Iniciar uma instalação já preparada
+
+Com conta, catálogo, tokens e pesos preparados, execute da raiz do projeto:
 
 ```sh
 docker compose config --quiet
@@ -56,15 +56,33 @@ docker compose ps -a
 ```
 
 O esperado são **14 serviços saudáveis** e **dois inicializadores com `Exited (0)`**.
-Abra a [aplicação](http://localhost:5173/) e entre com a conta proprietária do
-simulador. Em **Monitoramento → Visão geral**, selecione o ambiente de `sim-lab-01`
-e confira se os seis sensores exibem leituras recentes. O Swagger está em
-[`/docs`](http://localhost:5173/docs).
+O [runbook](docs/runbook.md) cobre diagnóstico e encerramento com os dados
+preservados. Consulte a [matriz de versões](docs/version-matrix.md) para reproduzir
+o ambiente e o [Swagger local](http://localhost:5173/docs) para explorar a API.
 
-Acrescente `--build` ao `up` quando precisar reconstruir as imagens. Use
-`docker compose down` para encerrar preservando os volumes. O [runbook](docs/runbook.md)
-explica como distinguir indisponibilidade da API, telemetria ausente e previsão
-em aquecimento. As versões estão na [matriz](docs/version-matrix.md).
+## Arquitetura implementada
+
+```mermaid
+flowchart LR
+  S["Simulador Python"] -->|MQTT| M["Mosquitto"]
+  M --> G["Gateway"]
+  G -->|AMQP| R["RabbitMQ"]
+  R --> W["Writer"]
+  W --> I[("InfluxDB")]
+  W -->|recibo| R
+  R -->|leitura e recibo| A["FastAPI"]
+  A <--> P[("PostgreSQL")]
+  A -->|atualização| U["Painel Vue"]
+```
+
+O simulador publica uma leitura pelo MQTT. O gateway a encaminha ao RabbitMQ,
+e o writer emite um recibo depois de gravá-la no InfluxDB. A API correlaciona
+leitura e recibo antes de atualizar o painel. Quando o navegador reconecta,
+a API recupera o estado pela projeção no PostgreSQL.
+
+Veja os [fluxos de comandos, treinamento, inferência e assistente](docs/aiot/architecture.md)
+e os [formatos das mensagens e da API](contracts/README.md). O percurso com
+ESP32 e MQTT v1/v2 está no [guia de firmware](firmware/README.md).
 
 ## Usuários de demonstração
 
@@ -77,11 +95,9 @@ pré-instaladas. Guarde senhas fora do Git e da documentação.
 | `demo-operador@coldsafe.test` | `operator` | Cadastro, regras e comandos do próprio ambiente; páginas administrativas recusadas |
 | `demo-leitura@coldsafe.test` | `viewer` | Consulta do próprio ambiente; escrita recusada |
 
-Prepare ambientes privados para operador/leitura e atribua papéis com a API
-administrativa indicada no runbook. O simulador provisionado pertence a uma única
-conta; as outras podem mostrar ausência de leitura. Não reutilize UUIDs nem
-credenciais do catálogo live entre contas. Não rebaixe o único administrador:
-a API atual permite alterar o próprio papel e não protege o último admin.
+Cada conta acessa os próprios ambientes. Siga o
+[runbook](docs/runbook.md#pilha-final-aiot-jobs-inferência-e-assistente) para
+configurar os papéis e vincular o simulador à conta proprietária.
 
 ## Desenvolvimento e testes
 
