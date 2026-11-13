@@ -5,9 +5,9 @@ simulado, acompanhar alertas de temperatura e estimar a saúde e a vida útil
 restante de um ventilador.
 
 [Como rodar](#como-rodar) · [Arquitetura](#arquitetura-implementada) ·
-[Documentação](docs/README.md)
+[Mais telas](#mais-telas) · [Documentação](docs/README.md)
 
-![Painel do ColdSafe com seis medições, alertas do dispositivo e estado da luz e do buzzer](frontend/public/media/dashboard-overview.png)
+![Painel do ColdSafe com seis medições, alertas, gráfico de temperatura e estimativas de saúde e vida útil do ventilador](docs/images/dashboard.png)
 
 *Visão geral do painel com dados simulados.*
 
@@ -83,6 +83,18 @@ a API recupera o estado pela projeção no PostgreSQL.
 Veja os [fluxos de comandos, treinamento, inferência e assistente](docs/aiot/architecture.md)
 e os [formatos das mensagens e da API](contracts/README.md). O percurso com
 ESP32 e MQTT v1/v2 está no [guia de firmware](firmware/README.md).
+
+## Mais telas
+
+As capturas abaixo mostram cenários independentes com dados simulados.
+
+### Gêmeo digital
+
+![Ventilador em 3D, lista de componentes e painel de controle do LED selecionado](docs/images/digital-twin.png)
+
+### Saúde e previsões
+
+![Estimativas de saúde e vida útil do ventilador, alerta preditivo aberto e regras de abertura e recuperação](docs/images/health-and-predictions.png)
 
 ## Usuários de demonstração
 
